@@ -136,9 +136,30 @@ cannot see that, and neither can a container. It asks `/api/health` and restarts
 failures in a row. **Patience is its point, not sensitivity:** a cold dev compile takes up to 41 seconds,
 and an eager watchdog turns a slow start into an endless restart loop.
 
-🔒 **`npm run serve:start | stop | status | autostart` — and the human never hears the word pm2.**
-Starting the server by hand (`node server.js`) once it runs under pm2 is now an error: two servers race
-for the port, and the winner may be the stale one answering with an old build.
+🔒 **THE SITE RUNS IN PRODUCTION, NEVER IN DEV** — the owner, 2026-09-18: «мне режим разработки не
+нужен вообще». This is not a preference. In dev every page compiles on first visit, and compiling
+spawns child processes (postcss, workers); on Windows each one opens a black console window across the
+screen. Measured: `/ru` took 30–41 s in dev and **0.28 s** built. The price of production is that the
+site serves a BUILD — after changing code run `npm run serve:rebuild`, or the page keeps answering from
+the previous build and it looks like your edit did nothing.
+
+🛑 **ANY PROCESS SPAWNED BY A BACKGROUND SERVICE MUST PASS `windowsHide: true`.** In node the option
+defaults to **false**, so Windows opens a console window for every spawn — and a service that flashes
+windows over the human's screen is unusable no matter how correct it is inside. Paid for 2026-09-18:
+the tunnel reopened a window on every reconnect, seven times in ten minutes.
+
+🔒 **GOING PUBLIC IS A SEPARATE DECISION, NOT A SIDE EFFECT OF STARTING.** `serve:start` runs the site
+for the owner of the machine; `serve:publish` puts it on the internet through a Cloudflare quick
+tunnel, `serve:unpublish` takes it back off. That address is temporary and changes on every restart, so
+it is written to `logs/tunnel.json` and shown by `serve:status` — never remembered. The permanent
+address (the human's own domain) is the second scenario and belongs to the control panel.
+
+🛑 **The tunnel runs with `--protocol http2`, not the default QUIC.** Cloudflare's own docs warn that
+idle QUIC sessions break on networks that aggressively time out UDP — every mobile hotspot does.
+
+🔒 **`npm run serve:start | stop | status | rebuild | publish | unpublish | autostart` — and the human
+never hears the word pm2.** Starting the server by hand (`node server.js`) once it runs under pm2 is an
+error: two servers race for the port, and the winner may be the stale one answering with an old build.
 
 🛑 **On Windows node refuses to spawn `.cmd` without a shell** — `EINVAL`, silently, with nothing in
 stdout or stderr (node’s own restriction after CVE-2024-27980). Any code calling `npm`/`pm2` must pass
