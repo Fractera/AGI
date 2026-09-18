@@ -2,42 +2,32 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { User, LogOut, Info } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import type { AuthShellSide } from "@/components/menu/account/account-config";
 import type { AccountLabels } from "@/components/menu/account/account-menu.i18n";
-import { PROTECTED_GROUP_ROLES, type ProtectedGroup } from "@/lib/roles";
-import { H3 } from "@/components/ui/typography";
-import { FLOW_COLOR } from "@/lib/flows";
 
-// Слой → ключ его заголовка в словаре. Отдельной таблицей, чтобы добавить пятый
-// слой можно было в двух местах (роли и словарь), а не в трёх.
-const GROUP_LABEL = {
-  account: "groupAccount",
-  staff: "groupStaff",
-  finance: "groupFinance",
-  admin: "groupAdmin",
-} as const satisfies Record<ProtectedGroup, keyof AccountLabels>;
+// 🪦 ТАБЛИЦА ЗАГОЛОВКОВ СЛОЁВ УДАЛЕНА (230-1, 2026-09-18, слово владельца:
+// «вообще не нужно показывать деления по разделам и роли»). Ящик больше не
+// знает о слоях прав ничего — ссылки идут одним списком в том порядке, в
+// котором их даёт приложение.
 
 // Full-height account drawer (step 161). Opens from the side set by NEXT_PUBLIC_APP_SHELL_AUTH;
 // taller than the left/right page drawers (which start below the header). Three zones:
-//   (top) sticky title; (middle) scroll area — the person's work sections, grouped by
-//   permission layer; (bottom) fixed: sign out, then the identity row (info icon → role
-//   tooltip + the email).
-// Owns its OWN open state — DrawerProvider is structurally two-sided (left/right) and must not
+//   (top) sticky title; (middle) scroll area — a flat list of the work links the
+//   application provides; (bottom) fixed: the email, then sign out.
 // carry a third drawer. UI standard: shadcn Sheet (Radix) + lucide; trigger = shadcn Button
 // (Base UI, no asChild) driving controlled state.
 //
-// 🔒 РАЗБИТ ПО ЧЕТЫРЁМ СЛОЯМ ПРАВ, А НЕ ПЛОСКИМ СПИСКОМ. Сотрудник может быть
-// одновременно менеджером и финансистом — и это не мелочь учёта, а разные роли
-// в работе: правя цену, он действует как финансист, заводя товар — как
-// менеджер. Плоский список этого не показывает, и человек не видит, в каком
-// качестве он делает то, что делает. Порядок блоков ФИКСИРОВАН и совпадает с
-// `PROTECTED_GROUP_ROLES`: своё → чужое по долгу службы → деньги → сам проект.
+// 🪦 БЫЛ РАЗБИТ ПО ЧЕТЫРЁМ СЛОЯМ ПРАВ (отменено 230-1, 2026-09-18 по слову
+// владельца). Довод был такой: сотрудник бывает менеджером и финансистом разом,
+// и человеку полезно видеть, в каком качестве он действует. Он верен для проекта,
+// где эти разделы построены, и обращается в свою противоположность там, где их
+// ещё нет: ящик состоял из четырёх заголовков, значков ролей и четырёх надписей
+// «здесь пока ничего не построено».
 //
 // 🔒 ПУНКТЫ ПРИХОДЯТ СПИСКОМ, А НЕ ЗАШИТЫ ЗДЕСЬ. Ящик — переиспользуемая часть
 // продукта, живущая на всех 82 языках; страницы проекта у каждого клиента свои.
@@ -48,37 +38,25 @@ const GROUP_LABEL = {
 export type DrawerLink = {
   href: string;
   label: string;
-  /** Слой прав, к которому относится раздел. */
-  group: ProtectedGroup;
 };
 
-// Порядок показа. Он же порядок в `PROTECTED_GROUP_ROLES` — списки, идущие в
-// разном порядке, однажды разойдутся составом, и заметит это пользователь.
-const GROUP_ORDER = ["account", "staff", "finance", "admin"] as const;
 
-export function AccountDrawer({ lang, side, labels, email, roles, links }: {
+export function AccountDrawer({ lang, side, labels, email, links }: {
   lang: string;
   side: AuthShellSide;
   labels: AccountLabels;
   email?: string;
-  roles?: string[];
   /** Пункты рабочих разделов — их состав задаёт приложение. */
   links?: DrawerLink[];
 }) {
   const [open, setOpen] = useState(false);
-  const roleList = roles && roles.length ? roles : [];
 
-  // Блок показывается, если человек ПРИНАДЛЕЖИТ слою, а не если в слое есть
-  // страницы: слой без страниц — это «здесь пока ничего не построено», и сказать
-  // это честнее, чем спрятать слой и оставить человека в уверенности, что прав у
-  // него меньше, чем есть.
-  const sections = GROUP_ORDER
-    .filter((g) => PROTECTED_GROUP_ROLES[g].some((r) => roleList.includes(r)))
-    .map((g) => ({
-      group: g,
-      title: labels[GROUP_LABEL[g]],
-      links: (links ?? []).filter((l) => l.group === g),
-    }));
+  // 🔒 ПУСТОЙ СПИСОК ОСТАЁТСЯ ПУСТЫМ, А НЕ ПРЕВРАЩАЕТСЯ В НАДПИСЬ (владелец,
+  // 2026-09-18: «сейчас нет никаких ссылок поэтому не нужно показывать пустые
+  // разделы»). Раньше слой без страниц честно сообщал «здесь пока ничего не
+  // построено»; в проекте, где рабочих разделов ещё нет вовсе, из этой честности
+  // выходил ящик из четырёх заголовков и четырёх извинений.
+  const items = links ?? [];
 
   return (
     <>
@@ -102,91 +80,46 @@ export function AccountDrawer({ lang, side, labels, email, roles, links }: {
               проверка стоит на самой странице (layout подгруппы) и в маршрутах
               данных. Спрятанный пункт — вежливость, а не защита, и путать эти два
               не следует никогда. */}
+          {/* 🔒 СЕРЕДИНА — ПЛОСКИЙ СПИСОК ССЫЛОК, БЕЗ СЛОЁВ И БЕЗ РОЛЕЙ
+              (владелец, 2026-09-18: «когда в будущем будут появляться ссылки
+              пусть они идут просто обычным текстом традиционно без деления по
+              личной персонал финансы администрирование и без ролей»).
+
+              🪦 Здесь стояли четыре подписанных слоя прав, цветная точка потока у
+              каждого заголовка, перечень всех возможных ролей слоя значками и
+              надпись «здесь пока ничего не построено» для пустого слоя. Довод в
+              пользу слоёв был такой: сотрудник бывает и менеджером, и финансистом
+              разом, и человеку полезно видеть, в каком качестве он действует.
+              Довод верен для проекта, где эти разделы построены; в проекте, где
+              рабочих страниц ещё нет, он давал ящик из одних заголовков.
+
+              🔒 ПРОВЕРКА ПРАВ НЕ ПОСТРАДАЛА, и это стоит сказать прямо: спрятанный
+              пункт всегда был вежливостью, а не защитой. Замок стоит на самой
+              странице (layout подгруппы) и в маршрутах данных, и он на месте. */}
           <div className="flex-1 overflow-y-auto px-4 py-4">
-            {sections.map((s, i) => (
-              <section key={s.group} className="mb-5 last:mb-0">
-                {/* Точка того же цвета, что и полоса потока на странице. Один
-                    источник цвета на оба места (`lib/flows.ts`): человек,
-                    увидевший зелёную ленту, обязан найти в ящике зелёную точку —
-                    иначе оба знака перестают что-либо значить. */}
-                <H3 variant="ui" className="flex items-center gap-2 px-2">
-                  <span aria-hidden className={`size-2 shrink-0 rounded-full ${FLOW_COLOR[s.group].dot}`} />
-                  {s.title}
-                </H3>
-
-                {/* 🔒 РОЛИ СЛОЯ — ВСЕ ВОЗМОЖНЫЕ, А НЕ ТОЛЬКО СВОИ (владелец,
-                    2026-08-15). Человек видит, из чего слой состоит: какие роли
-                    здесь вообще бывают. Показывать только его собственные значило
-                    бы отвечать на вопрос «кто я», а вопрос у ящика другой — «как
-                    устроен доступ». Свои роли и так названы внизу, у почты.
-
-                    Источник — `PROTECTED_GROUP_ROLES` (`lib/roles.ts`), тот же,
-                    по которому слой открывается. Копии здесь быть не может: копия
-                    однажды начнёт обещать роль, которой дверь уже не знает.
-
-                    Список переносится на столько строк, сколько нужно (`flex-wrap`):
-                    у слоя аккаунта их семь, и обрезать их было бы враньём о правах. */}
-                <ul className="mt-2 flex flex-wrap gap-1 px-2">
-                  {PROTECTED_GROUP_ROLES[s.group].map((r) => (
-                    <li
-                      key={r}
-                      className={cn(
-                        "rounded-full border border-border px-2 py-0.5 text-[12px] leading-tight",
-                        // Своя роль выделена: человек находит себя в списке слоя,
-                        // не сверяя его глазами со строкой внизу.
-                        roleList.includes(r)
-                          ? "border-primary/40 bg-primary/10 text-foreground"
-                          : "text-muted-foreground",
-                      )}
-                    >
-                      {r}
-                    </li>
-                  ))}
-                </ul>
-
-                {s.links.length > 0 ? (
-                  <nav className="mt-1.5 flex flex-col gap-0.5">
-                    {s.links.map((l) => (
-                      <Link
-                        key={l.href}
-                        href={l.href}
-                        onClick={() => setOpen(false)}
-                        className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "w-full justify-start")}
-                      >
-                        {l.label}
-                      </Link>
-                    ))}
-                  </nav>
-                ) : (
-                  <p className="mt-1.5 px-2 text-xs text-muted-foreground">{labels.groupEmpty}</p>
-                )}
-
-                {/* Черта закрывает слой. Без неё роли следующего слоя читались
-                    как продолжение страниц предыдущего — списки шли встык, и
-                    граница между «моё» и «по долгу службы» пропадала. У последнего
-                    слоя её нет: снизу и так своя черта, над строкой выхода. */}
-                {i < sections.length - 1 && <Separator className="mt-4" />}
-              </section>
-            ))}
+            {items.length > 0 && (
+              <nav className="flex flex-col gap-0.5">
+                {items.map((l) => (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    onClick={() => setOpen(false)}
+                    className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "w-full justify-start")}
+                  >
+                    {l.label}
+                  </Link>
+                ))}
+              </nav>
+            )}
           </div>
 
           {/* Bottom — fixed: identity row on top, sign out below; both left-aligned. */}
           <div className="mt-auto border-t border-border p-3 flex flex-col gap-3">
+            {/* 🪦 ЗНАЧОК С ПЕРЕЧНЕМ СВОИХ РОЛЕЙ УБРАН ОТСЮДА (230-1, 2026-09-18,
+                то же слово владельца — «и без ролей»). Осталась почта: она
+                отвечает на вопрос «кто я вошёл», а роли человеку в этом ящике
+                больше не показываются нигде. */}
             <div className="flex items-center gap-2 min-w-0">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger className="shrink-0 text-muted-foreground hover:text-foreground transition-colors">
-                    <Info className="size-4" />
-                  </TooltipTrigger>
-                  <TooltipContent side="top">
-                    {roleList.length ? (
-                      <ul className="flex flex-col gap-0.5">
-                        {roleList.map((r) => <li key={r}>{r}</li>)}
-                      </ul>
-                    ) : "—"}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
               <span className="text-sm text-foreground truncate">{email}</span>
             </div>
             <Separator />

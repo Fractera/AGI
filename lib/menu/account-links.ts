@@ -30,6 +30,6 @@ import type { DrawerLink } from "@/components/menu/account/account-drawer.client
 // страницы, — не 82 впрок.
 export function accountLinks(lang: string): DrawerLink[] {
   return [
-    { href: `/${lang}/administration/users`, label: administrationUsersUi(lang).title, group: "admin" },
+    { href: `/${lang}/administration/users`, label: administrationUsersUi(lang).title },
   ]
 }
