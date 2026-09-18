@@ -233,7 +233,7 @@
         {
           "page": "(home)",
           "order": 4,
-          "times": 3
+          "times": 5
         },
         {
           "page": "accessibility",
@@ -278,7 +278,7 @@
         {
           "page": "(home)",
           "order": 3,
-          "times": 3
+          "times": 5
         },
         {
           "page": "architecture",
