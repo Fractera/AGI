@@ -1,3 +1,4 @@
+import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 
@@ -12,21 +13,16 @@ export const viewport: Viewport = {
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  // suppressHydrationWarning на <html> и <body>. Причина не в нашем коде:
+  // расширения браузера (замечено на html — overscroll-behavior-x, ставит
+  // расширение) правят разметку ДО того, как React сверит её с серверной.
+  // Наших расхождений здесь нет — стили вынесены в globals.css именно
+  // для этого. Подавление стоит только на двух корневых тегах, куда лезут
+  // расширения, и НЕ распространяется на содержимое страницы: настоящее
+  // расхождение внутри main по-прежнему будет видно в логе.
   return (
-    <html lang="en">
-      <body
-        style={{
-          margin: 0,
-          minHeight: '100vh',
-          display: 'grid',
-          placeItems: 'center',
-          fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
-          background: '#0b0b0d',
-          color: '#f5f5f7',
-        }}
-      >
-        {children}
-      </body>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   )
 }
