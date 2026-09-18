@@ -1,0 +1,1120 @@
+import type { Block } from '@/lib/content/blocks/types'
+
+// ОБРАЗЦЫ ВСЕХ ВИДОВ СЕКЦИЙ — по одному на каждый вид каталога.
+//
+// 🔒 ЗАЧЕМ ЭТОТ ФАЙЛ СУЩЕСТВУЕТ (шаг 507, требование владельца).
+// Пять видов из пятнадцати не были использованы НИ В ОДНОМ материале: `table`,
+// `docref`, `callout`, `columns`, `group`. Значит их код не рисовался никогда —
+// ни на сборке, ни в браузере, ни разу за всё время. В одном из них так и лежал
+// дефект: у кнопки `docref` текст был цвета страницы на заливке `primary`, то
+// есть тёмный на тёмном в светлой теме. Ровно эту ошибку в соседней кнопке `cta`
+// вылечили за день до того — а сюда правка не дошла, потому что смотреть было
+// некуда.
+//
+// Вывод, который и породил этот файл: вид секции, не нарисованный нигде, не
+// «неиспользуемый код», а НЕПРОВЕРЕННЫЙ. Здесь каждый вид рисуется настоящим
+// рендерером на настоящей странице, и владелец видит их все разом.
+//
+// 🔒 ПОЧЕМУ ТЕКСТ ОБРАЗЦОВ НА АНГЛИЙСКОМ И ЭТО НЕ НАРУШЕНИЕ ПРАВИЛА ЯЗЫКОВ.
+// Это не продуктовая копия, а материал, который показывает ФОРМУ: каждая строка
+// объясняет, для чего вид нужен и чего ему нельзя поручать. Слова самой страницы
+// (заголовок, пояснение, подписи) живут в `ui.i18n.ts` и переведены по
+// включённому набору языков, как у любой другой страницы.
+//
+// Гейт `npm run check:blocks` требует, чтобы КАЖДЫЙ вид каталога встречался
+// здесь: добавили вид в `lib/content/blocks/types.ts` — обязаны добавить образец,
+// иначе он снова окажется невидимым.
+
+export type SpecimenSection = {
+  /** Вид секции, который показывает этот образец. */
+  kind: Block['kind']
+  /**
+   * Подпись образца. Нет — печатается сам `kind`.
+   *
+   * 🔒 ПОЯВИЛАСЬ, КОГДА У ОДНОГО ВИДА СТАЛО ДВА ОБРАЗЦА (шаг 48-1, 2026-08-30).
+   * У `workspace` их два — со вкладками и без, — и оба были подписаны словом
+   * «workspace»: человек видел два одинаково названных блока и не понимал, чем
+   * они различаются. Заодно это чинило дефект, который иначе не виден вовсе:
+   * ключ списка в каталоге строится из `kind`, и два образца одного вида давали
+   * React ОДИН И ТОТ ЖЕ ключ.
+   */
+  label?: string
+  /** Одна фраза: когда этот вид уместен. Английская основа. */
+  when: string
+  /**
+   * Перевод описания.
+   *
+   * 🔒 ПЕРЕВОДИТСЯ ОПИСАНИЕ, А НЕ СОДЕРЖИМОЕ ОБРАЗЦА (решение владельца
+   * 2026-08-30, дословно): «сами секции внутри пусть остаются на английском но
+   * описание на русском». Разница содержательная: содержимое образца — это
+   * ДЕМОНСТРАЦИЯ вида, и переводить её значило бы переводить макет; описание —
+   * объяснение того, когда вид уместен, и читает его человек.
+   *
+   * Нет перевода — печатается английская основа, тем же поключевым правилом,
+   * которым живут языковые ячейки страниц.
+   */
+  whenRu?: string
+  blocks: Block[]
+}
+
+export const SPECIMEN: SpecimenSection[] = [
+  {
+    kind: 'h2',
+    when: 'Section heading. It also builds the table of contents and the anchor.',
+    blocks: [{ kind: 'h2', text: 'A section heading' }],
+  },
+  {
+    kind: 'h3',
+    when: 'Sub-heading inside a section. It becomes the second level of the table of contents, nested under its own h2.',
+    blocks: [{ kind: 'h3', text: 'A sub-heading' }],
+  },
+  {
+    kind: 'h4',
+    when: 'Fourth level — a topic inside a sub-heading. For documents that are genuinely three levels deep.',
+    blocks: [{ kind: 'h4', text: 'A fourth-level heading' }],
+  },
+  {
+    kind: 'h5',
+    when: 'Fifth and deepest level: a label for a short enumeration. Same size as body text, set apart by caps — a heading smaller than prose stops reading as a heading.',
+    blocks: [{ kind: 'h5', text: 'A fifth-level label' }],
+  },
+  {
+    kind: 'p',
+    when: 'Ordinary prose. Supports **bold** and [links](https://example.com).',
+    blocks: [
+      {
+        kind: 'p',
+        text: 'A paragraph carries the argument. Inline markup is limited on purpose: **bold** for emphasis and a [link](https://example.com) — anything richer belongs in a block of its own, where the renderer can be held to a contract.',
+      },
+    ],
+  },
+  {
+    kind: 'quote',
+    when: 'Somebody else’s words. `cite` names the author; the optional `lead` is a headline-sized first line INSIDE the quote — a field rather than a second kind, so the drawing cannot drift.',
+    blocks: [
+      {
+        kind: 'quote',
+        text: 'A quote is the one place where the text is not yours — so the block shows attribution, and the attribution is a separate field rather than a line of prose.',
+        cite: 'The engine, on itself',
+      },
+      {
+        kind: 'quote',
+        lead: 'The same block, with a lead',
+        text: 'The lead is not a heading tag: inside a quotation it would announce a section that does not exist, both in the table of contents and in the machine twin. It is a first line that simply reads larger.',
+        cite: 'The engine, on itself',
+      },
+    ],
+  },
+  {
+    kind: 'list',
+    when: 'Unordered set: the order carries no meaning.',
+    blocks: [
+      {
+        kind: 'list',
+        items: [
+          'Items that could be read in any order.',
+          'Each one stands on its own.',
+          'Inline markup works here too: **bold**.',
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'olist',
+    when: 'Ordered steps: the order IS the meaning.',
+    blocks: [
+      {
+        kind: 'olist',
+        items: ['First the goal is set.', 'Then the work is done.', 'Then a machine checks it.'],
+      },
+    ],
+  },
+  {
+    kind: 'figure',
+    when: 'An illustration. `media:<name>` takes it from the store, a path takes it from the project.',
+    blocks: [
+      {
+        kind: 'figure',
+        media: 'image',
+        src: 'media:development-loop-2026.jpg',
+        alt: 'A specimen illustration resolved from the media store by its file name',
+        caption: 'Referenced as `media:development-loop-2026.jpg` — the owner can replace it in the panel with no rebuild.',
+      },
+    ],
+  },
+  {
+    kind: 'code',
+    when: 'Code or an ASCII diagram. Never reformatted, never highlighted.',
+    blocks: [
+      {
+        kind: 'code',
+        text: 'goal ──▶ agent ──▶ gates ──▶ green? ──▶ shipped\n            ▲                  │\n            └────── failure ────┘',
+      },
+    ],
+  },
+  {
+    kind: 'note',
+    when: 'A footnote-weight remark: a source, a caveat.',
+    blocks: [
+      {
+        kind: 'note',
+        text: 'A note sits below the argument and does not compete with it — quieter type, but still above the contrast threshold.',
+      },
+    ],
+  },
+  {
+    kind: 'callout',
+    when: 'An aside the reader should not miss. `title` is the lead-in.',
+    blocks: [
+      {
+        kind: 'callout',
+        title: 'Did you know?',
+        text: 'This page is the first place where five of the fifteen block kinds have ever been rendered at all.',
+      },
+    ],
+  },
+  {
+    kind: 'cta',
+    when: 'One action, one link. Inside a site the only legal form is the language root.',
+    blocks: [
+      {
+        kind: 'cta',
+        text: 'A call to action states what the reader gets, not what the button does.',
+        href: '/en',
+        label: 'Open the home page',
+      },
+    ],
+  },
+  {
+    kind: 'table',
+    when: 'A comparison. The LAST column is emphasized as “ours”.',
+    blocks: [
+      {
+        kind: 'table',
+        caption: 'What the two ways of working cost',
+        headers: ['', 'By hand', 'In a loop'],
+        rows: [
+          ['Who repeats the work', 'a person', 'a machine'],
+          ['Who notices a mistake', 'a person, later', 'a gate, immediately'],
+          ['What scales', 'nothing', '**the verification**'],
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'docref',
+    when: 'A card pointing at a full document, with a download button.',
+    blocks: [
+      {
+        kind: 'docref',
+        title: 'The development loop, as a picture',
+        summary: 'The same diagram this page renders above — offered as a file rather than as a figure.',
+        href: '/blog-media/development-loop-2026.jpg',
+        label: 'Download the image',
+        kicker: 'Reference material',
+      },
+    ],
+  },
+  {
+    kind: 'founder',
+    when: 'A pull-quote in the owner’s voice. The byline comes from the settings.',
+    blocks: [
+      {
+        kind: 'founder',
+        text: 'A quote in the owner’s own voice, signed by whoever the project settings say the author is — never by a name typed into the content.',
+      },
+    ],
+  },
+  {
+    kind: 'columns',
+    when: 'Two or three columns on wide screens, stacked on a phone. Holds any blocks.',
+    blocks: [
+      {
+        kind: 'columns',
+        cols: 2,
+        children: [
+          {
+            kind: 'group',
+            children: [
+              { kind: 'h3', text: 'Left column' },
+              { kind: 'p', text: 'A container renders its children through the same registry, so anything nests inside anything.' },
+            ],
+          },
+          {
+            kind: 'group',
+            children: [
+              { kind: 'h3', text: 'Right column' },
+              { kind: 'list', items: ['Including lists.', 'Including another container.'] },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'group',
+    when: 'A plain vertical grouping — a column’s contents, or a semantic wrapper.',
+    blocks: [
+      {
+        kind: 'group',
+        children: [
+          { kind: 'p', text: 'A group adds no decoration of its own. It exists so a container can hold a sequence where one block was expected.' },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'heroBadge',
+    when: 'The project mark and the eyebrow above the H1. The mark comes from settings, never from content; the H1 itself is drawn by the page factory.',
+    blocks: [{ kind: 'heroBadge', pill: 'Eyebrow above the title' }],
+  },
+  {
+    kind: 'heroSplit',
+    when: 'A landing page\'s first screen: the words on the left, the illustration on the right. The ONLY section that carries the H1 itself — the page using it declares `titleInBody`, so the factory does not print a second one. The picture names a SETTINGS SLOT, not a file: every project has its own and it changes in the panel without a rebuild.',
+    blocks: [
+      {
+        kind: 'heroSplit',
+        pill: 'Eyebrow above the title',
+        title: 'The headline of a landing page',
+        description:
+          'The paragraph that earns the visit — long enough to say what the product is and **why it matters**, short enough to read before scrolling.',
+        image: 'homePage',
+        imageAlt: 'Illustration of the product',
+      },
+    ],
+  },
+  {
+    kind: 'languageMarquee',
+    when: 'The OUTRO section: the last thing on a page, always full width, never governed by the width toggle. A marquee of all 82 languages — flag plus the name in that language — read straight from config/translations/language-metadata.ts, never from page data. Movement is pure CSS: it works with JavaScript off and stops for prefers-reduced-motion.',
+    blocks: [
+      {
+        kind: 'languageMarquee',
+        title: 'Eighty-two languages, ready before you need them',
+        note: 'Every one of them ships with the product.',
+      },
+    ],
+  },
+  {
+    kind: 'projectTypeMarquee',
+    when: 'A marquee of the 22 project directions a customer can build — landing page, store, company brain. Read from config/project-types.ts and its corpus, never from page data, so it cannot drift from the catalogue the control panel offers. Right-to-left, pure CSS, 200px of blur at both edges; clicking a card pauses the belt and opens a reference dialog with no buttons at all. Title and note are optional and normally absent: the section sits directly under the hero, where a second heading argues with the H1.',
+    blocks: [
+      { kind: 'projectTypeMarquee' },
+    ],
+  },
+  {
+    kind: 'badges',
+    when: 'A row of capability labels. The tone is a MEANING group, not a colour.',
+    blocks: [
+      {
+        kind: 'badges',
+        items: [
+          { label: 'Reach', tone: 'reach' },
+          { label: 'Data', tone: 'data' },
+          { label: 'Access', tone: 'access' },
+          { label: 'Code', tone: 'code' },
+          { label: 'And more', tone: 'muted' },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'metrics',
+    when: 'One row of measures: a number and the thing it measures. Semantically a description list, NOT a table — three independent value/label pairs carry no row-to-column relationship, and markup that promises one lies to whoever cannot see the page. `value` is machine-side and never translated; the label beside it is an ordinary page string.',
+    blocks: [
+      {
+        kind: 'metrics',
+        items: [
+          { value: '×4', label: 'cheaper to build' },
+          { value: '×9', label: 'faster to launch' },
+          { value: '×100', label: 'more reliable in production' },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'problemSolution',
+    when: 'A set of independent cases, read ONE at a time: the list on the left, the opened case on the right — what is required on top, why it works here underneath. Different from flow: flow has ORDER and shows every step at once; here there is no order, and each case has two sides that must sit one under the other so the lower one reads as the answer to the upper. Switching is pure CSS (radio + :checked in styles/globals.css) — every case ships in the server markup, so the crawler and a visitor without JavaScript get all of it, and no separate copy "for robots" is needed. Panels are stacked in ONE grid cell, so the height equals the longest case and the page never jumps while switching. Six cases maximum — that is how many rules the stylesheet carries.',
+    blocks: [
+      {
+        kind: 'problemSolution',
+        badge: 'Why it matters',
+        title: 'Two sides of the same case',
+        note: 'Pick a case on the left; the card shows what it demands and how this project answers it.',
+        demandLabel: 'What is required',
+        answerLabel: 'Why it works here',
+        items: [
+          {
+            title: 'A case with a demand',
+            demand: 'The upper half states what the situation asks of you — plainly, in the words of somebody living through it rather than of somebody selling a cure.',
+            answer: 'The lower half answers. It reads as a reply because it stands underneath: put the two side by side and the connection turns into a comparison.',
+          },
+          {
+            title: 'A second, unrelated case',
+            demand: 'Cases are independent — there is no first and no last. That is precisely why this is not a numbered list: numbering would promise an order that does not exist.',
+            answer: 'The list on the left is a group of radio buttons, so a keyboard walks the cases with arrow keys and a screen reader announces them without any help from us.',
+          },
+          {
+            title: 'The longest one sets the height',
+            demand: 'Cases differ in length, and a card that resizes on every switch makes the page jump under the cursor — the reader loses the place they were holding.',
+            answer: 'All panels live in one grid cell, so the section is as tall as the longest case and stays that way. Nothing moves except the text fading in.',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'flow',
+    when: 'How something works, as steps that light up in turn with a spark running along the link between them. Order is the CONTENT here, not decoration — that is what separates it from an olist in a box. Movement is pure CSS (styles/globals.css): it works with JavaScript off and stands still for prefers-reduced-motion. The wording never dims — only the frame, the glow and the numbered node do, because text faded with opacity drops below the contrast threshold.',
+    blocks: [
+      {
+        kind: 'flow',
+        title: 'How it works',
+        note: 'Three steps, and the third feeds the first: the loop is the product.',
+        steps: [
+          { title: 'Stand the server up', text: 'An installer robot leaves you an operating system, a starter template, a control panel, storage and authorization — already wired together.' },
+          { title: 'Work where you work', text: 'Sync with GitHub, clone onto your own machine, open your usual editor. The data keeps coming from your server; only the code runs locally.' },
+          { title: 'Push, and it is live', text: 'A push starts a deployment on your own server, and the visitor sees the new version.' },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'cards',
+    when: 'A section of equal cards with NO order between them — the same strip as `flow`, minus the numbers, the link and the animation. The difference is meaning, not decoration: lighting cards up in turn would show a sequence that does not exist, and an untruth told by a good animation is the more convincing kind. Hence `<ul>`, not `<ol>`. The header (badge, heading, lead) is the SHARED `SectionHead`, identical to `flow` and `noBill`. Equal height comes from the grid, never from measuring.',
+    blocks: [
+      {
+        kind: 'cards',
+        badge: 'Section label',
+        title: 'Three things worth knowing',
+        note: 'A lead paragraph under the heading — it says what the cards have in common. The badge above carries the RUBRIC, and its colour is decided by the section, not by the content: a rubric has no semantic group to take a colour from.',
+        children: [
+          { kind: 'card', children: [{ kind: 'p', text: 'A card holds one self-contained statement. Read in any order they still make sense — that is the test for using this kind instead of `flow`.' }] },
+          { kind: 'card', children: [{ kind: 'p', text: 'The cards are the same height because the grid row is as tall as its tallest item and each card fills it. No script measures anything.' }] },
+          { kind: 'card', children: [{ kind: 'p', text: 'A card is a CONTAINER: it holds any blocks — a heading, a list, a paragraph — so one kind serves both three short statements and two long side-by-side panels.' }] },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'card',
+    when: 'One cell of a `cards` section. A container: it holds any blocks. `tone` gives it a light gradient wash in the colour of its MEANING group — `data` for what you do, `access` for what is worth doing first — never "make it green". A cell with no tone is a plain border: a wash has to mean something, and a wash on every cell stops singling out anything.',
+    blocks: [
+      {
+        kind: 'cards',
+        cols: 2,
+        title: 'Two cells, two meanings',
+        children: [
+          {
+            kind: 'card',
+            tone: 'data',
+            children: [
+              { kind: 'h3', text: 'What you do' },
+              { kind: 'olist', items: ['Order matters inside a cell.', 'The cell holds any blocks.'] },
+            ],
+          },
+          {
+            kind: 'card',
+            tone: 'access',
+            children: [
+              { kind: 'h3', text: 'What is worth doing first' },
+              { kind: 'list', items: ['The same tone the panel warns with.', 'Nothing is blocked by it.'] },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'statement',
+    when: 'A large spaced-out claim — the thing a section exists to say. The SAME drawing as the owner\'s pull-quote, minus the byline, and that difference is substantive: `founder` is signed with a name and a photo from the settings, so it marks what a PERSON said. A product rule was said by nobody; signing it would attribute to the owner a sentence he never uttered. The drawing is shared (`sections/pull-quote.server.tsx`) so the two cannot drift apart.',
+    blocks: [
+      {
+        kind: 'statement',
+        text: 'And this is a product rule, not advice: while a single case is unconfirmed the panel keeps its alarm lit and the coding agent refuses to build.',
+      },
+    ],
+  },
+  {
+    kind: 'invite',
+    when: 'An invitation in a dashed frame: here is a place that is still EMPTY and can be taken. Not `cta` — that one is a solid button about a ready action, while the dashes say the opposite: nothing is here yet. The whole card is the link, so hitting it is as easy as missing it is hard. The drawing is shared with the request card standing on the footer placeholder pages (`lib/ui/dashed-card.ts`): there it is a BUTTON and opens a window, here it is a LINK and leads to an address — different natures, one look, one class in one file so the two cannot drift apart.',
+    whenRu: 'Приглашение в пунктирной рамке: здесь пока ПУСТО, и это место можно занять. Не `cta` — та сплошная и про готовое действие, а пунктир говорит обратное: ничего ещё нет. Ссылка — вся карточка целиком: попасть по ней должно быть так же легко, как промахнуться трудно. Рисунок общий с карточкой заявки на страницах подвала (`lib/ui/dashed-card.ts`): там она КНОПКА и открывает окно, здесь ССЫЛКА и ведёт по адресу — природа разная, вид один, и класс живёт в одном файле, чтобы они не разошлись.',
+    blocks: [
+      {
+        kind: 'invite',
+        href: '/en/blocks',
+        label: 'Add a block to this page',
+      },
+    ],
+  },
+  {
+    kind: 'noBill',
+    when: 'The bills that will not arrive: the section is NAMED by an H2 on top, then a struck-through vendor with a badge saying what you stopped buying, then the conclusion as an H3. The vendor is a SEPARATE field because it is the one word never translated — merge it into the sentence and the renderer no longer knows what to strike; the badge beside it IS translated, because "a database" is what a person understands without knowing the name "Neon". The conclusion sits AFTER the list on purpose: the struck names are the evidence, the sentence is what follows from them. The strike runs 2px past each word through padding, never through blank characters typed into the data.',
+    blocks: [
+      {
+        kind: 'noBill',
+        heading: 'A fully independent space',
+        note: 'The section header takes the same shape as `flow` and `cards` — heading centred, lead paragraph beneath it, same width. Three sections of one page, one anatomy.',
+        items: [
+          { vendor: 'Vercel', text: 'you do not pay', badge: { label: 'hosting', tone: 'reach' } },
+          { vendor: 'Neon', text: 'you do not pay', badge: { label: 'database', tone: 'data' } },
+          { vendor: 'Clerk', text: 'you do not pay', badge: { label: 'authorization', tone: 'access' } },
+        ],
+        title: 'You pay nobody',
+        text: 'You depend on nobody. The project is yours, end to end.',
+      },
+    ],
+  },
+  {
+    kind: 'panel',
+    when: 'A bordered section holding any blocks. Three tones: plain, warn, accent.',
+    blocks: [
+      { kind: 'panel', title: 'A plain panel', children: [{ kind: 'p', text: 'The sections of a landing page are all this one kind, differing by tone and contents.' }] },
+      { kind: 'panel', tone: 'warn', title: 'Worth doing', children: [{ kind: 'p', text: 'Something that is not blocking, but is expensive to postpone.' }] },
+      { kind: 'panel', tone: 'accent', eyebrow: 'The one place', title: 'Where the model works', children: [{ kind: 'p', text: 'The only glow on the page: highlighting everything highlights nothing.' }] },
+    ],
+  },
+  {
+    kind: 'faq',
+    when: 'Questions and answers — the last content section of a page, and the only one search engines read as a pair of "term and definition". The heading is printed by the MECHANISM, not by the material: "Frequently asked questions" is already translated into ten languages in `lib/content/page-ui.ts`, so `title` is only for a page whose questions are about one thing rather than frequent. Inline markup is deliberately absent: the very same strings go into the `FAQPage` structured data, where asterisks and brackets would be printed to the search engine verbatim.',
+    blocks: [
+      {
+        kind: 'faq',
+        items: [
+          {
+            q: 'Why is this a catalogue kind rather than layout inside the page template?',
+            a: 'Because a page must have ONE source of markup. While the template drew this section itself, the catalogue promised to show what a page is made of and knew nothing about it — and a rule added to the kind never reached the page.',
+          },
+          {
+            q: 'Does the page now declare its questions differently?',
+            a: 'No. They still live in the `faq` field of the language cell, and the same field feeds the FAQPage markup for search. Only the drawing moved.',
+          },
+          {
+            q: 'Can two of these stand on one page?',
+            a: 'No. The anchor is fixed so that it can be linked to from outside, and two sections would produce the same id twice.',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'toc',
+    when: 'The table of contents of a page. You never write it: the page factory builds `items` from the `h2` blocks of the body, using the SAME `headingId` the headings themselves print — two ways of turning a heading into an address drift apart on the first text with punctuation, and then the contents lead nowhere. Its own heading ("On this page") is a word of the mechanism and lives in `lib/content/page-ui.ts`. Written by hand, the list becomes a second copy of the headings that goes stale silently: the link keeps working while the word in it no longer matches.',
+    blocks: [
+      {
+        kind: 'toc',
+        items: [
+          { id: 'a-section-heading', text: 'A section heading' },
+          { id: 'what-a-page-is-written-from', text: 'What a page is written from' },
+          { id: 'when-not-to-take-it', text: 'When not to take it' },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'voiceField',
+    when: "A text field that can be dictated — the first kind of the catalogue that TAKES something from a visitor instead of showing them something. One kind, two sizes: 'line' puts the microphone inside the frame of a single-line input, 'area' puts a full-width button under a text area. While recording, an equaliser bar appears below; when recording stops, the bar is REPLACED in the same place by the transcript, which the visitor edits before accepting. It has NO receiver, by the owner's decision of 2026-08-28: the text lives in the browser and disappears on reload, so this is not a contact form. Transcription needs HTTPS, a session and a server key; without them the field stays an ordinary input and says why the microphone is unavailable.",
+    blocks: [
+      {
+        kind: 'voiceField',
+        variant: 'line',
+        title: 'What should the assistant be called?',
+        hint: 'One word or two. Hold the microphone and say it.',
+        comment: 'The transcript lands in the field only after you accept it — a misheard word costs one correction, not a second dictation.',
+        placeholder: 'For example, Nadia',
+      },
+      {
+        kind: 'voiceField',
+        variant: 'area',
+        title: 'What is this project about?',
+        hint: 'A paragraph is fine. The button sits under the whole area, not inside it.',
+        comment: 'The same control in its long form: only the shape of the field and the place of the button differ.',
+        placeholder: 'A few sentences about the product',
+      },
+    ],
+  },
+  {
+    kind: 'workspace',
+    label: 'workspace · без верхнего ряда',
+    when: 'A working screen rather than a page to read: a menu on the left, content on the right. Dashboards and project tools are built from this — the layout is taken from the architect layer that already runs on it, not invented here. On a phone the left column becomes a drawer that opens to 90% of the width and closes on any click. Menu entries are links only when they carry an address; without one they are plain marks, because a dead link in a catalogue is worse than no link.',
+    whenRu: 'Рабочий экран, а не страница для чтения: меню слева, содержимое справа. Из него строятся дашборды и инструменты проекта. Раскладка взята у слоя архитектора, который на ней уже работает, а не придумана заново. На телефоне левая колонка превращается в выдвижной ящик: он открывается на 90 % ширины и закрывается от нажатия на любой пункт. Пункт становится ссылкой только там, где у него есть адрес: мёртвая ссылка в каталоге хуже её отсутствия.',
+    blocks: [
+      {
+        kind: 'workspace',
+        menuTitle: 'Project settings',
+        menu: [
+          { label: 'Basics', active: true },
+          { label: 'Search' },
+          { label: 'Meta and media' },
+          { label: 'Languages' },
+          { label: 'Parallel routing' },
+          { label: 'Header' },
+          { label: 'Footer' },
+          { label: 'Cookie banner' },
+        ],
+        title: 'Languages',
+        lead: 'Which languages the site speaks. Enabling one later is a setting, not a rebuild of the way the site works.',
+        notes: [
+          {
+            tone: 'recommended',
+            title: 'Add one language at a time',
+            text: 'Each language is its own set of prerendered pages. Adding them one by one keeps a build failure attributable to a single change.',
+          },
+          {
+            tone: 'advice',
+            title: 'A language costs pages, not speed',
+            text: 'Serving a prerendered page is the same work regardless of how many languages exist beside it — but every language multiplies what has to be generated.',
+          },
+          {
+            tone: 'warning',
+            title: 'Saving is not applying',
+            text: 'The language set lives in the environment file and is baked in at build time. Until the project is rebuilt, the site keeps serving the previous set.',
+          },
+        ],
+        children: [
+          { kind: 'h4', text: 'Enabled languages' },
+          {
+            kind: 'p',
+            text: 'This is the part a project fills with whatever it needs: fields, a table, an island. The block gives the frame and the rules; the content is yours.',
+          },
+          {
+            kind: 'list',
+            items: ['English — the base language', 'Russian — the owner’s translation'],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'workspace',
+    label: 'workspace · с верхним рядом',
+    whenRu: 'Тот же вид с необязательным верхним рядом разделов — второй случай, и он сделан ПОЛЕМ, а не вторым видом. Рисунок остаётся тем же, добавляется одно поле. Два отдельных вида разошлись бы между собой на первой же правке темы — ровно так же, как разошлась бы цитата, у которой необязательную первую строку сделали бы отдельным видом.',
+    when: 'The same kind with the optional top row of sections — the second case, and it is a FIELD rather than a second kind. The drawing is identical; only `tabs` appears. Two kinds would have drifted apart on the first theme change, exactly as a quote with a lead would have.',
+    blocks: [
+      {
+        kind: 'workspace',
+        menuTitle: 'Design',
+        menu: [
+          { label: 'Fonts' },
+          { label: 'Type scale' },
+          { label: 'Shape' },
+          { label: 'Colour' },
+          { label: 'Blocks', active: true },
+          { label: 'Tools' },
+        ],
+        title: 'Blocks',
+        lead: 'The catalogue of what pages are built from. The type answers what to put here; the kind answers what draws it.',
+        notes: [
+          {
+            tone: 'advice',
+            title: 'The catalogue is closed',
+            text: 'A kind not declared in the set does not exist for the application, and the build refuses. That is the whole reason two pages of one site cannot drift apart.',
+          },
+        ],
+        tabs: [
+          { label: 'All', active: true },
+          { label: 'Hero' },
+          { label: 'Benefits' },
+          { label: 'How it works' },
+          { label: 'Use cases' },
+          { label: 'Pricing' },
+          { label: 'Page material' },
+          { label: 'Workspace' },
+        ],
+        children: [
+          {
+            kind: 'p',
+            text: 'Below the row goes whatever the section is about — here a catalogue, on a dashboard a chart, in a tool its own controls.',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'benefitCards',
+    when: 'A row of capability cards, each ending in a link. Differs from `cards` by drawing rather than by fields: the order inside is fixed — heading, rule, text, link — and the link is pushed to the bottom, so in a row of three the links sit on one line however uneven the text.',
+    whenRu: 'Ряд карточек-возможностей, каждая заканчивается ссылкой. От `cards` отличается рисунком, а не полями: порядок внутри закреплён — заголовок, черта, текст, ссылка, — и ссылка прижата к низу, поэтому в ряду из трёх все ссылки стоят на одной линии, как бы ни различалась длина текста.',
+    blocks: [
+      {
+        kind: 'benefitCards',
+        title: 'What the server brings',
+        note: 'Three capabilities that arrive together, not one after another.',
+        items: [
+          { title: 'Orchestration', text: 'Several agent platforms share one context, so a task started in one continues in another.', href: '/en/architecture', linkLabel: 'Read more' },
+          { title: 'Persistent memory', text: 'What the project already knows stays in context between sessions instead of being re-read every time.', href: '/en/architecture', linkLabel: 'Read more' },
+          { title: 'One machine', text: 'Everything runs on the server you own. No cloud accounts to open, no per-token bill to watch.', href: '/en/architecture', linkLabel: 'Read more' },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'splitPair',
+    when: 'Two halves with pictures — the product shown from two sides. The first kind of the `product-demo` family, which stood empty. Exactly two: the form rests on balance, and a third cell turns the pair into a row, for which `cards` already exists.',
+    whenRu: 'Две половины с картинками — продукт, показанный с двух сторон. Первый вид семейства «демонстрация продукта», которое стояло пустым. Ровно две: форма держится на равновесии, а третья ячейка превращает пару в ряд, для которого уже есть `cards`.',
+    blocks: [
+      {
+        kind: 'splitPair',
+        title: 'Two sides of the same day',
+        left: { alt: 'editor screenshot', title: 'Writing', text: 'Open a tab and describe what is needed. No local environment to prepare first.' },
+        right: { alt: 'live site screenshot', title: 'Shipping', text: 'One action moves the change to the address people visit. No pipeline to configure.' },
+      },
+    ],
+  },
+  {
+    kind: 'logoCards',
+    when: 'A row of cards that name whose thing each one is. The first kind of the `showcase` family, which stood empty. The third line is what the kind exists for — without it the card is indistinguishable from `cards`; with it the row answers the question a showcase gets first: whose is this?',
+    whenRu: 'Ряд карточек, называющих, чья каждая вещь. Первый вид семейства «витрина», которое стояло пустым. Третья строка — то, ради чего вид существует: без неё карточка неотличима от `cards`, с ней ряд отвечает на вопрос, который витрине задают первым, — «а это чьё?».',
+    blocks: [
+      {
+        kind: 'logoCards',
+        title: 'What is already connected',
+        items: [
+          { title: 'Coding agent', text: 'Writes, runs and fixes code in a terminal.', source: 'Anthropic' },
+          { title: 'Browser agent', text: 'Keeps the whole project in context while working in a tab.', source: 'OpenAI' },
+          { title: 'Local runner', text: 'Runs on the machine without sending anything outward.', source: 'in-house' },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'carousel',
+    when: 'Slides the reader turns. NO auto-advance, deliberately different from the showcase it was taken from: motion that cannot be stopped takes away the right to finish reading. Turning is a radio input plus a CSS rule, so it works with JavaScript switched off, and every slide sits in the markup where a crawler sees it. Limit: ten slides.',
+    whenRu: 'Слайды, которые листает человек. БЕЗ автоперехода — осознанное отличие от витрины, откуда взята форма: движение, которое нельзя остановить, отнимает право дочитать. Листание — переключатель и правило CSS, поэтому работает при выключенном JavaScript, а все слайды лежат в разметке, где их видит поисковик. Предел — десять слайдов.',
+    blocks: [
+      {
+        kind: 'carousel',
+        title: 'Step by step',
+        note: 'Each slide is one move; nothing advances on its own.',
+        slides: [
+          { alt: 'first step', title: 'The server is born', text: 'A clean machine becomes a working contour without anyone configuring it by hand.' },
+          { alt: 'second step', title: 'The project arrives', text: 'The repository is yours; the code travels to it and back with one action.' },
+          { alt: 'third step', title: 'The change is live', text: 'What was edited appears at the address people visit.' },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'priceTable',
+    when: 'Plans with a period switch. Ported from an external block library, with its dead weight left behind: eight of its fields were declared and never rendered. Both prices sit in the markup and only one is shown — a crawler reads both, and the yearly price, the one people compare, exists for everyone rather than only for a browser running scripts. The switch is a radio input plus a CSS rule, not an island.',
+    whenRu: 'Тарифы с переключателем периода. Перенесены из внешней библиотеки блоков без её мёртвого груза: восемь полей источника были объявлены и ни разу не отрисованы. Обе цены лежат в разметке, показана одна — поисковик читает обе, и годовая цена, та самая, которую сравнивают, существует для всех, а не только для браузера с работающими скриптами. Переключатель — радиокнопка и правило CSS, а не островок.',
+    blocks: [
+      {
+        kind: 'priceTable',
+        title: 'Simple pricing plans',
+        note: 'Choose the plan that fits your needs. Start free and scale as you grow.',
+        periodLabels: { monthly: 'Monthly', yearly: 'Yearly' },
+        plans: [
+          {
+            name: 'Basic',
+            monthlyPrice: '$0',
+            yearlyPrice: '$0',
+            features: ['Up to 5 components', 'Community support', 'Weekly updates', '100MB storage', 'Basic analytics'],
+            cta: { href: '/en/architecture', label: 'Start for free' },
+          },
+          {
+            name: 'Standard',
+            monthlyPrice: '$20',
+            yearlyPrice: '$200',
+            monthlyPeriod: 'Per month',
+            yearlyPeriod: 'Per year',
+            highlighted: true,
+            features: ['Unlimited components', 'Priority support', 'Daily updates', '10GB storage', 'Advanced analytics'],
+            cta: { href: '/en/architecture', label: 'Get started' },
+          },
+          {
+            name: 'Premium',
+            monthlyPrice: '$80',
+            yearlyPrice: '$800',
+            monthlyPeriod: 'Per month',
+            yearlyPeriod: 'Per year',
+            features: ['Unlimited components', 'Dedicated support', 'Real-time updates', 'Unlimited storage', 'Custom integrations'],
+            cta: { href: '/en/architecture', label: 'Buy now' },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'promoBand',
+    when: 'A wide band ruled top and bottom with the accent colour: heading, paragraph and a button on the left, an image on the right. Ported from the storefront. It takes the FULL WIDTH OF ITS CONTAINER and not a pixel more — the breakout trick it used to carry (`w-screen` plus a negative margin) was removed by the owner on 2026-08-30 because it broke the layout of the page around it. Where it belongs is part of the kind: the bottom of a page that is itself full-width. The band shares the page background — what separates it is the two rules and the width.',
+    whenRu: 'Широкая полоса с акцентной чертой сверху и снизу: заголовок, абзац и кнопка слева, картинка справа. Перенесена с витрины. Занимает ВСЮ ШИРИНУ СВОЕГО КОНТЕЙНЕРА и ни пикселем больше — приём выхода за колонку (`w-screen` плюс отрицательный отступ) снят владельцем 2026-08-30: он ломал разметку страницы вокруг. Где полосе место — часть описания вида: нижняя часть страницы, которая сама растянута на всю ширину. Фон полосы совпадает с фоном страницы, отделяют её две черты и ширина.',
+    blocks: [
+      {
+        kind: 'promoBand',
+        title: 'Your own white-label platform on Open Code',
+        text: 'The sources are open. Fork the repository, raise your own instance and build products with AI — for yourself or as a business: deploying servers for clients and consulting alongside.',
+        cta: { href: 'https://github.com/Fractera/Agent-Engineering-Infrastructure', label: 'View on GitHub', icon: 'github' },
+        image: '/git.png',
+        alt: 'Fractera',
+      },
+    ],
+  },
+  {
+    kind: 'featureGrid',
+    when: 'A grid of capabilities: icon, heading, pill label, description. Ported from the storefront — two columns on a phone, three on a monitor, with row gaps deliberately wider than column gaps because nothing but distance separates one cell from the next. Differs from `badges`, which is the labels themselves: here a label is a mark INSIDE a capability that also has a heading, an icon and an explanation.',
+    whenRu: 'Сетка возможностей: значок, заголовок, ярлык-пилюля, описание. Перенесена с витрины — две колонки на телефоне, три на мониторе, и промежутки между строками намеренно шире, чем между колонками: рамок у ячеек нет, и разделяет их только расстояние. От `badges` отличается предметом: там сами ярлыки, здесь ярлык — метка ВНУТРИ возможности, у которой есть ещё заголовок, значок и объяснение.',
+    blocks: [
+      {
+        kind: 'featureGrid',
+        badge: 'Capabilities',
+        title: 'What comes with the server',
+        note: 'Twelve things that are already there — not a roadmap.',
+        items: [
+          { icon: 'agent', tone: 'code', title: 'Agents with memory', label: 'for everyone', text: 'Ready to answer from what the project already knows, without an hour of setup first.' },
+          { icon: 'voice', tone: 'code', title: 'Voice input', label: 'for everyone', text: 'Dictate into any field meant for speech; the rest keep the ordinary keyboard.' },
+          { icon: 'shield', tone: 'access', title: 'Sign-in out of the box', label: 'for everyone', text: 'Email links and Google, with roles and sessions. Nothing to configure to start.' },
+          { icon: 'data', tone: 'data', title: 'Database and storage', label: 'for everyone', text: 'Rows and files on the machine you own, behind one door and one key.' },
+          { icon: 'backup', tone: 'data', title: 'Backups by parts', label: 'for everyone', text: 'Six parts chosen one at a time: people restore one thing, not everything.' },
+          { icon: 'branch', tone: 'code', title: 'Your repository', label: 'for everyone', text: 'The project travels to your GitHub and back with one action.' },
+          { icon: 'speed', tone: 'reach', title: 'Static by default', label: 'for everyone', text: 'Pages are built ahead of time, so a traffic spike costs nothing extra.' },
+          { icon: 'shop', tone: 'reach', title: 'Products on one server', label: 'for everyone', text: 'A landing page today, a scheduled watcher next week — neither can damage the other.' },
+          { icon: 'globe', tone: 'reach', title: 'Many languages', label: 'for everyone', text: 'Enabling one later is a setting, not a rebuild of the way the site works.' },
+          { icon: 'map', tone: 'data', title: 'Maps on your machine', label: 'advanced', text: 'Routes and distances computed on the server, so requests are not metered one by one.' },
+          { icon: 'channel', tone: 'access', title: 'Communication channels', label: 'advanced', text: 'A two-way link with the project, not just the ability to send a message.' },
+          { icon: 'search', tone: 'code', title: 'Search by meaning', label: 'advanced', text: 'Next to the rows it describes: one backup, one access contour, one meaning of deletion.' },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'showcaseCarousel',
+    when: 'The showcase carousel, ported one-to-one from the storefront: auto-advance every five seconds with a 700ms crossfade, slides grouped in threes, arrows that shift a whole group, numbered circles that pause on click and show ‖, a progress line that follows the pause, a glow that appears once the image has loaded, lazy loading of the current and next group, and a pause when the section scrolls out of view. Colours come from the theme, not from the storefront palette. Every slide also sits in a hidden block for crawlers — the carousel reveals one at a time through script.',
+    whenRu: 'Витринная карусель, перенесённая один в один: автопереход раз в пять секунд с затуханием 700 мс, слайды блоками по три, стрелки листают блок целиком, кружки с номерами ставят паузу и показывают ‖, полоса прогресса следует за паузой, свечение появляется после загрузки картинки, ленивая загрузка текущего и следующего блока, пауза при уходе секции из вида. Цвета берутся из темы, а не из палитры витрины. Все слайды продублированы скрытым блоком для поисковика: карусель раскрывает их по одному скриптом.',
+    blocks: [
+      {
+        kind: 'showcaseCarousel',
+        badge: 'Process',
+        title: 'Step by step, how it works',
+        note: 'Five seconds per slide; click a circle to hold it.',
+        slides: [
+          { label: 'Your server', sublabel: 'Credentials — and it is ready', title: 'Infrastructure right after purchase', description: 'A clean machine becomes a working contour: site, panel, agents, memory, database and storage, without anyone configuring them by hand.' },
+          { label: 'Your repository', sublabel: 'The code is yours from day one', title: 'The project arrives in your GitHub', description: 'What travels there is the application; the cockpit stays on the server, which is why an editing mistake cannot break it.' },
+          { label: 'Your address', sublabel: 'One action to publish', title: 'The change is live', description: 'What was edited appears at the address people visit, without a pipeline to configure first.' },
+          { label: 'Your data', sublabel: 'Four stores, one door', title: 'Memory that survives the session', description: 'Rows, files, meaning-search and a graph of connections sit behind one key on the machine you own.' },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'support',
+    when: 'Support tiers, ported from the storefront one to one: a row of three, each with a large amount and its period on one baseline, a sub-label, perks marked with a star and a button at the bottom. One tier carries a label ABOVE the card and is filled in — and the label is the only thing that makes it the highlighted one, so a tier cannot be singled out without saying what for. Below the row: a line of small print and a wide link to the people who already support the project. NOT a price list: a price obliges, a contribution does not, so the button leads to where contributions are taken rather than to a checkout.',
+    whenRu: 'Тарифы поддержки, перенесены с витрины один в один: ряд из трёх, у каждого крупная сумма с периодом по одной базовой линии, подпись, достоинства со звёздочкой и кнопка внизу. Один тариф несёт ярлык НАД карточкой и залит — и ярлык единственное, что делает его выделенным: выделить тариф, не объяснив за что, нельзя. Под рядом — строка условия и широкая ссылка на тех, кто уже поддерживает. НЕ прайс-лист: цена обязывает, взнос нет, поэтому кнопка ведёт туда, где принимают взносы, а не в оплату.',
+    blocks: [
+      {
+        kind: 'support',
+        badge: 'Support the project',
+        title: 'Support Open Code agentic engineering',
+        body: [
+          'This project is built by one person. Many features are still ahead — and your support keeps the lights on.',
+          'If you have the means to help, your name appears on the «Sponsors» page of the project, here and on GitHub.',
+        ],
+        tiers: [
+          {
+            amount: '$1',
+            period: '/mo',
+            sublabel: 'Coffee tier — every dollar counts',
+            perks: [
+              'Your name listed on the Sponsors page, here and on GitHub',
+              'A direct line to submit feature requests',
+            ],
+            cta: { href: '/en/architecture', label: 'Sponsor · $1/mo →' },
+          },
+          {
+            amount: '$5',
+            period: '/mo',
+            sublabel: 'Supporter — fuel the roadmap',
+            badge: 'Popular',
+            perks: [
+              'Access to the private sponsors-only group',
+              'Instructions to remove the white-label badge',
+            ],
+            cta: { href: '/en/architecture', label: 'Sponsor · $5/mo →' },
+          },
+          {
+            amount: '$20',
+            period: '/mo',
+            sublabel: 'Champion — featured on the Sponsors page',
+            perks: [
+              'Personal one-on-one access to the founder',
+              'Access to all VIP features and skills',
+            ],
+            cta: { href: '/en/architecture', label: 'Sponsor · $20/mo →' },
+          },
+        ],
+        note: 'Sign in first to become a sponsor.',
+        link: {
+          label: 'Our sponsors',
+          text: 'See everyone who supports the project →',
+          href: '/en/architecture',
+        },
+      },
+    ],
+  },
+  {
+    kind: 'spotlightPair',
+    when: 'Two halves with the spotlight moving between them: the active one takes 7/10 of the width, its neighbour 3/10, and a bar under the heading counts the nine seconds down. Ported from the storefront. It differs from `splitPair` by BEHAVIOUR, not by drawing: take `splitPair` to show a product from two equal sides, take this one to set two things against each other so the reader looks at one at a time. Not a line of script: the movement is a CSS animation, the choice is a radio input, and clicking a half stops the spotlight on it for good.',
+    whenRu: 'Две половины, между которыми ходит подсветка: активная занимает 7/10 ширины, соседняя 3/10, а полоса под заголовком отсчитывает девять секунд. Перенесена с витрины. От `splitPair` отличается ПОВЕДЕНИЕМ, а не рисунком: `splitPair` берут, чтобы показать продукт с двух равных сторон, этот вид — чтобы противопоставить две вещи и заставить смотреть на одну за раз. Ни строки скрипта: движение делает анимация, выбор — радиокнопка, и нажатие на половину останавливает подсветку на ней навсегда.',
+    blocks: [
+      {
+        kind: 'spotlightPair',
+        badge: 'Production AI Development',
+        title: 'Two halves of the same day',
+        note: 'The spotlight moves on its own every nine seconds. Click a half and it stops there.',
+        left: {
+          alt: 'AI coding in the browser',
+          title: 'AI Coding in Browser',
+          text: 'Open a tab, speak your intent, watch code appear. No IDE, no local setup — the terminals run in the browser too.',
+        },
+        right: {
+          alt: 'Live in production',
+          title: 'Live in Production. Instantly.',
+          text: 'Your server launches in seconds. One click deploys your changes live — no CI pipeline, no hosting configuration.',
+        },
+      },
+    ],
+  },
+  {
+    kind: 'platformGrid',
+    when: 'A grid of platforms where the glow comes out of the SEAMS: the cells sit two pixels apart over a radial backdrop, so the lattice is brighter in the middle and fades at the edges — no borders, no shadows. Ported from the storefront. The cell count is a multiple of six: two columns on a phone, three on a monitor, and only a multiple of six fills both without a stub. Differs from `featureGrid`, which lists what the PRODUCT can do; this lists platforms that belong to OTHER COMPANIES — hence the company line and the small print about trademarks underneath.',
+    whenRu: 'Сетка площадок, где свечение идёт ИЗ ЩЕЛЕЙ: ячейки стоят в двух пикселях друг от друга поверх радиальной подложки, поэтому решётка ярче в середине и гаснет к краям — ни рамок, ни теней. Перенесена с витрины. Число ячеек кратно шести: колонок две на телефоне и три на мониторе, и только кратное шести заполняет обе раскладки без обрубка. От `featureGrid` отличается предметом: тот перечисляет умения ПРОДУКТА, этот — ЧУЖИЕ площадки, отсюда строка компании и оговорка о торговых марках внизу.',
+    blocks: [
+      {
+        kind: 'platformGrid',
+        badge: 'AI Platforms',
+        title: 'Five agent platforms, one environment',
+        note: 'No API keys, no local setup — all five run on your server with full terminal access and shared memory.',
+        cards: [
+          { title: 'Claude Code', subtitle: 'Writes, runs and fixes code in your terminal. The gold standard for AI-assisted development.', company: 'Anthropic' },
+          { title: 'Codex', subtitle: 'Browser-native coding agent. Full project context, no terminal required.', company: 'OpenAI' },
+          { title: 'Gemini CLI', subtitle: 'Long-context coding agent. Understands the whole project structure in one prompt.', company: 'Google' },
+          { title: 'Qwen Code', subtitle: 'Open-source coding agent. No subscription lock-in — powerful and free.', company: 'Alibaba' },
+          { title: 'Kimi Code', subtitle: 'Context-first model for large codebases. Excellent for refactoring and architecture work.', company: 'Moonshot' },
+          { title: 'LightRAG', subtitle: 'Your company brain: persistent vector memory shared across all five platforms.', company: 'Fractera' },
+        ],
+        disclaimer: '* The project runs on your own subscriptions to these platforms — no additional fees or commissions are charged for their use. Connect one, several or all of them, at your own discretion.',
+      },
+    ],
+  },
+  {
+    kind: 'chartArea',
+    when: 'Two series stacked over a time series, with a range picker in the header. Take it when the question is HOW A TOTAL MOVED and what it was made of — the stack answers both at once. Not for shares of a whole at one moment: that is a pie. Data is optional; without it the view draws the sample, so the catalogue never shows an empty card.',
+    whenRu: 'Два ряда с накоплением по оси времени и выбор отрезка в шапке. Берут, когда вопрос — КАК МЕНЯЛОСЬ ЦЕЛОЕ и из чего оно состояло: накопление отвечает на оба сразу. Не для долей одного момента — это круговая. Данные необязательны: без них вид рисует образец, и карточка каталога не бывает пустой.',
+    blocks: [
+      {
+        kind: 'chartArea',
+        title: 'Area Chart - Interactive',
+        description: 'Showing total visitors for the last 3 months',
+        labels: { a: 'Desktop', b: 'Mobile' },
+        ranges: [
+          { days: 90, label: 'Last 3 months' },
+          { days: 30, label: 'Last 30 days' },
+          { days: 7, label: 'Last 7 days' },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'chartBar',
+    when: 'Bars over a time series with a switch in the header: two totals, one series drawn at a time. Take it when values are compared point by point and the exact height matters. Two series as bars over ninety days turn into noise — that is why the source switches instead of stacking.',
+    whenRu: 'Столбцы по ряду времени с переключателем в шапке: два итога, рисуется один ряд. Берут, когда величины сравнивают поточечно и важна ровно высота. Два ряда столбиками за девяносто дней превращаются в кашу — поэтому источник переключает, а не накапливает.',
+    blocks: [
+      {
+        kind: 'chartBar',
+        title: 'Bar Chart - Interactive',
+        description: 'Showing total visitors for the last 3 months',
+        labels: { a: 'Desktop', b: 'Mobile' },
+      },
+    ],
+  },
+  {
+    kind: 'chartLine',
+    when: 'A line over a time series with the same header switch as the bars. Take it when the SHAPE of the movement matters — growth, dips, seasonality — rather than the height of a single value. Points are hidden on purpose: ninety-one dots read as a dotted line, not as a curve.',
+    whenRu: 'Линия по ряду времени с тем же переключателем в шапке, что у столбцов. Берут, когда важна ФОРМА движения — рост, провалы, сезонность, — а не высота отдельного значения. Точки скрыты намеренно: девяносто одна точка читается пунктиром, а не кривой.',
+    blocks: [
+      {
+        kind: 'chartLine',
+        title: 'Line Chart - Interactive',
+        description: 'Showing total visitors for the last 3 months',
+        labels: { a: 'Desktop', b: 'Mobile' },
+      },
+    ],
+  },
+  {
+    kind: 'chartPie',
+    when: 'A whole split into parts at ONE moment, with the share labels sitting on the sectors. Take it when the question is what the total is made of. Never for movement over time: a pie has no time axis, and two pies side by side are read as one picture, not as change.',
+    whenRu: 'Целое, разделённое на части в ОДИН момент, подписи долей стоят прямо на секторах. Берут, когда вопрос — из чего состоит целое. Никогда для движения во времени: у круговой нет оси времени, а две круговые рядом читаются как одна картинка, а не как изменение.',
+    blocks: [
+      {
+        kind: 'chartPie',
+        title: 'Pie Chart - Label',
+        description: 'January - June 2024',
+        footer: { note: 'Trending up by 5.2% this month', hint: 'Showing total visitors for the last 6 months' },
+      },
+    ],
+  },
+  {
+    kind: 'chartRadar',
+    when: 'Several measures at once, each on its own axis around a circle, with two series laid over each other. Take it when the shape of a profile matters — where a thing is strong and where it sags — rather than exact values. Six axes is the ceiling: beyond it the labels collide.',
+    whenRu: 'Несколько мер сразу, у каждой своя ось по кругу, два ряда наложены друг на друга. Берут, когда важна форма профиля — где сильно, где проседает, — а не точные значения. Шесть осей — потолок: дальше подписи наезжают друг на друга.',
+    blocks: [
+      {
+        kind: 'chartRadar',
+        title: 'Radar Chart - Legend',
+        description: 'Showing total visitors for the last 6 months',
+        labels: { a: 'Desktop', b: 'Mobile' },
+        footer: { note: 'Trending up by 5.2% this month', hint: 'January - June 2024' },
+      },
+    ],
+  },
+  {
+    kind: 'chartRadial',
+    when: 'The same shares as a pie, but each one gets its own track: the bar is read against the track, so the absolute size shows as well as the ratio. Labels sit on the bars themselves and survive any palette, because they blend by luminosity.',
+    whenRu: 'Те же доли, что у круговой, но у каждой своя дорожка: полосу читают относительно дорожки, поэтому видно и абсолютную величину, а не только соотношение. Подписи лежат на самих полосах и переживают любую палитру — они смешиваются по яркости.',
+    blocks: [
+      {
+        kind: 'chartRadial',
+        title: 'Radial Chart - Label',
+        description: 'January - June 2024',
+        footer: { note: 'Trending up by 5.2% this month', hint: 'Showing total visitors for the last 6 months' },
+      },
+    ],
+  },
+  {
+    kind: 'chartTooltip',
+    when: 'A short stack of bars whose point is the TOOLTIP: no indicator, no cursor highlight, and it is open from the first frame rather than waiting for a hover. Take it to show what a tooltip looks like, or on a page read from a phone, where hovering does not exist.',
+    whenRu: 'Короткая стопка столбцов, смысл которой — ПОДСКАЗКА: без указателя, без подсветки курсора и открыта с первого кадра, а не по наведению. Берут, чтобы показать вид подсказки, и на страницах, которые читают с телефона, где наведения не существует.',
+    blocks: [
+      {
+        kind: 'chartTooltip',
+        title: 'Tooltip - No Indicator',
+        description: 'Tooltip with no indicator.',
+        labels: { a: 'Running', b: 'Swimming' },
+      },
+    ],
+  },
+  {
+    kind: 'orbitLayers',
+    when: 'Four layers around a centre: rings, a slowly turning sector and a core icon, with the four cards sitting in the corners from lg up. Take it when a product rests on exactly four independent pillars and you want them seen as ONE construction rather than as a list. The count is geometry, not taste — five cards have nowhere to sit and three leave a corner empty. Motion is optional by construction: the server prints the resting state and the animation arrives only after a pointer enters, on wide screens.',
+    whenRu: 'Четыре слоя вокруг центра: кольца, медленно вращающийся сектор и значок в середине, а от lg карточки стоят по четырём углам. Берут, когда продукт держится ровно на четырёх независимых опорах и показать их надо ОДНОЙ конструкцией, а не списком. Число — геометрия, а не вкус: пятой карточке негде встать, при трёх пустует угол. Движение необязательно по устройству: сервер печатает покой, анимация приходит только после входа указателя и только на широком экране.',
+    blocks: [
+      {
+        kind: 'orbitLayers',
+        badge: 'Why it matters',
+        title: 'Security is built into the',
+        accent: 'foundation',
+        lead: 'Four layers of protection — each one works on its own.',
+        core: 'shield',
+        cards: [
+          { title: 'Made to fit the regulator', text: 'Personal data stays where the law of your country requires it to stay — on your own server, under your own jurisdiction.', chip: "your country's law", icon: 'target' },
+          { title: 'Your data survives you', text: 'Backups, moving to another server, export and import — the project is yours to carry away whole.', chip: 'backups and moving', icon: 'backup' },
+          { title: 'Money with no surprises', text: 'Cloud AI costs and everything else stay on the server you own. Nothing bills you from somewhere else.', chip: 'no surprises', icon: 'shop' },
+          { title: 'Your own authorization', text: 'The whole project is closed by authorization that belongs to you. Security is entirely in your hands.', chip: 'your authorization', icon: 'shield' },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'chat',
+    when: 'A run of messages as a section of the page: the feed of the project chat tool, without an input field. Take it to show a conversation — with a person, with an assistant, with a bot. Six kinds of attachment fit under a message: audio, image, video and document, which the library recognises by media type, plus a place and a calendar event, which are ours. A working chat is put in place by a consumer that owns the state.',
+    whenRu: 'Череда сообщений как секция страницы: лента инструмента чата, без поля ввода. Берут, чтобы показать переписку — с человеком, с ассистентом, с ботом. Под сообщением помещаются шесть родов вложений: аудио, изображение, видео и документ, которые библиотека узнаёт по типу содержимого, плюс место и календарное событие — наши. Работающий чат ставит потребитель, который владеет состоянием.',
+    blocks: [
+      {
+        kind: 'chat',
+        title: 'Chat',
+        note: 'One implementation of a conversation for the whole project — and everything a message can carry.',
+        size: 'tall',
+        messages: [
+          {
+            id: 'm1',
+            from: 'user',
+            who: '@roma',
+            at: '10:14',
+            text: 'Sending the voice note and the photo from the site.',
+            attachments: [
+              { type: 'audio', url: '/blog-media/voice-note.m4a', mediaType: 'audio/mp4', name: 'voice-note.m4a' },
+              { type: 'image', url: '/blog-media/development-loop-2026.jpg', mediaType: 'image/jpeg', name: 'development-loop-2026.jpg' },
+            ],
+          },
+          {
+            id: 'm2',
+            from: 'assistant',
+            who: 'assistant',
+            at: '10:14',
+            text: 'Got both. The photo is shown as a preview, the voice note as a row — the library decides that by media type, not by us.',
+          },
+          {
+            id: 'm3',
+            from: 'user',
+            who: '@roma',
+            at: '10:21',
+            text: 'Here is the walkthrough and the offer.',
+            attachments: [
+              { type: 'video', url: '/blog-media/boris-chernoy-post-1.mp4', mediaType: 'video/mp4', name: 'walkthrough.mp4' },
+              { type: 'document', url: '/blog-media/offer.pdf', mediaType: 'application/pdf', name: 'offer.pdf' },
+            ],
+          },
+          {
+            id: 'm4',
+            from: 'user',
+            who: '@roma',
+            at: '10:26',
+            text: 'And this is where we meet.',
+            attachments: [
+              { type: 'place', lat: 41.0138, lon: 28.9497, label: 'Fatih, Istanbul' },
+              { type: 'event', at: 'Tue, 3 Sep, 18:00', title: 'Walkthrough of the first build', note: 'one hour, at the office' },
+            ],
+          },
+          {
+            id: 'm5',
+            from: 'assistant',
+            who: 'assistant',
+            at: '10:26',
+            text: 'The place and the event are ours: the library has neither, and both are drawn in the same row shape so a message keeps one list of attachments rather than two.',
+          },
+          {
+            id: 'm6',
+            from: 'user',
+            who: '@roma',
+            at: '10:31',
+            forwardedFrom: '@julia',
+            text: 'Forwarded messages keep the line above the text — who wrote it, when, and where it came from.',
+          },
+        ],
+      },
+    ],
+  },
+]
+
+// КОД ОБРАЗЦА — УНИКАЛЬНЫЙ, И ОН ВЫЧИСЛЯЕТСЯ, А НЕ ПРОСТАВЛЯЕТСЯ РУКАМИ
+// (заказ владельца 2026-08-30: «все виды блоков должны иметь абсолютно
+// оригинальный kind. Рекомендую устанавливать двузначный номер например
+// workspace01»).
+//
+// 🔒 ПОЧЕМУ ВЫЧИСЛЯЕТСЯ. «Абсолютно оригинальный» — это свойство, которое либо
+// держится устройством, либо не держится вовсе. Проставленный руками номер
+// повторится в тот день, когда у вида появится третий образец и никто не
+// вспомнит про второй; счётчик по виду повториться не может. Тот же довод, по
+// которому число построенных страниц продукта считают обходом папок, а не
+// хранят списком.
+//
+// Форма: имя вида плюс двузначный номер образца ЭТОГО вида — `p01`, `h201`,
+// `workspace01`, `workspace02`. Номер двузначный по прямому слову владельца:
+// одноразрядный `workspace1` рядом с `workspace10` сортируется неверно и
+// читается как опечатка.
+// 🔒 ТОТ ЖЕ СЧЁТ ВЕДЁТ ГЕНЕРАТОР СВОДКИ, И ЭТО НЕ ДВА ИСТОЧНИКА (шаг 50).
+// `scripts/build-blocks-map.mjs` читает этот же файл регулярным выражением и
+// кладёт коды в `SECTIONS.json` и `BLOCKS.md` — туда, куда навык приводит агента.
+// Импортировать отсюда он не может: он обычный узловой скрипт, а здесь TypeScript
+// с типами React. Источник у обоих ОДИН — порядок образцов в `SPECIMEN` ниже;
+// расходятся не источники, а способы прочитать один и тот же.
+//
+// 🔒 РАСХОЖДЕНИЕ ЛОВИТСЯ СТОРОЖЕМ, А НЕ ВНИМАТЕЛЬНОСТЬЮ: `check:blocks-map`
+// сверяет порождённую сводку с кодом на каждой сборке. Добавили образец и забыли
+// пересобрать карту — сборка откажет, а не промолчит.
+export const SPECIMEN_CODES: string[] = (() => {
+  const seen = new Map<string, number>()
+  return SPECIMEN.map(section => {
+    const n = (seen.get(section.kind) ?? 0) + 1
+    seen.set(section.kind, n)
+    return `${section.kind}${String(n).padStart(2, '0')}`
+  })
+})()

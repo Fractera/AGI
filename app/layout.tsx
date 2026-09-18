@@ -1,28 +1,16 @@
-import './globals.css'
-import type { Metadata, Viewport } from 'next'
-import type { ReactNode } from 'react'
+import "../styles/index.css";
 
-export const metadata: Metadata = {
-  title: 'AGI Fractera',
-  description: 'AGI Fractera — локальная установка, первый сервер.',
-}
-
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-}
-
-export default function RootLayout({ children }: { children: ReactNode }) {
-  // suppressHydrationWarning на <html> и <body>. Причина не в нашем коде:
-  // расширения браузера (замечено на html — overscroll-behavior-x, ставит
-  // расширение) правят разметку ДО того, как React сверит её с серверной.
-  // Наших расхождений здесь нет — стили вынесены в globals.css именно
-  // для этого. Подавление стоит только на двух корневых тегах, куда лезут
-  // расширения, и НЕ распространяется на содержимое страницы: настоящее
-  // расхождение внутри main по-прежнему будет видно в логе.
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning>{children}</body>
-    </html>
-  )
+// Bare pass-through root layout (step 131 — static-rendering refactor; mirrors
+// 22slots + FES). It renders NO <html>/<body> and calls NO dynamic functions, so it
+// never opts the app into dynamic rendering and never locks a single <html lang> for
+// the whole route tree. Each zone owns its own root layout with its own <html>:
+//   app/[lang]   → <html lang={validLang}>  (validated route param)
+//   app/(service) → <html lang="en">         (architect-only, English)
+// styles/index.css is imported here once so it applies across every zone.
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return children;
 }
