@@ -294,7 +294,7 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
     defaultLocale: "en",
     googleVerification: undefined,
     yandexVerification: undefined,
-    social: { twitter: "@fractera", github: undefined, linkedin: undefined, facebook: undefined },
+    social: { twitter: undefined, github: undefined, linkedin: undefined, facebook: undefined },
     // 🔒 УМОЛЧАНИЕ ЗДЕСЬ — `undefined`, И ЭТО НЕ ПРИДИРКА (шаг 523, найдено
     // замером после регрессии, которую сам же и внёс).
     //

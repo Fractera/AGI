@@ -14,13 +14,7 @@ import { footerLabels, widthLabels } from "@/components/menu/footer/footer-menu.
 import { adminUrlFromSite, chatUrlFromSite } from "@/lib/site-urls";
 import { FooterSocialDropdown, type SocialKey } from "@/components/menu/footer/footer-social-dropdown.client";
 import { LanguageSwitcher } from "@/components/language-switcher.client";
-import { CookieSettingsButton } from "@/components/menu/footer/cookie-settings-button.client";
-import { cookieButtonUi } from "@/components/menu/footer/cookie-settings-button.i18n";
-import { AccountButton } from "@/components/menu/account/account-button.client";
 import { appShellAuthSide } from "@/components/menu/account/account-config";
-import { accountLabels } from "@/components/menu/account/account-menu.i18n";
-import { accountLinks } from "@/lib/menu/account-links";
-import { appDialogUi } from "@/components/dialog/app-dialog.i18n"
 
 // Always-present FOOTER menu (step 160), mirroring FES site-footer in look & behaviour
 // (re-programmed, not copied). Three sections:
@@ -169,30 +163,10 @@ export function FooterMenu({ lang }: { lang: string }) {
             подвала — обычные страницы сайта, и живут они в секции 1 выше, где их
             собирает владелец. Второй список ссылок делил подвал по признаку,
             которого в настройках не существует. */}
-
-        {/* Полоса действий: вход и настройки cookie. Обе появляются только когда
-            включены соответствующие возможности, поэтому у проекта без них
-            подвал выглядит ровно как раньше — пустой полосы не остаётся. */}
-        {/* 🔒 ПОЛОСА ДЕЙСТВИЙ ОСТАЛАСЬ ПОЛОСОЙ ПРОДУКТА (владелец 2026-08-29):
-            «инструменты продуктов — такие как корзина, заказы и мой аккаунт»
-            против «инструментов архитектора». Здесь теперь только они, и условие
-            больше не спрашивает про адрес панели: панель уехала в свою группу. */}
-        {(authSide || bannerOn) && (
-          <div className="flex flex-wrap items-center gap-2">
-            {authSide && (
-              <AccountButton
-                lang={lang}
-                side={authSide}
-                labels={accountLabels(lang)}
-                links={accountLinks(lang)}
-                dialogUi={appDialogUi(lang)}
-                currency={cfg.commerce.currency}
-              />
-            )}
-            {bannerOn && <CookieSettingsButton label={cookieButtonUi(lang).settings} />}
-
-          </div>
-        )}
+        {/* 🪦 ПОЛОСА ДЕЙСТВИЙ УДАЛЕНА (229-6, 2026-09-18, слово владельца: «в футере
+            остался раздел с одной кнопкой личный кабинет удалить… футер должен иметь
+            одну единственную часть»). Здесь стояли кнопка личного кабинета и кнопка
+            настроек cookie. Подвал теперь состоит ровно из одной части — нижней. */}
         {/* 🪦 ГРУППА ССЫЛОК АРХИТЕКТОРА УДАЛЕНА БЕЗВОЗВРАТНО (229-5, 2026-09-18,
             слово владельца). Здесь стояла подписанная группа с разделителем:
             архитектура, дизайн, dev-mode, telegram, вход и кнопка панели. Вместе
@@ -228,9 +202,11 @@ export function FooterMenu({ lang }: { lang: string }) {
                 <Icon className="size-4" />
               </a>
             ))}
-            {/* Content-width toggle (wide ↔ normal) — ported from the Projects zone footer;
-                governs the [data-app-column] width. Hidden on mobile (own full-width mode). */}
-            {widthOn && <AppWidthToggle labels={widthLabels(lang)} />}
+            {/* ❄️ ЗАМОРОЖЕН ПЕРЕКЛЮЧАТЕЛЬ ШИРИНЫ (229-6, 2026-09-18, слово владельца:
+                «в футере висит инструмент который показывает ширину страницы —
+                закомментировать его»). Он управляет шириной [data-app-column].
+                Разморозка: снять эту обёртку, ничего не дописывая. */}
+            {/* {widthOn && <AppWidthToggle labels={widthLabels(lang)} />} */}
             {themeOn && <ThemeToggle labels={{ system: ui.system, light: ui.light, dark: ui.dark }} />}
             {langSwitchOn && <LanguageSwitcher />}
           </div>
