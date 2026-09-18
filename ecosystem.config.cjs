@@ -72,5 +72,34 @@ module.exports = {
         NODE_ENV: 'development',
       },
     },
+
+    // ── ВТОРОЙ ЖИТЕЛЬ: СТОРОЖ ЗДОРОВЬЯ. Он не служба и порта не слушает — он
+    // спрашивает сайт по HTTP и ловит то единственное состояние, ради которого
+    // затеян шаг 232: процесс жив, а страницы не отдаются. pm2 для этого
+    // непригоден по устройству, и в этом нет его вины: он следит за процессом.
+    {
+      name: 'fractera-agi-watch',
+      script: path.join(root, 'scripts', 'health-watch.mjs'),
+      cwd: root,
+      instances: 1,
+      exec_mode: 'fork',
+      watch: false,
+      autorestart: true,
+      min_uptime: 20000,
+      max_restarts: 10,
+
+      out_file: path.join(root, 'logs', 'watch-out.log'),
+      error_file: path.join(root, 'logs', 'watch-err.log'),
+      merge_logs: true,
+      time: true,
+
+      env: {
+        // Сроки вынесены сюда, а не зашиты в скрипт: их придётся подбирать под
+        // машину человека, и подбор не должен быть правкой кода.
+        FRACTERA_HEALTH_INTERVAL_MS: '30000',
+        FRACTERA_HEALTH_FAILURES: '3',
+        FRACTERA_HEALTH_COOLDOWN_MS: '120000',
+      },
+    },
   ],
 }
