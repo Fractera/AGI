@@ -18,11 +18,11 @@ import type { HomeCell } from './index'
 export const en: HomeCell = {
   title: 'Your own server, brought up by Claude Code',
   subtitle:
-    'Fractera AGI is the administrative panel of a platform that starts on your own machine. Claude Code installs the server at home; the Claude Code extension and Cloudflare put it on the internet. Everything you add afterwards is a microservice.',
+    'Fractera AGI is one indivisible core that starts on your own machine. It becomes a site, a shop, a memory, a control screen — whatever you make of it. Claude Code installs the server at home, Cloudflare puts it on the internet.',
   description:
-    'The administrative panel of Fractera AGI: a server on your own computer, brought up by Claude Code and published through Cloudflare. Sign-in and the data layer come with it; everything else is a microservice you build or import.',
+    'Fractera AGI: a server on your own computer, brought up by Claude Code and published through Cloudflare. One core that any application grows out of; sign-in and the data layer come with it.',
   intro:
-    "The starter template is deliberately small: the panel itself, sign-in, and the data layer. Nothing else is installed by default, because everything else is a choice — and a choice made for you is a dependency you did not ask for.",
+    'The core is deliberately small: itself, sign-in, and the data layer. Nothing else is installed by default, because everything else is a choice — and a choice made for you is a dependency you did not ask for.',
   keywords: '',
   blocks: [
     {
@@ -45,7 +45,7 @@ export const en: HomeCell = {
     { kind: 'h2', text: 'What comes up on your machine' },
     {
       kind: 'p',
-      text: 'Three things and no more: this administrative panel, the authorization layer, and the data layer. The panel is where microservices are connected and watched; sign-in is shared, so one person is one person everywhere; the data layer is the single door to the data. Claude Code is installed alongside them — not as a feature of the product, but as the tool you will use to extend it.',
+      text: 'Three things and no more: the core itself, the authorization layer, and the data layer. The core is one and indivisible — the page a visitor sees and the screen you manage from both grow out of it; sign-in is shared, so one person is one person everywhere; the data layer is the single door to the data. Claude Code is installed alongside them — not as a feature of the product, but as the tool you will use to extend it.',
     },
 
     { kind: 'h2', text: 'How it reaches the internet' },
