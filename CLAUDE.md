@@ -117,6 +117,35 @@ inventing — quote the contract instead.
 `github.com/Fractera/fractera-next-starter`. Never «open source» — the terms differ legally. Send him
 there to UNDERSTAND; a platform change is ordered, not patched. → `explain-this-project`
 
+## How this application runs on a human machine (step 232, 2026-09-18)
+
+🔒 **The port is 24680, and it is chosen in exactly one place — `lib/server-port.cjs`.** Never hard-code
+a port anywhere else, and never put `PORT` into `ecosystem.config.cjs`: two sources of one number
+drift apart silently. `3000` is forbidden — we start at login, before the human does, so we would take
+it first and break their own projects. `49152+` is forbidden too: the operating system hands that range
+out to outgoing connections (measured: Windows starts at 49152), so a permanent listener there fails at
+random. The product owns the block 24680–24699; a busy port is yielded to the next free one and the
+chosen number is written to `logs/runtime.json`.
+
+🔒 **Ask the server which port it took — never remember it.** `logs/runtime.json` is the answer. Code
+that remembers a port knocks on emptiness the day the port is yielded.
+
+🛑 **Two things are alive, not one:** `fractera-agi` (the site) and `fractera-agi-watch` (the health
+watchdog). The watchdog exists because a process can stay `online` while every page returns 500 — pm2
+cannot see that, and neither can a container. It asks `/api/health` and restarts the site after three
+failures in a row. **Patience is its point, not sensitivity:** a cold dev compile takes up to 41 seconds,
+and an eager watchdog turns a slow start into an endless restart loop.
+
+🔒 **`npm run serve:start | stop | status | autostart` — and the human never hears the word pm2.**
+Starting the server by hand (`node server.js`) once it runs under pm2 is now an error: two servers race
+for the port, and the winner may be the stale one answering with an old build.
+
+🛑 **On Windows node refuses to spawn `.cmd` without a shell** — `EINVAL`, silently, with nothing in
+stdout or stderr (node’s own restriction after CVE-2024-27980). Any code calling `npm`/`pm2` must pass
+`shell: true` on Windows, and only with constant arguments.
+
+---
+
 ## How you answer me
 
 The shape of your answer to ANY request of the owner, without exception. Your own words, this meaning,
