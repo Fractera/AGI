@@ -18,7 +18,6 @@ import fs from "fs"
 /** [файл, имя типа, сколько языков обязано быть] */
 const FILES = [
   // Переиспользуемые части продукта — всегда 82 (правило 4д).
-  ["components/cart/cart.i18n.ts", "CartUi", 82],
   ["components/menu/account/account-menu.i18n.ts", "AccountLabels", 82],
   // Служебные слова верхнего меню: бургер и aria-подписи ящиков. Жили внутри
   // компонента на шести языках — то есть на семьдесят шестом рынке бургер молча
@@ -50,6 +49,7 @@ const FILES = [
   ["lib/i18n/architecture-link.i18n.ts", "ArchitectureLinkUi", 10],
   // Каталог секций — страница архитектора, но слова у неё такие же страничные.
   ["app/[lang]/(protectedLayer)/(admin)/blocks/_data/ui.i18n.ts", "BlocksCatalogueUi", 10],
+  // 🪦 ДЕВЯТЬ ТОВАРНЫХ СЛОВАРЕЙ УДАЛЕНЫ ВМЕСТЕ С МАГАЗИНОМ (230-3, 2026-09-18).
   // 🔒 СЛОВАРИ ВИДЖЕТОВ — ДЕСЯТЬ ЯЗЫКОВ, А НЕ 82 (шаг 521, решение владельца
   // 2026-08-21). Здесь стоял ОДИН словарь `_data/products.i18n.ts` на 82 языка,
   // общий для четырёх таблиц; он и заставлял их говорить одинаково. Таблицы
@@ -59,16 +59,7 @@ const FILES = [
   // виджет принадлежит ОДНОМУ маршруту и не переиспользуется, а 82 обязаны
   // нести переиспользуемые части продукта, которые являются в любом включённом
   // языке сами. Цена размена названа в шапке каждого словаря.
-  ["app/[lang]/(protectedLayer)/(finance)/accounting/products/_widgets/dynamic/price-table/ui.i18n.ts", "PriceTableUi", 10],
-  ["app/[lang]/(protectedLayer)/(staff)/manage/products/_widgets/dynamic/manage-table/ui.i18n.ts", "ManageTableUi", 10],
-  ["app/[lang]/(protectedLayer)/(admin)/administration/products/_widgets/dynamic/catalogue-table/ui.i18n.ts", "CatalogueTableUi", 10],
-  ["app/[lang]/(protectedLayer)/(account)/shopping/products/_widgets/dynamic/shop-table/ui.i18n.ts", "ShopTableUi", 10],
-  ["app/[lang]/(protectedLayer)/(staff)/manage/products/[productId]/_widgets/dynamic/product-card/ui.i18n.ts", "ProductCardUi", 10],
   // Страницы четырёх слоёв прав.
-  ["app/[lang]/(protectedLayer)/(staff)/manage/products/_data/ui.i18n.ts", "ProductsUi", 82],
-  ["app/[lang]/(protectedLayer)/(finance)/accounting/products/_data/ui.i18n.ts", "AccountingProductsUi", 82],
-  ["app/[lang]/(protectedLayer)/(admin)/administration/products/_data/ui.i18n.ts", "AdministrationProductsUi", 82],
-  ["app/[lang]/(protectedLayer)/(account)/shopping/products/_data/ui.i18n.ts", "ShoppingProductsUi", 82],
   // 🔒 СТРАНИЦА УЧЁТНЫХ ЗАПИСЕЙ — ДВА ЯЗЫКА, И ЭТО ЗАПИСАННЫЙ ДОЛГ, А НЕ НОРМА
   // (шаг 531, решение владельца 2026-08-21: в разработке пишем на включённом
   // наборе, недостающее заносим в `development-docs/TRANSLATION-DEBT.md`).
@@ -91,7 +82,6 @@ const FILES = [
  * [папка, файл типа, имя типа, сколько языков]
  */
 const CELLS = [
-  ["app/[lang]/(publicLayer)/products/_data", "app/[lang]/(publicLayer)/products/_lib/types.ts", "CatalogueUi", 10],
 ]
 
 // 🔒 ЦИФРЫ В ИМЕНИ КЛЮЧА ОБЯЗАТЕЛЬНЫ В ШАБЛОНЕ. `step1`, `step2` — обычные
