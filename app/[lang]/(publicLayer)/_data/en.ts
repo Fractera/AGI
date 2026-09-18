@@ -18,7 +18,10 @@ import type { HomeCell } from './index'
 // его». Это прототип на временном адресе, он не уходит в продакшн; страница
 // показывает замысел целиком, а не сегодняшний срез построенного.
 export const en: HomeCell = {
-  title: 'Digitize your expertise and earn from it',
+  // 🔒 H1 carries the name, the class and the subject. Web3 is claimed, Web4 is
+  // not: the second has no agreed meaning, and claiming it is the same class of
+  // risk as saying "open source" where the licence is source-available.
+  title: 'Fractera AGI — Web3 infrastructure for your expertise',
   subtitle:
     'Love artificial intelligence — then digitize your expertise and earn crypto with Fractera AGI Infrastructure. Your node lives on your own machine, finds customers among other agents itself, and takes payment directly. No platform, no middleman, no centre above you.',
   description:
