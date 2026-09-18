@@ -45,7 +45,11 @@
     "check:blocks-map": "node scripts/check-blocks-map.mjs",
     "build:tools-map": "node scripts/build-tools-map.mjs",
     "check:tools-map": "node scripts/check-tools-map.mjs",
-    "check:steps": "node scripts/check-steps.mjs"
+    "check:steps": "node scripts/check-steps.mjs",
+    "serve:start": "node scripts/serve.mjs start",
+    "serve:stop": "node scripts/serve.mjs stop",
+    "serve:status": "node scripts/serve.mjs status",
+    "serve:autostart": "node scripts/serve.mjs autostart"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.55",
