@@ -10,6 +10,7 @@
 const { createServer } = require('node:http')
 const { execFileSync } = require('node:child_process')
 const next = require('next')
+const { pickPort, writeRuntime } = require('./lib/server-port.cjs')
 
 // ── Хэш коммита. Он нужен не для красоты: без него нельзя отличить «сайт
 // работает» от «работает ИМЕННО та сборка, которую я только что поставил».
@@ -31,7 +32,6 @@ function readCommit() {
   }
 }
 
-const port = Number(process.env.PORT) || 3000
 const hostname = process.env.HOST || 'localhost'
 // dev по умолчанию: локальная среда — это работа с исходником, а не продакшн.
 // Сборка включается явно, переменной, когда для неё настанет время.
@@ -43,13 +43,56 @@ const dev = process.env.NODE_ENV !== 'production'
 process.env.AGI_COMMIT = readCommit()
 process.env.AGI_STARTED_AT = new Date().toISOString()
 
-const app = next({ dev, hostname, port, dir: __dirname })
-const handle = app.getRequestHandler()
+// 🔒 Порт выбирается ДО того, как поднят Next: его конструктор получает номер
+// один раз и потом о нём только рассказывает. Почему не 3000 и почему не
+// 49152+ — в `lib/server-port.cjs`, там же и блок портов продукта.
+async function main() {
+  const { port, moved, asked } = await pickPort(hostname)
 
-app.prepare().then(() => {
+  // Next должен знать тот же номер: по нему он строит адреса в сообщениях об
+  // ошибках и в горячей перезагрузке.
+  process.env.PORT = String(port)
+
+  const app = next({ dev, hostname, port, dir: __dirname })
+  const handle = app.getRequestHandler()
+
+  await app.prepare()
+
   createServer((req, res) => {
     handle(req, res)
   }).listen(port, hostname, () => {
-    console.log(`AGI server · http://${hostname}:${port} · commit ${process.env.AGI_COMMIT} · ${dev ? 'dev' : 'production'}`)
+    // Номер порта уходит в файл — его читают сторож здоровья и команда
+    // «статус». Они обязаны спрашивать сервер, а не повторять предположение.
+    writeRuntime({
+      port,
+      hostname,
+      pid: process.pid,
+      commit: process.env.AGI_COMMIT,
+      startedAt: process.env.AGI_STARTED_AT,
+      mode: dev ? 'dev' : 'production',
+    })
+
+    console.log(
+      `AGI server · http://${hostname}:${port} · commit ${process.env.AGI_COMMIT} · ${dev ? 'dev' : 'production'}`,
+    )
+
+    // Уступка порта — событие, о котором человек обязан узнать сразу. Молчание
+    // здесь означает, что он открывает старый адрес, видит чужое приложение или
+    // пустоту и считает, что сломались мы.
+    if (moved) {
+      console.log(
+        `⚠ порт по умолчанию был занят — AGI встал на ${port}. Адрес: http://${hostname}:${port}`,
+      )
+    }
+    if (asked) {
+      console.log(`порт ${asked} задан переменной PORT`)
+    }
   })
+}
+
+main().catch((error) => {
+  // Отказ при старте печатается человеческими словами и уходит в журнал pm2 —
+  // молчаливый выход с ненулевым кодом выглядит как «pm2 сломался».
+  console.error(`AGI server не запустился: ${error.message}`)
+  process.exit(1)
 })
