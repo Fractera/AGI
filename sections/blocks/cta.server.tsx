@@ -1,6 +1,6 @@
 import type { SectionRenderer } from '@/sections/contract'
 import { inline } from '@/lib/content/blocks/inline'
-import { CtaButton } from '@/sections/cta-button.server'
+import { CtaButton, CtaLink } from '@/sections/cta-button.server'
 
 // Призыв к действию.
 //
@@ -22,14 +22,24 @@ import { CtaButton } from '@/sections/cta-button.server'
 //
 // Кнопка одна на все места, где предлагается действие, — sections/cta-button:
 // вторая копия классов совпадала бы с первой ровно до первой правки цвета.
+// 🔒 ВТОРАЯ КНОПКА — КОНТУРНАЯ И В ТОЙ ЖЕ СТРОКЕ (231-1). Две сплошные кнопки
+// рядом спорят за взгляд, и человек выбирает по расположению, а не по смыслу.
+// Контур говорит «это тоже можно», заливка — «это главное».
+//
+// 🔒 ПЕРЕНОС РАЗРЕШЁН (`flex-wrap`): на телефоне две кнопки в строку не влезают,
+// а сжатая до многоточия подпись действия — худший исход из возможных.
 export const cta: SectionRenderer<'cta'> = (b, { key: k }) =>
   b.text ? (
     <div key={k} className="my-4 flex flex-col items-center gap-4 rounded-2xl border border-primary/30 bg-primary/[0.06] p-6 text-center">
       <p className="text-base font-medium text-foreground">{inline(b.text, k)}</p>
-      <CtaButton href={b.href}>{b.label}</CtaButton>
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <CtaButton href={b.href}>{b.label}</CtaButton>
+        {b.secondary ? <CtaLink href={b.secondary.href}>{b.secondary.label}</CtaLink> : null}
+      </div>
     </div>
   ) : (
-    <div key={k} className="my-4 flex justify-center">
+    <div key={k} className="my-4 flex flex-wrap items-center justify-center gap-3">
       <CtaButton href={b.href}>{b.label}</CtaButton>
+      {b.secondary ? <CtaLink href={b.secondary.href}>{b.secondary.label}</CtaLink> : null}
     </div>
   )

@@ -36,7 +36,7 @@
 | `figure01` | `figure` | Page material | картинка или видео с подписью | media: 'image' \| 'video'; src: string; alt: string; caption?: string; href?: string | [карточка](blocks/figure.md) |
 | `code01` | `code` | Page material | — | text: string | — |
 | `note01` | `note` | Page material | — | text: string | — |
-| `cta01` | `cta` | Page material | призыв к действию | text?: string; href: string; label: string | [карточка](blocks/cta.md) |
+| `cta01` | `cta` | Page material | призыв к действию | text?: string; href: string; label: string; secondary?: { href: string; label: string } | [карточка](blocks/cta.md) |
 | `callout01` | `callout` | Page material | — | title: string; text: string | — |
 | `table01` | `table` | Page material | — | headers: string[]; rows: string[][]; caption?: string | — |
 | `docref01` | `docref` | Page material | — | title: string; summary: string; href: string; label?: string; kicker?: string | — |

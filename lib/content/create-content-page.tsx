@@ -99,6 +99,8 @@ export type ContentPageConfig<C extends ContentPageContent> = {
    * что показать, решает вход маршрута.
    */
   afterHero?: (lang: string) => ReactNode
+  /** Разметка между шапкой и оглавлением — верхняя часть страницы (231-1). */
+  afterHeader?: (lang: string) => ReactNode
   /** Разметка после тела: слот появился в 69 ради кнопки заявки под заглушкой. */
   afterBody?: (lang: string) => ReactNode
   /**
@@ -114,7 +116,7 @@ function abs(path: string): string {
 }
 
 export function createContentPage<C extends ContentPageContent>(config: ContentPageConfig<C>) {
-  const { resolve, chrome, meta, jsonLdType = 'Article', sections, hero, afterHero, afterBody, titleInBody = false } = config
+  const { resolve, chrome, meta, jsonLdType = 'Article', sections, hero, afterHero, afterHeader, afterBody, titleInBody = false } = config
 
   async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
     const { lang } = await params
@@ -234,6 +236,7 @@ export function createContentPage<C extends ContentPageContent>(config: ContentP
           heroAlt={c.title}
           hero={hero?.(lang)}
           afterHero={afterHero?.(lang)}
+          afterHeader={afterHeader?.(lang)}
           afterBody={afterBody?.(lang)}
           blocks={c.blocks}
           faq={faq}

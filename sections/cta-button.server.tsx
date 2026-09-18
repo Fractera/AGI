@@ -30,3 +30,20 @@ export function CtaButton({ href, children }: { href: string; children: ReactNod
     </a>
   )
 }
+
+// ВТОРОЕ ДЕЙСТВИЕ — ТА ЖЕ КНОПКА, ТОЛЬКО КОНТУРНАЯ (231-1).
+//
+// 🔒 ЗДЕСЬ, А НЕ В ВИДЕ `cta`: правило ссылок, размеры и радиус обязаны совпадать
+// с главной кнопкой, иначе две кнопки в одной строке разъедутся на первой же
+// правке. Отличие ровно одно и оно намеренное — заливки нет.
+export function CtaLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a
+      href={resolveRootHref(href)}
+      {...linkAttrs(href)}
+      className="inline-flex w-fit items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm font-bold text-foreground hover:bg-muted"
+    >
+      {children}
+    </a>
+  )
+}

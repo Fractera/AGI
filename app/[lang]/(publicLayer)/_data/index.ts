@@ -30,6 +30,23 @@ import { nl } from './nl'
 
 export type HomeCell = {
   title: string
+  /**
+   * Подзаголовок под H1 — `Lead` шапки страницы.
+   *
+   * 🔒 ЭТО НЕ `description` (231-1). Описание пишется ПОИСКОВИКУ и обрывается
+   * примерно на 160 знаках; подзаголовок пишется ЧЕЛОВЕКУ и занимает столько
+   * места, сколько нужно первому экрану. Одно поле на два назначения означало бы
+   * либо оборванный сниппет, либо одну строку на экране.
+   */
+  subtitle?: string
+  /**
+   * Короткий абзац под подзаголовком — третий уровень первого экрана.
+   *
+   * 🔒 ОН НЕ БЛОК ЛЕНТЫ (231-1). Блок встал бы после оглавления, а место этой
+   * фразы — сразу под подзаголовком, где её и читают. Поле, а не вид каталога,
+   * потому что это часть ВЕРХНЕЙ ЧАСТИ страницы, а не её тела.
+   */
+  intro?: string
   description: string
   /** Ключевые слова страницы — того же вида, что у правовых страниц. */
   keywords: string
@@ -124,7 +141,11 @@ function fillBlocks(blocks: Block[], admin: string, lang: string): Block[] {
 // семь страниц; научи его поднимать наверх всякий `metrics`, и ряд мер посреди
 // поста однажды молча уедет под заголовок. Здесь же это решение ГЛАВНОЙ о своих
 // собственных блоках, и дальше её оно не идёт.
-const LEAD_KINDS = new Set(['projectTypeMarquee', 'badges'])
+// 🔒 ВИДЫ, КОТОРЫЕ РИСУЮТСЯ В ВЕРХНЕЙ ЧАСТИ СТРАНИЦЫ, А НЕ В ЛЕНТЕ (231-1).
+// Значки и действия принадлежат первому экрану: их читают рядом с заголовком,
+// а не после трёх разделов текста. Вид, попавший сюда, вычитается из ленты —
+// иначе он нарисуется дважды.
+const LEAD_KINDS = new Set(['projectTypeMarquee', 'badges', 'cta'])
 
 /** Блоки, которые главная показывает ВЫШЕ ленты — сразу под первым экраном. */
 export function homeLead(lang: string): Block[] {
@@ -182,5 +203,5 @@ export function homePage(lang: string): HomeCell {
     .filter(b => !LEAD_KINDS.has(b.kind))
     .map(b => (b.kind === 'heroSplit' ? { ...b, title } : b))
 
-  return { ...fields, title, description, blocks, faq: override?.faq ?? data.en.faq }
+  return { ...fields, title, subtitle: override?.subtitle ?? data.en.subtitle, intro: override?.intro ?? data.en.intro, description, blocks, faq: override?.faq ?? data.en.faq }
 }
