@@ -7,9 +7,14 @@ This repository is a **starter template** that launches from **[fractera.ai](htt
 ```bash
 npm run serve:start      # start the site (installs pm2 the first time)
 npm run serve:status     # is it alive, on which address, which build answers
+npm run serve:rebuild    # rebuild after you change the code (production serves a BUILD)
 npm run serve:stop       # stop it
 npm run serve:autostart  # bring it up automatically when the computer starts
 ```
+
+The site runs in **production** on **http://localhost:24680** — pages are pre-built and served in
+milliseconds, nothing is compiled while you browse. That is also why changing the code needs
+`npm run serve:rebuild`: the running site serves a build, not your source files.
 
 The site runs on **http://localhost:24680**. That port is deliberate: `3000` is the busiest port in
 development and we start before you do, so we would break your own projects; `49152+` is the range the

@@ -180,13 +180,38 @@ function autostart() {
   console.log('AGI поднимется при следующем входе в систему. Проверить: npm run serve:status')
 }
 
+// ── ПЕРЕСБОРКА ───────────────────────────────────────────────────────────────
+//
+// 🔒 ЦЕНА ПРОДАКШНА: собранный сайт не перечитывает исходники. Поправил код —
+// пересобери, иначе страница отдаёт прежнюю сборку, и это выглядит как «правка
+// не применилась». В режиме разработки пересборки не нужно, но там каждая
+// страница компилируется при заходе — ровно то, от чего мы ушли.
+function rebuild() {
+  console.log("Собираю сайт заново. Это занимает около минуты; сайт всё это время работает.")
+  const build = spawnSync(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"], {
+    cwd: root,
+    stdio: "inherit",
+    shell: isWindows,
+  })
+  // 🛑 Код выхода берётся у самой сборки. ✗ оплачено в 232-1: конвейер (| tail)
+  // печатает код последней команды, и упавшая сборка выглядит успешной.
+  if (build.status !== 0) {
+    console.error("\nСборка НЕ УДАЛАСЬ — сайт продолжает работать на прежней сборке. Ошибки выше.")
+    process.exit(1)
+  }
+  console.log("\nСборка готова, перезапускаю сайт…")
+  pm2run(["restart", "fractera-agi"], { quiet: true })
+  console.log("Готово. Проверить: npm run serve:status")
+}
+
 const command = process.argv[2]
 
 if (command === 'start') start()
 else if (command === 'stop') stop()
 else if (command === 'status') await status()
 else if (command === 'autostart') autostart()
+else if (command === 'rebuild') rebuild()
 else {
-  console.log('Команды: start · stop · status · autostart')
+  console.log('Команды: start · stop · status · rebuild · autostart')
   process.exit(1)
 }
