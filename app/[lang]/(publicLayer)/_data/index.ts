@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import type { Block, FaqPair } from '@/lib/content/blocks/types'
 import { resolveFields, resolveLocalizedBody } from '@/lib/content/resolve'
 import { adminUrlFromSite } from '@/lib/site-urls'
@@ -160,8 +161,17 @@ function homeBlocksOf(lang: string): Block[] {
   return fillBlocks(body.blocks, admin, lang)
 }
 
-/** Содержимое главной на языке: перевод, иначе английская основа. */
-export function homePage(lang: string): HomeCell {
+/**
+ * Содержимое главной на языке: перевод, иначе английская основа.
+ *
+ * 🔒 ОБЁРНУТА В `cache()` — ПО ИЗМЕРЕНИЮ, А НЕ ВПРОК (231-2). За один рендер её
+ * зовут дважды: фабрика страницы за заголовком и телом, слот верхней части за
+ * коротким абзацем. Каждый вызов читает настройки, разрешает переводы и
+ * подставляет адреса во все блоки — то есть вторая половина работы делалась
+ * впустую. `cache()` действует в пределах ОДНОГО рендера: это не хранилище
+ * между запросами, а защита от повторного счёта внутри одной страницы.
+ */
+export const homePage = cache((lang: string): HomeCell => {
   const override = data.overrides[lang]
   const fields = resolveFields(data.en, override ?? {}, ['title', 'description', 'keywords'] as const)
   const body = resolveLocalizedBody({ blocks: data.en.blocks }, override ? { blocks: override.blocks } : undefined)
@@ -204,4 +214,4 @@ export function homePage(lang: string): HomeCell {
     .map(b => (b.kind === 'heroSplit' ? { ...b, title } : b))
 
   return { ...fields, title, subtitle: override?.subtitle ?? data.en.subtitle, intro: override?.intro ?? data.en.intro, description, blocks, faq: override?.faq ?? data.en.faq }
-}
+})
