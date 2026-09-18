@@ -21,11 +21,11 @@ export const en: HomeCell = {
   // 🔒 H1 carries the name, the class and the subject. Web3 is claimed, Web4 is
   // not: the second has no agreed meaning, and claiming it is the same class of
   // risk as saying "open source" where the licence is source-available.
-  title: 'Fractera AGI — Web3 infrastructure for your expertise',
+  title: 'Fractera AGI — Web3 infrastructure for your agents',
   subtitle:
-    'Love artificial intelligence — then digitize your expertise and earn crypto with Fractera AGI Infrastructure. Your node lives on your own machine, finds customers among other agents itself, and takes payment directly. No platform, no middleman, no centre above you.',
+    'Love artificial intelligence — then digitize your expertise into an agent and earn crypto with Fractera AGI Infrastructure. Your agent lives on your own machine, finds customers among other agents itself, and takes payment directly. No platform, no middleman, no centre above you.',
   description:
-    'Fractera AGI Infrastructure: a node on your own computer that turns your expertise into a service. It publishes what it can do, finds customers among agents, does the work and takes crypto directly — with no platform and no middleman.',
+    'Fractera AGI Infrastructure: a home for your agents on your own computer. The agent declares what it can do, finds customers among other agents, does the work and takes crypto directly — with no platform and no middleman.',
   intro:
     'The core is deliberately small: itself, sign-in, and the data layer. Nothing else is installed by default, because everything else is a choice — and a choice made for you is a dependency you did not ask for.',
   keywords: '',
