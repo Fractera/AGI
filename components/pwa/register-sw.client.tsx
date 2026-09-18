@@ -53,8 +53,16 @@ export function RegisterServiceWorker({ enabled }: { enabled: boolean }) {
 
     if (!window.isSecureContext) return
 
+    // 🔒 МЕТКА СБОРКИ В АДРЕСЕ ВОРКЕРА — ЭТО И ЕСТЬ МЕХАНИЗМ ОБНОВЛЕНИЯ.
+    // ✗ оплачено белым экраном 2026-09-19: без неё файл воркера побайтно
+    // одинаков между сборками, браузер не активирует его заново, кеш страниц
+    // живёт вечно, и при обрыве связи человек получает страницу прошлой сборки,
+    // чьи скрипты уже стёрты. Подробности — в шапке `public/sw.js`.
+    // `NEXT_PUBLIC_BUILT_AT` подставляет `next.config.ts` при каждой сборке.
+    const build = process.env.NEXT_PUBLIC_BUILT_AT ?? 'dev'
+
     const register = () => {
-      navigator.serviceWorker.register('/sw.js').catch(() => {
+      navigator.serviceWorker.register(`/sw.js?v=${encodeURIComponent(build)}`).catch(() => {
         // Отказ регистрации не имеет права ничего ломать: сайт полноценно
         // работает и без воркера, тот даёт только офлайн и быстрое повторное
         // открытие.
