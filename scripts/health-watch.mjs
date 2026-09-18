@@ -77,7 +77,12 @@ async function probe(url) {
 function restart() {
   restarts += 1
   log(`перезапускаю ${APP_NAME} (перезапуск №${restarts} за жизнь сторожа)`)
-  const result = spawnSync(pm2, ['restart', APP_NAME], { encoding: 'utf8', shell: isWindows })
+  // 🛑 windowsHide ОБЯЗАТЕЛЕН У ЛЮБОГО ПРОЦЕССА, ЗАПУЩЕННОГО ФОНОВОЙ СЛУЖБОЙ.
+  // В node он по умолчанию false, и Windows открывает чёрное окно консоли на
+  // полэкрана. ✗ оплачено 2026-09-18: окна туннеля мигали поверх работы
+  // владельца при каждом обрыве связи — «компьютер выглядит как кирпич у
+  // которого сломанный экран». Здесь это случалось бы при каждом перезапуске.
+  const result = spawnSync(pm2, ['restart', APP_NAME], { encoding: 'utf8', shell: isWindows, windowsHide: true })
   if (result.error || result.status !== 0) {
     log(`перезапуск НЕ УДАЛСЯ: ${result.error?.message || result.stderr?.trim() || 'код ' + result.status}`)
     return

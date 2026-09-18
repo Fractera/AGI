@@ -29,7 +29,7 @@ function pm2run(args, options = {}) {
   // shell только на Windows и только потому, что node отказывается запускать
   // `.cmd` без него (EINVAL, запрет после CVE-2024-27980). Подробности — в
   // `scripts/ensure-pm2.mjs`.
-  return spawnSync(pm2, args, { encoding: 'utf8', shell: isWindows, stdio: options.quiet ? 'pipe' : 'inherit' })
+  return spawnSync(pm2, args, { encoding: 'utf8', shell: isWindows, windowsHide: true, stdio: options.quiet ? 'pipe' : 'inherit' })
 }
 
 function readTunnel() {

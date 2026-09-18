@@ -23,7 +23,9 @@ const npm = isWindows ? 'npm.cmd' : 'npm'
 const pm2 = isWindows ? 'pm2.cmd' : 'pm2'
 
 function run(command, args) {
-  return spawnSync(command, args, { encoding: 'utf8', shell: isWindows })
+  // windowsHide: см. закон в scripts/health-watch.mjs — окно консоли поверх
+  // экрана человека недопустимо даже на секунду.
+  return spawnSync(command, args, { encoding: 'utf8', shell: isWindows, windowsHide: true })
 }
 
 // 🔒 Причину отказа печатаем ВСЕГДА и из всех трёх мест. ✗ оплачено получасом в

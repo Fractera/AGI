@@ -85,11 +85,26 @@ const exe = findCloudflared()
 
 log(`открываю туннель на http://localhost:${port} через ${exe}`)
 
-const child = spawn(exe, ['tunnel', '--url', `http://localhost:${port}`, '--no-autoupdate'], {
+// 🛑 `--protocol http2` — НЕ ОПТИМИЗАЦИЯ, А УСЛОВИЕ РАБОТЫ В ОБЫЧНОЙ ДОМАШНЕЙ
+// СЕТИ. По умолчанию cloudflared идёт через QUIC поверх UDP, а документация
+// Cloudflare прямо предупреждает: «idle sessions can be more sensitive to
+// network devices that aggressively time out UDP traffic… test with cloudflared
+// set to protocol: http2». ✗ оплачено 2026-09-18 на машине владельца, сидевшей
+// на раздаче с телефона: `ERR Connection terminated` → `no more connections
+// active and exiting`, семь перезапусков за десять минут и семь новых адресов.
+const args = ['tunnel', '--url', `http://localhost:${port}`, '--no-autoupdate', '--protocol', 'http2']
+
+const child = spawn(exe, args, {
   cwd: root,
-  // Windows: запуск .exe оболочки не требует — это не .cmd. Лишняя оболочка
-  // здесь означала бы лишнее окно консоли на экране человека.
+  // Оболочка не нужна: это .exe, а не .cmd.
   shell: false,
+  // 🛑 БЕЗ ЭТОГО WINDOWS ОТКРЫВАЕТ ЧЁРНОЕ ОКНО КОНСОЛИ НА ПОЛЭКРАНА. В node
+  // `windowsHide` по умолчанию **false**, и окно появляется при КАЖДОМ запуске
+  // процесса — то есть при каждом обрыве связи и перезапуске. ✗ оплачено тем же
+  // вечером: владелец написал «компьютер выглядит как кирпич у которого
+  // сломанный экран». Прятать окно — не косметика: фоновая служба, мигающая
+  // окнами поверх работы человека, непригодна к использованию.
+  windowsHide: true,
 })
 
 let found = false
