@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { readStored, writeStored } from "@/lib/safe-storage";
 
 // COOKIE CONSENT BANNER (step 305) — reprogrammed from FES components/cookie-banner.tsx into the FNS config
 // system. Shown until the visitor decides; stores the choice in localStorage ("fractera-cookie-consent")
@@ -19,7 +20,7 @@ export function CookieBanner({
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!localStorage.getItem("fractera-cookie-consent")) setVisible(true);
+    if (!readStored("fractera-cookie-consent")) setVisible(true);
     const handler = () => setVisible(true);
     window.addEventListener("open-cookie-settings", handler);
     return () => window.removeEventListener("open-cookie-settings", handler);
@@ -30,7 +31,7 @@ export function CookieBanner({
   const [before, after] = strings.message.split("{policy}");
 
   function consent(choice: "accepted" | "rejected") {
-    localStorage.setItem("fractera-cookie-consent", choice);
+    writeStored("fractera-cookie-consent", choice);
     const w = window as unknown as { gtag?: (...args: unknown[]) => void };
     if (typeof w.gtag === "function") {
       w.gtag("consent", "update", { analytics_storage: choice === "accepted" ? "granted" : "denied" });

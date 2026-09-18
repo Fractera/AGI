@@ -7,7 +7,10 @@ const defaultTheme = process.env.NEXT_PUBLIC_DEFAULT_THEME ?? "light";
 
 const themeScript = `
 (function() {
-  var saved = localStorage.getItem('fractera-theme');
+  // 🛑 Запрещённое хранилище БРОСАЕТ на обращении к свойству, а не возвращает
+  // null: без try/catch этот скрипт валится до отрисовки, в самом head.
+  var saved = null;
+  try { saved = localStorage.getItem('fractera-theme'); } catch (e) {}
   var theme = saved || '${defaultTheme}';
   if (theme === 'dark') {
     document.documentElement.classList.add('dark');

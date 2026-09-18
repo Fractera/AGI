@@ -25,6 +25,7 @@
 import { useEffect, useState } from 'react'
 import { Download, X } from 'lucide-react'
 import type { InstallStrings } from './install-prompt.i18n'
+import { readStored, writeStored } from '@/lib/safe-storage'
 
 // Событие нестандартное: в типах TypeScript его нет, потому что в спецификации
 // оно не описано — это дополнение поставщиков браузеров. Объявляем ровно то, чем
@@ -39,7 +40,7 @@ const SNOOZE_DAYS = 30
 
 function snoozed(): boolean {
   try {
-    const raw = localStorage.getItem(SNOOZE_KEY)
+    const raw = readStored(SNOOZE_KEY)
     if (!raw) return false
     return Date.now() - Number(raw) < SNOOZE_DAYS * 24 * 60 * 60 * 1000
   } catch {
@@ -74,11 +75,8 @@ export function InstallPrompt({ strings }: { strings: InstallStrings }) {
   if (!event) return null
 
   const dismiss = () => {
-    try {
-      localStorage.setItem(SNOOZE_KEY, String(Date.now()))
-    } catch {
-      /* без хранилища отказ живёт до перезагрузки — это лучше, чем ничего */
-    }
+    // без хранилища отказ живёт до перезагрузки — это лучше, чем ничего
+    writeStored(SNOOZE_KEY, String(Date.now()))
     setEvent(null)
   }
 
@@ -91,9 +89,7 @@ export function InstallPrompt({ strings }: { strings: InstallStrings }) {
       const choice = await event.userChoice
       // Отказался в окне браузера — считаем это отказом и не спрашиваем месяц.
       if (choice.outcome === 'dismissed') {
-        try {
-          localStorage.setItem(SNOOZE_KEY, String(Date.now()))
-        } catch {}
+        writeStored(SNOOZE_KEY, String(Date.now()))
       }
     } catch {
       /* окно не открылось — молча, это не поломка сайта */

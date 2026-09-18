@@ -24,6 +24,7 @@
 import { useState, useCallback, useEffect } from "react"
 import { toast } from "sonner"
 import type { UsersTableUi } from "./ui.i18n"
+import { readStored, writeStored } from '@/lib/safe-storage'
 
 export type AccountRow = {
   id: string
@@ -85,7 +86,7 @@ export function useUsersList(ui: UsersTableUi) {
   // привычке, а не к сеансу. Читается ПОСЛЕ первой отрисовки — на сервере
   // localStorage нет, и обращение к нему в теле компонента ломает гидратацию.
   useEffect(() => {
-    const saved = Number(localStorage.getItem(SIZE_KEY))
+    const saved = Number(readStored(SIZE_KEY))
     if (PAGE_SIZES.includes(saved)) setPerPage(saved)
   }, [])
 
@@ -129,7 +130,7 @@ export function useUsersList(ui: UsersTableUi) {
   const changeSize = useCallback(
     (size: number) => {
       setPerPage(size)
-      localStorage.setItem(SIZE_KEY, String(size))
+      writeStored(SIZE_KEY, String(size))
       // С первой страницы, а не с текущей: на новой нарезке «страница пять»
       // означает другое место списка, и человек оказался бы не там, где был.
       void load({ page: 1, q: query, perPage: size })
