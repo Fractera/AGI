@@ -32,12 +32,15 @@ export const en: HomeCell = {
   blocks: [
     {
       kind: 'badges',
+      // 🔒 "Open code" FIRST, and never "open source": the licence permits any
+      // purpose except providing a competing product, which does not meet the
+      // OSI definition. Calling it open source would be open-washing.
       items: [
+        { label: 'Open code', tone: 'access' },
         { label: 'Lives on your machine', tone: 'code' },
         { label: 'Claude Code brings it up', tone: 'muted' },
         { label: 'Paid directly', tone: 'muted' },
         { label: 'No middleman', tone: 'muted' },
-        { label: 'Open code', tone: 'access' },
       ],
     },
     {

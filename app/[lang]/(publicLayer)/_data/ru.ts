@@ -19,12 +19,16 @@ export const ru: HomeCell = {
   blocks: [
     {
       kind: 'badges',
+      // 🔒 «ОТКРЫТЫЙ КОД» ПЕРВЫМ И НИКОГДА «ОТКРЫТЫЙ ИСХОДНЫЙ КОД». Второе есть
+      // перевод «open source», а наша лицензия определению OSI не отвечает:
+      // использовать можно для чего угодно, кроме создания конкурирующего
+      // продукта. Назвать это «open source» значит open-washing.
       items: [
+        { label: 'Открытый код', tone: 'access' },
         { label: 'Живёт на вашей машине', tone: 'code' },
         { label: 'Поднимает Claude Code', tone: 'muted' },
         { label: 'Оплата напрямую', tone: 'muted' },
         { label: 'Без посредников', tone: 'muted' },
-        { label: 'Открытый код', tone: 'access' },
       ],
     },
     {
