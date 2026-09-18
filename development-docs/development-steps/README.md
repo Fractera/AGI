@@ -1,77 +1,78 @@
-# development-steps — память проекта
+# development-steps — the project's memory
 
-Три папки и один файл живого состояния — в них живёт всё, что агент планирует, чем занят сейчас,
-чем заканчивает и что просят снаружи.
+Three folders and one live-state file. Everything the agent plans, is working on right now, finishes,
+and is asked for from the outside lives here.
 
-| Папка | Имя файла | Что внутри |
+| Folder | File name | What is inside |
 |---|---|---|
-| `new-steps/` | `<номер>-<описание-6-8-слов>.md` | план предстоящей работы |
-| `completed-steps/` | `<шаг>-<подшаг>.md` и `<шаг>-main.md` | сжатый итог законченной |
-| `current-steps.md` | один файл, здесь же | где работа СЕЙЧАС: группа активных шагов и условия их закрытия |
-| `pre-steps/` | `dd-mm-yyyy_hh-mm-ss.md` | **заявки: что просят СНАРУЖИ** — их пишет не агент |
+| `new-steps/` | `<number>-<6-8-word-description>.md` | the plan for work not yet done |
+| `completed-steps/` | `<step>-<substep>.md` and `<step>-main.md` | the compressed outcome of finished work |
+| `current-steps.md` | a single file, right here | where the work stands RIGHT NOW: the active group of steps and the conditions for closing them |
+| `pre-steps/` | `dd-mm-yyyy_hh-mm-ss.md` | **requests: what is asked for from OUTSIDE** — written by someone other than the agent |
 
-🔒 **ПРИЁМНАЯ ОТЛИЧАЕТСЯ ОТ ОСТАЛЬНЫХ ТЕМ, КТО В НЕЁ ПИШЕТ (шаг 61, 2026-08-30).** План, состояние
-и итог пишет агент. **Заявку кладёт страница проекта:** владелец нажимает карандаш у блока в
-каталоге, описывает словами, чего хочет, — и появляется файл. Это единственное место, где текст
-пишет ЧЕЛОВЕК, а читает АГЕНТ, и потому у папки свой закон: `pre-steps/README.md`, читается
-раньше содержимого.
+🔒 **THE INBOX DIFFERS FROM THE OTHERS IN WHO WRITES INTO IT.** The plan, the state and the outcome
+are written by the agent. **A request is placed there by a page of the project:** the owner clicks the
+pencil next to a block, describes in words what they want, and a file appears. This is the only place
+where the text is written by a HUMAN and read by an AGENT, which is why the folder has a law of its
+own: `pre-steps/README.md`, read before its contents.
 
-🔒 **ЭТА ПАПКА ПРИЕЗЖАЕТ К ВАМ ПУСТОЙ — И ЭТО ЗАКОН, А НЕ СЛУЧАЙНОСТЬ (2026-08-24).**
-Здесь лежат шаги ВАШЕГО проекта и только они. Шаги, которыми строили сам стартер, — чужая история:
-они называют файлы, которых у вас нет, и решения, которых вы не принимали, а читаются в начале каждой
-сессии наравне с вашими. Поэтому в шаблоне остаются ровно три файла-объяснения и пустой
-`current-steps.md`; всё остальное — ваше.
+🔒 **THIS FOLDER REACHES YOU EMPTY — BY LAW, NOT BY ACCIDENT.** What lives here are the steps of YOUR
+project and nothing else. The steps used to build the starter itself are someone else's history: they
+name files you do not have and decisions you never made, yet they are read at the start of every
+session alongside yours. So the template keeps exactly three explanatory files and an empty
+`current-steps.md`; everything else is yours.
 
-**Тому, кто строит сам стартер:** его шаги живут в дев-репозитории Fractera
-(`code/development-steps/`), а не здесь. Написать их в шаблон — значит отправить их каждому
-будущему клиенту.
+**The third file closes the gap between the two folders:** the plan knows what was intended, the
+outcome knows what came out, and neither knows where the work was interrupted. It is read first at the
+start of a session, rewritten in place, and reset when a group of steps is closed. Its shape is
+described inside it.
 
-**Третий файл появился 2026-08-22** и закрывает дыру между двумя папками: план знает, что задумано,
-итог — что вышло, и ни один не знает, где работа оборвалась. Читается первым в начале сессии,
-переписывается поверх, обнуляется при закрытии группы. Форма — внутри него.
+**A name is a pointer.** A folder listing must be readable without opening files, so a plan carries
+six to eight words about the substance of the work in its name — not "step 12" and not "fixes".
 
-**Имя — это указатель.** Список папки обязан читаться без открытия файлов: поэтому у плана в имени
-шесть–восемь слов о существе работы, а не «шаг 12» и не «правки».
+**Numbers run continuously and are never reused.** A plan moves into `completed-steps/` under the same
+number, losing the description from its name: by then the description lives inside the file, and
+repeating it in the name buys nothing.
 
-**Номер сквозной и не переиспользуется.** План уезжает в `completed-steps/` под тем же номером,
-теряя описание в имени: к этому моменту описание живёт внутри файла и повторять его в имени незачем.
+**A substep closes with its own file:** `12-1.md` … `12-10.md`, while `12-main.md` is the outcome of
+the whole step. A single file covering a ten-substep step stops being readable, and nothing in it
+helps you find the substep you need.
 
-**Подшаг закрывается своим файлом:** `12-1.md` … `12-10.md`, а `12-main.md` — итог шага целиком.
-Один файл на шаг из десяти подшагов перестаёт читаться, и найти в нём нужный подшаг нечем.
+## 🔒 What happens to a plan once its step is closed
 
-## 🔒 Судьба плана после закрытия шага
+**The plan of a closed step is deleted from `new-steps/`** — the whole folder, if the step was run as
+one. `new-steps/` is a **queue of work still ahead**: the plan of finished work sits in it like a
+request for something already built, and the next session reads that queue literally.
 
-**План закрытого шага удаляется из `new-steps/`** — папка целиком, если шаг вёлся папкой. `new-steps/`
-есть **очередь предстоящего**: план сделанного лежит в ней как заявка на уже построенную работу, и
-следующая сессия читает эту очередь буквально.
+**The deletion goes in THE SAME commit as the outcome.** Split apart, they produce a state where the
+outcome is written but the plan still hangs in the queue — two records of one piece of work that
+contradict each other.
 
-**Удаление идёт ТЕМ ЖЕ коммитом, что и итог.** Разнесённые, они дают состояние, где итог написан, а
-план ещё висит в очереди, — две записи об одной работе, противоречащие друг другу.
-
-**Это законно только потому, что план восстановим из git:**
+**This is only legitimate because a plan is recoverable from git:**
 
 ```
-git log --diff-filter=D --format=%H -1 -- <путь к плану>   # коммит, которым план удалён
-git show <хэш>^:<путь к плану>                             # содержимое ДО удаления
+git log --diff-filter=D --format=%H -1 -- <path to the plan>   # the commit that deleted the plan
+git show <hash>^:<path to the plan>                            # its contents BEFORE that commit
 ```
 
-Пустой вывод первой команды означает, что по этому пути файла не было никогда, — это её встроенный
-негативный контроль. Итог шага `<шаг>-main.md` называет коммит удаления, чтобы поиск не начинался с
-обхода истории.
+Empty output from the first command means no file ever existed at that path — that is its built-in
+negative control. The step outcome `<step>-main.md` names the deletion commit so that the search does
+not have to start by walking the history.
 
-## Что обязано быть в плане
+## What a plan must contain
 
-Столько подробностей, чтобы работу можно было продолжить с ЧИСТОГО контекста — другой сессией,
-другой моделью, через месяц. Шаг дробится на 2–10 подшагов; подшаг ведёт себя ровно как шаг: свой
-план, своя приёмка, свой итог.
+Enough detail that the work can be continued from a CLEAN context — by another session, another model,
+a month later. A step is broken into 2–10 substeps; a substep behaves exactly like a step: its own
+plan, its own acceptance, its own outcome.
 
-## Что обязано быть в итоге
+## What an outcome must contain
 
-Что делали · как делали · что получилось · **какие были ошибки** · **эволюция навыков**.
+What was done · how it was done · what came out of it · **what the mistakes were** · **how the skills
+evolved**.
 
-Ошибки — обязательная часть. Шаг без них читается как работа, которой не было, и следующая сессия
-повторит их заново.
+Mistakes are a mandatory part. A step without them reads like work that never happened, and the next
+session will repeat them.
 
-Эволюция навыков — вторая половина закрытия и пропуску не подлежит: какие навыки читались, где
-тормозили, что пришлось искать в коде, что потребовал архитектор, какое улучшение согласовано и
-внесено. Нечего улучшать — так и написать одной строкой.
+The evolution of skills is the second half of closing and may not be skipped: which skills were read,
+where they slowed you down, what had to be looked up in the code, what the architect demanded, which
+improvement was agreed and applied. Nothing to improve — write that in one line.

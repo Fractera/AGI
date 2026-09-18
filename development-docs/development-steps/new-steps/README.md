@@ -1,10 +1,11 @@
-# new-steps — планы
+# new-steps — plans
 
-`<номер>-<описание-6-8-слов>.md`, например `12-page-of-login-history-for-architect.md`.
+`<number>-<6-8-word-description>.md`, for example `12-page-of-login-history-for-architect.md`.
 
-Здесь лежит работа, которая ещё идёт. Закончилась — итог уезжает в `../completed-steps/<номер>.md`,
-а этот файл удаляется: план и итог одновременно не существуют, иначе они разойдутся.
+This is work still in progress. Once it is finished, the outcome moves to
+`../completed-steps/<number>.md` and this file is deleted: a plan and an outcome never exist at the
+same time, or they drift apart.
 
-Удаление идёт **тем же коммитом**, что и итог, а сам план потом достаётся из git — команда в
-`../README.md`, раздел «Судьба плана после закрытия шага». Шаг, который вёлся папкой, удаляется
-папкой целиком.
+The deletion goes in **the same commit** as the outcome, and the plan itself is recovered from git
+afterwards — the command is in `../README.md`, section "What happens to a plan once its step is
+closed". A step that was run as a folder is deleted as a folder.

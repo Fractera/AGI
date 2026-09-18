@@ -62,15 +62,10 @@ export const CONFIGS = [
     defaultsExport: "DEFAULT_DESIGN_CONFIG",
     defaultsTarget: "DESIGN-CONFIG/defaults.json",
   },
-  {
-    id: "products",
-    source: "config/products-config.schema.ts",
-    exportName: "productDossierSchema",
-    target: "PRODUCTS-CONFIG/schema.json",
-    defaultsSource: "config/products-config.defaults.ts",
-    defaultsExport: "DEFAULT_PRODUCT_DOSSIER",
-    defaultsTarget: "PRODUCTS-CONFIG/defaults.json",
-  },
+  // 🪦 ЗАПИСЬ ПРОДУКТОВ УДАЛЕНА (230-2, 2026-09-18, слово владельца: убрать
+  // PRODUCTS-CONFIG). Вместе с папкой удалён и механизм: config/products-config*.
+  // Оставленная запись держала бы сторожа схем вечно красным — он честно искал
+  // бы файлы, которых больше нет.
 ]
 
 const CACHE_DIR = join(ROOT, "node_modules", ".cache", "fractera")

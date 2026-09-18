@@ -1,16 +1,18 @@
-# completed-steps — итоги
+# completed-steps — outcomes
 
-| Файл | Что это |
+| File | What it is |
 |---|---|
-| `<шаг>-<подшаг>.md` — `12-1.md` … `12-10.md` | итог одного подшага |
-| `<шаг>-main.md` — `12-main.md` | итог шага целиком |
+| `<step>-<substep>.md` — `12-1.md` … `12-10.md` | the outcome of one substep |
+| `<step>-main.md` — `12-main.md` | the outcome of the whole step |
 
-**У каждого подшага свой файл.** Подшаг ведёт себя в разработке как шаг, значит и закрывается как
-шаг: что делали, как, что получилось, какие были ошибки. Общий `-main` собирает то, что видно только
-целиком — чем кончился шаг и что изменилось в навыках.
+**Every substep has its own file.** In development a substep behaves like a step, so it closes like
+one: what was done, how, what came out of it, what the mistakes were. The shared `-main` collects what
+is only visible as a whole — how the step ended and what changed in the skills.
 
-**Это память проекта, и её читают в начале КАЖДОЙ сессии — минимум три последних файла.** Задача
-нового шага задевает область, которой они не касаются, — ищи по папке и добавляй нужные.
+**This is the project's memory, and it is read at the start of EVERY session — at least the three most
+recent files.** If a new step touches an area those three do not cover, search the folder and add what
+is needed.
 
-Поэтому итог пишется для чужого чистого контекста, а не для себя сегодняшнего. Ошибки — обязательная
-часть: шаг без них читается как работа, которой не было, и следующая сессия повторит их заново.
+That is why an outcome is written for someone else's clean context, not for your present self.
+Mistakes are a mandatory part: a step without them reads like work that never happened, and the next
+session will repeat them.
