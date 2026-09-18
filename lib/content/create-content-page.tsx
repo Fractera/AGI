@@ -126,7 +126,12 @@ export function createContentPage<C extends ContentPageContent>(config: ContentP
     return {
       // `absolute` по той же причине, что и у поста: корневой шаблон
       // `%s | <имя сайта>` иначе добавит имя второй раз.
-      title: { absolute: `${seoTitle} | ${brand().name}` },
+      // 🔒 ПУСТОЙ ЗАГОЛОВОК — ЗАКОННОЕ СОСТОЯНИЕ СТРАНИЦЫ, А НЕ ОШИБКА ДАННЫХ
+      // (230-6, 2026-09-18). Страница без заголовка бывает: главная, у которой
+      // содержимого пока нет вовсе. Прежняя склейка давала при этом `<title> |
+      // Fractera</title>` — вид испорченной разметки, по которому поисковик судит
+      // о качестве сайта. Пусто → остаётся одно имя сайта.
+      title: { absolute: seoTitle ? `${seoTitle} | ${brand().name}` : brand().name },
       description: c.description,
       keywords: c.keywords,
       alternates: buildAlternates(lang, meta.subPath),

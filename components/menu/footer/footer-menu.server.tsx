@@ -131,7 +131,7 @@ export function FooterMenu({ lang }: { lang: string }) {
           `max-w-5xl` и не двигалась вовсе. Человек нажимал «шире», видел, как
           разъезжается один подвал, и справедливо считал кнопку сломанной.
           Подвал — мебель сайта: он занимает всю ширину всегда, как и шапка. */}
-      <div className="px-6 py-10 flex flex-col gap-6">
+      <div className="px-6 py-6 flex flex-col gap-6">
         {/* ❄️ ЗАМОРОЖЕНО (229-5, 2026-09-18, слово владельца): «те которые касаются
             коррекция работы то есть страница Legal, темп и прочее… скрыть в комментариях…
             чтобы вкладка при необходимости могла быть быстро разморожена и достроена».
@@ -174,12 +174,17 @@ export function FooterMenu({ lang }: { lang: string }) {
             к ней не предполагается, в отличие от замороженной секции 1 выше. */}
 
 
+        {/* 🔒 ЧЕРТЫ НАД ЭТОЙ СТРОКОЙ БОЛЬШЕ НЕТ (230-5, 2026-09-18, слово владельца:
+            «над футером осталось пустая секция… вот это пустая секция мне не нужна»).
+            Черта и отступ под ней отделяли нижнюю строку от секций выше. Секций выше
+            не осталось ни одной, и черта стала верхней границей пустоты — то есть
+            рисовала раздел, которого нет. */}
         {/* Section 3 — company: copyright + address, social, theme toggle, language.
             One row on every width (© + name on the left, controls on the right).
             MOBILE (< sm): no "rights" text; controls order = theme · language ·
             social-hamburger (rightmost, opens upward). DESKTOP (≥ sm): the classic
             inline socials + theme + language, with the "rights" line intact. */}
-        <div className="flex flex-row items-center justify-between gap-3 text-sm border-t border-border pt-6">
+        <div className="flex flex-row items-center justify-between gap-3 text-sm">
           <div className="flex flex-col gap-1 min-w-0">
             <span className="truncate">
               © {new Date().getFullYear()} {cfg.short_name}.<span className="hidden sm:inline"> {ui.rights}</span>
@@ -202,11 +207,11 @@ export function FooterMenu({ lang }: { lang: string }) {
                 <Icon className="size-4" />
               </a>
             ))}
-            {/* ❄️ ЗАМОРОЖЕН ПЕРЕКЛЮЧАТЕЛЬ ШИРИНЫ (229-6, 2026-09-18, слово владельца:
-                «в футере висит инструмент который показывает ширину страницы —
-                закомментировать его»). Он управляет шириной [data-app-column].
-                Разморозка: снять эту обёртку, ничего не дописывая. */}
-            {/* {widthOn && <AppWidthToggle labels={widthLabels(lang)} />} */}
+            {/* Переключатель ширины содержимого (широко ↔ обычно) — управляет
+                [data-app-column]. На телефоне скрыт: там своя полноширинная раскладка.
+                🪦 Был заморожен в комментарии 229-6 и возвращён в строй 230-5 по слову
+                владельца — «у меня там был инструмент изменение ширины экрана». */}
+            {widthOn && <AppWidthToggle labels={widthLabels(lang)} />}
             {themeOn && <ThemeToggle labels={{ system: ui.system, light: ui.light, dark: ui.dark }} />}
             {langSwitchOn && <LanguageSwitcher />}
           </div>
