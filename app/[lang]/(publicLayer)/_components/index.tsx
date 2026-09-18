@@ -2,10 +2,6 @@ import { createContentPage } from '@/lib/content/create-content-page'
 import { homePage, homeLead } from '../_data'
 import { meta } from '../_data/meta'
 import { PostBody } from '@/components/content-page/post-body'
-import { StarterBanner } from './starter-banner.client'
-import { starterBannerStrings } from './starter-banner.i18n'
-import { adminUrlFromSite } from '@/lib/site-urls'
-import { getAppConfig } from '@/config/app-config'
 
 // Вход главной страницы — ТА ЖЕ ФАБРИКА, ЧТО У ПРАВОВЫХ СТРАНИЦ.
 //
@@ -24,23 +20,16 @@ import { getAppConfig } from '@/config/app-config'
 // собственного заголовка страницы, а до того — не нарисовались нигде, потому что
 // поднятый вид без слота, который его рисует, исчезает молча. Ни одна проверка
 // при этом не падает.
+// 🪦 БАННЕР СТАРТОВОГО ШАБЛОНА УДАЛЁН 2026-09-18 ПО СЛОВУ ВЛАДЕЛЬЦА («not need —
+// remove it»). Он висел поверх страницы в слоте `afterHero` и звал «подключите
+// ваш репозиторий и перейдите к разработке». Зов в разработку противоречит тому,
+// чем стал этот сайт: человек получает РАБОТАЮЩИЙ САЙТ в продакшне, а не проект,
+// который ещё надо доделать. Вместе с вызовом удалены `starter-banner.client.tsx`
+// и `starter-banner.i18n.ts` — они существовали только ради него; вернуть можно
+// из git.
 const page = createContentPage({
   resolve: homePage,
   meta,
-  // 🔒 БАННЕР СТАРТОВОГО ШАБЛОНА — ИМЕННО В `afterHero`, И ЭТО НЕ СЛУЧАЙНОСТЬ.
-  // Он `position: fixed` и рисуется поверх страницы: место в дереве ему нужно
-  // только затем, чтобы исполняться на сервере и знать язык.
-  afterHero: (lang: string) => (
-    <StarterBanner
-      strings={starterBannerStrings(lang)}
-      lang={lang}
-      href={
-        adminUrlFromSite(getAppConfig().url)
-          ? `${adminUrlFromSite(getAppConfig().url)}/${lang}/project-start`
-          : ''
-      }
-    />
-  ),
   // Верхняя часть: короткий абзац и поднятые виды — значки и действия.
   afterHeader: (lang: string) => {
     const { intro } = homePage(lang)
