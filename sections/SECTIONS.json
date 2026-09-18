@@ -232,7 +232,7 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 4,
+          "order": 9,
           "times": 5
         },
         {
@@ -278,7 +278,7 @@
         {
           "page": "(home)",
           "order": 3,
-          "times": 5
+          "times": 4
         },
         {
           "page": "architecture",
@@ -315,6 +315,11 @@
       "description": null,
       "hasCard": false,
       "usedOn": [
+        {
+          "page": "(home)",
+          "order": 8,
+          "times": 3
+        },
         {
           "page": "architecture",
           "order": 7,
@@ -656,7 +661,13 @@
       "title": "how it works, step by step",
       "description": "**Type:** How it works (3). The only kind in this type today.\n\n## What it actually draws\n\nA titled section with steps that light up in order, and light travelling along the link between them.\nEach step has its own title and text.\n\n🔒 **The heading uses the `content` variant, and that is a corrected mistake** (2026-08-16, spotted by\nthe owner at first glance). It stood as `variant=\"ui\"`. The typography primitive splits variants by the\nMEANING of the surface: `content` is the storefront — home page, posts, legal pages, catalogue; `ui` is\nwork screens. The home page is a storefront, so there is nothing to argue about.\n\nThe cost of that mistake was visible to the eye: two standalone sections stood side by side with\nDIFFERENT headings — one sans at 18px, the next serif at 24px. Exactly the mismatch the primitive\nexists to prevent.\n\n## When to take it\n\nA process with an order: first this, then that. Three steps read best; more than five and the section\nturns into a list that happens to be drawn as cards.\n\n## When NOT to take it\n\n- The pieces are equal and have no order — that is `cards`. Cards promise no sequence.\n- It is one process shown in two states, before and after — that is `problemSolution`.",
       "hasCard": true,
-      "usedOn": []
+      "usedOn": [
+        {
+          "page": "(home)",
+          "order": 4,
+          "times": 1
+        }
+      ]
     },
     {
       "id": "0006",
@@ -684,7 +695,13 @@
       "title": "a section made of cards",
       "description": "**Type:** Benefits and value (2). Answers \"what is this made of\" or \"what are my options\" — with\nseveral equal pieces the reader chooses between or compares.\n\n## The number of cards is a multiple of the columns\n\n`cols` takes **2 or 3** (default 3), and the grid does not reflow by width: it is `md:grid-cols-2` or\n`md:grid-cols-3`.\n\n**What breaks.** A card count that is not a multiple of the column count leaves the last row\nincomplete — one card under three, pushed to the left. It is the same defect `metrics` has, and the\nowner was burned by it twice in one day (2026-08-21): first with numbers, then with cards.\n\nSo the working pairs are: **3 columns — 3, 6, 9 cards**; **2 columns — 2, 4, 6**. Four cards in three\ncolumns is the most common mistake, because \"four\" feels like a natural number.\n\n**A fifth card in three columns is legal in exactly one case:** when the bottom row of two reads as a\npair by meaning, not as a remainder. That is a judgement, not a rule.\n\n## When to take it\n\nThree or more equal pieces, each with its own heading and its own content. Anything can live inside a\ncard — a paragraph, a list, a subheading: a card is a container, not a line.\n\n## When NOT to take it\n\n- The pieces are NOT equal, one matters more — that is `panel` or `callout`.\n- There is an order between them, the first precedes the second — that is `flow`: cards promise no\n  sequence.\n- There are exactly two and they are opposed — `problemSolution` or `columns`.\n- They are numbers, not stories — that is `metrics`.\n- `cards` already stands on this page: a kind is not repeated (owner's rule, 2026-08-22).\n\n## Owner's rules\n\n- **2026-08-21 — never add a card beyond the multiple.** Occasion: reusing the section, the agent added\n  a fourth card to three, and the last row fell apart.",
       "hasCard": true,
-      "usedOn": []
+      "usedOn": [
+        {
+          "page": "(home)",
+          "order": 6,
+          "times": 1
+        }
+      ]
     },
     {
       "id": "0027",
@@ -698,7 +715,13 @@
       "title": null,
       "description": null,
       "hasCard": false,
-      "usedOn": []
+      "usedOn": [
+        {
+          "page": "(home)",
+          "order": 7,
+          "times": 3
+        }
+      ]
     },
     {
       "id": "0028",
@@ -712,7 +735,13 @@
       "title": "крупное утверждение в разрядку",
       "description": "То, ради чего написан раздел: одна фраза, набранная так, что её читают до чтения остального.\n\n## Правило: чем отличается от цитаты владельца\n\n`statement` и `founder` рисуются **одним и тем же** компонентом (`sections/pull-quote.server.tsx`) —\nзначит разойтись между собой они не могут. Различает их ровно одно: **наличие подписи**.\n\n| Вид | Подпись | Что помечает |\n|---|---|---|\n| `founder` | имя и фотография **из настроек проекта** | слова ЧЕЛОВЕКА |\n| `statement` | нет | правило, которое установил ПРОДУКТ |\n\n🔒 **РАЗЛИЧИЕ ПО СУЩЕСТВУ, А НЕ ЭКОНОМИЯ РАЗМЕТКИ.** Правило продукта — например, «пока хоть один\nкейс не подтверждён, агент отказывается строить» — человек не произносил, его устанавливает продукт.\nПодпись под таким текстом **приписала бы владельцу фразу, которой он не говорил**, причём выглядело бы\nэто совершенно убедительно: имя, фотография, кавычки. Ложное авторство тем опаснее, чем аккуратнее\nсвёрстано.\n\n## Когда не брать\n\nФраза принадлежит человеку и он готов под ней подписаться — это `founder`, и подпись обязательна.\nУтверждение нуждается в пояснении рядом — это `callout` или абзац: разрядка существует для короткой\nмысли, длинную она делает нечитаемой.",
       "hasCard": true,
-      "usedOn": []
+      "usedOn": [
+        {
+          "page": "(home)",
+          "order": 18,
+          "times": 1
+        }
+      ]
     },
     {
       "id": "0055",

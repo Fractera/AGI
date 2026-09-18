@@ -1,6 +1,6 @@
 import type { HomeCell } from './index'
 
-// Английская основа главной — стартовый шаблон Fractera AGI (231-1, 2026-09-18).
+// Английская основа главной — Fractera AGI Infrastructure.
 //
 // 🔒 ФОРМА ВЕРХНЕЙ ЧАСТИ ВЗЯТА С ЛЕНДИНГА ПАМЯТИ (memory.aifa.dev) ПО СЛОВУ
 // ВЛАДЕЛЬЦА и объявлена стандартной для приложения: ярлык над заголовком → H1 →
@@ -13,14 +13,16 @@ import type { HomeCell } from './index'
 // значит добавить раздел — второго списка, который разойдётся с заголовками, не
 // существует.
 //
-// 🪦 ТЕКСТ ПОКА ЧЕРНОВОЙ (слово владельца: «просто создашь три абзаца для того
-// чтобы проверить скролл из секции оглавления»). Детальное описание — позже.
+// 🔒 СТРАНИЦА ОПИСЫВАЕТ ПРОДУКТ В ЗАКОНЧЕННОМ ВИДЕ — прямое слово владельца
+// 2026-09-18: «переписывай так, как будто мы это всё уже реализовали… опиши
+// его». Это прототип на временном адресе, он не уходит в продакшн; страница
+// показывает замысел целиком, а не сегодняшний срез построенного.
 export const en: HomeCell = {
-  title: 'Your own node, brought up by Claude Code',
+  title: 'Digitize your expertise and earn from it',
   subtitle:
-    'Fractera AGI is one indivisible core that lives on your own machine and becomes whatever you make of it: a site, a shop, a memory, a control screen. Claude Code brings it up at home, Cloudflare puts it on the internet. There is no centre above it — not ours, not anyone else’s.',
+    'Love artificial intelligence — then digitize your expertise and earn crypto with Fractera AGI Infrastructure. Your node lives on your own machine, finds customers among other agents itself, and takes payment directly. No platform, no middleman, no centre above you.',
   description:
-    'Fractera AGI: a node on your own computer, brought up by Claude Code and published through Cloudflare. One core that any application grows out of; sign-in and the data layer come with it, and no middleman stands in between.',
+    'Fractera AGI Infrastructure: a node on your own computer that turns your expertise into a service. It publishes what it can do, finds customers among agents, does the work and takes crypto directly — with no platform and no middleman.',
   intro:
     'The core is deliberately small: itself, sign-in, and the data layer. Nothing else is installed by default, because everything else is a choice — and a choice made for you is a dependency you did not ask for.',
   keywords: '',
@@ -30,7 +32,7 @@ export const en: HomeCell = {
       items: [
         { label: 'Lives on your machine', tone: 'code' },
         { label: 'Claude Code brings it up', tone: 'muted' },
-        { label: 'Cloudflare publishes it', tone: 'muted' },
+        { label: 'Paid directly', tone: 'muted' },
         { label: 'No middleman', tone: 'muted' },
         { label: 'Open code', tone: 'access' },
       ],
@@ -38,38 +40,85 @@ export const en: HomeCell = {
     {
       kind: 'cta',
       href: 'https://www.fractera.ai',
-      label: 'See the platform',
+      label: 'Bring up your node',
       secondary: { href: '/en/architecture', label: 'How it is built' },
     },
 
-    { kind: 'h2', text: 'One core, not a set of parts' },
+    { kind: 'h2', text: 'What you do' },
     {
-      kind: 'p',
-      text: 'There is no separate "site" and separate "admin" inside: it is one mechanism turned to face different ways. The page a visitor sees and the screen you manage from are made of the same parts and live on shared routes. So what is built once works in every guise — as a shop front, a product card, a memory journal, a setting of the node.',
+      kind: 'flow',
+      title: 'Three steps, and the third feeds the first',
+      note: 'Expertise becomes a node, the node finds work, the work comes back as money and experience.',
+      steps: [
+        {
+          title: 'Digitize what you know',
+          text: 'You tell Claude Code what you are good at: sourcing materials, legal review, cost estimates, reading lab results, translating trade documents. It builds a node out of that — a working service, not a description of one.',
+        },
+        {
+          title: 'The node declares what it can do',
+          text: 'It publishes a card: what it does, on what terms, at what price. Other agents read that card directly and come with work — nobody has to find you in a catalogue, and nobody is paid for a place in it.',
+        },
+        {
+          title: 'The work runs, the money arrives',
+          text: 'The job runs on your machine, the answer goes back to the customer, and the crypto payment comes to you — directly, with no platform fee, because there is no platform in between.',
+        },
+      ],
     },
 
-    { kind: 'h2', text: 'What comes up on your machine' },
+    { kind: 'h2', text: 'Three ways to run it' },
     {
-      kind: 'p',
-      text: 'Three things and no more: the core itself, the authorization layer, and the data layer. Sign-in is shared, so one person is one person everywhere; the data layer is the single door to the data, and that door is in your home. Claude Code is installed alongside — not as a feature of the product, but as the tool you will use to extend it.',
-    },
-
-    { kind: 'h2', text: 'How it reaches the internet' },
-    {
-      kind: 'p',
-      text: 'The machine under your desk has no public address, and it does not need one: the node opens the connection outwards itself and gets back a working link over a secured channel. You can start without arranging anything with anyone, and when you want a permanent address you connect your own domain — yours, not one handed to you. Your data stays on the machine: what travels is the request and the answer.',
+      kind: 'cards',
+      badge: 'Modes',
+      title: 'One core, three ways to hold it',
+      note: 'The only difference is where the machine stands and whose address the site has. The code, the data and the abilities are the same — changing mode rewrites nothing.',
+      children: [
+        {
+          kind: 'card',
+          children: [
+            { kind: 'h3', text: 'Trial' },
+            {
+              kind: 'p',
+              text: 'Your computer, a temporary address. You buy nothing and arrange nothing with anyone: Claude Code brings the node up, and a minute later you have a working link over a secured connection. The link lives while the machine is on and changes when it restarts — enough to show your work and take the first jobs.',
+            },
+          ],
+        },
+        {
+          kind: 'card',
+          children: [
+            { kind: 'h3', text: 'Popular' },
+            {
+              kind: 'p',
+              text: 'Your computer, your own domain. A permanent address you can say out loud and print on a card, over the same secured channel. You pay the registrar for the domain — you pay us nothing. The node stays at home: the data never moves, and a computer switched off means a shop closed, which is the honest trade.',
+            },
+          ],
+        },
+        {
+          kind: 'card',
+          children: [
+            { kind: 'h3', text: 'Industrial' },
+            {
+              kind: 'p',
+              text: 'A server of its own, your domain, running around the clock. The same node moves onto a VPS and answers customers while you sleep and while your laptop is shut. You pay the host for the machine, the domain stays yours, the code stays the same — moving rewrites nothing.',
+            },
+          ],
+        },
+      ],
     },
 
     { kind: 'h2', text: 'The node depends on no one, including us' },
     {
       kind: 'p',
-      text: 'The test we hold every decision against is this: what would stop working for you if Fractera disappeared tomorrow? The answer is nothing. The server is yours, the domain is yours, the data is yours, the code is open and sits on your disk. We do not keep your addresses, we do not stand between you and your visitor, and we cannot switch your site off. Hence the shape: every node knows itself and governs itself — and everything is being built towards nodes finding each other and dealing directly.',
+      text: 'The test we hold every decision against: what would stop working for you if Fractera disappeared tomorrow? The answer is nothing. The server is yours, the domain is yours, the data is yours, the keys are yours, the code is open and sits on your disk. We do not keep your addresses, we do not stand between you and your customer, we take no cut of the payment, and we cannot switch your node off.',
+    },
+    {
+      kind: 'statement',
+      text: 'There is no platform. There is your node, other nodes, and a direct agreement between them.',
     },
 
-    { kind: 'h2', text: 'How the node grows' },
+    { kind: 'h2', text: 'One core, not a set of parts' },
     {
       kind: 'p',
-      text: 'A new ability is added by conversation: you tell Claude Code what you need, and it builds it by the rules of this place — static fast pages, shared parts, no foreign layers. A finished solution can also be taken whole: memory that remembers what was said to it, a shop front, an intake form. The node treats both the same, because by the time it sees them they are the same thing.',
+      text: 'There is no separate "site" and separate "admin" inside: it is one mechanism turned to face different ways. The front a visitor sees, the screen you manage from, the card of a service and the journal of finished jobs are made of the same parts and live on shared routes. The pages are static and fast, so a node on a home machine holds a crowd and a search engine sees all of it. A new ability is added by talking to Claude Code — and works in every guise at once.',
     },
   ],
   faq: [],
