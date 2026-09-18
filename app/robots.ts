@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getAppConfig } from "@/config/app-config";
 import { SUPPORTED_LANGUAGES } from "@/config/translations/translations.config";
-import { productSitemapIds } from "@/lib/catalogue";
 
 // Static robots (step 131). Config-driven so it stays correct under white-label:
 // indexing toggle, disallow paths and sitemap URL come from Site Settings
@@ -15,18 +14,12 @@ const SERVICE_DISALLOW = [
   "/development-steps", "/documents", "/glossary", "/patterns", "/project",
 ];
 
-// 🔒 КАРТ НЕСКОЛЬКО, И ПЕРЕЧИСЛИТЬ НАДО ВСЕ. Товары живут в разбитой на порции
-// карте `/products/sitemap/<N>.xml` (предел файла — 50 000 адресов). Объявить
-// только `/sitemap.xml` значит оставить товары ненайденными: ссылок на них в
-// разметке нет — витрина догружает их кнопкой, — и других дверей у поисковика
-// не остаётся. Число порций считает `lib/catalogue.ts`, тот же счёт, по которому
-// карта их порождает.
+// 🪦 КАРТА ТОВАРОВ УДАЛЕНА ВМЕСТЕ С МАГАЗИНОМ (229-3, 2026-09-18). Здесь
+// перечислялись порции /products/sitemap/<N>.xml — предмета у них больше нет.
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const cfg = getAppConfig();
   const base = cfg.seo?.sitemapUrl ?? `${cfg.url}/sitemap.xml`;
-  const productMaps = (await productSitemapIds(SUPPORTED_LANGUAGES.length))
-    .map(id => `${cfg.url}/products/sitemap/${id}.xml`);
-  const sitemapUrl = [base, ...productMaps];
+  const sitemapUrl = [base];
   const disallow = [...(cfg.seo?.disallowPaths ?? []), ...SERVICE_DISALLOW];
   const isAllowed = cfg.seo?.indexing !== "disallow";
 

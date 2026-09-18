@@ -1,10 +1,6 @@
 import { blocksToMarkdown, faqToMarkdown } from './blocks-to-markdown'
 import { urlFor, mdUrlFor } from '@/lib/seo/alternates'
 import { getAppConfig, metaForLang } from '@/config/app-config'
-import { blogPost } from '@/app/[lang]/(publicLayer)/blog/_lib/post'
-import { POSTS } from '@/app/[lang]/(publicLayer)/blog/_list.generated'
-import { getBlogUi } from '@/app/[lang]/(publicLayer)/blog/_data'
-import { catalogueUi } from '@/app/[lang]/(publicLayer)/products/_data'
 import { footerPage } from '@/lib/pages/footer-page'
 import { data as privacyData } from '@/app/[lang]/(publicLayer)/(footerPages)/privacy/_data'
 import { data as termsData } from '@/app/[lang]/(publicLayer)/(footerPages)/terms/_data'
@@ -48,8 +44,6 @@ export { mdUrlFor }
 export function publicSurfaces(lang: string): Surface[] {
   const cfg = getAppConfig()
   const home = metaForLang(lang)
-  const blog = getBlogUi(lang)
-  const cat = catalogueUi(lang)
 
   const surfaces: Surface[] = [
     {
@@ -69,60 +63,9 @@ export function publicSurfaces(lang: string): Surface[] {
       body: () =>
         [`# ${home.siteName}`, '', `> ${home.description}`, ...(cfg.url ? ['', cfg.url] : [])].join('\n'),
     },
-    {
-      subPath: '/blog',
-      title: blog.metaTitle,
-      description: blog.metaDescription,
-      section: 'articles',
-      body: () =>
-        [
-          `# ${blog.indexTitle}`,
-          '',
-          `> ${blog.metaDescription}`,
-          '',
-          ...POSTS.map(p => {
-            const post = blogPost(p, lang)
-            return `- [${post.title}](${urlFor(lang, `/blog/${p.meta.slug}`)}): ${post.description}`
-          }),
-        ].join('\n'),
-    },
-    {
-      subPath: '/products',
-      title: cat.metaTitle,
-      description: cat.metaDescription,
-      section: 'main',
-      body: () =>
-        [`# ${cat.title}`, '', `> ${cat.metaDescription}`, '', cat.subtitle].join('\n'),
-    },
   ]
 
-  for (const p of POSTS) {
-    surfaces.push({
-      subPath: `/blog/${p.meta.slug}`,
-      title: blogPost(p, lang).title,
-      description: blogPost(p, lang).description,
-      section: 'articles',
-      body: () => {
-        const post = blogPost(p, lang)
-        return [
-          `# ${post.title}`,
-          '',
-          post.subtitle ? `*${post.subtitle}*` : '',
-          '',
-          `> ${post.description}`,
-          '',
-          `— ${post.authorName}, ${post.date}`,
-          '',
-          blocksToMarkdown(post.blocks, home.siteName),
-          '',
-          faqToMarkdown(post.faq),
-        ]
-          .join('\n')
-          .replace(/\n{3,}/g, '\n\n')
-          .trim()
-      },
-    })
-  }
+  // 🪦 РАЗДЕЛ /blog И ЕГО ПОСТЫ УДАЛЕНЫ (229-2, 2026-09-18).
 
   for (const [data, sub] of [
     [privacyData, '/privacy'],

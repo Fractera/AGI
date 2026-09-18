@@ -10,8 +10,7 @@ import { featureOn } from "@/config/platform-config";
 import { buttonVariants } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/menu/shared/theme-toggle.client";
 import { AppWidthToggle } from "@/components/menu/footer/app-width-toggle.client";
-import { footerLabels, widthLabels, adminLinkLabels, architectLinkUi, designLinkUi, devModeLinkUi, telegramLinkUi, authLinkUi, architectGroupUi } from "@/components/menu/footer/footer-menu.i18n";
-import { AdminLink } from "@/components/menu/footer/admin-link.client";
+import { footerLabels, widthLabels } from "@/components/menu/footer/footer-menu.i18n";
 import { adminUrlFromSite, chatUrlFromSite } from "@/lib/site-urls";
 import { FooterSocialDropdown, type SocialKey } from "@/components/menu/footer/footer-social-dropdown.client";
 import { LanguageSwitcher } from "@/components/language-switcher.client";
@@ -21,9 +20,7 @@ import { AccountButton } from "@/components/menu/account/account-button.client";
 import { appShellAuthSide } from "@/components/menu/account/account-config";
 import { accountLabels } from "@/components/menu/account/account-menu.i18n";
 import { accountLinks } from "@/lib/menu/account-links";
-import { cartUi } from "@/components/cart/cart.i18n";
 import { appDialogUi } from "@/components/dialog/app-dialog.i18n"
-import { architectureLinkUi } from "@/lib/i18n/architecture-link.i18n";
 
 // Always-present FOOTER menu (step 160), mirroring FES site-footer in look & behaviour
 // (re-programmed, not copied). Three sections:
@@ -141,8 +138,14 @@ export function FooterMenu({ lang }: { lang: string }) {
           разъезжается один подвал, и справедливо считал кнопку сломанной.
           Подвал — мебель сайта: он занимает всю ширину всегда, как и шапка. */}
       <div className="px-6 py-10 flex flex-col gap-6">
-        {/* Section 1 — footer-page navigation (groups that enabled the footer slot),
-            under a "Footer pages" heading. */}
+        {/* ❄️ ЗАМОРОЖЕНО (229-5, 2026-09-18, слово владельца): «те которые касаются
+            коррекция работы то есть страница Legal, темп и прочее… скрыть в комментариях…
+            чтобы вкладка при необходимости могла быть быстро разморожена и достроена».
+
+            Сами страницы (privacy · terms · cookies · accessibility · architecture) лежат
+            в дереве нетронутыми — заморожен только их показ в подвале. Разморозка: убрать
+            эту обёртку комментария, ничего не дописывая. */}
+        {/*
         {groups.length > 0 && (
           <div className="flex flex-col gap-3">
             <p className="text-xs font-mono font-bold text-muted-foreground uppercase tracking-widest">{ui.footerPages}</p>
@@ -155,6 +158,7 @@ export function FooterMenu({ lang }: { lang: string }) {
             </nav>
           </div>
         )}
+        */}
 
         {/* 🪦 Навигатор «слоёв» удалён 2026-08-12 по слову владельца. Он вёл на
             Admin :3002, Design :3004 и слой проектов :3003 — два последних снесены
@@ -181,7 +185,6 @@ export function FooterMenu({ lang }: { lang: string }) {
                 side={authSide}
                 labels={accountLabels(lang)}
                 links={accountLinks(lang)}
-                cart={cartUi(lang)}
                 dialogUi={appDialogUi(lang)}
                 currency={cfg.commerce.currency}
               />
@@ -190,216 +193,11 @@ export function FooterMenu({ lang }: { lang: string }) {
 
           </div>
         )}
-
-        {/* ─── СТРАНИЦЫ АРХИТЕКТОРА — СВОЯ ГРУППА С РАЗДЕЛИТЕЛЕМ (владелец 2026-08-29) ───
-
-            Дословно: «сейчас смешались три группы ссылок… я хочу тот слой, который
-            относится к архитектору, вынести в отдельную группу с разделителем и
-            поставить между секцией футер-страниц и нижней секцией».
-
-            🔒 РАЗНИЦА МЕЖДУ ГРУППАМИ НЕ В ВИДЕ, А В АДРЕСАТЕ. Полоса выше —
-            инструменты ПОСЕТИТЕЛЯ: корзина, заказы, аккаунт, согласие на куки. Эта
-            группа — инструменты ХОЗЯИНА проекта, и посетителю она не нужна вовсе.
-            Пока они стояли вперемешку, ряд читался как один список, в котором
-            «моя корзина» соседствует с «панелью управления».
-
-            🔒 ГРУППА ПОДПИСАНА, А НЕ ПРОСТО ОТДЕЛЕНА ЛИНИЕЙ. Разделитель говорит
-            «это другое», подпись говорит «другое ЧТО»; без неё четыре служебные
-            ссылки выглядят как забытая владельцем настройка подвала. */}
-        <div data-architect-links className="border-t border-border pt-6">
-          <p className="mb-2 text-[length:var(--fs-small)] font-medium text-muted-foreground">
-            {architectGroupUi(lang).title}
-          </p>
-          <div className="flex flex-wrap items-center gap-2">
-            {/* 🔒 АРХИТЕКТУРА — ОБЫЧНАЯ СТРАНИЦА САЙТА, И ССЫЛКА НА НЕЁ ОБЫЧНАЯ
-                (заказ владельца 2026-08-17). Она живёт там же, где privacy,
-                terms и cookies, и по тем же законам: статическая, индексируемая,
-                со своей markdown-версией. Поэтому `Link`, а не `<a>` с
-                `nofollow`: в отличие от панели, эту страницу поисковику показать
-                как раз нужно — она объясняет продукт тому, кто выбирает.
-                Стоит она в полосе ДЕЙСТВИЙ, а не в списке страниц подвала
-                выше: тот список владелец собирает сам в настройках, и чужая
-                строка в нём выглядела бы как его собственная забытая настройка. */}
-            <Link
-              href={`/${lang}/architecture`}
-              className={buttonVariants({ variant: "ghost", size: "sm" }) + " gap-1.5 text-muted-foreground hover:text-foreground"}
-            >
-              {/* 🔒 НА ТЕЛЕФОНЕ ОСТАЁТСЯ ТОЛЬКО СЛОВО (владелец 2026-08-19).
-                  Значок и надпись рядом съедают ширину узкой полосы, и две
-                  кнопки переносятся в две строки. Слово несёт смысл, значок —
-                  украшение; на узком экране режется украшение. */}
-              <Boxes className="hidden size-3.5 sm:inline-block" />
-              {architectureLinkUi(lang).footer}
-            </Link>
-
-            {/* 🔒 ВХОД В СЛОЙ АРХИТЕКТОРА (шаг 31-1, решение владельца 2026-08-28:
-                «я хочу в подвал сайта по 3000 перенести вкладку для работа с App
-                CONFIG»). Настройки проекта переезжают из панели внутрь самого
-                проекта, и вход к ним — здесь, рядом со входом в панель.
-
-                🔒 ССЫЛКА ВИДНА ВСЕМ, И ЭТО НЕ ДЫРА В ДОСТУПЕ. Подвал НЕ читает
-                сессию намеренно: одна строка с `cookies()` сделала бы динамическим
-                ВЕСЬ публичный слой и убила бы поиск. Закрывает не видимость
-                ссылки, а замок страницы (`(architectLayer)/layout.tsx`) и двери
-                `/api/*`: посторонний, нажав, получает отказ, а не настройки.
-                Ровно так же здесь живёт соседняя ссылка на панель.
-
-                `rel="nofollow"` и `Link`: страница служебная и поисковику не
-                нужна, но она СВОЯ — в отличие от панели, которая живёт на чужом
-                поддомене и потому берёт `<a>`. */}
-            <Link
-              href={`/${lang}/architect/app-config`}
-              rel="nofollow"
-              className={buttonVariants({ variant: "ghost", size: "sm" }) + " gap-1.5 text-muted-foreground hover:text-foreground"}
-            >
-              {/* Значок прячется на телефоне — то же правило, что у соседей:
-                  на узкой полосе режется украшение, а не слово. */}
-              <Wrench className="hidden size-3.5 sm:inline-block" />
-              {architectLinkUi(lang).footer}
-            </Link>
-
-            {/* 🔒 ДИЗАЙН — СВОЙ ВХОД, А НЕ РАЗДЕЛ ВНУТРИ НАСТРОЕК (владелец
-                2026-08-29, отменяет вложение, сделанное в тот же день). Довод его,
-                и он сильнее: «настройки проекта» уже несут десять групп, и шесть
-                разделов оформления сверху превращают одно меню в шестнадцать строк,
-                из которых каждый раз выбирают одну.
-
-                Законы соседней ссылки действуют и здесь дословно: видимость ничего
-                не открывает постороннему (замок — на макете слоя и на дверях),
-                `rel="nofollow"` — страница служебная, `Link` — она СВОЯ, в отличие
-                от панели на чужом поддомене. */}
-            <Link
-              href={`/${lang}/architect/design`}
-              rel="nofollow"
-              className={buttonVariants({ variant: "ghost", size: "sm" }) + " gap-1.5 text-muted-foreground hover:text-foreground"}
-            >
-              <Palette className="hidden size-3.5 sm:inline-block" />
-              {designLinkUi(lang).footer}
-            </Link>
-
-            {/* 🔒 РЕЖИМ РАЗРАБОТКИ — ТРЕТИЙ ВХОД СЛОЯ (владелец 2026-08-31), и довод
-                тот же, что у дизайна: «перенесли дизайн в отдельную вкладку — вот
-                также я хочу, чтобы перенесли шаги разработки… главное освободить
-                основную вкладку от избыточных и не связанных инструментов».
-
-                Он не настройка проекта, и это не придирка к раскладке: остальные
-                восемь групп описывают САЙТ, а режим решает, как с проектом работает
-                агент. Соседство по меню читалось как соседство по смыслу.
-
-                Законы двух соседних ссылок действуют дословно: видимость ничего не
-                открывает постороннему (замок — на макете слоя и на дверях),
-                `rel="nofollow"` — страница служебная, `Link` — она СВОЯ. */}
-            <Link
-              href={`/${lang}/architect/dev-mode`}
-              rel="nofollow"
-              className={buttonVariants({ variant: "ghost", size: "sm" }) + " gap-1.5 text-muted-foreground hover:text-foreground"}
-            >
-              <GitBranch className="hidden size-3.5 sm:inline-block" />
-              {devModeLinkUi(lang).footer}
-            </Link>
-
-            {/* 🔒 TELEGRAM-БОТ — ЧЕТВЁРТЫЙ ВХОД СЛОЯ (владелец 2026-08-31,
-                дословно: «я хочу, чтоб мы создали Telegram-бот внутри footer. И
-                эта вкладка будет иметь в точности всё то же самое… тот же самый
-                интерфейс»).
-
-                🔒 ПАНЕЛЬНАЯ ВКЛАДКА «КАНАЛЫ СВЯЗИ» ОСТАЁТСЯ ЖИВОЙ — его же
-                решение того дня: «не будем полностью избавляться от 3002, пусть
-                остаётся». Пока логика не переехала, две поверхности сосуществуют
-                намеренно, и заглушки разделов прямо называют, где бот работает
-                сегодня. Тот же порядок, что в шаге 31: сначала перенос и сверка
-                полноты, и только потом удаление.
-
-                Законы трёх соседних ссылок действуют дословно: видимость ничего
-                не открывает постороннему (замок — на макете слоя и на дверях),
-                `rel="nofollow"` — страница служебная, `Link` — она СВОЯ, в
-                отличие от панели на чужом поддомене. */}
-            {/* 🔒 ССЫЛКА ВЕДЁТ НА `:3600`, А НЕ НА СВОЮ СТРАНИЦУ (шаг 137).
-                Заказ владельца: «по 3000 должен отображаться ссылка на эту
-                страницу вместо собственной страницы». Страница бота переехала
-                целиком, чтобы работа бота была изолирована: человеку, которому
-                не нужен сайт, хватает одного адреса.
-
-                🛑 ЭТО ВНЕШНИЙ ХОСТ, ЗНАЧИТ `<a>`, А НЕ `<Link>` — ровно по тому
-                же правилу, что у кнопки панели ниже: `Link` предназначен для
-                СВОИХ маршрутов, чужой поддомен он не ускоряет, а ломает
-                предзагрузкой.
-
-                🔒 ПУСТОЙ АДРЕС — ЗАКОННЫЙ ИСХОД СВЕЖЕГО СЕРВЕРА, где настройки
-                ещё не сохраняли: `chatUrlFromSite` вернёт пустую строку, и
-                ссылка не показывается вовсе. Выдуманный адрес хуже
-                отсутствующего — он ведёт человека в никуда. */}
-            {chatUrl ? (
-              <a
-                href={`${chatUrl}/${lang}/settings`}
-                rel="nofollow noreferrer"
-                target="_blank"
-                className={buttonVariants({ variant: "ghost", size: "sm" }) + " gap-1.5 text-muted-foreground hover:text-foreground"}
-              >
-                <Send className="hidden size-3.5 sm:inline-block" />
-                {telegramLinkUi(lang).footer}
-              </a>
-            ) : null}
-
-            {/* 🪦 ССЫЛКА НА ЧАТ С ИИ-АГЕНТОМ УБРАНА 2026-09-05 (ревизия, шаг 116)
-                ПРЯМЫМ СЛОВОМ ВЛАДЕЛЬЦА: «из подвала также убирай ссылку на чат».
-                Стратегия одновременной работы библиотеки чата и Telegram
-                прекращена: путь к агенту один — Telegram → Claude Code. Кнопка,
-                ведущая на службу, которая перестала быть путём к агенту, обещает
-                человеку не то.
-
-                🔒 УБРАНА ЦЕЛИКОМ, А НЕ СПРЯТАНА. Вместе с ней удалены островок
-                `chat-link.client.tsx`, словарь `CHAT_LINK` и оба расчёта адреса
-                (`chatUrlFromSite`, `chatBase`). Спрятанная кнопка оставила бы
-                живым весь расчёт адреса службы — способность без входа, о
-                которой знает только читавший код. Восстанавливается из git. */}
-
-            {/* 🔒 АВТОРИЗАЦИЯ — ПЯТЫЙ ВХОД СЛОЯ (владелец 2026-08-31): «сюда из
-                административной панели мы вытащим настройку авторизации… первая
-                секция описание, вторая провайдер Google, третья провайдер Resend».
-
-                🔒 ПАНЕЛЬНАЯ ВКЛАДКА «СПОСОБЫ ВХОДА» ОСТАЁТСЯ ЖИВОЙ — его же
-                решение того дня. Пока логика не переехала, две поверхности
-                сосуществуют намеренно, и заглушки разделов прямо называют, где
-                вход настраивается сегодня.
-
-                Законы четырёх соседних ссылок действуют дословно: видимость
-                ничего не открывает постороннему (замок — на макете слоя и на
-                дверях), `rel="nofollow"` — страница служебная, `Link` — она СВОЯ,
-                в отличие от панели на чужом поддомене. */}
-            <Link
-              href={`/${lang}/architect/auth`}
-              rel="nofollow"
-              className={buttonVariants({ variant: "ghost", size: "sm" }) + " gap-1.5 text-muted-foreground hover:text-foreground"}
-            >
-              <KeyRound className="hidden size-3.5 sm:inline-block" />
-              {authLinkUi(lang).footer}
-            </Link>
-
-            {/* 🔒 ВХОД В ПАНЕЛЬ УПРАВЛЕНИЯ (владелец 2026-08-14).
-                Панель закрыта авторизацией: без входа она уводит на страницу
-                регистрации, поэтому видимая ссылка ничего не открывает
-                постороннему — она лишь избавляет ВЛАДЕЛЬЦА от необходимости
-                помнить адрес поддомена.
-                Адрес выводится из адреса сайта (`adminUrlFromSite`), а не
-                зашит: на домене это admin.<домен>, на голом IP — <ip>:3002.
-                Настроек ещё нет — адрес пуст, и ссылки просто не будет:
-                выдуманный адрес панели хуже отсутствующего.
-                `rel="nofollow"` — служебная страница не должна утаскивать вес
-                сайта на поддомен, который поисковику всё равно закрыт. */}
-            {/* 🔒 КНОПКА ПАНЕЛИ РИСУЕТСЯ ВСЕГДА, А АДРЕС У НЕЁ ИЗ ДВУХ ИСТОЧНИКОВ
-                (2026-08-29). Здесь стояло `{adminUrl && …}` — и на свежем сервере,
-                где `APP-CONFIG` ещё пуст, кнопка исчезала совсем. Владелец
-                спросил прямо: «почему у меня на старте, когда я нахожусь в
-                IP-режиме, отсутствует кнопка перейти в админпанель?» — ссылка
-                пропадала ровно у того, кому она нужнее всех.
-
-                Расчёт адреса переехал в островок: сервер даёт его из настроек,
-                а без них островок выводит из адреса окна. Ни один из двух
-                источников не выдумывает — оба считают. */}
-            <AdminLink href={adminUrl} label={adminLinkLabels(lang).admin} />
-          </div>
-        </div>
+        {/* 🪦 ГРУППА ССЫЛОК АРХИТЕКТОРА УДАЛЕНА БЕЗВОЗВРАТНО (229-5, 2026-09-18,
+            слово владельца). Здесь стояла подписанная группа с разделителем:
+            архитектура, дизайн, dev-mode, telegram, вход и кнопка панели. Вместе
+            с ней удалён весь слой (architectLayer) и его api/architect — возврата
+            к ней не предполагается, в отличие от замороженной секции 1 выше. */}
 
 
         {/* Section 3 — company: copyright + address, social, theme toggle, language.

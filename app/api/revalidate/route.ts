@@ -1,7 +1,6 @@
 // @api rebuild public pages after the owner changes app settings
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { CATALOGUE_TAG } from "@/lib/catalogue";
 
 // On-demand revalidation of the PUBLIC surface after an App Settings change.
 // The App Settings MCP (:3218) and the Admin config panel write app-config.json in
@@ -49,7 +48,6 @@ export async function POST(req: NextRequest) {
   // наполняется. `{ expire: 0 }` — истечь немедленно, а не «обновить в фоне»:
   // второй вариант отдал бы ещё один старый ответ, ради которого этот вызов и
   // делается.
-  revalidateTag(CATALOGUE_TAG, { expire: 0 });
 
-  return NextResponse.json({ ok: true, revalidated: ["/", "/[lang]"], tags: [CATALOGUE_TAG], ts: Date.now() });
+  return NextResponse.json({ ok: true, revalidated: ["/", "/[lang]"], ts: Date.now() });
 }

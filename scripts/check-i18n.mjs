@@ -91,7 +91,6 @@ const FILES = [
  * [папка, файл типа, имя типа, сколько языков]
  */
 const CELLS = [
-  ["app/[lang]/(publicLayer)/blog/_data", "app/[lang]/(publicLayer)/blog/_lib/types.ts", "BlogUi", 10],
   ["app/[lang]/(publicLayer)/products/_data", "app/[lang]/(publicLayer)/products/_lib/types.ts", "CatalogueUi", 10],
 ]
 
