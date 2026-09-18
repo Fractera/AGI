@@ -50,7 +50,9 @@
     "serve:stop": "node scripts/serve.mjs stop",
     "serve:status": "node scripts/serve.mjs status",
     "serve:autostart": "node scripts/serve.mjs autostart",
-    "serve:rebuild": "node scripts/serve.mjs rebuild"
+    "serve:rebuild": "node scripts/serve.mjs rebuild",
+    "serve:publish": "node scripts/serve.mjs publish",
+    "serve:unpublish": "node scripts/serve.mjs unpublish"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.55",

@@ -10,7 +10,7 @@
 // признать.
 
 import { spawnSync } from 'node:child_process'
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import os from 'node:os'
@@ -19,6 +19,7 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(here, '..')
 const runtimeFile = path.join(root, 'logs', 'runtime.json')
 const ecosystem = path.join(root, 'ecosystem.config.cjs')
+const tunnelFile = path.join(root, 'logs', 'tunnel.json')
 
 const isWindows = process.platform === 'win32'
 const pm2 = isWindows ? 'pm2.cmd' : 'pm2'
@@ -29,6 +30,14 @@ function pm2run(args, options = {}) {
   // `.cmd` без него (EINVAL, запрет после CVE-2024-27980). Подробности — в
   // `scripts/ensure-pm2.mjs`.
   return spawnSync(pm2, args, { encoding: 'utf8', shell: isWindows, stdio: options.quiet ? 'pipe' : 'inherit' })
+}
+
+function readTunnel() {
+  try {
+    return JSON.parse(readFileSync(tunnelFile, "utf8"))
+  } catch {
+    return null
+  }
 }
 
 function readRuntime() {
@@ -101,6 +110,17 @@ async function status() {
   console.log(`процесс: ${server.pm2_env.status}, pid ${server.pid}, перезапусков ${server.pm2_env.restart_time}`)
   console.log(`сторож здоровья: ${watch ? watch.pm2_env.status : 'не запущен'}`)
   console.log(`адрес: ${url ?? 'неизвестен — сервер ещё не поднимался'}`)
+
+  // 🔒 «Работает локально» и «виден из интернета» — тоже разные вопросы, и
+  // ответ на второй человек обязан видеть без догадок: адрес быстрого туннеля
+  // меняется при каждом перезапуске, помнить его нельзя.
+  const tunnel = apps.find((a) => a.name === "fractera-agi-tunnel")
+  if (!tunnel || tunnel.pm2_env.status !== "online") {
+    console.log("в интернете: нет (включить: npm run serve:publish)")
+  } else {
+    const адрес = readTunnel()
+    console.log(`в интернете: ${адрес?.url ?? "адрес ещё не получен, подождите несколько секунд"}`)
+  }
 
   // 🔒 СОСТОЯНИЕ ПРОЦЕССА И ЖИВОСТЬ САЙТА — РАЗНЫЕ ВОПРОСЫ, И СПРАШИВАЮТСЯ ОНИ
   // ОТДЕЛЬНО. Весь шаг 232 стоит на том, что `online` ничего не обещает.
@@ -204,6 +224,54 @@ function rebuild() {
   console.log("Готово. Проверить: npm run serve:status")
 }
 
+function publish() {
+  // 🛑 Публикация — отдельное решение человека, поэтому и отдельная команда.
+  // Сайт при этом должен уже работать: туннель без сайта отдаёт наружу пустоту.
+  //
+  // 🔒 СТАРЫЙ АДРЕС УДАЛЯЕТСЯ ДО ЗАПУСКА, И ЭТО НЕ УБОРКА, А СУТЬ. ✗ оплачено
+  // 2026-09-18 сразу при первой проверке: команда напечатала адрес прошлого
+  // туннеля, потому что прочитала файл раньше, чем новый туннель успел его
+  // переписать. Человек получил бы ссылку, отдающую 530, и решил бы, что
+  // публикация сломана. Файла нет — значит ждать нечего, кроме настоящего
+  // нового адреса.
+  try {
+    if (existsSync(tunnelFile)) rmSync(tunnelFile)
+  } catch {
+    /* не удалось убрать — хуже не станет, сверка ниже всё равно ждёт новый файл */
+  }
+
+  const result = pm2run(["start", ecosystem, "--only", "fractera-agi-tunnel"])
+  if (result.status !== 0) {
+    console.error("Не удалось открыть туннель. Журнал: logs/tunnel-err.log")
+    process.exit(1)
+  }
+  pm2run(["save"], { quiet: true })
+  console.log("Открываю адрес в интернете, это занимает несколько секунд…")
+  // Адрес приходит из вывода cloudflared, поэтому ждём его появления в файле,
+  // а не печатаем предположение.
+  const срок = Date.now() + 30000
+  const ждать = () => {
+    const адрес = readTunnel()
+    if (адрес?.url) {
+      console.log(`\nСАЙТ В ИНТЕРНЕТЕ: ${адрес.url}`)
+      console.log("Адрес временный: перезапуск выдаст новый. Постоянный адрес — это свой домен.")
+      return
+    }
+    if (Date.now() > срок) {
+      console.log("Адрес пока не получен. Посмотрите: npm run serve:status")
+      return
+    }
+    setTimeout(ждать, 1000)
+  }
+  ждать()
+}
+
+function unpublish() {
+  pm2run(["stop", "fractera-agi-tunnel"], { quiet: true })
+  pm2run(["save"], { quiet: true })
+  console.log("Сайт убран из интернета. Локально он продолжает работать.")
+}
+
 const command = process.argv[2]
 
 if (command === 'start') start()
@@ -211,7 +279,9 @@ else if (command === 'stop') stop()
 else if (command === 'status') await status()
 else if (command === 'autostart') autostart()
 else if (command === 'rebuild') rebuild()
+else if (command === 'publish') publish()
+else if (command === 'unpublish') unpublish()
 else {
-  console.log('Команды: start · stop · status · rebuild · autostart')
+  console.log('Команды: start · stop · status · rebuild · publish · unpublish · autostart')
   process.exit(1)
 }

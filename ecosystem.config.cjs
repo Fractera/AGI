@@ -110,5 +110,33 @@ module.exports = {
         FRACTERA_HEALTH_COOLDOWN_MS: '120000',
       },
     },
+
+    // ── ТРЕТИЙ ЖИТЕЛЬ: ТУННЕЛЬ В ИНТЕРНЕТ.
+    //
+    // 🔒 ОН НЕ ЗАПУСКАЕТСЯ ВМЕСТЕ С САЙТОМ, И ЭТО НАМЕРЕННО. serve:start
+    // поднимает сайт для хозяина машины; выход в интернет — другое решение, и
+    // человек принимает его отдельной командой serve:publish. Публикация чужого
+    // сайта как побочный эффект запуска — то, чего нельзя делать молча, даже
+    // если продукт задуман публичным.
+    //
+    // Включённый однажды, он попадает в снимок pm2 save и дальше поднимается
+    // сам при входе в систему — вместе с остальными.
+    {
+      name: 'fractera-agi-tunnel',
+      script: path.join(root, 'scripts', 'tunnel.mjs'),
+      cwd: root,
+      instances: 1,
+      exec_mode: 'fork',
+      watch: false,
+      autorestart: true,
+      min_uptime: 20000,
+      max_restarts: 10,
+      exp_backoff_restart_delay: 2000,
+
+      out_file: path.join(root, 'logs', 'tunnel-out.log'),
+      error_file: path.join(root, 'logs', 'tunnel-err.log'),
+      merge_logs: true,
+      time: true,
+    },
   ],
 }
