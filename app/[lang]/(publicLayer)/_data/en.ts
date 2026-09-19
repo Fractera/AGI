@@ -135,6 +135,60 @@ export const en: HomeCell = {
       text: 'There is no platform. There is your node, other nodes, and a direct agreement between them.',
     },
 
+    { kind: 'h2', text: 'We recommend' },
+    {
+      kind: 'p',
+      text: 'Add sign-in, a database, a chat bot and memory to your project. Each of them is a microservice with a life of its own, yet everything standing on one machine becomes part of one project: they see each other, share the entrance and talk directly. And each can be taken further through the built-in Claude Code — by the same conversation that built the first one.',
+    },
+    {
+      kind: 'cards',
+      badge: 'Microservices',
+      title: 'The four most people start with',
+      note: 'Installed one at a time and in any order: the node needs none of them until you decide it does.',
+      children: [
+        {
+          kind: 'card',
+          children: [
+            { kind: 'h3', text: 'Sign-in' },
+            {
+              kind: 'p',
+              text: 'An entrance for your people and your customers, shared across the whole node. One person stays one person in every microservice — in the shop, in the memory, in the control screen. Roles decide who sees what, and passwords do not scatter across ten places.',
+            },
+          ],
+        },
+        {
+          kind: 'card',
+          children: [
+            { kind: 'h3', text: 'Database' },
+            {
+              kind: 'p',
+              text: 'The single door to the data, and that door is in your home. Products, orders, conversations, files — all of it sits on your machine and goes nowhere. Microservices reach the data through it, so a new product does not start its own warehouse next to yours.',
+            },
+          ],
+        },
+        {
+          kind: 'card',
+          children: [
+            { kind: 'h3', text: 'Chat bot' },
+            {
+              kind: 'p',
+              text: 'Your node’s telephone. Through it you answer customers, take orders and run the node itself — ask for the site address, restart it, fix a page. It works even when the machine has no public address: the bot reaches out on its own.',
+            },
+          ],
+        },
+        {
+          kind: 'card',
+          children: [
+            { kind: 'h3', text: 'Memory' },
+            {
+              kind: 'p',
+              text: 'The node stops forgetting. What was said once — about a customer, an order, your work — comes back when it is needed, to the microservice that asked. The longer the node lives, the more useful it gets, rather than the more settings it has.',
+            },
+          ],
+        },
+      ],
+    },
+
     { kind: 'h2', text: 'One core, not a set of parts' },
     {
       kind: 'p',
