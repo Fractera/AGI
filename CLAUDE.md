@@ -224,8 +224,17 @@ site is visible from the internet, and for three hours it was not.
 🛑 **SO WHEN HE REPORTS 1016 OR 1033, DO NOT DEBUG THE TUNNEL — ISSUE A NEW ADDRESS.** Those codes are
 neither a broken site nor a broken machine: Cloudflare has dropped a quick tunnel, and a dropped quick
 tunnel cannot be revived — only replaced. Confirm with `serve:status` (it measures, it does not
-remember), run `serve:publish`, hand him the new link, and remind him the old one is dead for good.
-Debugging here costs an hour and changes nothing.
+remember), run `serve:publish -- --new`, hand him the new link, and remind him the old one is dead for
+good. Debugging here costs an hour and changes nothing.
+
+🔒 **`serve:publish` IS IDEMPOTENT: CALLED AGAIN ON A LIVE TUNNEL IT PRINTS THE SAME ADDRESS.** ✗ paid
+for by the owner himself on 2026-09-19: he opened a link I had handed him twenty minutes earlier and
+got 1016 — the address had changed not from a failure but from MY delivery, because the command
+restarted a healthy tunnel on every call. A different address is issued only when asked for out loud
+(`-- --new`), or when the current one has stopped answering.
+🛑 **DELIVERING CODE MUST NOT TOUCH THE TUNNEL AT ALL.** Rebuilding the site and being on the internet
+are separate things; mixing them silently kills a link the human has already given to someone. The law
+«не трогать адрес за спиной человека» binds the agent exactly as much as it binds the watchman.
 
 🔒 **`npm run serve:start | stop | status | rebuild | publish | unpublish | autostart` — and the human
 never hears the word pm2.** Starting the server by hand (`node server.js`) once it runs under pm2 is an

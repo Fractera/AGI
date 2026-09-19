@@ -29,7 +29,8 @@ build. `npm run serve:status` tells you what is actually running.
 ## Put it on the internet — and what that address costs
 
 ```bash
-npm run serve:publish    # open the site to the internet through a Cloudflare quick tunnel
+npm run serve:publish        # put the site on the internet (keeps the address you already have)
+npm run serve:publish -- --new  # deliberately swap it for a fresh address
 npm run serve:unpublish  # take it back off — the site keeps running for you
 ```
 
