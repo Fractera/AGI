@@ -38,6 +38,18 @@ import type { NextRequest } from "next/server"
 const LOOPBACK = new Set(["localhost", "127.0.0.1", "::1", "[::1]"])
 
 /**
+ * Зовёт ли это имя хоста саму машину. Голое имя, без запроса, — потому что тот же
+ * вопрос задаёт БРАУЗЕР (`window.location.hostname`) в замке слоя архитектора.
+ *
+ * 🛑 В БРАУЗЕРЕ ЭТО ВЫВЕСКА, А НЕ ЗАМОК, и разница названа вслух: заголовков
+ * Cloudflare клиент не видит и доказать ими ничего не может. Замок остаётся
+ * серверным — `isOwnerAtMachine` ниже и ворота `proxy.ts`.
+ */
+export function isLoopbackHostname(hostname: string): boolean {
+  return LOOPBACK.has((hostname ?? "").trim().toLowerCase().replace(/:\d+$/, ""))
+}
+
+/**
  * Пришёл ли запрос с самой машины.
  *
  * Запроса нет вовсе (серверный вызов внутри процесса) — отвечаем `false`:

@@ -27,9 +27,37 @@ import { Button } from "@/components/ui/button"
 import { AppDialog } from "@/components/dialog/app-dialog.client"
 import type { AppDialogUi } from "@/components/dialog/app-dialog.i18n"
 import { registerRedirectUrl } from "@/lib/runtime-urls"
+import { isTemporaryHostname } from "@/lib/auth/temporary-address"
+import { isLoopbackHostname } from "@/lib/auth/owner-at-machine"
 import type { AccessGateUi } from "./access-gate.i18n"
 
-type Verdict = "checking" | "allowed" | "denied"
+// 🔒 «НЕ СМОГ СПРОСИТЬ» — ЭТО НЕ «ОТКАЗАНО» (2026-09-19). Четвёртое значение
+// заведено потому, что трёх не хватало: сеть молчит · сервер ещё поднимается
+// после включения компьютера · страницу отдал service worker из кеша, а туннель
+// мёртв. Во всех трёх случаях вопрос НЕ ЗАДАН — а человек видел окно «Требуется
+// одна из этих ролей: architect».
+//
+// ✗ ОПЛАЧЕНО ЧЕТЫРЬМЯ ЖАЛОБАМИ ВЛАДЕЛЬЦА ПОДРЯД, и каждый раз чинили не то:
+// правило открытого адреса на сервере было верным и работало, а врал прибор в
+// браузере — `catch` записывал сетевой отказ в отказ по правам. Прибор,
+// печатающий отказ там, где он ничего не измерил, лжёт именно тогда, когда на
+// него полагаются.
+type Verdict = "checking" | "allowed" | "denied" | "unknown"
+
+/**
+ * Адрес, на котором слой архитектора открыт по решению владельца: сама машина и
+ * временный туннель.
+ *
+ * 🔒 ПРИЗНАКИ — ТЕ ЖЕ ФУНКЦИИ, ЧТО ЧИТАЕТ СЕРВЕР (`lib/auth/*`), а не вторая их
+ * копия: две половины одного знания расходятся молча, и здесь расхождение
+ * выглядит как запертая дверь у себя дома.
+ *
+ * 🛑 СВЕРЯЕТСЯ ХВОСТ ИМЕНИ, А НЕ АДРЕС ЦЕЛИКОМ — имя быстрого туннеля случайно и
+ * меняется при каждом перезапуске.
+ */
+function isOpenAddress(hostname: string): boolean {
+  return isLoopbackHostname(hostname) || isTemporaryHostname(hostname)
+}
 
 export function AccessGate(
   { roles, lang, ui, dialogUi, children }:
@@ -47,15 +75,30 @@ export function AccessGate(
   const [verdict, setVerdict] = useState<Verdict>("checking")
 
   useEffect(() => {
+    // 🔒 ОТКРЫТЫЙ АДРЕС ОТВЕЧАЕТ РАНЬШЕ ВОПРОСА, И ЭТО НЕ УСКОРЕНИЕ, А ПОЧИНКА.
+    // Сервер на этих адресах и так выдаёт роль архитектора; спрашивая его, окно
+    // ставило себя в зависимость от сети — а на домашней машине сеть отваливается
+    // ровно тогда, когда человек включает компьютер и открывает вкладку раньше,
+    // чем поднялся сервер.
+    if (isOpenAddress(window.location.hostname)) { setVerdict("allowed"); return }
+
     let alive = true
     fetch("/api/me")
-      .then(res => (res.ok ? res.json() : null))
-      .then((me: { roles?: string[] } | null) => {
+      .then(async res => {
+        if (!alive) return
+        // Дверь ОТВЕТИЛА «нельзя» — это единственный честный отказ.
+        if (res.status === 401 || res.status === 403) { setVerdict("denied"); return }
+        // Любой другой неуспех (500, 502, страница вместо JSON) — не ответ о
+        // правах, а поломка на пути к двери.
+        if (!res.ok) { setVerdict("unknown"); return }
+        const me = (await res.json()) as { roles?: string[] } | null
         if (!alive) return
         const mine = me?.roles ?? []
         setVerdict(mine.some(r => roles.includes(r)) ? "allowed" : "denied")
       })
-      .catch(() => alive && setVerdict("denied"))
+      // Сеть не дала спросить. Молчим: замок всё равно серверный, а окно с
+      // отказом здесь было бы уверенным неверным ответом.
+      .catch(() => { if (alive) setVerdict("unknown") })
     return () => { alive = false }
   }, [roles])
 

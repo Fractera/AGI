@@ -29,6 +29,24 @@ import type { NextRequest } from "next/server"
 const TEMPORARY_SUFFIXES = [".trycloudflare.com"]
 
 /**
+ * Принадлежит ли ИМЯ ХОСТА быстрому туннелю — единственное место, где это знание
+ * живёт, и оно намеренно отвечает на голое имя, а не на запрос.
+ *
+ * 🔒 ЗАЧЕМ ОТДЕЛЬНО ОТ `isTemporaryPublicAddress` (244, 2026-09-19). Тот же вопрос
+ * задаёт БРАУЗЕР — замок слоя архитектора клиентский, и `window.location.hostname`
+ * у него уже есть. Модуль ввозится в клиентский бандл безопасно: `NextRequest`
+ * здесь ввезён как ТИП и при сборке стирается, кода сервера в файле нет.
+ *
+ * 🛑 СВЕРЯЕТСЯ ТОЛЬКО ХВОСТ ИМЕНИ, А НЕ АДРЕС ЦЕЛИКОМ. Имя быстрого туннеля —
+ * четыре случайных слова, оно меняется при каждом перезапуске: правило, знающее
+ * адрес целиком, перестало бы работать в тот же день, и незаметно.
+ */
+export function isTemporaryHostname(hostname: string): boolean {
+  const bare = (hostname ?? "").trim().toLowerCase().replace(/:\d+$/, "")
+  return TEMPORARY_SUFFIXES.some((suffix) => bare.endsWith(suffix))
+}
+
+/**
  * Пришёл ли запрос на ВРЕМЕННЫЙ публичный адрес узла.
  *
  * Запроса нет (серверный вызов внутри процесса) — `false`: молчаливая выдача
@@ -44,5 +62,5 @@ export function isTemporaryPublicAddress(req?: NextRequest): boolean {
   const host = (req.headers.get("host") ?? "").trim().toLowerCase()
   const bare = (forwarded || host).replace(/:\d+$/, "")
 
-  return TEMPORARY_SUFFIXES.some((suffix) => bare.endsWith(suffix))
+  return isTemporaryHostname(bare)
 }

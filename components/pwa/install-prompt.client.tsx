@@ -26,6 +26,8 @@ import { useEffect, useState } from 'react'
 import { Download, X } from 'lucide-react'
 import type { InstallStrings } from './install-prompt.i18n'
 import { readStored, writeStored } from '@/lib/safe-storage'
+import { isTemporaryHostname } from '@/lib/auth/temporary-address'
+import { isLoopbackHostname } from '@/lib/auth/owner-at-machine'
 
 // Событие нестандартное: в типах TypeScript его нет, потому что в спецификации
 // оно не описано — это дополнение поставщиков браузеров. Объявляем ровно то, чем
@@ -48,10 +50,11 @@ const SNOOZE_DAYS = 30
 // страницу Cloudflare с ошибкой 1016. Человек получает сломанное приложение на
 // рабочем столе и ни одного способа понять почему.
 //
-// Признак тот же, что у ворот слоя (`lib/auth/temporary-address.ts`), но
-// спрашивается здесь, в браузере: островок и так клиентский, а страница обязана
-// остаться статической.
-const TEMPORARY_SUFFIX = '.trycloudflare.com'
+// 🔒 ПРИЗНАК БЕРЁТСЯ ИЗ ТОГО ЖЕ ФАЙЛА, ЧТО У ВОРОТ СЛОЯ, А НЕ ПОВТОРЯЕТСЯ ЗДЕСЬ
+// СТРОКОЙ (2026-09-19). Была своя копия суффикса — две половины одного знания,
+// расходящиеся молча: день, когда Cloudflare сменит домен, сломал бы ворота и
+// баннер по-разному. Спрашивается он всё равно в браузере: островок и так
+// клиентский, а страница обязана остаться статической.
 
 // 🔒 ПРЕДЛОЖЕНИЕ МОЛЧИТ В РАЗРАБОТКЕ И НА ЗАКРЫТЫХ СТРАНИЦАХ — решение
 // владельца 2026-09-19: «pwa banner not need show in the dev mod and protected
@@ -74,13 +77,29 @@ function onProtectedPage(): boolean {
   return PROTECTED_PATHS.some(seg => p.includes(seg))
 }
 
+// 🛑 ЭТОТ ПРИЗНАК НА ДОМАШНЕЙ МАШИНЕ НЕ СРАБАТЫВАЕТ НИКОГДА, И ЭТО ИЗМЕРЕНО, А НЕ
+// предположено (2026-09-19, `logs/runtime.json`: `"mode": "production"`). Домашний
+// узел работает в ПРОДАКШНЕ по решению владельца 2026-09-18 — значит `NODE_ENV`
+// здесь всегда `production`, и проверка «идёт ли разработка» была мёртвой строкой,
+// пока владелец четырежды сообщал, что баннер всплывает. Оставлена ради `npm run
+// dev`; работу делает признак адреса ниже.
 function inDevelopment(): boolean {
   return process.env.NODE_ENV !== 'production'
 }
 
-function onTemporaryAddress(): boolean {
+// 🔒 АДРЕС, С КОТОРОГО ПРИЛОЖЕНИЕ СТАВИТЬ НЕЛЬЗЯ: сама машина и временный туннель.
+//
+// 🛑 ДОВОД ОДИН И ТОТ ЖЕ У ОБОИХ, И ОН ТЕХНИЧЕСКИЙ. Установленное приложение
+// НАВСЕГДА запоминает адрес, с которого его поставили. `localhost:24680` завтра
+// занят другим проектом или сервер выключен; имя быстрого туннеля живёт часы и при
+// перезапуске меняется — значок на рабочем столе открывает ошибку 1016. Человек
+// получает сломанное приложение и ни одного способа понять почему.
+//
+// Предлагать установку можно только с ПОСТОЯННОГО собственного адреса человека.
+function onAddressWithoutFuture(): boolean {
   if (typeof window === 'undefined') return false
-  return window.location.hostname.toLowerCase().endsWith(TEMPORARY_SUFFIX)
+  const host = window.location.hostname
+  return isLoopbackHostname(host) || isTemporaryHostname(host)
 }
 
 function snoozed(): boolean {
@@ -100,7 +119,7 @@ export function InstallPrompt({ strings }: { strings: InstallStrings }) {
   useEffect(() => {
     if (inDevelopment()) return
     if (onProtectedPage()) return
-    if (onTemporaryAddress()) return
+    if (onAddressWithoutFuture()) return
     if (snoozed()) return
 
     const onPrompt = (e: Event) => {

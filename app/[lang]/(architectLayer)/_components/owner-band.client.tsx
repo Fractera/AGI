@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { isTemporaryHostname } from '@/lib/auth/temporary-address'
+import { isLoopbackHostname } from '@/lib/auth/owner-at-machine'
 
 // ПРЕДУПРЕЖДЕНИЕ СЛОЯ: «ВЫ ЗДЕСЬ БЕЗ АВТОРИЗАЦИИ, И ЭТО ВРЕМЕННОЕ СОСТОЯНИЕ».
 //
@@ -38,17 +40,16 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 
 type Mode = 'machine' | 'temporary' | null
 
-/** Имена, которыми машина зовёт саму себя. */
-const LOOPBACK = new Set(['localhost', '127.0.0.1', '::1', '[::1]'])
-
-/** Домен быстрых туннелей Cloudflare — тот самый «временный домен» из решения владельца. */
-const TEMPORARY_SUFFIX = '.trycloudflare.com'
-
+// 🔒 ПРИЗНАКИ БЕРУТСЯ ИЗ ТЕХ ЖЕ ФАЙЛОВ, ЧТО ЧИТАЕТ СЕРВЕР (2026-09-19). Здесь
+// лежала третья рукописная копия того же знания — список имён петли и суффикс
+// туннеля строкой. Копии расходятся молча, и расхождение выглядит не поломкой, а
+// неверным объяснением на экране: предупреждение либо молчит там, где замок снят,
+// либо пугает там, где он на месте.
 function detectMode(): Mode {
   if (typeof window === 'undefined') return null
-  const host = window.location.hostname.toLowerCase()
-  if (LOOPBACK.has(host)) return 'machine'
-  if (host.endsWith(TEMPORARY_SUFFIX)) return 'temporary'
+  const host = window.location.hostname
+  if (isLoopbackHostname(host)) return 'machine'
+  if (isTemporaryHostname(host)) return 'temporary'
   return null
 }
 
