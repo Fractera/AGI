@@ -86,10 +86,10 @@ const DICT: Record<string, ArchitectLayerUi> = {
   },
   home: {
     title: "The architect group of pages",
-    lead: "Here you manage the building of this microservice, set up its links with the other microservices of your application, and control how visible your microservice is within the global blockchain architecture of Fractera.",
+    lead: "Here you manage the building of this microservice, set up its links with the other microservices of your application, and control how visible your microservice is within the global blockchain architecture of Fractera. This is also where you connect your own domain name and move the node to a remote server, once this machine is no longer enough for it.",
   },
   emptyLead: "The section is in place; its content comes with the step that builds it.",
-  ownerBand: "You are here without signing in because you are working from this machine. Over the internet this layer asks for the architect role.",
+  ownerBand: "You are here without signing in: the node opens this way on its own machine and on the temporary internet address. On a permanent domain this layer is closed — from outside its pages simply do not exist.",
   },
   ru: {
   layer: "Архитектор",
@@ -112,10 +112,10 @@ const DICT: Record<string, ArchitectLayerUi> = {
   },
   home: {
     title: "Группа страниц архитектора",
-    lead: "Здесь вы управляете строительством этого микросервиса и устанавливаете связи с другими микросервисами вашего приложения, управляете видимостью вашего микросервиса в глобальной видимости блокчейн-архитектуры Fractera.",
+    lead: "Здесь вы управляете строительством этого микросервиса и устанавливаете связи с другими микросервисами вашего приложения, управляете видимостью вашего микросервиса в глобальной видимости блокчейн-архитектуры Fractera. Отсюда же вы подключите собственное доменное имя и переедете на удалённый сервер, когда узлу станет тесно на этой машине.",
   },
   emptyLead: "Раздел на месте; содержимое придёт вместе с шагом, который его построит.",
-  ownerBand: "Вы здесь без входа, потому что работаете с этой машины. Из интернета этот слой спрашивает роль архитектора.",
+  ownerBand: "Вы здесь без входа: так открыт узел на своей машине и на временном адресе в интернете. На постоянном домене этот слой закрыт — снаружи его страниц просто нет.",
   },
 }
 

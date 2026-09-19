@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { shouldBypassAuthEdge } from "@/lib/auth/auth-bypass.edge";
 import { isOwnerAtMachine } from "@/lib/auth/owner-at-machine";
+import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address";
 import { getSession } from "@/lib/auth/get-session";
 import { authBaseFromHost, projectsBaseFromHost } from "@/lib/auth-base-server";
 import {
@@ -336,8 +337,62 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     return apiAuthGate(request);
   }
 
+  // Job 1.5 — ворота СТРАНИЦ слоя архитектора.
+  const architectGate = architectPagesGate(request);
+  if (architectGate) return architectGate;
+
   // Job 2 — language routing for everything else.
   return languageRouter(request);
+}
+
+// ── Job 1.5: ворота страниц слоя архитектора (242) ─────────────────────────
+//
+// ✗ ОПЛАЧЕНО ИЗМЕРЕНИЕМ 2026-09-19: слой архитектора не был защищён НИЧЕМ. Ворота
+// выше закрывают только `/api/*`, а страницы `/{lang}/architect/*` отдавались
+// любому — я снял их через публичный туннель и получил ту же разметку байт в
+// байт, что и с самой машины. Правило хозяина (`owner-at-machine.ts`) при этом
+// было написано, объявлено в инструкции и **никем не звалось для страниц**: тот
+// самый класс «построено, но никем не зовётся».
+//
+// 🔒 ПО УМОЛЧАНИЮ — ЗАПРЕТ. Решение владельца 2026-09-19: «по умолчанию страницы
+// архитектора должны быть защищены авторизацией». Исключения три, и каждое
+// названо:
+//
+//   1. ХОЗЯИН ЗА КЛАВИАТУРОЙ — запрос пришёл с самой машины (признак измерен);
+//   2. РЕЖИМ БЕЗ ДОМЕНА / РАЗРАБОТКИ — `shouldBypassAuthEdge()`, общий для узла;
+//   3. ВРЕМЕННЫЙ АДРЕС быстрого туннеля — его слова: «если мы находимся на режиме
+//      разработки или на вот этом самом временном домене Cloud Flyer, то нам
+//      нужно проигнорировать защиту».
+//
+// 🛑 ЦЕНА ТРЕТЬЕГО ИСКЛЮЧЕНИЯ НАЗВАНА ВЛАДЕЛЬЦУ И ПОВТОРЕНА ЗДЕСЬ: пока туннель
+// открыт, слой архитектора видит каждый, кто знает ссылку. Это сознательный
+// размен ради того, чтобы человек смотрел свой узел с телефона и из чужой сети.
+// На СВОЁМ домене (235-2) исключение не действует — там работает запрет.
+//
+// 🛑 ЧЕГО ЗДЕСЬ ПОКА НЕТ, И ЭТО ДОЛГ, А НЕ УМОЛЧАНИЕ: проверки роли `architect`
+// по сессии. У узла линии AGI своей службы входа нет — `NEXT_PUBLIC_AUTH_URL`
+// показывает на адрес, которого на этой машине не существует. Посылать человека
+// в несуществующую дверь хуже, чем честно ответить «страницы нет»: дверь без
+// ключа выглядит как непослушание продукта. Поэтому чужой получает 404, а не
+// перенаправление на вход. День, когда у узла появится вход, — день, когда здесь
+// появится проверка роли.
+//
+// 🔒 ВОРОТА ОДНИ, И ЭТО НЕ НАРУШЕНИЕ ЗАКОНА «ПРАВИЛО В ДВУХ МЕСТАХ». Тот закон о
+// дверях `/api/*`, которые прокси рубит ДО обработчика. Страницы слоя —
+// статические, и вторая проверка внутри страницы означала бы чтение запроса в
+// `layout`/`page`, то есть перевод всего слоя в динамику. Статика здесь дороже
+// второго замка: замок один, зато названный.
+const ARCHITECT_PAGE = /^\/[a-z]{2}\/architect(?:\/|$)/;
+
+function architectPagesGate(request: NextRequest): NextResponse | null {
+  if (!ARCHITECT_PAGE.test(request.nextUrl.pathname)) return null;
+
+  if (isOwnerAtMachine(request)) return null;
+  if (shouldBypassAuthEdge()) return null;
+  if (isTemporaryPublicAddress(request)) return null;
+
+  // Чужой на постоянном адресе: страницы для него не существует.
+  return new NextResponse(null, { status: 404 });
 }
 
 // Match API routes (for the auth gate) AND content pages (for language routing).
