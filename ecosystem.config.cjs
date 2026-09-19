@@ -137,6 +137,21 @@ module.exports = {
       error_file: path.join(root, 'logs', 'tunnel-err.log'),
       merge_logs: true,
       time: true,
+
+      env: {
+        // 🔒 СРОКИ ДОЗОРНОГО ТУННЕЛЯ (237-1). Он опрашивает публичный адрес и
+        // ловит то, чего не видит ни pm2, ни сам cloudflared: туннель удалён со
+        // стороны Cloudflare, а процесс жив и бодро перерегистрируется. Сроки
+        // здесь, а не в коде: подбирать их придётся под сеть человека.
+        //
+        // 🛑 pm2 ХРАНИТ ОКРУЖЕНИЕ ПРОЦЕССА: изменив эти значения, нужен
+        // `pm2 delete fractera-agi-tunnel` и `pm2 start` заново — ни reload, ни
+        // `--update-env` старого окружения не вычищают. Встречено дважды за один
+        // вечер 2026-09-18 и оба раза выглядело как «правка не применилась».
+        FRACTERA_TUNNEL_INTERVAL_MS: '60000',
+        FRACTERA_TUNNEL_FAILURES: '3',
+        FRACTERA_TUNNEL_TIMEOUT_MS: '15000',
+      },
     },
   ],
 }
