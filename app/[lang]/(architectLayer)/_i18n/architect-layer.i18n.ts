@@ -44,6 +44,13 @@ export type ArchitectLayerUi = {
     buildAgentSettings: string
     buildTelegram: string
   }
+  /** Вход в слой — страница `/architect`, на которую человек попадает, набрав адрес. */
+  home: {
+    title: string
+    lead: string
+    /** Один абзац о том, что это за слой. Перечня разделов здесь НЕТ намеренно: он живёт в меню. */
+    body: string
+  }
   /** Строка на пустом разделе: страница есть, содержимого пока нет. */
   emptyLead: string
   /** Полоса: пустили без пароля, потому что человек работает с этой машины. */
@@ -75,6 +82,11 @@ const DICT: Record<string, ArchitectLayerUi> = {
     buildAgentSettings: "Agent settings",
     buildTelegram: "Telegram bot for remote development",
   },
+  home: {
+    title: "Architect layer",
+    lead: "Everything this node knows about itself, and everything you build it with.",
+    body: "This layer is yours alone: it is where the node describes itself and where you extend it. Nothing here is a copy of a control panel living somewhere else — the node is its own panel, and this is it. Open a group on the left to start.",
+  },
   emptyLead: "The section is in place; its content comes with the step that builds it.",
   ownerBand: "You are here without signing in because you are working from this machine. Over the internet this layer asks for the architect role.",
   },
@@ -96,6 +108,11 @@ const DICT: Record<string, ArchitectLayerUi> = {
     buildAgent: "Агент-программист",
     buildAgentSettings: "Настройки агента",
     buildTelegram: "Telegram-бот удалённой разработки",
+  },
+  home: {
+    title: "Слой архитектора",
+    lead: "Всё, что узел знает о себе, и всё, чем вы его строите.",
+    body: "Этот слой принадлежит только вам: здесь узел рассказывает о себе и здесь вы его расширяете. Ничто отсюда не является копией панели управления, живущей где-то ещё, — узел сам себе панель, и это она. Откройте группу слева, чтобы начать.",
   },
   emptyLead: "Раздел на месте; содержимое придёт вместе с шагом, который его построит.",
   ownerBand: "Вы здесь без входа, потому что работаете с этой машины. Из интернета этот слой спрашивает роль архитектора.",

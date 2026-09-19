@@ -24,8 +24,17 @@ import { architectLayerUi } from '../_i18n/architect-layer.i18n'
 // предрендерить и нельзя дать ссылкой, и она обязана решать на лету, что
 // показать, — то есть уходит в динамику.
 
-/** Ключ группы левого меню. */
-export type ArchitectGroup = 'passport' | 'tools' | 'build'
+/**
+ * Ключ группы левого меню. `home` — не группа, а ВХОД: страница `/architect`,
+ * на которую человек попадает, набрав адрес рукой. Ни одна ссылка снаружи в слой
+ * не ведёт — проверено поиском по всему дереву, — поэтому вход обязан
+ * существовать: без него `/{lang}/architect` отвечает 404, и человек решает, что
+ * слоя нет вовсе.
+ */
+export type ArchitectGroup = 'home' | 'passport' | 'tools' | 'build'
+
+/** Адрес входа. Отдельной константой — на неё смотрят и страница, и сторож маршрутов. */
+export const ARCHITECT_HOME = '/architect'
 
 /**
  * Адреса без языка. Язык подставляется в момент сборки меню: маршрут слоя живёт
@@ -103,6 +112,21 @@ export function architectTabs(
   currentPath: string,
 ): WorkspaceItem[] | undefined {
   if (group === 'passport') return undefined
+
+  // 🔒 НА ВХОДЕ ВЕРХНИЙ РЯД ВЕДЁТ В ГРУППЫ, И ЭТО НЕ КОПИЯ ЛЕВОГО МЕНЮ, А ЕГО
+  // ЕДИНСТВЕННЫЙ ЧИТАЕМЫЙ ВИД В ЭТОТ МОМЕНТ. Вход — единственная страница слоя,
+  // где НИ ОДНА группа не открыта: слева нет отмеченного пункта, и человеку не за
+  // что зацепиться. Список собирается из тех же констант, поэтому третьей копии
+  // разделов не появляется.
+  if (group === 'home') {
+    const ui = architectLayerUi(lang)
+    return [
+      { label: ui.groups.passport, href: `/${lang}${PASSPORT}` },
+      { label: ui.groups.tools, href: `/${lang}${TOOLS[0].path}` },
+      { label: ui.groups.build, href: `/${lang}${BUILD[0].path}` },
+    ]
+  }
+
   const ui = architectLayerUi(lang)
   const list = group === 'tools' ? TOOLS : BUILD
 

@@ -69,7 +69,20 @@ function pages(dir, prefix = '') {
 
 const onDisk = pages(join(LAYER, 'architect')).map((p) => `/architect${p}`)
 
+// 🔒 ТРЕТИЙ ВЕРДИКТ — «ИСКЛЮЧЕНИЕ», И ЕГО ПРИЧИНА НАПИСАНА ЗДЕСЬ, А НЕ МОЛЧИТ.
+// Вход в слой `/architect` не раздел: пункта меню у него нет и быть не должно —
+// человек попадает сюда, набрав адрес, а не выбрав пункт. Сиротой он при этом не
+// является; наоборот, отказом является его ОТСУТСТВИЕ: ✗ владелец открыл
+// `/ru/architect` и получил 404 при десяти работающих разделах. Поэтому вход не
+// просто прощается — он ПРОВЕРЯЕТСЯ на существование.
+const ENTRANCE = '/architect'
+const entranceFile = join(LAYER, 'architect', 'page.tsx')
+if (!existsSync(entranceFile)) {
+  fail(`нет входа в слой: ожидается ${entranceFile.replace(ROOT, '.')} — без него /{lang}/architect отвечает 404`)
+}
+
 for (const path of onDisk) {
+  if (path === ENTRANCE) continue
   if (!unique.includes(path)) {
     fail(`страница «${path}» существует, но в меню её нет — попасть в неё можно только по памяти`)
   }
