@@ -26,6 +26,7 @@ export function CollectionIndex({
   dir,
   page,
   pages,
+  content,
 }: {
   lang: string
   /** Адрес этой папки без языка, например `/architect/tools`. */
@@ -34,6 +35,14 @@ export function CollectionIndex({
   page: WorkspacePageData
   /** Дети: ровно `PAGES` из порождённого списка этой папки. */
   pages: readonly WorkspacePageData[]
+  /**
+   * Содержимое из `_components/` этой группы — то, что идёт ПЕРЕД перечнем
+   * разделов: сводка, показатели, кнопка действия.
+   *
+   * 🔒 ПУСТО — ЗАКОННО: у группы всегда есть что показать, её перечень детей.
+   * Поэтому заглушки «скоро будет построено» здесь нет и быть не должно.
+   */
+  content?: Block[]
 }) {
   const ui = architectLayerUi(lang)
   const words = wordsOf(page, lang)
@@ -61,6 +70,10 @@ export function CollectionIndex({
     href: `/${lang}${dir}/${p.meta.slug}`,
   }))
 
+  // Своё содержимое встаёт ПЕРЕД перечнем: человек пришёл в группу за общим
+  // взглядом, а список разделов — это то, куда он пойдёт дальше.
+  const blocks: Block[] = [...(content ?? []), ...children]
+
   return (
     <ArchitectPage
       lang={lang}
@@ -69,7 +82,7 @@ export function CollectionIndex({
       pageLead={words.lead}
       title={words.title}
       tabs={tabs}
-      children={children}
+      children={blocks}
     />
   )
 }

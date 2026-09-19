@@ -1,6 +1,7 @@
 import type { Block, WorkspaceItem } from '@/lib/content/blocks/types'
 import { type WorkspacePageData, wordsOf } from '@/lib/collection/types'
 import { ArchitectPage } from './architect-page'
+import { architectLayerUi } from '../_i18n/architect-layer.i18n'
 
 // СТРАНИЦА КОЛЛЕКЦИИ — оболочка для страницы, которая живёт папкой (254).
 //
@@ -21,22 +22,51 @@ export function CollectionPage({
   lang,
   dir,
   page,
+  content,
 }: {
   lang: string
   /** Адрес папки-родителя без языка, например `/architect/tools`. */
   dir: string
   page: WorkspacePageData
+  /**
+   * Содержимое из `_components/` этой страницы — работающая часть: островки,
+   * таблицы, формы, разобранные в блоки каталога.
+   *
+   * 🔒 ПУСТО — ЭТО ЗАКОННЫЙ ОТВЕТ, А НЕ ОШИБКА (решение владельца 2026-09-19:
+   * «компонент страницы может возвращать контент-заглушку, а может ничего не
+   * возвращать, потому что сама страница должна иметь обработчик: если ничего не
+   * пришло — вернуть просто название страницы с текстом "скоро будет
+   * построена"»). Поэтому страница ЗАВЕРШЕНА с первой минуты: она существует,
+   * открывается, называет себя и честно говорит о своём состоянии.
+   */
+  content?: Block[]
 }) {
+  const ui = architectLayerUi(lang)
   const words = wordsOf(page, lang)
   const path = `${dir}/${page.meta.slug}`
   const topics = words.topics ?? []
 
   // Темы страницы: заголовок третьего уровня с явным якорем, текст, список.
-  const children: Block[] = topics.flatMap((t): Block[] => [
+  // Темы из `_data` — текст, который пишут словами.
+  const fromTopics: Block[] = topics.flatMap((t): Block[] => [
     { kind: 'h3', text: t.title, id: t.anchor },
     { kind: 'p', text: t.text },
     ...(t.points ? [{ kind: 'list' as const, items: t.points }] : []),
   ])
+
+  // 🔒 ТРИ СОСТОЯНИЯ СТРАНИЦЫ, И ТРЕТЬЕ — ПОЛНОЦЕННОЕ, А НЕ ПОЛОМКА.
+  //
+  //   1. `_components/` вернул блоки → показываем их: это работающая часть;
+  //   2. блоков нет, но есть темы в `_data` → показываем текст;
+  //   3. нет ни того, ни другого → страница называет себя и говорит, что
+  //      содержимое скоро будет построено.
+  //
+  // Третье состояние — причина, по которой страница СЧИТАЕТСЯ ЗАВЕРШЁННОЙ в тот
+  // момент, когда создана папка: она существует, открывается, стоит в меню и
+  // честно сообщает о себе. ✗ Без обработчика пустоты на её месте была бы белая
+  // страница, которую человек читает как поломку продукта.
+  const built = content && content.length > 0 ? content : fromTopics
+  const children: Block[] = built.length > 0 ? built : [{ kind: 'note', text: ui.soon }]
 
   // Верхний ряд — навигация ПО ЭТОЙ странице. Тем нет — ряда нет вовсе, и это
   // законное состояние раздела, у которого ещё нет содержимого.

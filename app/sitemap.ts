@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next"
 import { brand } from "@/lib/brand"
 import { SUPPORTED_LANGUAGES } from "@/config/translations/translations.config"
 import { urlFor } from "@/lib/seo/alternates"
+import { ARCHITECT_PATHS } from "@/app/[lang]/(architectLayer)/_lib/architect-menu"
+import { architectSitemapPaths } from "@/app/[lang]/(architectLayer)/_lib/collection-visibility"
 
 // ГЛАВНАЯ КАРТА САЙТА — страницы, множество которых конечно и авторское.
 //
@@ -51,6 +53,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // редко, и обещать поисковику иное значит тратить его обходы впустую.
     for (const sub of FOOTER_PAGES) {
       out.push({ url: urlFor(lang, sub), changeFrequency: "yearly", priority: 0.3 })
+    }
+
+    // 🔒 СЛОЙ АРХИТЕКТОРА — ТОЛЬКО КОГДА ОН ОТКРЫТ, И РЕШАЕТ ЭТО ОДИН
+    // ПЕРЕКЛЮЧАТЕЛЬ (255, `_lib/collection-visibility.ts`). Сегодня слой закрыт
+    // ролью, и список пуст.
+    //
+    // 🛑 ПОЧЕМУ НЕЛЬЗЯ ПЕРЕЧИСЛИТЬ ИХ «НА БУДУЩЕЕ»: закрытая страница в карте
+    // сайта есть обещание поисковику того, чего он не получит — `proxy.ts`
+    // отвечает чужому 404. Набор адресов, объявленных роботу и недоступных
+    // человеку, и есть определение дорвея, а ярлык выдаётся САЙТУ ЦЕЛИКОМ, а не
+    // одной странице.
+    //
+    // Адреса приходят из того же дерева, что строит меню, — карта и меню не могут
+    // разойтись, потому что источник у них один.
+    for (const sub of architectSitemapPaths(ARCHITECT_PATHS)) {
+      out.push({ url: urlFor(lang, sub), changeFrequency: "weekly", priority: 0.5 })
     }
   }
   // В одноязычном режиме `urlFor` для каждого языка даёт один и тот же адрес — но

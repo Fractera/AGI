@@ -65,6 +65,15 @@ export type ArchitectLayerUi = {
    */
   openSection: string
   /**
+   * Что стоит на странице, у которой ещё нет содержимого (255).
+   *
+   * 🔒 Решение владельца 2026-09-19: страница обязана иметь обработчик — «если
+   * ничего не пришло, вернуть просто название страницы с текстом: скоро будет
+   * построена». Благодаря ему страница ЗАВЕРШЕНА с первой минуты, а не
+   * выглядит белым листом, который человек читает как поломку.
+   */
+  soon: string
+  /**
    * Предупреждение о работе без авторизации — аккордеон в шапке слоя.
    * Показывается только в режиме разработки и на временном адресе; в обычной
    * работе его нет вовсе (решение владельца 2026-09-19).
@@ -102,6 +111,7 @@ const DICT: Record<string, ArchitectLayerUi> = {
   },
   emptyLead: "The section is in place; its content comes with the step that builds it.",
   openSection: "Open the section",
+  soon: "This page is in place; its content will be built soon.",
   authWarning: {
     title: "This layer is open without any sign-in — a temporary state",
     reasonMachine: "You are inside without signing in because you are working from this very machine: whoever sits at this keyboard already owns the files.",
@@ -124,6 +134,7 @@ const DICT: Record<string, ArchitectLayerUi> = {
   },
   emptyLead: "Раздел на месте; содержимое придёт вместе с шагом, который его построит.",
   openSection: "Открыть раздел",
+  soon: "Страница на месте — содержимое скоро будет построено.",
   authWarning: {
     title: "Этот слой открыт без авторизации — состояние временное",
     reasonMachine: "Вы внутри без входа, потому что работаете с этой самой машины: тот, кто сидит за этой клавиатурой, и так владеет файлами.",

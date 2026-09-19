@@ -12,6 +12,13 @@ export const revalidate = 86_400;
 const SERVICE_DISALLOW = [
   "/architecture", "/ai-core", "/ai-draft-settings", "/dashboard", "/debug",
   "/development-steps", "/documents", "/glossary", "/patterns", "/project",
+  // 🛑 СЛОЙ АРХИТЕКТОРА ДОБАВЛЕН В 255, И ЭТО БЫЛА ДЫРА, А НЕ УПУЩЕНИЕ СТИЛЯ.
+  // Измерено: `/ru/architect/tools` отдавал `robots: index, follow` — то есть
+  // пульт узла (домен, подписка, терминал, состав инструментов) был открыт
+  // поисковику. Мета-тег `noindex` теперь ставит `_lib/collection-metadata.ts`,
+  // но одного его мало: тег читает лишь тот робот, который страницу уже
+  // загрузил, а эта строка не пускает его на адрес вовсе.
+  "/architect",
 ];
 
 // 🪦 КАРТА ТОВАРОВ УДАЛЕНА ВМЕСТЕ С МАГАЗИНОМ (229-3, 2026-09-18). Здесь

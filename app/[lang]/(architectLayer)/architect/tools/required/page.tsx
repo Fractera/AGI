@@ -1,13 +1,16 @@
 import { CollectionPage } from '../../../_lib/collection-page'
+import { collectionMetadata } from '../../../_lib/collection-metadata'
 import { data } from './_data'
+import { content } from './_components'
 
-// Раздел «Обязательные инструменты». Тонкий вход: страница называет только свою
-// папку — слова, порядок и имя приходят из `_data`, а раскладка из оболочки.
+// РАЗДЕЛ «Required» — `/{lang}/architect/tools/required`.
 //
-// 🔒 ВСЕ ЕЁ СВЕДЕНИЯ ЛЕЖАТ РЯДОМ, В ОДНОЙ ПАПКЕ (254). Прежде страница брала имя
-// из общего словаря слоя, а свой адрес — из рукописного массива в меню: три
-// места на одну страницу, и забытое третье ломалось молча.
+// 🔒 ТОНКИЙ ВХОД: страница называет свою папку и папку-родителя, отдаёт свои слова
+// и свою работающую часть. Меню, раскладка и обработка пустоты — в оболочке.
+// Устройство страницы и её правила — в README рядом.
+export const generateMetadata = collectionMetadata(data, '/architect/tools')
+
 export default async function Page({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params
-  return <CollectionPage lang={lang} dir="/architect/tools" page={data} />
+  return <CollectionPage lang={lang} dir="/architect/tools" page={data} content={content(lang)} />
 }
