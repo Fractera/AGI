@@ -2,5 +2,5 @@ import type { WorkspacePageWords } from '@/lib/collection/types'
 
 export const en: WorkspacePageWords = {
   title: 'How it works',
-  lead: 'The path from first click to result, in steps a person can count.',
+  lead: 'A step-by-step explanation of the purchase, the interaction or the service.',
 }

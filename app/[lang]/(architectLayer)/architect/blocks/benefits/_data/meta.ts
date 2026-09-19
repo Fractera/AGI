@@ -2,5 +2,5 @@ import type { WorkspacePageMeta } from '@/lib/collection/types'
 
 export const meta: WorkspacePageMeta = {
   slug: 'benefits',
-  order: 30,
+  order: 20,
 }
