@@ -2,18 +2,20 @@
 // Rewritten on every build and every dev start (npm prebuild / predev).
 // Lists every child folder of this one that carries _data/index.ts.
 import type { WorkspacePageData, CollectionBranch } from '@/lib/collection/types'
-import { data as p0 } from './instruction/_data'
-import { data as p1 } from './mcp/_data'
-import { data as p2 } from './skills/_data'
-import { data as p3 } from './step-current/_data'
-import { data as p4 } from './steps-done/_data'
-import { data as p5 } from './steps-new/_data'
-import { data as p6 } from './subscription/_data'
-import { data as p7 } from './task-add/_data'
-import { data as p8 } from './telegram/_data'
-import { data as p9 } from './terminal/_data'
+import { data as p0 } from './cron/_data'
+import { data as p1 } from './github/_data'
+import { data as p2 } from './instruction/_data'
+import { data as p3 } from './mcp/_data'
+import { data as p4 } from './skills/_data'
+import { data as p5 } from './step-current/_data'
+import { data as p6 } from './steps-done/_data'
+import { data as p7 } from './steps-new/_data'
+import { data as p8 } from './subscription/_data'
+import { data as p9 } from './task-add/_data'
+import { data as p10 } from './telegram/_data'
+import { data as p11 } from './terminal/_data'
 
-export const PAGES: WorkspacePageData[] = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9]
+export const PAGES: WorkspacePageData[] = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11]
 
 /** Each child together with its own children — see the law in the generator. */
 export const TREE: CollectionBranch[] = [
@@ -27,4 +29,6 @@ export const TREE: CollectionBranch[] = [
   { page: p7, children: [] },
   { page: p8, children: [] },
   { page: p9, children: [] },
+  { page: p10, children: [] },
+  { page: p11, children: [] },
 ]
