@@ -44,12 +44,14 @@ export type ArchitectLayerUi = {
     buildAgentSettings: string
     buildTelegram: string
   }
-  /** Вход в слой — страница `/architect`, на которую человек попадает, набрав адрес. */
+  /**
+   * Вход в слой — страница `/architect`, на которую человек попадает, набрав адрес.
+   * Заголовок и подзаголовок продиктованы владельцем 2026-09-19 и описывают ГРУППУ
+   * страниц целиком: у остальных десяти заголовок — имя своего раздела.
+   */
   home: {
     title: string
     lead: string
-    /** Один абзац о том, что это за слой. Перечня разделов здесь НЕТ намеренно: он живёт в меню. */
-    body: string
   }
   /** Строка на пустом разделе: страница есть, содержимого пока нет. */
   emptyLead: string
@@ -83,9 +85,8 @@ const DICT: Record<string, ArchitectLayerUi> = {
     buildTelegram: "Telegram bot for remote development",
   },
   home: {
-    title: "Architect layer",
-    lead: "Everything this node knows about itself, and everything you build it with.",
-    body: "This layer is yours alone: it is where the node describes itself and where you extend it. Nothing here is a copy of a control panel living somewhere else — the node is its own panel, and this is it. Open a group on the left to start.",
+    title: "The architect group of pages",
+    lead: "Here you manage the building of this microservice, set up its links with the other microservices of your application, and control how visible your microservice is within the global blockchain architecture of Fractera.",
   },
   emptyLead: "The section is in place; its content comes with the step that builds it.",
   ownerBand: "You are here without signing in because you are working from this machine. Over the internet this layer asks for the architect role.",
@@ -110,9 +111,8 @@ const DICT: Record<string, ArchitectLayerUi> = {
     buildTelegram: "Telegram-бот удалённой разработки",
   },
   home: {
-    title: "Слой архитектора",
-    lead: "Всё, что узел знает о себе, и всё, чем вы его строите.",
-    body: "Этот слой принадлежит только вам: здесь узел рассказывает о себе и здесь вы его расширяете. Ничто отсюда не является копией панели управления, живущей где-то ещё, — узел сам себе панель, и это она. Откройте группу слева, чтобы начать.",
+    title: "Группа страниц архитектора",
+    lead: "Здесь вы управляете строительством этого микросервиса и устанавливаете связи с другими микросервисами вашего приложения, управляете видимостью вашего микросервиса в глобальной видимости блокчейн-архитектуры Fractera.",
   },
   emptyLead: "Раздел на месте; содержимое придёт вместе с шагом, который его построит.",
   ownerBand: "Вы здесь без входа, потому что работаете с этой машины. Из интернета этот слой спрашивает роль архитектора.",

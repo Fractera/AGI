@@ -16,6 +16,14 @@ import { ARCHITECT_HOME } from '../_lib/architect-menu'
 // `_lib/architect-menu.ts`, — и виден человеку слева и сверху. Написанный здесь
 // в третий раз, он разошёлся бы молча: добавили раздел, в меню он есть, в тексте
 // входа нет, и ничего не падает.
+//
+// 🔒 ЗАГОЛОВОК И ПОДЗАГОЛОВОК ПРОДИКТОВАНЫ ВЛАДЕЛЬЦЕМ 2026-09-19 и говорят о
+// ГРУППЕ страниц, а не о конкретном разделе: «здесь вы управляете строительством
+// этого микросервиса и устанавливаете связи с другими микросервисами вашего
+// приложения, управляете видимостью вашего микросервиса в глобальной видимости
+// блокчейн-архитектуры Fractera». Мой прежний текст о слое отменён им же —
+// собственного содержимого у входа больше нет, и это законное состояние: строится
+// раскладка, а не наполнение.
 export default async function Page({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params
   const ui = architectLayerUi(lang)
@@ -27,7 +35,6 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
       group="home"
       title={ui.home.title}
       lead={ui.home.lead}
-      children={[{ kind: 'p', text: ui.home.body }]}
     />
   )
 }
