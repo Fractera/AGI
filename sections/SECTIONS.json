@@ -233,7 +233,7 @@
         {
           "page": "(home)",
           "order": 5,
-          "times": 13
+          "times": 15
         },
         {
           "page": "accessibility",
@@ -277,7 +277,7 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 29,
+          "order": 31,
           "times": 2
         },
         {
@@ -317,7 +317,7 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 21,
+          "order": 23,
           "times": 6
         },
         {
@@ -342,7 +342,7 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 8,
+          "order": 7,
           "times": 3
         },
         {
@@ -399,6 +399,11 @@
       "description": null,
       "hasCard": false,
       "usedOn": [
+        {
+          "page": "(home)",
+          "order": 9,
+          "times": 1
+        },
         {
           "page": "architecture",
           "order": 3,
@@ -565,7 +570,7 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 6,
+          "order": 11,
           "times": 1
         }
       ]
@@ -585,8 +590,8 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 7,
-          "times": 3
+          "order": 12,
+          "times": 2
         }
       ]
     },
@@ -721,7 +726,7 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 19,
+          "order": 21,
           "times": 2
         }
       ]
@@ -741,7 +746,7 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 20,
+          "order": 22,
           "times": 6
         }
       ]
@@ -761,7 +766,7 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 17,
+          "order": 19,
           "times": 2
         }
       ]

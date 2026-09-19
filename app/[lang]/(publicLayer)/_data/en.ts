@@ -90,64 +90,76 @@ export const en: HomeCell = {
       ],
     },
 
-    // 🔒 TELEMETRY IS A SECTION OF ITS OWN, NOT A FOURTH STEP.
-    //
-    // ✗ Paid for with broken layout: I put it as a fourth step into a view built
-    // for three. The owner: "there are never four sections in that block, it is
-    // designed for three only… instead of making this a separate standalone block
-    // with good design, you mangled everything."
-    //
-    // 🔒 And it is not a step by nature. The first three are the path of a
-    // microservice: described → published → found. Telemetry is not the next event
-    // on that path but a PROPERTY that lives ever after — the answer to "why should
-    // a stranger trust your block". That needs a frame of its own, not a place in
-    // a queue.
+    // 🔒 THIS BLOCK'S HEADING IS ABOUT THE BLOCKCHAIN, NOT ABOUT TELEMETRY.
+    // ✗ Paid for on the third attempt: the owner asked from the start to "describe
+    // the value of the blockchain solution and of the tools that work on trust and
+    // autonomy", and I made telemetry the headline — the MEANS in place of the
+    // SUBJECT. The word "block" is banned here too: the product has its own name
+    // for this thing, **AGI ITEM**, and "block" in the same text also means a
+    // building block of the page. Telemetry measures TWO numbers, not three; the
+    // third was my own addition and is gone.
     {
       kind: 'panel',
       tone: 'accent',
-      eyebrow: 'Trust',
-      title: 'Telemetry proves the thing being bought is real',
+      eyebrow: 'Blockchain',
+      title: 'Why a blockchain: every AGI ITEM has an author, a history and a price',
       children: [
         {
           kind: 'p',
-          text: 'A block put up for sale carries the history of its own work with it. The buyer sees what he is paying for instead of trusting the seller’s promise — and decides on numbers rather than on a description.',
+          text: 'What you are looking at on this page is what Fractera calls an **AGI ITEM** — one self-contained microservice. It can work alongside others or stay the only one: that is decided by the project, not by the architecture.',
+        },
+        {
+          kind: 'p',
+          text: 'Every AGI ITEM is **a node of its own in the blockchain**. It has its own history of activity, its own author and its own price, should you decide to put it up for sale. Trust here is not promised in words: it is presented as a record that cannot be rewritten after the fact.',
+        },
+        {
+          kind: 'h4',
+          text: 'What proves the value',
+        },
+        {
+          kind: 'p',
+          text: 'Fractera telemetry collects the history of each AGI ITEM as two numbers:',
+        },
+        {
+          kind: 'list',
+          items: [
+            '**how many different projects installed it**;',
+            '**how many people use it**.',
+          ],
+        },
+        {
+          kind: 'p',
+          text: 'Those two are the best proof of a microservice’s value — they can neither be promised nor faked.',
         },
         {
           kind: 'columns',
-          cols: 3,
+          cols: 2,
           children: [
             {
               kind: 'group',
               children: [
-                { kind: 'h4', text: 'How many projects took it into production' },
-                { kind: 'p', text: 'Not "downloaded to try" but carried through to live work. The most honest of the three numbers: behind it stands somebody else’s decision to rely on you.' },
+                { kind: 'h4', text: 'If you are looking for something ready' },
+                { kind: 'p', text: 'Your Claude Code Agent does this under the hood and natively while it builds: it picks what fits, reads the popularity, offers a solution. The choice stays yours.' },
               ],
             },
             {
               kind: 'group',
               children: [
-                { kind: 'h4', text: 'How many people stand behind those projects' },
-                { kind: 'p', text: 'One project with a thousand users and ten projects with one each mean different things. Scale is visible at a glance, and there is nothing to fake it with.' },
-              ],
-            },
-            {
-              kind: 'group',
-              children: [
-                { kind: 'h4', text: 'How many times it has been called' },
-                { kind: 'p', text: 'A capability called every day and a capability installed and forgotten are told apart by this number alone.' },
+                { kind: 'h4', text: 'If you are selling' },
+                { kind: 'p', text: 'A good description, high value and popularity multiply the odds of your profit — because those are exactly what somebody else’s agent reads when choosing between you and your neighbour.' },
               ],
             },
           ],
         },
         {
           kind: 'p',
-          text: 'Price follows from that. **A proven, heavily used microservice sells dearer** — its numbers are earned. **A new one is best released cheap or free** until it has earned its own: that is how it reaches the first projects, and with them the one thing that cannot be bought — a proven history of work.',
+          text: 'And nothing obliges you to use any of it. Not interested — ignore it: Claude Code Agent will go on building your project the traditional way, fast and cheap.',
         },
       ],
     },
     {
       kind: 'statement',
-      text: 'One person’s conversation with their own agent grows their project on the expertise of every other architect in the network.',
+      text: 'Keep using Claude Code Agent exactly as you always have — and Fractera AGI makes finding and installing microservices as native and as natural as installing skills.',
     },
 
     {

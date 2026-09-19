@@ -1,8 +1,10 @@
 import { PostBody } from '@/components/content-page/post-body'
 import { PageHeader } from '@/components/content-page/page-header.server'
+import { PageShell } from '@/components/content-page/page-shell'
+import { Breadcrumbs } from '@/components/nav/breadcrumbs.server'
 import type { Block } from '@/lib/content/blocks/types'
 import { architectLayerUi } from '../_i18n/architect-layer.i18n'
-import { architectMenu, architectTabs, type ArchitectGroup } from './architect-menu'
+import { architectMenu, architectTabs, ARCHITECT_HOME, type ArchitectGroup } from './architect-menu'
 import { OwnerBand } from '../_components/owner-band.client'
 
 // ОБОЛОЧКА СТРАНИЦЫ СЛОЯ АРХИТЕКТОРА (236-2).
@@ -69,8 +71,28 @@ export function ArchitectPage({
     },
   ]
 
+  // 🔒 КРОШКИ СОБИРАЮТСЯ ЗДЕСЬ, А ГАСИТ ИХ PLATFORM CONFIG — решение владельца
+  // 2026-09-19: «все страницы, кроме корня, смотрят в platform config, чтобы
+  // понять, какие атрибуты они должны возвращать: хлебные крошки, секцию
+  // вопрос-ответ и так далее».
+  //
+  // 🔒 ВЫКЛЮЧАТЕЛЬ ПРОВЕРЯЕТ НЕ ЭТОТ ФАЙЛ, А `PageHeader`: он и рисует крошки, и
+  // ставит для поисковика разметку `BreadcrumbList`. Гейт у ОДНОГО потребителя, а
+  // не у двух — иначе выключенные крошки исчезли бы с экрана и остались в
+  // разметке, то есть мы пообещали бы машине то, чего человек не видит.
+  //
+  // 🛑 У ВХОДА В СЛОЙ КРОШЕК НЕТ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ: у корня раздела нет
+  // уровня выше, а крошка «туда, где вы и так стоите» — шум.
+  const breadcrumbs =
+    group === 'home'
+      ? undefined
+      : [
+          { href: `/${lang}${ARCHITECT_HOME}`, label: ui.layer },
+          { label: title },
+        ]
+
   return (
-    <>
+    <PageShell top="work" className="flex flex-col gap-6">
       <OwnerBand
         title={ui.authWarning.title}
         reasonMachine={ui.authWarning.reasonMachine}
@@ -97,11 +119,19 @@ export function ArchitectPage({
           процитировала удалённый тег ДОСЛОВНО — и сторож засчитал цитату за живой
           код, оставшись красным после починки. Надгробие пишется ПЕРЕСКАЗОМ;
           закон известен и был нарушен через минуту после того, как я его вспомнил. */}
-      {pageTitle && (
-        <PageHeader lang={lang} eyebrow={ui.layer} title={pageTitle} subtitle={pageLead} />
+      {pageTitle ? (
+        <PageHeader
+          lang={lang}
+          eyebrow={ui.layer}
+          title={pageTitle}
+          subtitle={pageLead}
+          breadcrumbs={breadcrumbs}
+        />
+      ) : (
+        breadcrumbs && <Breadcrumbs lang={lang} trail={breadcrumbs} />
       )}
 
       <PostBody blocks={blocks} lang={lang} />
-    </>
+    </PageShell>
   )
 }
