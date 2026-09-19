@@ -1,9 +1,9 @@
 {
   "topMenu": true,
-  "footerPages": true,
+  "footerPages": false,
   "cookieBanner": false,
   "offlineCache": true,
-  "auth": true,
+  "auth": false,
   "breadcrumbs": true,
   "faq": true,
   "themeToggle": true,
