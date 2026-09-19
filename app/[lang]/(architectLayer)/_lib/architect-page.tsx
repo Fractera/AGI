@@ -4,7 +4,7 @@ import { PageShell } from '@/components/content-page/page-shell'
 import { Breadcrumbs } from '@/components/nav/breadcrumbs.server'
 import type { Block, WorkspaceItem } from '@/lib/content/blocks/types'
 import { architectLayerUi } from '../_i18n/architect-layer.i18n'
-import { architectMenu, architectTabs, ARCHITECT_HOME, type ArchitectGroup } from './architect-menu'
+import { architectMenu, ARCHITECT_HOME, type ArchitectGroup } from './architect-menu'
 import { OwnerBand } from '../_components/owner-band.client'
 
 // ОБОЛОЧКА СТРАНИЦЫ СЛОЯ АРХИТЕКТОРА (236-2).
@@ -54,10 +54,16 @@ export function ArchitectPage({
   pageTitle?: string
   pageLead?: string
   /**
-   * Верхний ряд, заданный страницей. Решение владельца 2026-09-19: на входе в
-   * слой это НАВИГАЦИЯ ПО ЭТОЙ ЖЕ СТРАНИЦЕ (якоря с плавной прокруткой), а не
-   * копия левого меню — «ты продублировал это меню и слева, и сверху; это
-   * неправильно». Не задан — ряд собирается по-старому, из разделов группы.
+   * Верхний ряд — НАВИГАЦИЯ ПО ЭТОЙ ЖЕ СТРАНИЦЕ: якоря с плавной прокруткой.
+   *
+   * 🔒 Решение владельца 2026-09-19, сначала о входе в слой («ты продублировал
+   * это меню и слева, и сверху; это меню предназначено только для навигации по
+   * странице с плавной прокруткой»), а затем, тем же вечером, обо всём слое:
+   * разделы группы уехали в подменю левого меню.
+   *
+   * 🛑 НЕ ЗАДАН — РЯДА НЕТ ВОВСЕ, и это законное состояние страницы, у которой
+   * ещё нет собственных тем. Прежнее умолчание (собрать ряд из разделов группы)
+   * отменено вместе с `architectTabs`.
    */
   tabs?: WorkspaceItem[]
 }) {
@@ -68,7 +74,7 @@ export function ArchitectPage({
       kind: 'workspace',
       menuTitle: ui.menuTitle,
       menu: architectMenu(lang, path),
-      tabs: tabs ?? architectTabs(lang, group, path),
+      tabs,
       title,
       // 🔒 «РАЗДЕЛ НА МЕСТЕ, СОДЕРЖИМОЕ ПРИДЁТ» ГОВОРИТСЯ ТОЛЬКО ПУСТОМУ РАЗДЕЛУ.
       // ✗ найдено глазами 2026-09-19: у входа в слой содержимое уже есть, а эта
@@ -104,12 +110,16 @@ export function ArchitectPage({
   //
   // Последний элемент идёт БЕЗ адреса: это текущая страница, и ссылка на неё была
   // бы ссылкой в никуда.
+  // 🔒 КРОШКА НАЗЫВАЕТ СТРАНИЦУ, А НЕ ОТКРЫТЫЙ ВНУТРИ НЕЁ РАЗДЕЛ (253). У страницы
+  // группы это разные слова: сверху стоит «Строительство», а внутри рабочего
+  // экрана — «Обзор». Крошка «Fractera → Архитектор → Обзор» назвала бы человеку
+  // место, которого в меню не существует.
   const breadcrumbs =
     group === 'home'
       ? [{ label: ui.layer }]
       : [
           { href: `/${lang}${ARCHITECT_HOME}`, label: ui.layer },
-          { label: title },
+          { label: pageTitle ?? title },
         ]
 
   return (

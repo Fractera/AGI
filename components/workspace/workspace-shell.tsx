@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Menu, X } from 'lucide-react'
+import { ChevronDown, Menu, X } from 'lucide-react'
 import { H3, H4, P, Small } from '@/components/ui/typography'
 
 // РАСКЛАДКА РАБОЧЕГО ЭКРАНА — ОДНА НА БЛОК И НА СТРАНИЦЫ (шаг 49, 2026-08-30).
@@ -23,7 +23,13 @@ import { H3, H4, P, Small } from '@/components/ui/typography'
 // работает при выключенном JavaScript. Островки приходят снаружи, в `children`, и
 // клиентскими становятся сами по себе — раскладке для этого меняться не нужно.
 
-export type WorkspaceShellItem = { label: string; href?: string; active?: boolean }
+export type WorkspaceShellItem = {
+  label: string
+  href?: string
+  active?: boolean
+  /** Разделы пункта — раскрывающееся подменю. Закон и цена — у поля `children` вида `workspace`. */
+  children?: WorkspaceShellItem[]
+}
 export type WorkspaceShellNote = {
   tone: 'recommended' | 'advice' | 'warning'
   title: string
@@ -182,17 +188,74 @@ export function WorkspaceShell({
           </label>
         </div>
 
+        {/* 🔒 ПУНКТ С РАЗДЕЛАМИ РАСКРЫВАЕТСЯ `<details>`, А НЕ ОСТРОВКОМ (253,
+            решение владельца: «Эти вкладки должны быть расположены в
+            раскрывающемся суб меню для кнопки строительства»). Раскладка
+            намеренно серверная и работает при выключенном JavaScript — ящик уже
+            открывается переключателем и CSS; клиентский островок ради одной
+            раскрывашки сломал бы это свойство ради удобства написания.
+
+            🔒 ОТКРЫТ, КОГДА ЧЕЛОВЕК ВНУТРИ ГРУППЫ. Закрытое подменю на странице
+            своего же раздела прячет от человека то место, где он сейчас стоит.
+
+            🔒 ЗАГОЛОВОК ПОДМЕНЮ — ССЫЛКА, ЕСЛИ У ГРУППЫ ЕСТЬ СВОЯ СТРАНИЦА, и
+            просто подпись, если её нет. Ссылка в никуда хуже отсутствия ссылки, а
+            стрелка рядом остаётся переключателем в обоих случаях. */}
         <ul className="flex flex-col gap-1">
           {menu.map((item, i) => (
             <li key={`${id}-m-${i}`}>
-              <Item
-                item={item}
-                closes={drawer}
-                content={renderItem?.(item, i)}
-                base="block truncate whitespace-nowrap rounded-md px-3 py-2 text-[length:var(--fs-body)] transition-colors"
-                activeClass=" bg-muted font-medium text-foreground"
-                idleClass=" text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-              />
+              {item.children && item.children.length > 0 ? (
+                <details open={item.active} className="group/sub">
+                  <summary
+                    className={
+                      'flex cursor-pointer list-none items-center justify-between gap-2 rounded-md px-3 py-2 text-[length:var(--fs-body)] transition-colors [&::-webkit-details-marker]:hidden' +
+                      (item.active
+                        ? ' bg-muted font-medium text-foreground'
+                        : ' text-muted-foreground hover:bg-muted/60 hover:text-foreground')
+                    }
+                  >
+                    {item.href ? (
+                      <a
+                        href={item.href}
+                        aria-current={item.active ? 'page' : undefined}
+                        className="truncate whitespace-nowrap"
+                      >
+                        {renderItem?.(item, i) ?? item.label}
+                      </a>
+                    ) : (
+                      <span className="truncate whitespace-nowrap">{renderItem?.(item, i) ?? item.label}</span>
+                    )}
+                    <ChevronDown
+                      size={16}
+                      aria-hidden
+                      className="shrink-0 transition-transform duration-200 group-open/sub:rotate-180"
+                    />
+                  </summary>
+
+                  <ul className="mt-1 ml-3 flex flex-col gap-0.5 border-l border-border pl-2">
+                    {item.children.map((sub, j) => (
+                      <li key={`${id}-m-${i}-${j}`}>
+                        <Item
+                          item={sub}
+                          closes={drawer}
+                          base="block truncate whitespace-nowrap rounded-md px-3 py-1.5 text-[length:var(--fs-small)] transition-colors"
+                          activeClass=" bg-muted font-medium text-foreground"
+                          idleClass=" text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              ) : (
+                <Item
+                  item={item}
+                  closes={drawer}
+                  content={renderItem?.(item, i)}
+                  base="block truncate whitespace-nowrap rounded-md px-3 py-2 text-[length:var(--fs-body)] transition-colors"
+                  activeClass=" bg-muted font-medium text-foreground"
+                  idleClass=" text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                />
+              )}
             </li>
           ))}
         </ul>
