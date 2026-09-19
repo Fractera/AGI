@@ -26,6 +26,28 @@ actually took is written to `logs/runtime.json`.
 the same port; the loser dies and the winner may be the stale one, which then answers with an old
 build. `npm run serve:status` tells you what is actually running.
 
+## Put it on the internet — and what that address costs
+
+```bash
+npm run serve:publish    # open the site to the internet through a Cloudflare quick tunnel
+npm run serve:unpublish  # take it back off — the site keeps running for you
+```
+
+Going public is a separate decision, never a side effect of starting: `serve:start` runs the site for
+the owner of the machine and for nobody else.
+
+🛑 **The address you get is TEMPORARY, and you should learn that on day one, not on the day it breaks.**
+It lives as long as the tunnel lives and changes on every restart. Sooner or later the site stops
+opening there and Cloudflare shows a page with **error 1016 or 1033**. That means the address went
+stale — **your site is intact**, still running on your own computer. Come back to the chat and ask the
+agent to refresh the address (or run `npm run serve:publish` yourself); the old link is dead for good.
+A permanent address that never goes stale means your own domain.
+
+The address is never remembered, always measured: `npm run serve:status` asks the network and tells you
+whether the site is reachable from the internet right now. A watchman inside the tunnel does the same
+once a minute and marks the address dead in the log — it never replaces it on its own, because a new
+address would silently break the link you already gave to someone.
+
 Two processes are kept alive: the site itself and a health watchdog. The watchdog asks
 `/api/health` every 30 seconds and restarts the site after three failures in a row — it exists because
 a process can stay alive while every page returns 500, and no process manager can see that.

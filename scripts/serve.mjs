@@ -10,7 +10,7 @@
 // признать.
 
 import { spawnSync } from 'node:child_process'
-import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import os from 'node:os'
@@ -164,7 +164,9 @@ async function reportInternet(apps, localCommit) {
     // Это и есть Error 1016: быстрый туннель удалён со стороны Cloudflare.
     console.log(`⚠ в интернете: ${state.url} — АДРЕС МЁРТВ (имя не резолвится)`)
     if (state.deadSince) console.log(`⚠ дозорный заметил это ${state.deadSince}`)
-    console.log('⚠ сайт локально работает. Поднять новый адрес: npm run serve:publish')
+    console.log('⚠ сайт локально работает — это протух адрес, а не сломался сайт.')
+    console.log('⚠ Вернитесь в чат и попросите агента обновить адрес сайта')
+    console.log('⚠ (или выполните сами: npm run serve:publish).')
     // 🔒 Почему не поднимается сам — решение владельца 2026-09-19: адрес при
     // перезапуске всегда новый, и менять ссылку за спиной человека нельзя.
   } else {
@@ -296,10 +298,27 @@ function publish() {
   // переписать. Человек получил бы ссылку, отдающую 530, и решил бы, что
   // публикация сломана. Файла нет — значит ждать нечего, кроме настоящего
   // нового адреса.
+  // 🛑 НО СТИРАТЬ ФАЙЛ ЦЕЛИКОМ НЕЛЬЗЯ — ✗ найдено 2026-09-19 в шаге 238 на
+  // собственной работе: вместе с адресом уезжала ИСТОРИЯ адресов, и строка
+  // «адрес менялся, прежний больше не работает» не печаталась никогда, хотя код
+  // для неё написан. Уходит только сам адрес, память о нём остаётся.
   try {
-    if (existsSync(tunnelFile)) rmSync(tunnelFile)
+    const previous = readTunnel()
+    const stale = previous?.url || previous?.previousUrl || null
+    writeFileSync(
+      tunnelFile,
+      JSON.stringify(
+        {
+          previousUrl: stale,
+          rotatedAt: previous?.url ? new Date().toISOString() : (previous?.rotatedAt ?? null),
+          rotations: previous?.url ? (Number(previous?.rotations) || 0) + 1 : (Number(previous?.rotations) || 0),
+        },
+        null,
+        2,
+      ),
+    )
   } catch {
-    /* не удалось убрать — хуже не станет, сверка ниже всё равно ждёт новый файл */
+    /* не вышло — хуже не станет: сверка ниже всё равно ждёт поля `url`, которого нет */
   }
 
   const result = pm2run(["start", ecosystem, "--only", "fractera-agi-tunnel"])
@@ -316,7 +335,19 @@ function publish() {
     const адрес = readTunnel()
     if (адрес?.url) {
       console.log(`\nСАЙТ В ИНТЕРНЕТЕ: ${адрес.url}`)
-      console.log("Адрес временный: перезапуск выдаст новый. Постоянный адрес — это свой домен.")
+      // 🔒 ПРЕДУПРЕЖДЕНИЕ ГОВОРИТСЯ В МОМЕНТ ВЫДАЧИ АДРЕСА, А НЕ В МОМЕНТ ОТКАЗА —
+      // решение владельца 2026-09-19: «в момент когда пользователь устанавливает,
+      // инструкция должна ему сообщить, что домен который вы получаете является
+      // временным». Человек, узнавший об этом заранее, видит в ошибке Cloudflare
+      // понятное событие; человек, узнающий впервые, видит сломанный продукт.
+      console.log("")
+      console.log("🛑 ЭТОТ АДРЕС ВРЕМЕННЫЙ. Он живёт, пока живёт туннель, и меняется при перезапуске.")
+      console.log("   Однажды сайт по нему перестанет открываться, и Cloudflare покажет страницу")
+      console.log("   с ошибкой 1016 или 1033. Это значит, что адрес устарел, — САЙТ ПРИ ЭТОМ ЦЕЛ")
+      console.log("   и продолжает работать у вас на компьютере.")
+      console.log("   Что делать: вернуться в чат и попросить агента обновить адрес сайта")
+      console.log("   (или выполнить самому: npm run serve:publish).")
+      console.log("   Постоянный адрес, который не протухает, — это свой домен.")
       return
     }
     if (Date.now() > срок) {

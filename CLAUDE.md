@@ -211,6 +211,22 @@ how it was meant to be, the network says how it is, and the gap between them is 
 local line now says «локально» out loud: a bare `200` next to a public address reads as proof that the
 site is visible from the internet, and for three hours it was not.
 
+🔒 **HANDING A HUMAN THE PUBLIC ADDRESS MEANS SAYING ITS PRICE IN THE SAME BREATH** — the owner,
+2026-09-19: «в момент когда пользователь устанавливает, инструкция должна ему сообщить, что домен
+который вы получаете является временным». Three things, in his language, every single time:
+
+1. the address is **temporary** and changes on every restart of the tunnel;
+2. one day the site stops opening there and Cloudflare shows **error 1016 or 1033** — that means the
+   address went stale, and **the site itself is intact**, still running on his own computer;
+3. the cure is one sentence: come back to the chat and ask the agent to refresh the address
+   (`npm run serve:publish`). A permanent address means his own domain.
+
+🛑 **SO WHEN HE REPORTS 1016 OR 1033, DO NOT DEBUG THE TUNNEL — ISSUE A NEW ADDRESS.** Those codes are
+neither a broken site nor a broken machine: Cloudflare has dropped a quick tunnel, and a dropped quick
+tunnel cannot be revived — only replaced. Confirm with `serve:status` (it measures, it does not
+remember), run `serve:publish`, hand him the new link, and remind him the old one is dead for good.
+Debugging here costs an hour and changes nothing.
+
 🔒 **`npm run serve:start | stop | status | rebuild | publish | unpublish | autostart` — and the human
 never hears the word pm2.** Starting the server by hand (`node server.js`) once it runs under pm2 is an
 error: two servers race for the port, and the winner may be the stale one answering with an old build.
