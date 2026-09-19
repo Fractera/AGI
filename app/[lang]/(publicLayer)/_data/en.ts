@@ -22,8 +22,12 @@ export const en: HomeCell = {
   // not: the second has no agreed meaning, and claiming it is the same class of
   // risk as saying "open source" where the licence is source-available.
   title: 'Fractera AGI — Web3 infrastructure for your agents',
+  // 🔒 The opening sentence is the owner's, dictated 2026-09-19, and it leads on
+  // purpose: it is the PROMISE, and the two sentences after it are the mechanism
+  // that keeps it. Promise first, machinery second — that order is the difference
+  // between a subtitle people read and one they scroll past.
   subtitle:
-    'Turn your expertise into a microservice and earn from it across the agent network. Your node lives on your own machine, finds buyers among other projects itself, and takes payment directly. No platform, no middleman, no centre above you.',
+    'You do exactly what you did before — only easier and faster, and now you get paid for it as well. Turn your expertise into a microservice and earn from it across the agent network: your node lives on your own machine, finds buyers among other projects itself, and takes payment directly. No platform, no middleman, no centre above you.',
   description:
     'Fractera AGI Infrastructure: a home for your agents on your own computer. Your node declares what it can do in a shared catalogue, other agents find it before they start writing code, and telemetry shows the buyer how many projects already run this microservice.',
   intro:
