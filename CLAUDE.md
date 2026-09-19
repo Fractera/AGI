@@ -136,6 +136,41 @@ cannot see that, and neither can a container. It asks `/api/health` and restarts
 failures in a row. **Patience is its point, not sensitivity:** a cold dev compile takes up to 41 seconds,
 and an eager watchdog turns a slow start into an endless restart loop.
 
+## The architect layer: ten routes, one source of the menu (step 236, 2026-09-19)
+
+🔒 **EVERY SECTION IS ITS OWN PAGE ON ITS OWN ROUTE — NEVER A QUERY PARAMETER.** The owner's direct
+instruction about the screen he showed us: «каждый раздел создавать отдельную страницу». The reason is
+technical, not a matter of taste: a page reached by `?section=…` has no address of its own — it cannot
+be prerendered, cannot be handed over as a link, and has to decide at request time what to show, which
+drags it into dynamic rendering.
+
+🔒 **THE MENU LIVES IN EXACTLY ONE PLACE** — `app/[lang]/(architectLayer)/_lib/architect-menu.ts`. Ten
+pages written each with its own copy of the list would drift apart **silently**: add a section and nine
+pages have it, the tenth does not, and nothing fails. A page states only its own path, its group and
+its title; the menu comes back with the right item already marked. Same law as the table of contents on
+the home page: it is built from the `h2` blocks, never declared as a second list.
+
+🔒 **TWO LEVELS OF MENU ARE TWO FIELDS OF ONE KIND, NOT TWO KINDS.** `workspace`'s left menu carries the
+groups; its optional `tabs` row carries the sections of the open group. A group's href is its first
+section: a page for the group itself would be either a second address for the same content or an honest
+404 under the человек's finger.
+
+🔒 **PAGES OF THE LAYER ARE DRAWN BY `PostBody` — THE SAME RENDERER THAT DRAWS AN ARTICLE.** This is how
+«one core, not a set of parts» is actually enforced: the layer gets the catalogue's kinds behind a lock,
+not a second markup system of its own. ✗ This is precisely where the memory service went sideways — its
+workshop screen is built from its own client islands, and a second layout system grew beside the first.
+
+🛑 **`npm run check:architect-routes` GUARDS BOTH HALVES** and runs in `prebuild`: a menu item without a
+page is a dead link, a page without a menu item is an orphan reachable only from memory. Neither types
+nor the build see either state — both are legal to them.
+
+🔒 **THE OWNER AT THE KEYBOARD OF THIS MACHINE IS LET IN WITHOUT SIGNING IN** —
+`lib/auth/owner-at-machine.ts`, and the rule is duplicated in `proxy.ts` because the proxy gates
+`/api/*` **before** the route handler. A visible band tells the person why they were let in: an
+unexplained free pass reads as "no protection at all", and then they hand the link to a stranger.
+
+---
+
 🔒 **THE SITE RUNS IN PRODUCTION, NEVER IN DEV** — the owner, 2026-09-18: «мне режим разработки не
 нужен вообще». This is not a preference. In dev every page compiles on first visit, and compiling
 spawns child processes (postcss, workers); on Windows each one opens a black console window across the
