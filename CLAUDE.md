@@ -169,6 +169,33 @@ nor the build see either state — both are legal to them.
 `/api/*` **before** the route handler. A visible band tells the person why they were let in: an
 unexplained free pass reads as "no protection at all", and then they hand the link to a stranger.
 
+🔒 **"COULD NOT ASK" IS NOT "WAS REFUSED" — THE MOST EXPENSIVE LINE OF THIS LAYER (step 252,
+2026-09-19).** `AccessGate` asks `/api/me` from the browser, and its `catch` used to write a NETWORK
+failure into a verdict about RIGHTS. Three everyday situations make the question unaskable: the node is
+still starting after the computer was switched on · the quick tunnel is dead and the service worker
+serves the page from cache · a rebuild is in flight. In all three the person was shown «Требуется одна
+из этих ролей: architect» on a machine that is entirely his own.
+✗ **Paid for by the owner reporting it four times**, and every time the WRONG half was inspected: the
+server rule was correct and working all along. Now there is a fourth verdict, `unknown` — only the door
+answering 401/403, or returning roles that do not match, is a refusal; silence from the network shows
+nothing. **Any `catch` around a question about rights owes a third state.**
+
+🔒 **AN OPEN ADDRESS ANSWERS BEFORE THE QUESTION IS ASKED.** On loopback and on `*.trycloudflare.com`
+the gate does not ask at all — the server hands out `architect` there anyway, so asking only made the
+screen depend on the network. The two predicates are `isLoopbackHostname()` and
+`isTemporaryHostname()`, each living in ONE file (`lib/auth/owner-at-machine.ts`,
+`lib/auth/temporary-address.ts`) and read by both the server and the browser.
+🛑 **THE TAIL OF THE NAME IS COMPARED, NEVER THE WHOLE ADDRESS** — a quick tunnel's name is four random
+words and changes on every restart, so a rule that knows the full address dies the same day, silently.
+✗ Three hand-written copies of these two facts existed (the gate, the PWA banner, the warning band);
+252 merged them. A fourth copy is a defect, not a convenience.
+
+🛑 **`process.env.NODE_ENV !== 'production'` NEVER FIRES ON THE HOME MACHINE** — the node runs in
+production by the owner's decision, so any "are we developing?" check written that way is a dead line.
+✗ The PWA install banner carried exactly such a check and kept appearing. What works is the ADDRESS:
+loopback and quick tunnel are addresses **without a future** — an installed app remembers the address it
+was installed from forever, and both of those are gone tomorrow, leaving a broken icon on the desktop.
+
 ---
 
 🔒 **THE SITE RUNS IN PRODUCTION, NEVER IN DEV** — the owner, 2026-09-18: «мне режим разработки не
