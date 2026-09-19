@@ -64,3 +64,21 @@ Create a folder next to this one with `_data/` and a thin `page.tsx`. Nothing el
 the build regenerates `_list.generated.ts`, and the section appears in this index
 and in the left menu by itself. See `../../lib/collection/README.md` for the mechanism
 and `../README.md` for this layer's skeleton.
+
+## 🔒 The line between this group and "Frame settings"
+
+The owner's rule, stated on 2026-09-20: **frame settings switch a part ON or OFF;
+project settings change what that part SAYS.**
+
+Everything in this group is content: the project's name and description, its
+address, its languages, its images, the wording of its banner, what stands in its
+header and footer. None of it decides whether a part exists — that question is
+answered next door, in `PLATFORM-CONFIG`, whose every entry is a bare `true`/`false`.
+
+🛑 **Do not add a switch here.** A page that both enables a part and describes it
+makes the two config files answer the same question, and then the answer depends on
+load order. Ask which question a setting answers — "does it exist?" or "what does it
+say?" — and it places itself.
+
+🔒 **The cookie banner appears in both groups on purpose.** Its words are here; its
+switch is in the frame. One part of the product, two questions, two homes.

@@ -991,9 +991,27 @@ The panel writes, the application reads on every request, applied without a rebu
 | Config | Holds | Skill |
 |---|---|---|
 | `APP-CONFIG` | identity: name, description, brand, images, SEO, OpenGraph, analytics, currency | `use-app-config` |
-| `PLATFORM-CONFIG` | which capabilities exist: eleven switches | `use-platform-config` |
+| `PLATFORM-CONFIG` | which capabilities exist: twelve switches | `use-platform-config` |
 | `DESIGN-CONFIG` | looks: colours, fonts, scale, shapes | `use-design` §3 |
 | `PRODUCTS-CONFIG` | products, one dossier file each | `use-products-config` |
+
+🔒 **THE LINE BETWEEN THE FIRST TWO, IN THE OWNER'S WORDS (2026-09-20): "frame
+settings activate or cancel activation; project settings let you change the text
+itself."** `PLATFORM-CONFIG` answers **does this part exist?**; `APP-CONFIG` answers
+**what does it say?**
+
+Measured, not assumed: every one of the twelve entries in
+`PLATFORM-CONFIG/defaults.json` is a bare `true`/`false` — not one holds a string, a
+list, or any content.
+
+🛑 **A string in `PLATFORM-CONFIG` is a defect.** The moment a switch also carries
+text, both files answer the same question and the winner depends on load order —
+this project's most expensive defect class, arrived at by a different road.
+
+🔒 **So one feature legitimately appears in both.** The cookie banner's switch is in
+the frame; its words are in the project. One part, two questions, two homes. When
+unsure where a setting belongs, ask which of the two questions it answers and it
+places itself.
 
 **A product dossier** is `PRODUCTS-CONFIG/<id>.json`: record, intake questions and answers, cases with
 confirmations, steps, page plan, phase, history. Beside it, created at runtime, `registry.json` hands out the

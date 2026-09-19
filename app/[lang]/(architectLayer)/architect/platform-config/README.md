@@ -64,3 +64,29 @@ Create a folder next to this one with `_data/` and a thin `page.tsx`. Nothing el
 the build regenerates `_list.generated.ts`, and the section appears in this index
 and in the left menu by itself. See `../../lib/collection/README.md` for the mechanism
 and `../README.md` for this layer's skeleton.
+
+## 🔒 The line between this group and "Project settings"
+
+The owner's rule, stated on 2026-09-20: **frame settings switch a part ON or OFF;
+project settings change what that part SAYS.**
+
+This is not a matter of taste — it is how the two config files are actually built.
+Measured: every one of the twelve entries in `PLATFORM-CONFIG/defaults.json` is a
+bare `true`/`false`. Not one of them holds a string, a list, or any content at all.
+
+| | `PLATFORM-CONFIG` (this group) | `APP-CONFIG` (project settings) |
+|---|---|---|
+| answers | **does this part exist?** | **what does it say?** |
+| values | `true` / `false`, nothing else | words, addresses, images, rules |
+| example | the cookie banner appears at all | the wording of the cookie banner |
+| example | the top menu exists | what stands in the top menu |
+| example | social icons are shown | which networks, and their links |
+
+🛑 **A string in this file is a defect, not a convenience.** The moment a switch
+also carries text, the two files start answering the same question, and the answer
+that wins depends on load order — the exact class of silent drift this whole
+architecture removes.
+
+🔒 **Which is why the cookie banner lives in BOTH groups, and that is correct.**
+Its switch is here; its words are in project settings. One part of the product, two
+questions about it, two homes — deliberately.
