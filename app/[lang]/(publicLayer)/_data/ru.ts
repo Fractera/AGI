@@ -75,7 +75,7 @@ export const ru: HomeCell = {
       // из первоисточника (`code.claude.com`), а не по памяти.
       href: 'https://code.claude.com/',
       label: 'Установить Claude Code',
-      secondary: { href: '/ru/architect/build/subscription', label: 'Войти в подписку Claude Code Agent' },
+      secondary: { href: '/ru/architect/build/subscription', label: 'Начать строить' },
     },
 
     // ── СЕРДЦЕ ПРОДУКТА. Стоит вторым разделом, сразу под первым экраном ──────

@@ -58,7 +58,7 @@ export const en: HomeCell = {
       // instruction was about the NUMBER of blocks, not about the labels.
       href: 'https://code.claude.com/',
       label: 'Install Claude Code',
-      secondary: { href: '/en/architect/build/subscription', label: 'Connect your Claude Code Agent subscription' },
+      secondary: { href: '/en/architect/build/subscription', label: 'Start building' },
     },
 
     // ── THE HEART OF THE PRODUCT. Second section, right under the first screen ─
