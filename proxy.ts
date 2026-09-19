@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { shouldBypassAuthEdge } from "@/lib/auth/auth-bypass.edge";
+import { isOwnerAtMachine } from "@/lib/auth/owner-at-machine";
 import { getSession } from "@/lib/auth/get-session";
 import { authBaseFromHost, projectsBaseFromHost } from "@/lib/auth-base-server";
 import {
@@ -190,6 +191,20 @@ async function apiAuthGate(request: NextRequest): Promise<NextResponse> {
   }
 
   if (pathname.startsWith("/api/") && !PUBLIC_API_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
+    // 🔒 ХОЗЯИН ЗА КЛАВИАТУРОЙ ЭТОЙ МАШИНЫ ПРОХОДИТ ВОРОТА (2026-09-19).
+    //
+    // 🛑 ПРАВИЛО ОБЯЗАНО СТОЯТЬ В ДВУХ МЕСТАХ, И ЭТО НЕ ДУБЛИРОВАНИЕ, А ЗАКОН
+    // ПРОЕКТА: «двухслойный bypass обязателен — `proxy.ts` блокирует `/api/*` ДО
+    // route handler, поэтому правило в `getSession()` одно недостаточно».
+    // ✗ проверено живьём в тот же день: `getSession()` уже знал о хозяине, а
+    // `/api/me` с самой машины всё равно отвечал 401 — ворота рубили запрос
+    // раньше, чем обработчик успевал спросить, кто пришёл.
+    //
+    // Признак и доказательство его безопасности — `lib/auth/owner-at-machine.ts`.
+    if (isOwnerAtMachine(request)) {
+      return NextResponse.next();
+    }
+
     if (!shouldBypassAuthEdge()) {
       const agentIdentity = request.headers.get("x-agent-identity");
       if (!agentIdentity) {

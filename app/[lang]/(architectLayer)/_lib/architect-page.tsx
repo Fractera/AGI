@@ -2,6 +2,7 @@ import { PostBody } from '@/components/content-page/post-body'
 import type { Block } from '@/lib/content/blocks/types'
 import { architectLayerUi } from '../_i18n/architect-layer.i18n'
 import { architectMenu, architectTabs, type ArchitectGroup } from './architect-menu'
+import { OwnerBand } from '../_components/owner-band.client'
 
 // ОБОЛОЧКА СТРАНИЦЫ СЛОЯ АРХИТЕКТОРА (236-2).
 //
@@ -52,5 +53,10 @@ export function ArchitectPage({
     },
   ]
 
-  return <PostBody blocks={blocks} lang={lang} />
+  return (
+    <>
+      <OwnerBand text={ui.ownerBand} />
+      <PostBody blocks={blocks} lang={lang} />
+    </>
+  )
 }

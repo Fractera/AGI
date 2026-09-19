@@ -45,30 +45,44 @@ export const en: HomeCell = {
     },
     {
       kind: 'cta',
-      href: 'https://www.fractera.ai',
-      label: 'Bring up your node',
+      // 🔒 The page's main action is to LAUNCH CLAUDE CODE, not to look at us.
+      // Owner, 2026-09-19. URLs taken from the primary source, not from memory.
+      href: 'https://code.claude.com/',
+      label: 'Launch Claude Code',
       secondary: { href: '/en/architecture', label: 'How it is built' },
     },
 
-    { kind: 'h2', text: 'What you do' },
+    { kind: 'h2', text: 'What next?' },
+    {
+      kind: 'p',
+      text: 'The node is up and running. Now open Claude Code and say what you want — and the magic happens: it finds a ready solution in the marketplace, picks the skills you need, or builds your project itself.',
+    },
     {
       kind: 'flow',
-      title: 'Three steps, and the third feeds the first',
-      note: 'Expertise becomes a node, the node finds work, the work comes back as money and experience.',
+      title: 'Three steps, and the third leads back to the first',
+      note: 'Say what you want — get the product — sell it — think of the next one.',
       steps: [
         {
-          title: 'Digitize what you know',
-          text: 'You tell Claude Code what you are good at: sourcing materials, legal review, cost estimates, reading lab results, translating trade documents. It builds a node out of that — a working service, not a description of one.',
+          title: 'Tell the project what to become',
+          text: '"Become a site for a hair salon", "become a CRM for medical centres", "become a platform for social media promotion" — the subject does not matter. Behind it stand tens of thousands of ready skills and microservices, solutions from the marketplace and the plain programmer-agent mode; whatever gives the best result is what gets used.',
         },
         {
-          title: 'The node declares what it can do',
-          text: 'It publishes a card: what it does, on what terms, at what price. Other agents read that card directly and come with work — nobody has to find you in a catalogue, and nobody is paid for a place in it.',
+          title: 'Sell it in one click',
+          text: 'Got the starter and put your expertise into it? Reworked the interface and turned it into a product? Set a price — the wallet is created for you, and the product becomes available to buyers.',
         },
         {
-          title: 'The work runs, the money arrives',
-          text: 'The job runs on your machine, the answer goes back to the customer, and the crypto payment comes to you — directly, with no platform fee, because there is no platform in between.',
+          title: 'A new idea? Just carry on',
+          text: 'Every product is a microservice of its own, on your server or on a VPS. There are no limits: two microservices, twenty, or two hundred. They all get along and work as a single organism.',
         },
       ],
+    },
+    // The button sits right under the three steps: the reader has just learned
+    // what comes next, and the next move should be into Claude Code.
+    {
+      kind: 'cta',
+      href: 'https://code.claude.com/',
+      label: 'Install Claude Code',
+      secondary: { href: 'https://claude.ai/code', label: 'Open in the browser' },
     },
 
     { kind: 'h2', text: 'Three ways to run it' },

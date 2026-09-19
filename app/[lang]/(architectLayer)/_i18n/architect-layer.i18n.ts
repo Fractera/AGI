@@ -46,6 +46,8 @@ export type ArchitectLayerUi = {
   }
   /** Строка на пустом разделе: страница есть, содержимого пока нет. */
   emptyLead: string
+  /** Полоса: пустили без пароля, потому что человек работает с этой машины. */
+  ownerBand: string
 }
 
 // 🔒 ФОРМА `Record<string, Ui>`, А НЕ ПАРА `const EN` / `const RU` — ЭТО ТРЕБОВАНИЕ
@@ -74,6 +76,7 @@ const DICT: Record<string, ArchitectLayerUi> = {
     buildTelegram: "Telegram bot for remote development",
   },
   emptyLead: "The section is in place; its content comes with the step that builds it.",
+  ownerBand: "You are here without signing in because you are working from this machine. Over the internet this layer asks for the architect role.",
   },
   ru: {
   layer: "Архитектор",
@@ -95,6 +98,7 @@ const DICT: Record<string, ArchitectLayerUi> = {
     buildTelegram: "Telegram-бот удалённой разработки",
   },
   emptyLead: "Раздел на месте; содержимое придёт вместе с шагом, который его построит.",
+  ownerBand: "Вы здесь без входа, потому что работаете с этой машины. Из интернета этот слой спрашивает роль архитектора.",
   },
 }
 

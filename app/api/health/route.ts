@@ -1,5 +1,5 @@
 // @api report liveness and which build of this application answers
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { SUPPORTED_LANGUAGES } from "@/config/translations/translations.config";
 
@@ -26,7 +26,7 @@ import { SUPPORTED_LANGUAGES } from "@/config/translations/translations.config";
 // показывает «жив»: `ts` и `pid` в нём остались бы от момента сборки.
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   // 🛑 НАВЕДЁННЫЙ ОТКАЗ — ЕДИНСТВЕННЫЙ СПОСОБ ДОКАЗАТЬ, ЧТО СТОРОЖ РАБОТАЕТ.
   // Сторож (`scripts/health-watch.mjs`) ловит состояние «процесс жив, а страницы
   // не отдаются» — то самое, которое владелец видел 2026-09-18 и которого не
@@ -54,5 +54,6 @@ export async function GET() {
     pid: process.pid,
     mode: process.env.NODE_ENV === "production" ? "production" : "dev",
     langs: SUPPORTED_LANGUAGES,
+
   });
 }
