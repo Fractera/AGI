@@ -49,9 +49,16 @@ export const en: HomeCell = {
     },
     {
       kind: 'cta',
+      // 🔒 ONE ACTION BLOCK ON THE PAGE — the owner said it twice on 2026-09-19:
+      // make ONE block — "Install Claude Code" plus a button leading to the
+      // architect tab where the subscription is connected.
+      //
+      // ✗ I read that as "fix the second pair" and kept both: four buttons where
+      // two were asked for, the first pair duplicating the second in meaning. The
+      // instruction was about the NUMBER of blocks, not about the labels.
       href: 'https://code.claude.com/',
-      label: 'Start Claude Code',
-      secondary: { href: '/en/architecture', label: 'How it works' },
+      label: 'Install Claude Code',
+      secondary: { href: '/en/architect/build/subscription', label: 'Connect your Claude Code Agent subscription' },
     },
 
     // ── THE HEART OF THE PRODUCT. Second section, right under the first screen ─
@@ -80,9 +87,61 @@ export const en: HomeCell = {
           title: 'Another agent finds you before it writes any code',
           text: 'This is what makes the whole scheme work. Anyone who asks their agent for a technical solution gets the catalogue searched FIRST, natively and out of the box. The agent finds existing blocks, offers them for analysis, and only then does the person choose: buy yours, or build their own because their view of the product differs from yours.',
         },
+      ],
+    },
+
+    // 🔒 TELEMETRY IS A SECTION OF ITS OWN, NOT A FOURTH STEP.
+    //
+    // ✗ Paid for with broken layout: I put it as a fourth step into a view built
+    // for three. The owner: "there are never four sections in that block, it is
+    // designed for three only… instead of making this a separate standalone block
+    // with good design, you mangled everything."
+    //
+    // 🔒 And it is not a step by nature. The first three are the path of a
+    // microservice: described → published → found. Telemetry is not the next event
+    // on that path but a PROPERTY that lives ever after — the answer to "why should
+    // a stranger trust your block". That needs a frame of its own, not a place in
+    // a queue.
+    {
+      kind: 'panel',
+      tone: 'accent',
+      eyebrow: 'Trust',
+      title: 'Telemetry proves the thing being bought is real',
+      children: [
         {
-          title: 'Telemetry proves the thing being bought is real',
-          text: 'Blocks on sale carry telemetry: how many projects took the microservice into production, how many users each of them has, how many times it has been called over its lifetime. The buyer sees what he is paying for instead of trusting a promise. A proven, heavily used microservice sells dearer; a new one is best released cheap or free until it earns its numbers.',
+          kind: 'p',
+          text: 'A block put up for sale carries the history of its own work with it. The buyer sees what he is paying for instead of trusting the seller’s promise — and decides on numbers rather than on a description.',
+        },
+        {
+          kind: 'columns',
+          cols: 3,
+          children: [
+            {
+              kind: 'group',
+              children: [
+                { kind: 'h4', text: 'How many projects took it into production' },
+                { kind: 'p', text: 'Not "downloaded to try" but carried through to live work. The most honest of the three numbers: behind it stands somebody else’s decision to rely on you.' },
+              ],
+            },
+            {
+              kind: 'group',
+              children: [
+                { kind: 'h4', text: 'How many people stand behind those projects' },
+                { kind: 'p', text: 'One project with a thousand users and ten projects with one each mean different things. Scale is visible at a glance, and there is nothing to fake it with.' },
+              ],
+            },
+            {
+              kind: 'group',
+              children: [
+                { kind: 'h4', text: 'How many times it has been called' },
+                { kind: 'p', text: 'A capability called every day and a capability installed and forgotten are told apart by this number alone.' },
+              ],
+            },
+          ],
+        },
+        {
+          kind: 'p',
+          text: 'Price follows from that. **A proven, heavily used microservice sells dearer** — its numbers are earned. **A new one is best released cheap or free** until it has earned its own: that is how it reaches the first projects, and with them the one thing that cannot be bought — a proven history of work.',
         },
       ],
     },
@@ -111,16 +170,10 @@ export const en: HomeCell = {
         },
       ],
     },
-    // 🔒 The second pair of buttons differs from the first in substance (owner,
-    // 2026-09-19): the first invites you to install, this one to connect the
-    // subscription inside your own node — hence the architect-layer tab.
-    {
-      kind: 'cta',
-      href: 'https://code.claude.com/',
-      label: 'Install Claude Code',
-      secondary: { href: '/en/architect/build/subscription', label: 'Connect your Claude Code subscription' },
-    },
-
+    // 🪦 A SECOND ACTION BLOCK STOOD HERE — removed 2026-09-19 by the owner's
+    // decision, "one block instead of two". The page has a single call to action,
+    // in the first screen; repeating it further down offers the reader what he has
+    // already seen and splits one call into two sources.
     {
       kind: 'cards',
       badge: 'Run modes',
