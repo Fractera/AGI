@@ -233,7 +233,7 @@
         {
           "page": "(home)",
           "order": 5,
-          "times": 15
+          "times": 14
         },
         {
           "page": "accessibility",
@@ -278,7 +278,7 @@
         {
           "page": "(home)",
           "order": 31,
-          "times": 2
+          "times": 1
         },
         {
           "page": "architecture",
@@ -310,7 +310,7 @@
       "kind": "h3",
       "type": "page-material",
       "shape": "heading",
-      "fields": "text: string",
+      "fields": "text: string; id?: string",
       "title": null,
       "description": null,
       "hasCard": false,
@@ -693,7 +693,7 @@
         {
           "page": "(home)",
           "order": 3,
-          "times": 2
+          "times": 3
         }
       ]
     },

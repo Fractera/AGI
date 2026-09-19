@@ -53,6 +53,31 @@ const SNOOZE_DAYS = 30
 // остаться статической.
 const TEMPORARY_SUFFIX = '.trycloudflare.com'
 
+// 🔒 ПРЕДЛОЖЕНИЕ МОЛЧИТ В РАЗРАБОТКЕ И НА ЗАКРЫТЫХ СТРАНИЦАХ — решение
+// владельца 2026-09-19: «pwa banner not need show in the dev mod and protected
+// flow».
+//
+// 🛑 ДОВОД У КАЖДОГО СЛУЧАЯ СВОЙ. В разработке приложение ставилось бы с адреса
+// локальной машины, который назавтра занят другим проектом. А слой архитектора и
+// приватные страницы — это РАБОТА, а не витрина: предлагать поставить значок
+// поверх настроек сервера значит мешать человеку ровно в ту минуту, когда он
+// сосредоточен.
+//
+// 🔒 ПРОВЕРЯЕМ АДРЕС, А НЕ РОЛЬ. Роль островку неизвестна без запроса к двери, а
+// запрос ради баннера — лишний поход в сеть на каждой странице. Адрес же говорит
+// всё: слой архитектора и панель закрыты по устройству, и путь это называет.
+const PROTECTED_PATHS = ['/architect', '/dashboard', '/administration']
+
+function onProtectedPage(): boolean {
+  if (typeof window === 'undefined') return false
+  const p = window.location.pathname
+  return PROTECTED_PATHS.some(seg => p.includes(seg))
+}
+
+function inDevelopment(): boolean {
+  return process.env.NODE_ENV !== 'production'
+}
+
 function onTemporaryAddress(): boolean {
   if (typeof window === 'undefined') return false
   return window.location.hostname.toLowerCase().endsWith(TEMPORARY_SUFFIX)
@@ -73,6 +98,8 @@ export function InstallPrompt({ strings }: { strings: InstallStrings }) {
   const [event, setEvent] = useState<InstallEvent | null>(null)
 
   useEffect(() => {
+    if (inDevelopment()) return
+    if (onProtectedPage()) return
     if (onTemporaryAddress()) return
     if (snoozed()) return
 

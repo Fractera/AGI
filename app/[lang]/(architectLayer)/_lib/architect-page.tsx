@@ -2,7 +2,7 @@ import { PostBody } from '@/components/content-page/post-body'
 import { PageHeader } from '@/components/content-page/page-header.server'
 import { PageShell } from '@/components/content-page/page-shell'
 import { Breadcrumbs } from '@/components/nav/breadcrumbs.server'
-import type { Block } from '@/lib/content/blocks/types'
+import type { Block, WorkspaceItem } from '@/lib/content/blocks/types'
 import { architectLayerUi } from '../_i18n/architect-layer.i18n'
 import { architectMenu, architectTabs, ARCHITECT_HOME, type ArchitectGroup } from './architect-menu'
 import { OwnerBand } from '../_components/owner-band.client'
@@ -33,6 +33,7 @@ export function ArchitectPage({
   lead,
   pageTitle,
   pageLead,
+  tabs,
 }: {
   lang: string
   /** Адрес БЕЗ языка, ровно как в источнике меню: по нему отмечается активный пункт. */
@@ -52,6 +53,13 @@ export function ArchitectPage({
    */
   pageTitle?: string
   pageLead?: string
+  /**
+   * Верхний ряд, заданный страницей. Решение владельца 2026-09-19: на входе в
+   * слой это НАВИГАЦИЯ ПО ЭТОЙ ЖЕ СТРАНИЦЕ (якоря с плавной прокруткой), а не
+   * копия левого меню — «ты продублировал это меню и слева, и сверху; это
+   * неправильно». Не задан — ряд собирается по-старому, из разделов группы.
+   */
+  tabs?: WorkspaceItem[]
 }) {
   const ui = architectLayerUi(lang)
 
@@ -60,7 +68,7 @@ export function ArchitectPage({
       kind: 'workspace',
       menuTitle: ui.menuTitle,
       menu: architectMenu(lang, path),
-      tabs: architectTabs(lang, group, path),
+      tabs: tabs ?? architectTabs(lang, group, path),
       title,
       // 🔒 «РАЗДЕЛ НА МЕСТЕ, СОДЕРЖИМОЕ ПРИДЁТ» ГОВОРИТСЯ ТОЛЬКО ПУСТОМУ РАЗДЕЛУ.
       // ✗ найдено глазами 2026-09-19: у входа в слой содержимое уже есть, а эта
@@ -81,11 +89,24 @@ export function ArchitectPage({
   // не у двух — иначе выключенные крошки исчезли бы с экрана и остались в
   // разметке, то есть мы пообещали бы машине то, чего человек не видит.
   //
-  // 🛑 У ВХОДА В СЛОЙ КРОШЕК НЕТ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ: у корня раздела нет
-  // уровня выше, а крошка «туда, где вы и так стоите» — шум.
+  // 🔒 КРОШКИ ЕСТЬ НА КАЖДОЙ СТРАНИЦЕ, КРОМЕ ГЛАВНОЙ — решение владельца
+  // 2026-09-19: «для любых других страниц хлебные крошки мы всегда обязательно
+  // активируем по умолчанию, чтобы они всегда присутствовали, разумеется кроме
+  // главной страницы».
+  //
+  // 🪦 ОТМЕНЕНО МОЁ ПРЕЖНЕЕ РЕШЕНИЕ: вход в слой я оставлял без крошек, рассудив,
+  // что «у корня раздела нет уровня выше». Довод неверен: уровень выше есть
+  // всегда — сам сайт. Крошка на входе в слой читается как «Fractera → Архитектор»
+  // и говорит человеку, где он находится, а не куда ему идти.
+  //
+  // 🛑 ГЛАВНАЯ — ЕДИНСТВЕННОЕ ИСКЛЮЧЕНИЕ, и оно не про настройку: на корне сайта
+  // крошка указывала бы на саму себя.
+  //
+  // Последний элемент идёт БЕЗ адреса: это текущая страница, и ссылка на неё была
+  // бы ссылкой в никуда.
   const breadcrumbs =
     group === 'home'
-      ? undefined
+      ? [{ label: ui.layer }]
       : [
           { href: `/${lang}${ARCHITECT_HOME}`, label: ui.layer },
           { label: title },

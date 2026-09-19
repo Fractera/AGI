@@ -27,7 +27,7 @@
 |---|---|---|---|---|---|
 | `p01` | `p` | Page material | — | text: string | — |
 | `h201` | `h2` | Page material | — | text: string | — |
-| `h301` | `h3` | Page material | — | text: string | — |
+| `h301` | `h3` | Page material | — | text: string; id?: string | — |
 | `h401` | `h4` | Page material | — | text: string | — |
 | `h501` | `h5` | Page material | — | text: string | — |
 | `quote01` | `quote` | Page material | — | text: string; cite?: string; lead?: string | — |

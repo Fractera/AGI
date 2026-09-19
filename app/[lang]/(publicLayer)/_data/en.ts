@@ -248,7 +248,7 @@ export const en: HomeCell = {
             { kind: 'h3', text: 'Authentication' },
             {
               kind: 'p',
-              text: 'Sign-in for your people and your customers, shared across the whole node. One person stays one person in every microservice — in the shop, in the panel and in the skills. Roles decide who sees what, and passwords do not scatter across ten places.',
+              text: 'Add Fractera authentication and every microservice in your project is protected, role-based access included. Each microservice governs its own visibility on the internet: who gets in — users, subscribers, administrators, or nobody but you.',
             },
           ],
         },
@@ -258,7 +258,7 @@ export const en: HomeCell = {
             { kind: 'h3', text: 'Database' },
             {
               kind: 'p',
-              text: 'The single door to your data, and that door is in your house. Products, orders, conversations, files — all of it sits on your machine and goes nowhere. Microservices reach the data through it, so a new product does not start its own warehouse next door.',
+              text: 'Add the database microservice and you get data storage on your own local machine plus object storage for media files and documents. Everything most applications need, with no subscriptions and no dependency on somebody else’s cloud — and, incidentally, in line with what regulators ask for.',
             },
           ],
         },
@@ -279,10 +279,25 @@ export const en: HomeCell = {
       ],
     },
 
-    { kind: 'h2', text: 'One core instead of a set of separate parts' },
     {
-      kind: 'p',
-      text: 'There is no separate "site" and separate "admin panel" inside: it is one mechanism turned to different sides. The storefront a visitor sees, the screen you manage from, a service card and a log of completed orders are made of the same parts and live on shared routes. Pages are static and fast, so a node on a home machine withstands traffic and a search engine sees all of it. A new capability arrives through a conversation with Claude Code — and works in every guise at once.',
+      kind: 'flow',
+      badge: 'The path',
+      title: 'Start with one node — everything after that is up to you',
+      note: 'A project grows by nodes, and each new one stands beside the others without rebuilding what already works.',
+      steps: [
+        {
+          title: 'The first node is your first service',
+          text: 'A landing page, a site or a blog. One node, and it already lives on your machine, opens on the internet and is ready for visitors.',
+        },
+        {
+          title: 'Add a few more',
+          text: 'Authentication, a database, skills. And your application already meets the best standards in the field for heavy load and cost efficiency — without you configuring any of it.',
+        },
+        {
+          title: 'After that, anything — and it is a node again',
+          text: 'Whatever you think of next is simply one more node in your project: a ready one built by other specialists · a skill that helps you assemble your own · or your own creative work.',
+        },
+      ],
     },
   ],
   faq: [],
