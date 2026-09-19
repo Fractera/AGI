@@ -55,8 +55,21 @@ export type ArchitectLayerUi = {
   }
   /** Строка на пустом разделе: страница есть, содержимого пока нет. */
   emptyLead: string
-  /** Полоса: пустили без пароля, потому что человек работает с этой машины. */
-  ownerBand: string
+  /**
+   * Предупреждение о работе без авторизации — аккордеон в шапке слоя.
+   * Показывается только в режиме разработки и на временном адресе; в обычной
+   * работе его нет вовсе (решение владельца 2026-09-19).
+   */
+  authWarning: {
+    /** Строка, которую видно всегда, пока аккордеон свёрнут. */
+    title: string
+    /** Почему открыто — версия для хозяина за клавиатурой. */
+    reasonMachine: string
+    /** Почему открыто — версия для временного адреса в интернете. */
+    reasonTemporary: string
+    /** Вывод и рекомендация: оба состояния временные, для полноценной работы нужен микросервис авторизации. */
+    body: string
+  }
 }
 
 // 🔒 ФОРМА `Record<string, Ui>`, А НЕ ПАРА `const EN` / `const RU` — ЭТО ТРЕБОВАНИЕ
@@ -89,7 +102,12 @@ const DICT: Record<string, ArchitectLayerUi> = {
     lead: "Here you manage the building of this microservice, set up its links with the other microservices of your application, and control how visible your microservice is within the global blockchain architecture of Fractera. This is also where you connect your own domain name and move the node to a remote server, once this machine is no longer enough for it.",
   },
   emptyLead: "The section is in place; its content comes with the step that builds it.",
-  ownerBand: "You are here without signing in: the node opens this way on its own machine and on the temporary internet address. On a permanent domain this layer is closed — from outside its pages simply do not exist.",
+  authWarning: {
+    title: "This layer is open without any sign-in — a temporary state",
+    reasonMachine: "You are inside without signing in because you are working from this very machine: whoever sits at this keyboard already owns the files.",
+    reasonTemporary: "You are inside without signing in because the node is on a temporary address. While that address is open, anyone who knows the link sees this layer.",
+    body: "Both of these are development states, and neither is meant to last. A node that keeps no authentication can only be built in development mode or on a temporary address — on a permanent domain this layer is closed, and from outside its pages simply do not exist. For everyday use, activate the Fractera authentication microservice: it gives the node real roles, and the architect layer starts asking who you are instead of trusting where you came from.",
+  },
   },
   ru: {
   layer: "Архитектор",
@@ -115,7 +133,12 @@ const DICT: Record<string, ArchitectLayerUi> = {
     lead: "Здесь вы управляете строительством этого микросервиса и устанавливаете связи с другими микросервисами вашего приложения, управляете видимостью вашего микросервиса в глобальной видимости блокчейн-архитектуры Fractera. Отсюда же вы подключите собственное доменное имя и переедете на удалённый сервер, когда узлу станет тесно на этой машине.",
   },
   emptyLead: "Раздел на месте; содержимое придёт вместе с шагом, который его построит.",
-  ownerBand: "Вы здесь без входа: так открыт узел на своей машине и на временном адресе в интернете. На постоянном домене этот слой закрыт — снаружи его страниц просто нет.",
+  authWarning: {
+    title: "Этот слой открыт без авторизации — состояние временное",
+    reasonMachine: "Вы внутри без входа, потому что работаете с этой самой машины: тот, кто сидит за этой клавиатурой, и так владеет файлами.",
+    reasonTemporary: "Вы внутри без входа, потому что узел стоит на временном адресе. Пока этот адрес открыт, слой видит каждый, кто знает ссылку.",
+    body: "Оба состояния — рабочие, и ни одно не рассчитано надолго. Узел, оставшийся без авторизации, можно строить только в режиме разработки или на временном адресе: на постоянном домене этот слой закрыт, и снаружи его страниц просто нет. Для полноценной работы активируйте микросервис авторизации Fractera — он даёт узлу настоящие роли, и слой архитектора начинает спрашивать, кто вы, вместо того чтобы верить, откуда вы пришли.",
+  },
   },
 }
 

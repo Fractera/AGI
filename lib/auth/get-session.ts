@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server"
 import { shouldBypassAuth } from "@/lib/auth/auth-bypass"
 import { isOwnerAtMachine } from "@/lib/auth/owner-at-machine"
+import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
 
 export type AppSession = {
   userId: string
@@ -34,6 +35,25 @@ export async function getSession(req?: NextRequest): Promise<AppSession | null> 
   // машины кука не нужна; всем остальным она обязательна.
   if (isOwnerAtMachine(req)) {
     return { userId: 'owner@machine', email: 'owner@machine', roles: ['architect'], viaMachine: true }
+  }
+
+  // 🔒 ВРЕМЕННЫЙ АДРЕС УЗЛА — ВТОРОЕ МЕСТО ТОГО ЖЕ ПРАВИЛА (243). Решение
+  // владельца 2026-09-19: на временном домене защиту игнорируем, иначе человек не
+  // может пользоваться собственными вкладками даже для тестирования.
+  //
+  // ✗ ПОЧЕМУ ОДНИХ ВОРОТ СТРАНИЦ НЕ ХВАТИЛО — УВИДЕНО ГЛАЗАМИ В БРАУЗЕРЕ, А НЕ
+  // `curl`: страницы слоя открылись и отдавали 200, а человек всё равно упирался
+  // в окно «Эта страница вам недоступна. Требуется одна из этих ролей: architect».
+  // Замок там клиентский (`components/auth/access-gate.client.tsx`), он спрашивает
+  // `/api/me`, а ответ приходит отсюда: ролей нет — значит отказ. Ровно тот закон
+  // проекта, что обход обязан быть двухслойным: страница и дверь решают отдельно,
+  // и открытая страница с закрытой дверью выглядит как поломка продукта.
+  //
+  // 🛑 ЦЕНА ТА ЖЕ, ЧТО У ВОРОТ: пока туннель открыт, всякий, кто знает ссылку,
+  // получает роль архитектора этого узла. Это сознательный размен владельца, а не
+  // умолчание, и на постоянном домене он не действует.
+  if (isTemporaryPublicAddress(req)) {
+    return { userId: 'owner@temporary', email: 'owner@temporary', roles: ['architect'], viaMachine: true }
   }
 
   // 🔒 `||`, А НЕ `??`, И ЭТО НЕ ВКУСОВЩИНА — ОПЛАЧЕНО ПОТЕРЕЙ ВХОДА НА ЖИВОМ

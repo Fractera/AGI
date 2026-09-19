@@ -206,6 +206,16 @@ async function apiAuthGate(request: NextRequest): Promise<NextResponse> {
       return NextResponse.next();
     }
 
+    // 🔒 ТО ЖЕ ПРАВИЛО ДЛЯ ВРЕМЕННОГО АДРЕСА (243) — И ЗДЕСЬ ОНО НЕ ПОВТОРЕНИЕ, А
+    // ВТОРАЯ ПОЛОВИНА. ✗ увидено глазами в браузере: ворота страниц я открыл, они
+    // отдавали 200, а человек упирался в окно «Эта страница вам недоступна.
+    // Требуется одна из этих ролей: architect». Замок слоя клиентский, он
+    // спрашивает `/api/me` — и запрос рубился ЗДЕСЬ, раньше обработчика. Открытая
+    // страница с закрытой дверью выглядит как поломка продукта, а не как защита.
+    if (isTemporaryPublicAddress(request)) {
+      return NextResponse.next();
+    }
+
     if (!shouldBypassAuthEdge()) {
       const agentIdentity = request.headers.get("x-agent-identity");
       if (!agentIdentity) {

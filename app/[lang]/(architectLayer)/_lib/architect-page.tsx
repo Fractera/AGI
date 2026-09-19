@@ -55,7 +55,12 @@ export function ArchitectPage({
 
   return (
     <>
-      <OwnerBand text={ui.ownerBand} />
+      <OwnerBand
+        title={ui.authWarning.title}
+        reasonMachine={ui.authWarning.reasonMachine}
+        reasonTemporary={ui.authWarning.reasonTemporary}
+        body={ui.authWarning.body}
+      />
       <PostBody blocks={blocks} lang={lang} />
     </>
   )
