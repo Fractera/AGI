@@ -192,6 +192,25 @@ address (the human's own domain) is the second scenario and belongs to the contr
 🛑 **The tunnel runs with `--protocol http2`, not the default QUIC.** Cloudflare's own docs warn that
 idle QUIC sessions break on networks that aggressively time out UDP — every mobile hotspot does.
 
+🛑 **CLOUDFLARE KILLS A QUICK TUNNEL FROM ITS OWN SIDE, AND `cloudflared` SURVIVES ITS OWN DEATH.**
+Measured 2026-09-19: the edge closed the connection and answered re-registration with `Unauthorized:
+Tunnel not found`; from outside that is **Error 1016 — the name stops resolving**. `cloudflared` never
+exits: it retries forever with a dead id, so pm2 reports `online` with zero restarts. The site was off
+the internet for three hours, and a human noticed it, not an instrument.
+🔒 **Hence the tunnel wrapper is its own watchman** (`scripts/tunnel.mjs`, step 237-1): it probes its
+public address once a minute, needs three consecutive failures before a verdict, and asks an external
+point first, so «no internet on this machine» is never mistaken for «the tunnel is dead». Timings live
+in `ecosystem.config.cjs`; `FRACTERA_TUNNEL_PROBE_URL` feeds it a deliberately dead address, which is
+the only way to prove the instrument can turn RED.
+🔒 **IT NEVER HEALS — the owner, 2026-09-19: «Не трогать, только честно сообщать».** A restart always
+yields a NEW address, so self-healing would silently break the link the human already gave to someone.
+The verdict is written into `logs/tunnel.json` (`dead`, `deadSince`, `reason`) and shouted into the
+log; the human raises a new address himself with `serve:publish`.
+🔒 **`serve:status` MEASURES the public address instead of printing it from the file** — the file says
+how it was meant to be, the network says how it is, and the gap between them is the failure itself. Its
+local line now says «локально» out loud: a bare `200` next to a public address reads as proof that the
+site is visible from the internet, and for three hours it was not.
+
 🔒 **`npm run serve:start | stop | status | rebuild | publish | unpublish | autostart` — and the human
 never hears the word pm2.** Starting the server by hand (`node server.js`) once it runs under pm2 is an
 error: two servers race for the port, and the winner may be the stale one answering with an old build.
