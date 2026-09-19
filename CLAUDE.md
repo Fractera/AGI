@@ -654,9 +654,20 @@ language.
   `proxy.ts` switches that, and **editing it is forbidden** without the owner's direct request.
 - You develop in the default language; translations come when the product is ready.
 - Public static routes keep translations in files; protected dynamic ones in the database.
-- 🔒 A translation debt is **derived, never maintained by hand**: `check:i18n` knows each dictionary's
-  coverage and the enabled set, and the difference IS the debt. A hand-kept registry is the first thing
-  to go stale. → `use-multi-lang`
+- 🔒 **COVERAGE is derived; the PROMISE and the DECISION are not** — and conflating the two is how this
+  line used to read as "keep no registry at all". `check:i18n` knows every dictionary and the enabled
+  set, and the difference between them IS the coverage: never retype that by hand, it goes stale in a
+  week. What no instrument can know is whether a dictionary **owes** every language (a reusable part of
+  the product) or two is the deliberate answer (one route, behind a lock), and whether the owner agreed
+  to defer a particular translation. That lives in `development-docs/TRANSLATION-DEBT.md`.
+- 🔒 **THE ORDER YOU FOLLOW WITHOUT BEING ASKED:** write a new capability in ONE language · add its debt
+  line in the SAME step if the set is incomplete · when the capability is finished, collect the missing
+  languages in one pass (`i18n:export` → external model → `i18n:import`) and delete the line with the
+  same change. 🛑 A second language in the middle of an unfinished feature is not diligence but double
+  work: the strings will change again, and the half-done translation will look finished.
+  ✗ Paid for 2026-09-19: the guard pointed at `TRANSLATION-DEBT.md` as the home of the debts, and the
+  file did not exist in this repository at all — the practice was named nowhere, so nobody could follow
+  it.
 
 ## The architect layer — settings edited inside this project
 

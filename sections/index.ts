@@ -35,6 +35,7 @@ import { faq } from './blocks/faq.server'
 import { toc } from './blocks/toc.server'
 import { voiceField } from './blocks/voice-field.server'
 import { workspace } from './blocks/workspace.server'
+import { accordion, accordionItem } from './blocks/accordion.server'
 import { benefitCards } from './blocks/benefit-cards.server'
 import { splitPair } from './blocks/split-pair.server'
 import { logoCards } from './blocks/logo-cards.server'
@@ -71,5 +72,5 @@ import { chat } from './blocks/chat.server'
 // и лежат по файлу на вид. Разбор того сценария сохранён в `SECTIONS.md`, чтобы
 // следующая сессия не проектировала его заново.
 export const SECTIONS: SectionSet = {
-  p, h2, h3, h4, h5, quote, list, olist, figure, code, note, cta, callout, table, docref, founder, columns, group, heroBadge, heroSplit, badges, panel, metrics, flow, problemSolution, cards, card, statement, invite, noBill, faq, toc, languageMarquee, projectTypeMarquee, voiceField, workspace, benefitCards, splitPair, logoCards, carousel, support, showcaseCarousel, featureGrid, promoBand, priceTable, spotlightPair, platformGrid, chartArea, chartBar, chartLine, chartPie, chartRadar, chartRadial, chartTooltip, orbitLayers, chat,
+  p, h2, h3, h4, h5, quote, list, olist, figure, code, note, cta, callout, table, docref, founder, columns, group, heroBadge, heroSplit, badges, panel, metrics, flow, problemSolution, cards, card, statement, invite, noBill, faq, toc, languageMarquee, projectTypeMarquee, voiceField, workspace, accordion, accordionItem, benefitCards, splitPair, logoCards, carousel, support, showcaseCarousel, featureGrid, promoBand, priceTable, spotlightPair, platformGrid, chartArea, chartBar, chartLine, chartPie, chartRadar, chartRadial, chartTooltip, orbitLayers, chat,
 }

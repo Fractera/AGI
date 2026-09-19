@@ -396,6 +396,67 @@ export const SPECIMEN: SpecimenSection[] = [
     ],
   },
   {
+    kind: 'accordion',
+    when: 'A heading and several collapsed strips: the whole table of contents stays visible, only the chosen strip is read. Take it when there are many topics and a reader will open one or two, each with its own filling — a paragraph, a list, a piece of advice. Do NOT take it for two short topics (plain paragraphs are more honest), for questions and answers (that is `faq`), or for anything the reader MUST read: collapsed text is not read at all.',
+    whenRu: 'Заголовок и несколько свёрнутых полос: видно всё оглавление, читается выбранная полоса. Берут, когда тем много и человек откроет одну-две, а у каждой своя начинка — абзац, список, совет. НЕ берут для двух коротких тем (честнее обычные абзацы), для вопросов и ответов (это `faq`) и для того, что человек обязан прочесть: свёрнутое не читают вовсе.',
+    blocks: [
+      {
+        kind: 'accordion',
+        title: 'Что стоит знать до продакшна',
+        lead: 'Три темы, каждая со своей начинкой. Открыта одна полоса за раз.',
+        children: [
+          {
+            kind: 'accordionItem',
+            summary: 'Статическая генерация — и почему её не стоит менять',
+            open: true,
+            children: [
+              {
+                kind: 'p',
+                text: 'Страницы собираются заранее и отдаются готовыми. Переход к динамике на каждый запрос увеличивает нагрузку в разы и лишает ответ предсказуемости.',
+              },
+            ],
+          },
+          {
+            kind: 'accordionItem',
+            summary: 'Языки: начинайте с одного',
+            children: [
+              {
+                kind: 'p',
+                text: 'В разработке удобнее вести один язык, а переводы добавлять в конце — недостающее записывается в реестр долгов и не теряется.',
+              },
+              { kind: 'list', items: ['Один язык в переменных окружения', 'До 82 языков, когда проект готов'] },
+            ],
+          },
+          {
+            kind: 'accordionItem',
+            summary: 'Полоса держит любые блоки, а не только текст',
+            children: [
+              { kind: 'p', text: 'Внутрь кладут список, совет или ссылку — ровно как в ячейку `cards`.' },
+              { kind: 'note', text: 'Открытой по умолчанию делают не больше одной полосы.' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    kind: 'accordionItem',
+    when: 'One strip of an `accordion`. A container: it holds any blocks. It draws nothing on its own — the parent collects the strips and renders them; this renderer exists because the set of kinds is COMPLETE by type, exactly like `card` inside `cards`.',
+    whenRu: 'Одна полоса `accordion`. Контейнер: держит любые блоки. Сама ничего не рисует — содержимое достаёт и показывает родитель; рендерер существует потому, что набор видов ПОЛНЫЙ по типу, ровно как у `card` внутри `cards`.',
+    blocks: [
+      {
+        kind: 'accordion',
+        children: [
+          {
+            kind: 'accordionItem',
+            summary: 'Одна полоса сама по себе',
+            children: [{ kind: 'p', text: 'Вне `accordion` её не показывают: ей негде открыться.' }],
+          },
+        ],
+      },
+    ],
+  },
+  {
     kind: 'card',
     when: 'One cell of a `cards` section. A container: it holds any blocks. `tone` gives it a light gradient wash in the colour of its MEANING group — `data` for what you do, `access` for what is worth doing first — never "make it green". A cell with no tone is a plain border: a wash has to mean something, and a wash on every cell stops singling out anything.',
     blocks: [
