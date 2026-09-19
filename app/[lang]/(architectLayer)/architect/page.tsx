@@ -51,7 +51,6 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
     <ArchitectPage
       lang={lang}
       path={ARCHITECT_HOME}
-      group="home"
       pageTitle={ui.home.title}
       pageLead={ui.home.lead}
       title={ui.home.sectionTitle}

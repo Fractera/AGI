@@ -61,11 +61,10 @@ const FILES = [
   // списке нет. Тогда словарь слоя прожил вне списка целый шаг, и сторож остался
   // зелёным после того, как из словаря намеренно убрали русский ключ.
   ["app/[lang]/(architectLayer)/_i18n/architect-home.i18n.ts", "ArchitectHomeUi", 2],
-  // Тем же законом внесён в шаг 253 вместе с самим словарём — страница группы
-  // «Строительство». Пока это МАКЕТ («бла-бла-бла»), и сторож обязан видеть его с
-  // первой минуты: иначе настоящий текст приедет в файл, за которым никто не
-  // смотрит.
-  ["app/[lang]/(architectLayer)/_i18n/architect-build.i18n.ts", "ArchitectBuildUi", 2],
+  // 🪦 ЗДЕСЬ СТОЯЛ `architect-build.i18n.ts` — словарь макета из трёх разделов
+  // («Раздел один… бла-бла-бла»), которым владелец проверял дизайн. Удалён в 254
+  // вместе с самим макетом: группа «Строительство» стала папкой со своим `_data`,
+  // как и все прочие, и слова её лежат там.
   // 🪦 ДЕВЯТЬ ТОВАРНЫХ СЛОВАРЕЙ УДАЛЕНЫ ВМЕСТЕ С МАГАЗИНОМ (230-3, 2026-09-18).
   // 🔒 СЛОВАРИ ВИДЖЕТОВ — ДЕСЯТЬ ЯЗЫКОВ, А НЕ 82 (шаг 521, решение владельца
   // 2026-08-21). Здесь стоял ОДИН словарь `_data/products.i18n.ts` на 82 языка,
@@ -100,6 +99,38 @@ const FILES = [
  */
 const CELLS = [
 ]
+
+// ── Третья форма: СТРАНИЦЫ-ПАПКИ КОЛЛЕКЦИИ (254) ───────────────────────────
+//
+// 🔒 ПОЧЕМУ ЗДЕСЬ НЕТ СПИСКА, И ЭТО НЕ ОТСТУПЛЕНИЕ ОТ ПРАВИЛА ФАЙЛА. Шапка выше
+// говорит: список ведётся руками намеренно, чтобы новый словарь попадал под
+// охрану осознанно. Для страниц слоя это правило дало бы ровно тот отказ, от
+// которого оно защищает: страница добавляется ПАПКОЙ, без единой правки общих
+// файлов, — значит её словарь никто и никогда не впишет сюда, и прибор останется
+// зелёным над непроверенными двадцатью тремя папками.
+//
+// Поэтому здесь список не ведётся, а ВЫВОДИТСЯ: под охрану попадает всё, что
+// сканер считает страницей, — то же правило, по которому строятся меню и
+// рубрикаторы. Разойтись охране и дереву негде.
+//
+// 🛑 ЧТО ИМЕННО ПРОВЕРЯЕТСЯ: у каждой страницы-папки есть `en.ts` (база, без неё
+// падать некуда) и `ru.ts`, и в обоих есть `title` — имя, которым страница
+// зовётся в меню, в рубрикаторе и в своём заголовке. Пустое имя не ломает ни
+// типы, ни сборку: в меню просто появляется пункт без подписи.
+const COLLECTION_ROOTS = ["app/[lang]/(architectLayer)/architect"]
+const COLLECTION_LANGS = ["en", "ru"]
+
+function collectionPages(dir, found = []) {
+  if (!fs.existsSync(dir)) return found
+  for (const name of fs.readdirSync(dir)) {
+    if (/^[_[(.]/.test(name)) continue
+    const child = `${dir}/${name}`
+    if (!fs.statSync(child).isDirectory()) continue
+    if (fs.existsSync(`${child}/_data/index.ts`)) found.push(child)
+    collectionPages(child, found)
+  }
+  return found
+}
 
 // 🔒 ЦИФРЫ В ИМЕНИ КЛЮЧА ОБЯЗАТЕЛЬНЫ В ШАБЛОНЕ. `step1`, `step2` — обычные
 // имена, а шаблон без цифр молча терял их и объявлял неполный словарь полным:
@@ -221,6 +252,27 @@ for (const [dir, typeFile, type, want] of CELLS) {
   }
   console.log(line)
 }
+
+// ── Третья форма: страницы-папки коллекции ─────────────────────────────────
+let pagesChecked = 0
+const pageHoles = []
+for (const root of COLLECTION_ROOTS) {
+  for (const dir of collectionPages(root)) {
+    pagesChecked++
+    const where = dir.replace(/^app\/\[lang\]\/\([^)]*\)\//, "")
+    for (const lang of COLLECTION_LANGS) {
+      const file = `${dir}/_data/${lang}.ts`
+      if (!fs.existsSync(file)) { pageHoles.push(`${where}: нет ${lang}.ts`); continue }
+      const body = fs.readFileSync(file, "utf8")
+      const title = body.match(/title:\s*'([^']*)'/)?.[1]
+      if (!title || !title.trim()) pageHoles.push(`${where}: ${lang} без title — пункт меню будет без подписи`)
+    }
+  }
+}
+if (pageHoles.length) bad += pageHoles.length
+console.log(`  ${pageHoles.length ? "БЕДА " : "OK   "} страницы-папки слоя: ${pagesChecked}, языков ${COLLECTION_LANGS.join("+")}`)
+for (const h of pageHoles.slice(0, 10)) console.log(`         ${h}`)
+if (pageHoles.length > 10) console.log(`         (+${pageHoles.length - 10})`)
 
 console.log(bad ? `\n===I18N_FAILED=== проблемных словарей: ${bad}` : "\n===I18N_OK=== все словари полны")
 process.exit(bad ? 1 : 0)

@@ -1,28 +1,16 @@
-import { ArchitectPage } from '../../_lib/architect-page'
-import { architectLayerUi } from '../../_i18n/architect-layer.i18n'
+import { CollectionIndex } from '../../_lib/collection-index'
+import { data } from './_data'
+import { PAGES } from './_list.generated'
 
-// ПАСПОРТ УЗЛА — первая страница слоя архитектора (236-2).
+// РУБРИКАТОР ГРУППЫ «Паспорт» (254).
 //
-// 🔒 ТОНКИЙ ВХОД: страница называет только СЕБЯ — свой адрес, свою группу и своё
-// имя. Меню, верхний ряд и раскладка приходят из оболочки; здесь их нет и быть
-// не должно, иначе десять страниц станут десятью источниками одного списка.
+// 🔒 СТРАНИЦА НЕ ЗНАЕТ СВОИХ РАЗДЕЛОВ И НЕ МОЖЕТ ИХ УЗНАТЬ ИНАЧЕ: список
+// приходит из `_list.generated.ts`, который сборка складывает из папок рядом.
+// Добавили папку — строка появилась и здесь, и в подменю слева.
 //
-// 🔒 У ГРУППЫ «ПАСПОРТ» РАЗДЕЛОВ НЕТ, поэтому верхний ряд не рисуется вовсе —
-// `architectTabs` возвращает `undefined`. Это второй случай вида `workspace`, и
-// он обслуживается тем же видом, а не вторым.
-//
-// Содержимого пока нет намеренно: слово владельца 2026-09-18 — «empty pages with
-// correct i18n structure». Строится раскладка и маршруты, не содержимое.
+// 🔒 СВОИ СЛОВА ОНА БЕРЁТ ИЗ СВОЕЙ ЖЕ ПАПКИ — `_data`. Группа устроена так же,
+// как раздел; различает их только глубина.
 export default async function Page({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params
-  const ui = architectLayerUi(lang)
-
-  return (
-    <ArchitectPage
-      lang={lang}
-      path="/architect/passport"
-      group="passport"
-      title={ui.groups.passport}
-    />
-  )
+  return <CollectionIndex lang={lang} dir="/architect/passport" page={data} pages={PAGES} />
 }

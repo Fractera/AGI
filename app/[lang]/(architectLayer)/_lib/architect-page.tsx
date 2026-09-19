@@ -4,7 +4,7 @@ import { PageShell } from '@/components/content-page/page-shell'
 import { Breadcrumbs } from '@/components/nav/breadcrumbs.server'
 import type { Block, WorkspaceItem } from '@/lib/content/blocks/types'
 import { architectLayerUi } from '../_i18n/architect-layer.i18n'
-import { architectMenu, ARCHITECT_HOME, type ArchitectGroup } from './architect-menu'
+import { architectMenu, ARCHITECT_HOME } from './architect-menu'
 import { OwnerBand } from '../_components/owner-band.client'
 
 // ОБОЛОЧКА СТРАНИЦЫ СЛОЯ АРХИТЕКТОРА (236-2).
@@ -12,7 +12,7 @@ import { OwnerBand } from '../_components/owner-band.client'
 // 🔒 ОДНА ОБОЛОЧКА НА ДЕСЯТЬ СТРАНИЦ — ПО ТОЙ ЖЕ ПРИЧИНЕ, ПО КОТОРОЙ МЕНЮ ЖИВЁТ
 // В ОДНОМ МЕСТЕ. Десять страниц, каждая со своим куском разметки, разойдутся на
 // первой же правке вида: у девяти появится новое поле, у десятой нет. Страница
-// слоя обязана уметь сказать ровно три вещи — свой адрес, свою группу и своё имя,
+// слоя обязана уметь сказать ровно две вещи — свой адрес и своё имя,
 // — а всё остальное берётся отсюда.
 //
 // 🔒 РИСУЕТ `PostBody` — ТОТ ЖЕ, ЧТО РИСУЕТ СТАТЬЮ. Это и есть исполнение закона
@@ -27,7 +27,6 @@ import { OwnerBand } from '../_components/owner-band.client'
 export function ArchitectPage({
   lang,
   path,
-  group,
   title,
   children = [],
   lead,
@@ -38,7 +37,6 @@ export function ArchitectPage({
   lang: string
   /** Адрес БЕЗ языка, ровно как в источнике меню: по нему отмечается активный пункт. */
   path: string
-  group: ArchitectGroup
   /** Имя раздела — заголовок правой части, внутри рабочего экрана. */
   title: string
   /** Содержимое раздела. Пусто — страница показывает своё устройство, и это законно. */
@@ -115,7 +113,7 @@ export function ArchitectPage({
   // экрана — «Обзор». Крошка «Fractera → Архитектор → Обзор» назвала бы человеку
   // место, которого в меню не существует.
   const breadcrumbs =
-    group === 'home'
+    path === ARCHITECT_HOME
       ? [{ label: ui.layer }]
       : [
           { href: `/${lang}${ARCHITECT_HOME}`, label: ui.layer },

@@ -32,18 +32,13 @@ export type ArchitectLayerUi = {
     tools: string
     build: string
   }
-  /** Имена разделов внутри групп — верхний ряд рабочего экрана. */
-  sections: {
-    toolsRequired: string
-    toolsRecommended: string
-    buildSubscription: string
-    buildTerminal: string
-    buildDocs: string
-    buildEvolution: string
-    buildAgent: string
-    buildAgentSettings: string
-    buildTelegram: string
-  }
+  /**
+   * 🪦 ЗДЕСЬ БЫЛО ПОЛЕ `sections` — ИМЕНА ДЕВЯТИ РАЗДЕЛОВ. Удалено 2026-09-19
+   * (254): имя раздела переехало в его собственную папку (`_data/<lang>.ts`), и
+   * второй копии в общем словаре быть не должно — две половины одного знания
+   * расходятся молча. Здесь остаётся только то, что повторяется на ВСЕХ
+   * страницах слоя: имя слоя, имена групп, вход и предупреждение.
+   */
   /**
    * Вход в слой — страница `/architect`, на которую человек попадает, набрав адрес.
    * Заголовок и подзаголовок продиктованы владельцем 2026-09-19 и описывают ГРУППУ
@@ -61,6 +56,14 @@ export type ArchitectLayerUi = {
   }
   /** Строка на пустом разделе: страница есть, содержимого пока нет. */
   emptyLead: string
+  /**
+   * Подпись ссылки в рубрикаторе группы (254).
+   *
+   * 🛑 ЗАДАЁТСЯ ЯВНО, ПОТОМУ ЧТО УМОЛЧАНИЕ ВИДА `docref` — «Скачать .md»:
+   * он задуман для документов, а здесь ведёт в раздел. Умолчание чужого
+   * вида, оставленное по невнимательности, обещает человеку файл.
+   */
+  openSection: string
   /**
    * Предупреждение о работе без авторизации — аккордеон в шапке слоя.
    * Показывается только в режиме разработки и на временном адресе; в обычной
@@ -92,23 +95,13 @@ const DICT: Record<string, ArchitectLayerUi> = {
     tools: "Tools of this server",
     build: "Building",
   },
-  sections: {
-    toolsRequired: "Required",
-    toolsRecommended: "Recommended",
-    buildSubscription: "Claude Code subscription",
-    buildTerminal: "Terminal",
-    buildDocs: "Development documents",
-    buildEvolution: "Evolution",
-    buildAgent: "Programmer agent",
-    buildAgentSettings: "Agent settings",
-    buildTelegram: "Telegram bot for remote development",
-  },
   home: {
     title: "The architect group of pages",
     sectionTitle: "Overview",
     lead: "Here you manage the building of this microservice, set up its links with the other microservices of your application, and control how visible your microservice is within the global blockchain architecture of Fractera. This is also where you connect your own domain name and move the node to a remote server, once this machine is no longer enough for it.",
   },
   emptyLead: "The section is in place; its content comes with the step that builds it.",
+  openSection: "Open the section",
   authWarning: {
     title: "This layer is open without any sign-in — a temporary state",
     reasonMachine: "You are inside without signing in because you are working from this very machine: whoever sits at this keyboard already owns the files.",
@@ -124,23 +117,13 @@ const DICT: Record<string, ArchitectLayerUi> = {
     tools: "Инструменты этого сервера",
     build: "Строительство",
   },
-  sections: {
-    toolsRequired: "Обязательные",
-    toolsRecommended: "Рекомендуемые",
-    buildSubscription: "Подписка Claude Code",
-    buildTerminal: "Терминал",
-    buildDocs: "Документы разработки",
-    buildEvolution: "Эволюционное развитие",
-    buildAgent: "Агент-программист",
-    buildAgentSettings: "Настройки агента",
-    buildTelegram: "Telegram-бот удалённой разработки",
-  },
   home: {
     title: "Группа страниц архитектора",
     sectionTitle: "Обзор",
     lead: "Здесь вы управляете строительством этого микросервиса и устанавливаете связи с другими микросервисами вашего приложения, управляете видимостью вашего микросервиса в глобальной видимости блокчейн-архитектуры Fractera. Отсюда же вы подключите собственное доменное имя и переедете на удалённый сервер, когда узлу станет тесно на этой машине.",
   },
   emptyLead: "Раздел на месте; содержимое придёт вместе с шагом, который его построит.",
+  openSection: "Открыть раздел",
   authWarning: {
     title: "Этот слой открыт без авторизации — состояние временное",
     reasonMachine: "Вы внутри без входа, потому что работаете с этой самой машины: тот, кто сидит за этой клавиатурой, и так владеет файлами.",
