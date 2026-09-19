@@ -111,30 +111,92 @@ async function status() {
   console.log(`сторож здоровья: ${watch ? watch.pm2_env.status : 'не запущен'}`)
   console.log(`адрес: ${url ?? 'неизвестен — сервер ещё не поднимался'}`)
 
-  // 🔒 «Работает локально» и «виден из интернета» — тоже разные вопросы, и
-  // ответ на второй человек обязан видеть без догадок: адрес быстрого туннеля
-  // меняется при каждом перезапуске, помнить его нельзя.
-  const tunnel = apps.find((a) => a.name === "fractera-agi-tunnel")
-  if (!tunnel || tunnel.pm2_env.status !== "online") {
-    console.log("в интернете: нет (включить: npm run serve:publish)")
-  } else {
-    const адрес = readTunnel()
-    console.log(`в интернете: ${адрес?.url ?? "адрес ещё не получен, подождите несколько секунд"}`)
-  }
-
   // 🔒 СОСТОЯНИЕ ПРОЦЕССА И ЖИВОСТЬ САЙТА — РАЗНЫЕ ВОПРОСЫ, И СПРАШИВАЮТСЯ ОНИ
   // ОТДЕЛЬНО. Весь шаг 232 стоит на том, что `online` ничего не обещает.
-  if (!url) return
-  try {
-    const response = await fetch(`${url}/api/health`, { cache: 'no-store' })
-    const body = await response.json().catch(() => null)
+  //
+  // 🔒 И СЛОВО «ЛОКАЛЬНО» ЗДЕСЬ ОБЯЗАТЕЛЬНО. ✗ оплачено 2026-09-19: строка
+  // «сайт отвечает: 200» стояла рядом со строкой о публичном адресе и читалась
+  // как ответ на вопрос «виден ли сайт из интернета». Сайт был виден только
+  // хозяину машины, а в интернете три часа висела ошибка 1016.
+  let localCommit = null
+  if (url) {
+    const local = await ask(`${url}/api/health`)
+    localCommit = local.body?.commit ?? null
     console.log(
-      response.ok
-        ? `сайт отвечает: 200, сборка ${body?.commit ?? 'неизвестна'}`
-        : `⚠ процесс жив, но сайт отдаёт ${response.status} — сторож перезапустит его сам`,
+      local.ok
+        ? `сайт отвечает локально: 200, сборка ${localCommit ?? 'неизвестна'}`
+        : `⚠ процесс жив, но сайт не отвечает локально (${local.status}) — сторож перезапустит его сам`,
     )
-  } catch {
-    console.log('⚠ процесс жив, но сайт не отвечает вовсе — сторож перезапустит его сам')
+  }
+
+  await reportInternet(apps, localCommit)
+}
+
+// 🔒 «РАБОТАЕТ ЛОКАЛЬНО» И «ВИДЕН ИЗ ИНТЕРНЕТА» — РАЗНЫЕ ВОПРОСЫ, И ВТОРОЙ
+// ИЗМЕРЯЕТСЯ, А НЕ ВСПОМИНАЕТСЯ. Файл `logs/tunnel.json` говорит, как было
+// ЗАДУМАНО; сеть говорит, как ЕСТЬ. ✗ оплачено 2026-09-19: команда печатала
+// адрес из файла, пока Cloudflare отдавал по нему ошибку 1016, — прибор врал
+// ровно там, где на него полагались, и простой нашёл человек, а не он.
+async function reportInternet(apps, localCommit) {
+  const tunnel = apps.find((a) => a.name === 'fractera-agi-tunnel')
+  if (!tunnel || tunnel.pm2_env.status !== 'online') {
+    console.log('в интернете: нет (включить: npm run serve:publish)')
+    return
+  }
+
+  const state = readTunnel()
+  if (!state?.url) {
+    console.log('в интернете: адрес ещё не получен, подождите несколько секунд')
+    return
+  }
+
+  const probe = await ask(`${state.url}/api/health`)
+
+  if (probe.ok) {
+    console.log(`в интернете: ${state.url} — отвечает, сборка ${probe.body?.commit ?? 'неизвестна'}`)
+    // 🔒 РАЗОШЁЛСЯ ХЭШ — ЗНАЧИТ СНАРУЖИ ОТВЕЧАЕТ НЕ ТОТ ПРОЦЕСС. Тот же класс,
+    // что сирота на порту: снаружи всё выглядит работающим, а показывается
+    // чужая сборка. Молчать об этом нельзя.
+    if (localCommit && probe.body?.commit && probe.body.commit !== localCommit) {
+      console.log(`⚠ снаружи отвечает ДРУГАЯ сборка (${probe.body.commit}), локально — ${localCommit}`)
+    }
+  } else if (probe.status === 'имя не резолвится') {
+    // Это и есть Error 1016: быстрый туннель удалён со стороны Cloudflare.
+    console.log(`⚠ в интернете: ${state.url} — АДРЕС МЁРТВ (имя не резолвится)`)
+    if (state.deadSince) console.log(`⚠ дозорный заметил это ${state.deadSince}`)
+    console.log('⚠ сайт локально работает. Поднять новый адрес: npm run serve:publish')
+    // 🔒 Почему не поднимается сам — решение владельца 2026-09-19: адрес при
+    // перезапуске всегда новый, и менять ссылку за спиной человека нельзя.
+  } else {
+    console.log(`⚠ в интернете: ${state.url} — не отвечает (${probe.status})`)
+    console.log('⚠ сайт локально работает. Если повторится — поднимите новый адрес: npm run serve:publish')
+  }
+
+  // Смена адреса — событие для человека: по прежней ссылке кто-то уже мог
+  // прийти, и она не воскреснет никогда.
+  if (state.rotations > 0 && state.previousUrl) {
+    console.log(`адрес менялся ${state.rotations} раз(а), последний раз ${state.rotatedAt}:`)
+    console.log(`прежний ${state.previousUrl} больше не работает`)
+  }
+}
+
+// Один опрос на всю команду — и для локального адреса, и для публичного. Род
+// отказа различается: «имя не резолвится» значит, что туннеля больше нет, а
+// таймаут значит, что он есть и молчит.
+async function ask(target) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 15000)
+  try {
+    const response = await fetch(target, { signal: controller.signal, cache: 'no-store' })
+    const body = await response.json().catch(() => null)
+    return { ok: response.ok, status: response.status, body }
+  } catch (error) {
+    if (error?.name === 'AbortError') return { ok: false, status: 'таймаут', body: null }
+    const text = String(error?.cause?.code || error?.code || error?.message || '')
+    if (/ENOTFOUND|EAI_AGAIN/i.test(text)) return { ok: false, status: 'имя не резолвится', body: null }
+    return { ok: false, status: 'нет ответа', body: null }
+  } finally {
+    clearTimeout(timer)
   }
 }
 
