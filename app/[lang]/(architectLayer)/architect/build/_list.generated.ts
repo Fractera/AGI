@@ -6,23 +6,24 @@ import { data as p0 } from './anti-patterns/_data'
 import { data as p1 } from './api-map/_data'
 import { data as p2 } from './backlog/_data'
 import { data as p3 } from './cancelled/_data'
-import { data as p4 } from './cron/_data'
+import { data as p4 } from './deployments/_data'
 import { data as p5 } from './docs-registry/_data'
-import { data as p6 } from './github/_data'
-import { data as p7 } from './glossary/_data'
-import { data as p8 } from './instruction/_data'
-import { data as p9 } from './mcp/_data'
-import { data as p10 } from './skills/_data'
-import { data as p11 } from './step-current/_data'
-import { data as p12 } from './steps-done/_data'
-import { data as p13 } from './steps-new/_data'
-import { data as p14 } from './subscription/_data'
-import { data as p15 } from './task-add/_data'
-import { data as p16 } from './telegram/_data'
-import { data as p17 } from './terminal/_data'
-import { data as p18 } from './translation-debt/_data'
+import { data as p6 } from './environment/_data'
+import { data as p7 } from './github/_data'
+import { data as p8 } from './glossary/_data'
+import { data as p9 } from './instruction/_data'
+import { data as p10 } from './mcp/_data'
+import { data as p11 } from './skills/_data'
+import { data as p12 } from './step-current/_data'
+import { data as p13 } from './steps-done/_data'
+import { data as p14 } from './steps-new/_data'
+import { data as p15 } from './subscription/_data'
+import { data as p16 } from './task-add/_data'
+import { data as p17 } from './telegram/_data'
+import { data as p18 } from './terminal/_data'
+import { data as p19 } from './translation-debt/_data'
 
-export const PAGES: WorkspacePageData[] = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18]
+export const PAGES: WorkspacePageData[] = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19]
 
 /** Each child together with its own children — see the law in the generator. */
 export const TREE: CollectionBranch[] = [
@@ -45,4 +46,5 @@ export const TREE: CollectionBranch[] = [
   { page: p16, children: [] },
   { page: p17, children: [] },
   { page: p18, children: [] },
+  { page: p19, children: [] },
 ]
