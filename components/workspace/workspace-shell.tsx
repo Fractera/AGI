@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import Link from 'next/link'
 import { ChevronDown, Menu, X } from 'lucide-react'
 import { H3, H4, P, Small } from '@/components/ui/typography'
 
@@ -29,6 +30,8 @@ export type WorkspaceShellItem = {
   active?: boolean
   /** Разделы пункта — раскрывающееся подменю. Закон и цена — у поля `children` вида `workspace`. */
   children?: WorkspaceShellItem[]
+  /** Подменю раскрыто. Отдельно от `active` — см. закон у поля `open` вида `workspace`. */
+  open?: boolean
 }
 export type WorkspaceShellNote = {
   tone: 'recommended' | 'advice' | 'warning'
@@ -85,10 +88,30 @@ function Item({
   const cls = base + (item.active ? activeClass : idleClass)
   const body = content ?? item.label
   if (item.href) {
+    // 🔒 ПЕРЕХОД МЕЖДУ СТРАНИЦАМИ — `next/link`, А НЕ ГОЛЫЙ `<a>` (253-3).
+    //
+    // ✗ ОПЛАЧЕНО ЖАЛОБОЙ ВЛАДЕЛЬЦА: «почему при переключении страниц весь экран
+    // прыгает и моргает?» Голый `<a>` заставляет браузер загрузить документ
+    // ЗАНОВО: белая вспышка, прыжок к началу, повторная гидратация. Измерено —
+    // метка в памяти страницы стиралась, тип навигации `navigate`, 287 мс.
+    //
+    // 🔒 НА NO-JS ЭТО НЕ ВЛИЯЕТ: `Link` отдаёт настоящий `<a href>`, и при
+    // выключенном JavaScript переход остаётся обычным. Запрет проекта касается
+    // КЛИЕНТСКОГО КОМПОНЕНТА, ВЛАДЕЮЩЕГО МАРШРУТОМ, а не ссылки.
+    //
+    // 🛑 ЯКОРЬ (`#…`) ОСТАЁТСЯ ГОЛЫМ `<a>`: это не переход, а прокрутка по той же
+    // странице, и плавность ей даёт `scroll-smooth`, а не роутер.
+    if (item.href.startsWith('#')) {
+      return (
+        <a href={item.href} aria-current={item.active ? 'page' : undefined} className={cls}>
+          {body}
+        </a>
+      )
+    }
     return (
-      <a href={item.href} aria-current={item.active ? 'page' : undefined} className={cls}>
+      <Link href={item.href} aria-current={item.active ? 'page' : undefined} className={cls}>
         {body}
-      </a>
+      </Link>
     )
   }
   if (closes) {
@@ -205,23 +228,27 @@ export function WorkspaceShell({
           {menu.map((item, i) => (
             <li key={`${id}-m-${i}`}>
               {item.children && item.children.length > 0 ? (
-                <details open={item.active} className="group/sub">
+                <details open={item.open ?? item.active} className="group/sub">
                   <summary
                     className={
-                      'flex cursor-pointer list-none items-center justify-between gap-2 rounded-md px-3 py-2 text-[length:var(--fs-body)] transition-colors [&::-webkit-details-marker]:hidden' +
-                      (item.active
-                        ? ' bg-muted font-medium text-foreground'
-                        : ' text-muted-foreground hover:bg-muted/60 hover:text-foreground')
+                      'flex cursor-pointer list-none items-center justify-between gap-2 rounded-md px-3 py-2 text-[length:var(--fs-body)] transition-colors [&::-webkit-details-marker]:hidden hover:bg-muted/60' +
+                      ((item.open ?? item.active) ? ' font-medium text-foreground' : ' text-muted-foreground hover:text-foreground')
                     }
                   >
+                    {/* Подчёркивание — только когда открыта САМА страница группы,
+                        а не какой-то её раздел: иначе отметка «вы здесь» стоит
+                        в двух местах сразу. */}
                     {item.href ? (
-                      <a
+                      <Link
                         href={item.href}
                         aria-current={item.active ? 'page' : undefined}
-                        className="truncate whitespace-nowrap"
+                        className={
+                          'max-w-full truncate whitespace-nowrap border-b-2 ' +
+                          (item.active ? 'border-primary' : 'border-transparent')
+                        }
                       >
                         {renderItem?.(item, i) ?? item.label}
-                      </a>
+                      </Link>
                     ) : (
                       <span className="truncate whitespace-nowrap">{renderItem?.(item, i) ?? item.label}</span>
                     )}
@@ -232,15 +259,26 @@ export function WorkspaceShell({
                     />
                   </summary>
 
-                  <ul className="mt-1 ml-3 flex flex-col gap-0.5 border-l border-border pl-2">
+                  <ul className="mt-1 ml-3 flex flex-col gap-1 border-l border-border pl-3">
                     {item.children.map((sub, j) => (
                       <li key={`${id}-m-${i}-${j}`}>
+                        {/* 🔒 АКТИВНЫЙ ПУНКТ ПОДМЕНЮ — НИЖНЯЯ ЛИНИЯ, А НЕ ЗАЛИВКА
+                            (решение владельца 2026-09-19: «выпадающие вкладки
+                            активные страницы лучше выделять не круговым
+                            background, а просто нижним подчёркиванием»). Это тот
+                            же стандарт, что уже принят для верхнего ряда
+                            2026-09-01, — значит в слое стало ОДНО правило
+                            выделения вместо двух.
+
+                            🔒 `w-fit` ОБЯЗАТЕЛЕН: без него линия тянется во всю
+                            ширину колонки и читается как разделитель списка, а не
+                            как отметка «вы здесь». */}
                         <Item
                           item={sub}
                           closes={drawer}
-                          base="block truncate whitespace-nowrap rounded-md px-3 py-1.5 text-[length:var(--fs-small)] transition-colors"
-                          activeClass=" bg-muted font-medium text-foreground"
-                          idleClass=" text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                          base="block w-fit max-w-full truncate whitespace-nowrap border-b-2 px-0.5 py-1 text-[length:var(--fs-small)] transition-colors"
+                          activeClass=" border-primary font-medium text-foreground"
+                          idleClass=" border-transparent text-muted-foreground hover:border-border hover:text-foreground"
                         />
                       </li>
                     ))}

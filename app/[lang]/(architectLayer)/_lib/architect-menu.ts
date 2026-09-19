@@ -120,19 +120,23 @@ export function architectMenu(lang: string, currentPath: string): WorkspaceItem[
       href: at(PASSPORT),
       active: currentPath === PASSPORT,
     },
+    // 🔒 `active` — «ЭТО ТЕКУЩАЯ СТРАНИЦА», `open` — «ЧЕЛОВЕК ВНУТРИ ЭТОЙ ГРУППЫ».
+    // Разведены 2026-09-19: слитые в одно, они ставили `aria-current="page"` на
+    // группу, пока открыт её раздел, — экранный диктор читал это как «вы на двух
+    // страницах сразу», а глазами отметка «вы здесь» стояла в двух местах.
     {
       label: ui.groups.tools,
-      // Своей страницы у группы нет — адресом остаётся первый раздел.
+      // Своей страницы у группы нет — адресом остаётся первый раздел, и текущей
+      // страницей она не бывает никогда.
       href: at(TOOLS[0].path),
-      // Группа активна, пока человек внутри ЛЮБОГО её раздела: иначе, открыв
-      // «рекомендуемые», он видел бы меню без единого отмеченного пункта.
-      active: TOOLS.some((s) => s.path === currentPath),
+      open: TOOLS.some((s) => s.path === currentPath),
       children: TOOLS.map(section),
     },
     {
       label: ui.groups.build,
       href: at(BUILD_HOME),
-      active: currentPath === BUILD_HOME || BUILD.some((s) => s.path === currentPath),
+      active: currentPath === BUILD_HOME,
+      open: currentPath === BUILD_HOME || BUILD.some((s) => s.path === currentPath),
       children: BUILD.map(section),
     },
   ]
