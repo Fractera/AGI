@@ -232,8 +232,8 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 4,
-          "times": 11
+          "order": 10,
+          "times": 8
         },
         {
           "page": "accessibility",
@@ -277,8 +277,8 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 3,
-          "times": 5
+          "order": 17,
+          "times": 2
         },
         {
           "page": "architecture",
@@ -317,8 +317,8 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 10,
-          "times": 7
+          "order": 9,
+          "times": 6
         },
         {
           "page": "architecture",
@@ -664,8 +664,8 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 5,
-          "times": 1
+          "order": 3,
+          "times": 2
         }
       ]
     },
@@ -698,7 +698,7 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 8,
+          "order": 7,
           "times": 2
         }
       ]
@@ -718,8 +718,8 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 9,
-          "times": 7
+          "order": 8,
+          "times": 6
         }
       ]
     },
@@ -738,8 +738,8 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 20,
-          "times": 1
+          "order": 4,
+          "times": 2
         }
       ]
     },

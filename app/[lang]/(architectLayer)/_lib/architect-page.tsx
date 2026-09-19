@@ -1,4 +1,5 @@
 import { PostBody } from '@/components/content-page/post-body'
+import { PageHeader } from '@/components/content-page/page-header.server'
 import type { Block } from '@/lib/content/blocks/types'
 import { architectLayerUi } from '../_i18n/architect-layer.i18n'
 import { architectMenu, architectTabs, type ArchitectGroup } from './architect-menu'
@@ -28,16 +29,27 @@ export function ArchitectPage({
   title,
   children = [],
   lead,
+  pageTitle,
+  pageLead,
 }: {
   lang: string
   /** Адрес БЕЗ языка, ровно как в источнике меню: по нему отмечается активный пункт. */
   path: string
   group: ArchitectGroup
-  /** Имя раздела — заголовок правой части. */
+  /** Имя раздела — заголовок правой части, внутри рабочего экрана. */
   title: string
   /** Содержимое раздела. Пусто — страница показывает своё устройство, и это законно. */
   children?: Block[]
   lead?: string
+  /**
+   * Заголовок САМОЙ СТРАНИЦЫ — над рабочим экраном, слева, с бейджем слоя.
+   * Решение владельца 2026-09-19: «Это надпись самой страницы, она должна
+   * находиться сверху блока workspace… в левом верхнем углу вместе с бейджем в
+   * едином стиле». Не задан — шапки нет вовсе, и это законно: у раздела своё имя
+   * уже стоит внутри рабочего экрана.
+   */
+  pageTitle?: string
+  pageLead?: string
 }) {
   const ui = architectLayerUi(lang)
 
@@ -48,7 +60,11 @@ export function ArchitectPage({
       menu: architectMenu(lang, path),
       tabs: architectTabs(lang, group, path),
       title,
-      lead: lead ?? ui.emptyLead,
+      // 🔒 «РАЗДЕЛ НА МЕСТЕ, СОДЕРЖИМОЕ ПРИДЁТ» ГОВОРИТСЯ ТОЛЬКО ПУСТОМУ РАЗДЕЛУ.
+      // ✗ найдено глазами 2026-09-19: у входа в слой содержимое уже есть, а эта
+      // строка всё равно стояла под заголовком и обещала, что страницы ещё нет.
+      // Уверенное умолчание дороже отсутствующего: человек читает его как факт.
+      lead: lead ?? (children.length > 0 ? undefined : ui.emptyLead),
       children,
     },
   ]
@@ -61,6 +77,30 @@ export function ArchitectPage({
         reasonTemporary={ui.authWarning.reasonTemporary}
         body={ui.authWarning.body}
       />
+
+      {/* 🔒 ШАПКА СТРАНИЦЫ — НАД РАБОЧИМ ЭКРАНОМ, СЛЕВА (решение владельца
+          2026-09-19: «это надпись самой страницы, она должна находиться сверху
+          блока workspace… в левом верхнем углу вместе с бейджем в едином стиле»).
+
+          🛑 РАНЬШЕ ЭТОТ ТЕКСТ ЖИЛ ВНУТРИ РАБОЧЕГО ЭКРАНА и рисовался как `H3`
+          правой колонки. Снаружи он читался как заголовок РАЗДЕЛА, а не страницы,
+          и `H1` у страницы не было вовсе — дефект и для человека, и для поисковика
+          сразу.
+
+          ✗ ПЕРВАЯ РЕДАКЦИЯ СОБИРАЛА ШАПКУ РУКАМИ — своим тегом шапки, заголовком
+          первого уровня и подзаголовком, — и сторож типографики назвал это по
+          имени: «шапка страницы собрана вручную, мимо PageHeader». Он прав: у
+          продукта ОДИН примитив шапки, и вторая её сборка разошлась бы с первой
+          на первой же правке ритма. `eyebrow` здесь и есть тот самый бейдж.
+
+          🛑 И ВТОРОЙ УРОК, ОПЛАЧЕННЫЙ ТУТ ЖЕ: первая версия этого объяснения
+          процитировала удалённый тег ДОСЛОВНО — и сторож засчитал цитату за живой
+          код, оставшись красным после починки. Надгробие пишется ПЕРЕСКАЗОМ;
+          закон известен и был нарушен через минуту после того, как я его вспомнил. */}
+      {pageTitle && (
+        <PageHeader lang={lang} eyebrow={ui.layer} title={pageTitle} subtitle={pageLead} />
+      )}
+
       <PostBody blocks={blocks} lang={lang} />
     </>
   )

@@ -42,6 +42,27 @@ function homeBlocks(lang: string): Block[] {
   return [
     { kind: 'p', text: t.intro },
     { kind: 'callout', title: t.production.title, text: t.production.text },
+
+    // 🔒 БЛОКЧЕЙН-ВИДИМОСТЬ СТОИТ ВЫШЕ ВСЕХ ПОДРОБНОСТЕЙ И НЕ СВОРАЧИВАЕТСЯ.
+    // ✗ оплачено дважды: владелец дважды указал, что я не раскрыл это, хотя «это
+    // сердце проекта… основная часть проекта — возможность пользователя поделиться
+    // своим опытом через микросервис, доступный в глобальной сети». Первый раз я
+    // свёл тему к строке в аккордеоне, второй — оставил её там же. Свёрнутое не
+    // читают, а это то, ради чего продукт существует.
+    //
+    // 🔒 ЗАГОЛОВОК РАЗДЕЛА РИСУЕТ САМ `flow` — своей шапкой (`SectionHead`).
+    // Отдельный `h2` рядом дал бы ДВА заголовка подряд об одном и том же: ровно
+    // тот дефект, который владелец нашёл на главной («две одинаковые кнопки
+    // подряд» и «Что дальше?» перед «Три шага»).
+    {
+      kind: 'flow',
+      badge: t.market.badge,
+      title: t.market.title,
+      note: t.market.lead,
+      steps: t.market.steps,
+    },
+    { kind: 'statement', text: t.market.closing },
+
     {
       kind: 'accordion',
       title: t.moreTitle,
@@ -109,8 +130,12 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
       lang={lang}
       path={ARCHITECT_HOME}
       group="home"
-      title={ui.home.title}
-      lead={ui.home.lead}
+      // 🔒 ЗАГОЛОВОК САМОЙ СТРАНИЦЫ ПЕРЕЕХАЛ НАВЕРХ, НАД РАБОЧИМ ЭКРАНОМ (решение
+      // владельца 2026-09-19). Внутри экрана остаётся имя ОТКРЫТОГО РАЗДЕЛА — у
+      // входа это «Обзор»: то, что человек сейчас видит в правой колонке.
+      pageTitle={ui.home.title}
+      pageLead={ui.home.lead}
+      title={ui.home.sectionTitle}
       children={homeBlocks(lang)}
     />
   )

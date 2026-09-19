@@ -38,6 +38,26 @@ type InstallEvent = Event & {
 const SNOOZE_KEY = 'fractera-install-dismissed'
 const SNOOZE_DAYS = 30
 
+// 🔒 НА ВРЕМЕННОМ АДРЕСЕ ПРЕДЛОЖЕНИЕ НЕ ПОКАЗЫВАЕТСЯ — решение владельца
+// 2026-09-19: «Кнопка установить приложение не должна показываться в режиме с
+// временным доменом».
+//
+// 🛑 ДОВОД ТЕХНИЧЕСКИЙ, А НЕ ВКУСОВОЙ. Установленное приложение запоминает адрес,
+// с которого его поставили. Адрес быстрого туннеля живёт часы и при перезапуске
+// меняется навсегда — значит поставленный с него значок назавтра открывает
+// страницу Cloudflare с ошибкой 1016. Человек получает сломанное приложение на
+// рабочем столе и ни одного способа понять почему.
+//
+// Признак тот же, что у ворот слоя (`lib/auth/temporary-address.ts`), но
+// спрашивается здесь, в браузере: островок и так клиентский, а страница обязана
+// остаться статической.
+const TEMPORARY_SUFFIX = '.trycloudflare.com'
+
+function onTemporaryAddress(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.location.hostname.toLowerCase().endsWith(TEMPORARY_SUFFIX)
+}
+
 function snoozed(): boolean {
   try {
     const raw = readStored(SNOOZE_KEY)
@@ -53,6 +73,7 @@ export function InstallPrompt({ strings }: { strings: InstallStrings }) {
   const [event, setEvent] = useState<InstallEvent | null>(null)
 
   useEffect(() => {
+    if (onTemporaryAddress()) return
     if (snoozed()) return
 
     const onPrompt = (e: Event) => {

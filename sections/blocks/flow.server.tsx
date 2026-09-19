@@ -59,13 +59,18 @@ export const flow: SectionRenderer<'flow'> = (b, { key: k }) => (
         читалка с экрана произносит «1 из 3» без нашей помощи. Цифра в кружке —
         то же самое ещё раз, для глаза, поэтому она скрыта от озвучивания. */}
     <ol
-      className="flow relative mt-8 grid list-none gap-8 p-0 md:grid-cols-3 md:gap-6"
+      className="flow relative mt-8 grid list-none gap-8 p-0 md:gap-6"
       style={{ '--flow-n': b.steps.length } as CSSProperties}
     >
       {b.steps.map((s, i) => (
         <li
           key={`${k}-${i}`}
-          className="flow-step relative flex flex-col items-center gap-4 text-center"
+          // 🔒 СОДЕРЖИМОЕ ШАГА ВЫРОВНЕНО ПО ЛЕВОМУ КРАЮ (2026-09-19). Раньше
+          // стояло `items-center text-center`, и заголовок шага (`H3`) оказывался
+          // одним из немногих центрированных заголовков продукта — ровно то, что
+          // владелец увидел глазами. Номер шага остаётся кружком сверху: он
+          // значок, а не заголовок, и равнять его по тексту нечему.
+          className="flow-step relative flex flex-col gap-4"
           style={{ '--flow-i': i } as CSSProperties}
         >
           <span aria-hidden className="flow-node relative z-10 flex size-14 items-center justify-center rounded-full border font-semibold">

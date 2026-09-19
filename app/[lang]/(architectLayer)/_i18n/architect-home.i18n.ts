@@ -26,6 +26,21 @@ export type ArchitectHomeUi = {
   /** Заголовок и подзаголовок раскрывающегося раздела. */
   moreTitle: string
   moreLead: string
+  /**
+   * ГЛАВНОЕ НА ЭТОЙ СТРАНИЦЕ — блокчейн-видимость: как узел становится товаром.
+   * Не в аккордеоне: ✗ владелец дважды указал, что я не раскрыл это, хотя «это
+   * сердце проекта». Свёрнутое не читают.
+   */
+  market: {
+    /** Ярлык рубрики над заголовком раздела — так этот раздел зовётся в настройках. */
+    badge: string
+    title: string
+    lead: string
+    /** Четыре шага пути: описание → каталог → встреча с чужим агентом → телеметрия. */
+    steps: { title: string; text: string }[]
+    /** Вывод — чем это беспрецедентно. */
+    closing: string
+  }
   /** Семь тем. Ключи говорят о предмете, а не о порядке: вставка темы не сдвигает соседей. */
   topics: {
     agent: { summary: string; text: string; points: string[] }
@@ -47,6 +62,31 @@ const DICT: Record<string, ArchitectHomeUi> = {
     production: {
       title: 'Before you hand the project to production',
       text: 'These pages control the server itself, so they must never stay open to everyone. Either protect the project with authentication, or delete this block of pages once development is over. There is no third option: a node that went to production with the architect layer open is a node anyone can rebuild.',
+    },
+    market: {
+      badge: 'Blockchain visibility',
+      title: 'How this node becomes something people buy',
+      lead: 'This is the heart of the project. Your expertise, once it works, stops being a private folder and becomes a microservice that any other project can connect to in seconds — for money or for free, on the terms you set.',
+      steps: [
+        {
+          title: 'The architecture writes the description for you',
+          text: 'When you decide to offer your work, the algorithms read your documentation and your source code and compose the preliminary description themselves — what this microservice does, what it needs, what it answers. You correct it rather than write it from nothing.',
+        },
+        {
+          title: 'It goes into the single Fractera catalogue',
+          text: 'The description is published in one shared catalogue, and from that moment your node is discoverable by every agent in the network. You decide the rights you hand over and the price — including a price of zero.',
+        },
+        {
+          title: 'Someone else’s agent finds it before writing code',
+          text: 'This is what makes the whole thing work. Any user who asks their agent for a technical solution gets the marketplace searched FIRST, natively and out of the box: the agent finds existing blocks, offers them for analysis, and only then does the person choose — buy this one, or keep building their own because their view of the product differs.',
+        },
+        {
+          title: 'Telemetry is the proof you are paying for something real',
+          text: 'Blocks put up for sale carry telemetry: how many projects took this microservice into production, how many users each of those projects has, how many times it has been called over its lifetime. A buyer sees what he is paying for instead of trusting a promise. A proven, heavily used microservice can be sold dearer; a new one is best released cheap or free until it earns its numbers.',
+        },
+      ],
+      closing:
+        'The result is unprecedented: one person’s conversation with their own agent lets their project grow on the expertise of every other architect in the network — natively, without a platform standing in the middle and without anyone taking a cut of what you earn.',
     },
     moreTitle: 'What this node already knows how to do',
     moreLead: 'Seven topics, each with its own answer. Open the one you need — the rest keep waiting.',
@@ -108,6 +148,31 @@ const DICT: Record<string, ArchitectHomeUi> = {
     production: {
       title: 'Прежде чем передать проект в продакшн',
       text: 'Эти страницы управляют самим сервером, поэтому они не имеют права остаться открытыми для всех. Либо защитите проект при помощи авторизации, либо удалите блок этих страниц после завершения разработки. Третьего не дано: узел, ушедший в продакшн с открытым слоем архитектора, — это узел, который может перестроить кто угодно.',
+    },
+    market: {
+      badge: 'Блокчейн-видимость',
+      title: 'Как этот узел становится товаром',
+      lead: 'Это сердце проекта. Ваша экспертиза, однажды заработав, перестаёт быть личной папкой и становится микросервисом, к которому любой другой проект подключается за секунды — платно или бесплатно, на тех правах, которые передаёте вы.',
+      steps: [
+        {
+          title: 'Описание архитектура составляет сама',
+          text: 'Когда вы решаете выставить работу, алгоритмы читают вашу документацию и исходный код и сами составляют предварительное описание: что этот микросервис делает, что ему нужно, что он отвечает. Вы это описание правите, а не пишете с нуля.',
+        },
+        {
+          title: 'Оно попадает в единый каталог Fractera',
+          text: 'Описание размещается в одном общем каталоге, и с этой минуты ваш узел находим любым агентом сети. Права, которые вы передаёте, и цену назначаете вы — включая цену в ноль.',
+        },
+        {
+          title: 'Чужой агент находит его раньше, чем начнёт писать код',
+          text: 'Вот что заставляет всё это работать. Любой человек, запросивший у своего агента техническое решение, получает поиск по маркетплейсу ПЕРВЫМ — нативно и из коробки: агент находит готовые блоки, предлагает их проанализировать, и только потом человек выбирает — купить этот или продолжить собственными силами, если его взгляд на продукт расходится с вашим.',
+        },
+        {
+          title: 'Телеметрия — доказательство, что платят за настоящее',
+          text: 'Блоки, выставленные на продажу, несут телеметрию: сколько проектов забрали этот микросервис в продакшн, сколько пользователей в каждом из них, сколько раз его вызвали за всё время. Покупатель видит, за что платит, вместо того чтобы верить обещанию. Надёжный и много используемый микросервис можно продавать дороже; новый разумно выпускать дёшево или бесплатно, пока он не заработает свои числа.',
+        },
+      ],
+      closing:
+        'Результат беспрецедентен: диалог одного человека с собственным агентом позволяет его проекту расти за счёт опыта и экспертизы всех остальных архитекторов сети — нативно, без платформы посередине и без доли, которую кто-то удерживает с ваших денег.',
     },
     moreTitle: 'Что этот узел уже умеет',
     moreLead: 'Семь тем, у каждой свой ответ. Откройте нужную — остальные подождут.',

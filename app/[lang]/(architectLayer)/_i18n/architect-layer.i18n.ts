@@ -52,6 +52,12 @@ export type ArchitectLayerUi = {
   home: {
     title: string
     lead: string
+    /**
+     * Имя открытого раздела ВНУТРИ рабочего экрана. Заголовок самой страницы с
+     * 2026-09-19 стоит НАД экраном, и внутри ему места больше нет: два заголовка
+     * об одном и том же подряд — тот же дефект, что две одинаковые кнопки.
+     */
+    sectionTitle: string
   }
   /** Строка на пустом разделе: страница есть, содержимого пока нет. */
   emptyLead: string
@@ -99,6 +105,7 @@ const DICT: Record<string, ArchitectLayerUi> = {
   },
   home: {
     title: "The architect group of pages",
+    sectionTitle: "Overview",
     lead: "Here you manage the building of this microservice, set up its links with the other microservices of your application, and control how visible your microservice is within the global blockchain architecture of Fractera. This is also where you connect your own domain name and move the node to a remote server, once this machine is no longer enough for it.",
   },
   emptyLead: "The section is in place; its content comes with the step that builds it.",
@@ -130,6 +137,7 @@ const DICT: Record<string, ArchitectLayerUi> = {
   },
   home: {
     title: "Группа страниц архитектора",
+    sectionTitle: "Обзор",
     lead: "Здесь вы управляете строительством этого микросервиса и устанавливаете связи с другими микросервисами вашего приложения, управляете видимостью вашего микросервиса в глобальной видимости блокчейн-архитектуры Fractera. Отсюда же вы подключите собственное доменное имя и переедете на удалённый сервер, когда узлу станет тесно на этой машине.",
   },
   emptyLead: "Раздел на месте; содержимое придёт вместе с шагом, который его построит.",
