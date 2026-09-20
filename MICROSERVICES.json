@@ -27,8 +27,12 @@
       "id": "auth",
       "repo": "https://github.com/Fractera/fractera-auth-starter.git",
       "version": "v1.0.1",
-      "port": null,
-      "provides": ["session", "roles", "sign-in-ui"],
+      "port": 24681,
+      "provides": [
+        "session",
+        "roles",
+        "sign-in-ui"
+      ],
       "required": true,
       "note": "Раздающая вход ровно одна. Две авторизации на узле есть отсутствие авторизации."
     },
@@ -36,8 +40,13 @@
       "id": "data",
       "repo": "https://github.com/Fractera/fractera-data-starter.git",
       "version": "v1.0.0",
-      "port": null,
-      "provides": ["tables", "media", "vectors", "service-routing"],
+      "port": 24682,
+      "provides": [
+        "tables",
+        "media",
+        "vectors",
+        "service-routing"
+      ],
       "required": true,
       "note": "Единственная дверь к данным. Узел не открывает файл базы сам."
     }

@@ -55,7 +55,8 @@
     "serve:unpublish": "node scripts/serve.mjs unpublish",
     "check:architect-routes": "node scripts/check-architect-routes.mjs",
     "check:seo-html": "node scripts/check-seo-html.mjs",
-    "check:microservices": "node scripts/check-microservices.mjs"
+    "check:microservices": "node scripts/check-microservices.mjs",
+    "services:install": "node scripts/services-install.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.55",
