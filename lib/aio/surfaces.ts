@@ -5,7 +5,8 @@ import { footerPage } from '@/lib/pages/footer-page'
 import { data as privacyData } from '@/app/[lang]/(publicLayer)/(footerPages)/privacy/_data'
 import { data as termsData } from '@/app/[lang]/(publicLayer)/(footerPages)/terms/_data'
 import { data as cookiesData } from '@/app/[lang]/(publicLayer)/(footerPages)/cookies/_data'
-import { data as architectureData } from '@/app/[lang]/(publicLayer)/(footerPages)/architecture/_data'
+import { data as architectureData } from '@/app/[lang]/(publicLayer)/(rootPages)/architecture/_data'
+import { homePage as agiItemPage, homeLead as agiItemLead } from '@/app/[lang]/(publicLayer)/(rootPages)/agi-item/_data'
 import { data as accessibilityData } from '@/app/[lang]/(publicLayer)/(footerPages)/accessibility/_data'
 
 // ПЕРЕЧЕНЬ ПУБЛИЧНЫХ ПОВЕРХНОСТЕЙ — ОДИН НА ВЕСЬ AIO (шаг 505).
@@ -64,6 +65,28 @@ export function publicSurfaces(lang: string): Surface[] {
         [`# ${home.siteName}`, '', `> ${home.description}`, ...(cfg.url ? ['', cfg.url] : [])].join('\n'),
     },
   ]
+
+  // AGI ITEM — рассказ о продукте, переехавший с корня на свой адрес
+  // (2026-09-20, решение владельца). Собран языковыми ячейками ГЛАВНОЙ, а не
+  // правовой страницы, поэтому идёт своим блоком, а не строкой в цикл ниже:
+  // подогнать его под чужую форму значило бы соврать о том, как он устроен.
+  {
+    const cell = agiItemPage(lang)
+    surfaces.push({
+      subPath: '/agi-item',
+      title: cell.title,
+      description: cell.description,
+      section: 'main',
+      body: () =>
+        [
+          `# ${cell.title}`,
+          '',
+          `> ${cell.description}`,
+          '',
+          blocksToMarkdown([...agiItemLead(lang), ...cell.blocks], home.siteName),
+        ].join('\n').trim(),
+    })
+  }
 
   // 🪦 РАЗДЕЛ /blog И ЕГО ПОСТЫ УДАЛЕНЫ (229-2, 2026-09-18).
 

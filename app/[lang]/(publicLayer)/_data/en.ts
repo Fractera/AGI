@@ -1,304 +1,236 @@
 import type { HomeCell } from './index'
 
-// Английская основа главной — Fractera AGI Infrastructure.
-//
-// 🔒 ФОРМА ВЕРХНЕЙ ЧАСТИ ВЗЯТА С ЛЕНДИНГА ПАМЯТИ (memory.aifa.dev) ПО СЛОВУ
-// ВЛАДЕЛЬЦА и объявлена стандартной для приложения: ярлык над заголовком → H1 →
-// подзаголовок → мелкий абзац → ряд значков → два действия → оглавление.
-// Здесь она собрана НАШИМИ видами каталога, а не перенесена разметкой.
-//
-// 🔒 ОГЛАВЛЕНИЕ НЕ ОБЪЯВЛЕНО И ОБЪЯВЛЯТЬСЯ НЕ ДОЛЖНО: вид `toc` строится
-// фабрикой из блоков `h2` этого же материала, с теми же якорями.
-//
-// 🔒 СТРАНИЦА ОПИСЫВАЕТ ПРОДУКТ В ЗАКОНЧЕННОМ ВИДЕ — прямое слово владельца
-// 2026-09-18: «переписывай так, как будто мы это всё уже реализовали».
-//
-// 🔒 ПЕРЕРАБОТАНА 2026-09-19 — состав разделов зеркалит русскую ячейку, потому
-// что правки владельца касались СТРУКТУРЫ, а не перевода. Разбор каждой правки —
-// в шапке `ru.ts`; главная из них: философия блокчейна была пропущена вовсе и
-// теперь стоит вторым разделом, сразу под первым экраном.
+// Английская основа главной. Слова перенесены из прежнего словаря
+// `home.i18n.json` (шаг 508) — заново не переводились.
 export const en: HomeCell = {
-  // 🔒 H1 carries the name, the class and the subject. Web3 is claimed, Web4 is
-  // not: the second has no agreed meaning, and claiming it is the same class of
-  // risk as saying "open source" where the licence is source-available.
-  title: 'Fractera AGI — Web3 infrastructure for your agents',
-  // 🔒 The opening sentence is the owner's, dictated 2026-09-19, and it leads on
-  // purpose: it is the PROMISE, and the two sentences after it are the mechanism
-  // that keeps it. Promise first, machinery second — that order is the difference
-  // between a subtitle people read and one they scroll past.
-  subtitle:
-    'You do exactly what you did before — only easier and faster, and now you get paid for it as well. Turn your expertise into a microservice and earn from it across the agent network: your node lives on your own machine, finds buyers among other projects itself, and takes payment directly. No platform, no middleman, no centre above you.',
-  description:
-    'Fractera AGI Infrastructure: a home for your agents on your own computer. Your node declares what it can do in a shared catalogue, other agents find it before they start writing code, and telemetry shows the buyer how many projects already run this microservice.',
-  intro:
-    'The core is deliberately small: itself, sign-in, and the data layer. Nothing else is installed by default, because everything else is a choice — and a choice made for you is a dependency you did not ask for.',
+  title: 'From Vibe-Coded MVP to Commercially Ready Product',
+  // Описание для ПОИСКА — коротко и по делу. Длинный текст первого экрана живёт
+  // в секции `heroSplit` ниже: сниппет обрезается примерно на 160 знаках, и
+  // сильный абзац, попав сюда целиком, превратился бы в оборванную фразу.
+  description: 'Your own server, your own code: authorization, database, storage and vector search already wired together. Build a landing page or a SaaS in 82 languages.',
   keywords: '',
   blocks: [
+  {
+    kind: 'heroSplit',
+    pill: 'Agentic engineering infrastructure',
+    title: 'From Vibe-Coded MVP to Commercially Ready Product',
+    description:
+      'Scale 100× without scaling your infrastructure costs — with enterprise-level reliability, security, and compliance.',
+    cta: { href: 'https://www.fractera.ai/deployments/vps', label: 'Take it free, scale it up' },
+    image: 'homePage',
+    imageAlt: 'SaaS starter template',
+  },
+  // 🔒 ЛЕНТА НАПРАВЛЕНИЙ — ПЕРВОЕ, ЧТО ИДЁТ ЗА ПЕРВЫМ ЭКРАНОМ (владелец
+  // 2026-08-22). Человек, только что прочитавший, ЧТО это, сразу видит, ЧТО этим
+  // строят: двадцать два направления проходят перед ним прежде любых доводов.
+  // Она стоит вне ленты страницы, во всю ширину, вместе с рядом ярлыков.
+  { kind: 'projectTypeMarquee' },
+  // 🔒 РЯД МЕР УШЁЛ ВНИЗ, под виджет безопасности (владелец 2026-08-22). Три
+  // множителя — это довод, а доводу место после того, как названа ценность:
+  // сначала «безопасность встроена в основу», потом «во сколько раз дешевле»,
+  // и только потом «как это работает».
+  //
+  // Механически: ряда мер больше нет среди поднятых видов (`LEAD_KINDS` в
+  // `_data/index.ts`), поэтому он рисуется в ленте страницы — первым её блоком.
+  {
+    kind: 'metrics',
+    items: [
+      { value: '×4', label: 'cheaper to build' },
+      { value: '×9', label: 'faster to launch' },
+      { value: '×100', label: 'more reliable in production' },
+    ],
+  },
+  {
+    kind: 'badges',
+    items: [
+      // 🔒 ПЕРВЫМ И БЕЗ ПЕРЕВОДА — решение владельца 2026-08-22. «Open Code» это
+      // ИМЯ лицензионной модели (source-available), а не описание свойства: у него
+      // есть точное определение, и перевод его теряет — «открытый код» читается
+      // как open source по OSI, чем эта лицензия не является. Имя остаётся одним
+      // и тем же во всех языках, как остаётся «SEO» и «AIO» строкой ниже.
+      { label: 'Open Code', tone: 'code' },
+      { label: '82 languages', tone: 'reach' },
+      { label: 'SEO built in', tone: 'reach' },
+      { label: 'AIO agentic browsing', tone: 'reach' },
+      { label: 'Own database', tone: 'data' },
+      { label: 'Vector search', tone: 'data' },
+      { label: 'Knowledge graph', tone: 'data' },
+      { label: 'Own file storage', tone: 'data' },
+      { label: 'Authorization', tone: 'access' },
+      { label: '16 roles', tone: 'access' },
+      { label: 'GitHub', tone: 'code' },
+      { label: 'Telegram', tone: 'code' },
+      { label: 'Fractera architecture', tone: 'code' },
+      { label: 'Parallel routing · 8 areas', tone: 'code' },
+      { label: 'Next 16+', tone: 'code' },
+      { label: '100+ more', tone: 'muted' },
+    ],
+  },
+  {
+    kind: 'flow',
+    badge: 'Process',
+    title: 'How it works',
+    note: 'From a bare server to your own code in production. Everything below runs on hardware that is yours.',
+    steps: [
+      { title: 'Stand up the server', text: 'Deploy it with the Fractera [installer robot](https://www.fractera.ai/deployments/vps). You get an operating system, a starter template, the control panel, storage and authorization — installed and wired together.' },
+      { title: 'Develop where you already work', text: 'Sync with GitHub, then clone onto your own machine and run Claude Code or Codex. The data keeps coming from your server; the code runs in your own IDE.' },
+      { title: 'Push, and it deploys itself', text: 'Finish on the local machine and push the project to GitHub. That immediately starts a new deployment on your own server — and the visitor sees the new project.' },
+    ],
+  },
+  // 🔒 ПЕРЕНОС ЧУЖОГО ПРОЕКТА — ЧЕТВЁРТЫЙ ТИП РАБОТЫ (владелец 2026-08-22).
+  // Раздел описывает НАМЕРЕНИЕ, и это сказано в нём прямо: сегодня шаги, из
+  // которых миграция состоит, ещё строятся. Раздел, обещающий готовую кнопку,
+  // стоит дороже отсутствующего — за ним приходят и не находят.
+  // 🔒 IN PLACE OF THE QUIZ — TWO COLUMNS OF SELF-SELECTION (owner, 2026-08-29).
+  // The frame is borrowed from «How to start» on his direct instruction («for
+  // compare use … design»): badge, title, note, two toned columns. That section
+  // was removed by the same decision, so its layout moved here rather than died.
+  {
+    kind: 'cards',
+    badge: 'Fit',
+    title: 'Who this is for, and who it is not for',
+    note: 'Two columns, and the second one is meant seriously: if all of it is about you, this platform has nothing to give you. On the left, a reason to look; on the right, a reason not to spend the time.',
+    cols: 2,
+    children: [
+      {
+        kind: 'card',
+        tone: 'data',
+        children: [
+          { kind: 'h3', text: 'This is for you if:' },
+          { kind: 'p', text: 'One line is enough — the audit pays for itself in the conversation.' },
+          {
+            kind: 'olist',
+            items: [
+              'Your project already eats time and money, while progress somehow slowed down.',
+              'You suspect that not everything was done well.',
+              'You found out that cloud services are free only at the start, and then swallow the whole margin.',
+            ],
+          },
+        ],
+      },
+      {
+        kind: 'card',
+        tone: 'access',
+        children: [
+          { kind: 'h3', text: 'You do not need this if:' },
+          { kind: 'p', text: 'If you can already do all of it, you are the infrastructure we are offering.' },
+          {
+            kind: 'olist',
+            items: [
+              'You understand the difference between static and dynamic routing without losing SEO.',
+              'You know how to make every new AI request cheaper while performance keeps growing.',
+              'You can balance the load and hold the bill under $20 a month with millions of users.',
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  // 🔒 A DUMMY BUTTON, SAID OUT LOUD (owner, 2026-08-29: «action for new CTA i
+  // will next now dummy button only»). It has no destination yet — the audit page
+  // does not exist, and `href` deliberately leads nowhere. An invented address
+  // would look functional and drop the visitor into a 404.
+  { kind: 'cta', href: '#', label: 'Get a free audit' },
+  {
+    kind: 'cards',
+    badge: 'Architecture',
+    title: 'What this project is, technically',
+    note: 'Three things worth knowing before you build on it: what the skeleton is, where the code is actually written, and what happens when the project outgrows its first hundred pages.',
+    children: [
+      { kind: 'card', children: [{ kind: 'p', text: 'This is not a finished site but the Fractera architecture: one skeleton carries a landing page, a large SaaS and multi-level automation alike. Growth needs no rewrite — the data, authorization and panel layers are already separate, and each is built for load you do not have yet.' }] },
+      { kind: 'card', children: [{ kind: 'p', text: 'Code is not written here. A developer clones the repository to their own machine and works with Claude Code, which reads the instructions and skills that live inside the project: they state the rules, and machine checks refuse to let them be broken. The server only receives the result and rebuilds.' }] },
+      { kind: 'card', children: [{ kind: 'p', text: 'The skeleton is built for a project that will outgrow a million lines: every entity owns its folder, the shared layer does not grow with their number, and routes and permissions are declared where they are enforced. Stability here is not a promise but a consequence — a new page adds nothing to a central spine.' }] },
+    ],
+  },
+  {
+    kind: 'quote',
+    lead: 'Ready for heavy load',
+    text:
+      'The hidden reality of vibe coding: most of a project is built with no thought for heavy load, for saving database queries, for caching. Not because developers do not know about it — but because holding that standard inside a framework is genuinely hard. Too many small things quietly push a page off static generation and into dynamic rendering. And the difference is not five percent, or ten: in some cases the load on your server grows a thousandfold, and your bill for servers and platforms grows with it. Fractera is built on one long experience: more than thirty years of web development. Everything about heavy load, search optimisation and saving on databases is written into the DNA of this project. It is its skeleton and its life force. And it is yours for free.',
+    cite: 'Roma Armstrong · founder of Fractera',
+  },
+  // Завершающая секция (outro) — всегда последняя, всегда во всю ширину.
+  {
+    kind: 'noBill',
+    badge: 'Independence',
+    heading: 'A fully independent space',
+    note: 'On a typical project these are three outside services — their pricing, their terms, and their permission for your project to keep running. Here all three live on your own server.',
+    items: [
+      { vendor: 'Vercel', text: 'you do not pay', badge: { label: 'hosting', tone: 'reach' } },
+      { vendor: 'Neon', text: 'you do not pay', badge: { label: 'database', tone: 'data' } },
+      { vendor: 'Clerk', text: 'you do not pay', badge: { label: 'authorization', tone: 'access' } },
+    ],
+    title: 'You pay nobody',
+    text: 'You depend on nobody. The project is yours, end to end.',
+    cta: { page: 'architecture' },
+  },
+  {
+    kind: 'problemSolution',
+    badge: 'Moving is easy',
+    title: 'How to move your project to the Fractera architecture — from any framework',
+    note: 'Your project already runs — on Vercel or somewhere else. And you pay: for hosting, for the database, for image storage, for authorization, for email. Every service bills you separately, and every bill grows as you do. Moving looks impossible — it is not: Fractera takes your project apart and rebuilds it on its own architecture, on your server, where all of that is already there and costs nothing extra. It does not matter what your project is written in — Next, React, Vue, Laravel, WordPress, plain PHP: the agent reads your code as a description of what your project does, and builds that meaning here. What moves across is your features, not your files.',
+    demandLabel: 'What you do',
+    answerLabel: 'Why it works on Fractera',
+    items: [
+      {
+        title: 'Install Fractera',
+        demand: 'Buy a server — from three euros a month. Buy a domain — from a dollar a year. Start the installer robot and follow it: everything after that it does on its own.',
+        answer: 'Three euros is your entire hosting bill. Not for the first month, not "until you pass the limit" — at all. Database, image storage, sign-in, email are already standing on your server and are included in those three euros. There is nothing left to pay for separately.',
+      },
+      {
+        title: 'Choose the migration mode',
+        demand: 'In the panel open the "Move to Fractera" tab and give the address of your repository. While you are moving, keep it public — yours and the Fractera one; you can close them again at any time. Save the mode.',
+        answer: 'This is the only setting you touch by hand. From here the project knows it is moving and behaves accordingly: it does not build from an empty page, it takes apart what you have already written.',
+      },
+      {
+        title: 'Tell the agent',
+        demand: 'Open the project in your own editor on your own machine — where you normally work. Start it and tell the agent you are beginning the move. In ordinary words, the way you would tell a colleague.',
+        answer: 'From there it reads your old project itself: the architecture, the libraries, what depends on what. You do not have to explain anything or remember anything — it looks at the code, not at your memory.',
+      },
+      {
+        title: 'Get the plan in steps',
+        demand: 'Nothing. Look at what came out: the huge task "move the project" is laid out as steps, each with its number and its purpose.',
+        answer: 'The move stops being frightening because it stops being one lump. You see the list: what is done, what is running now, what comes next. There is nowhere to get stuck halfway and lose the thread.',
+      },
+      {
+        title: 'Raise the skeleton',
+        demand: 'Answer questions about rights: who will be able to see and change what in your application. There are few of them, and all are about your product, not about technology.',
+        answer: 'The frame goes up first — page addresses, tables, sign-in, repositories: public for the code, closed for what must not be shown. A frame is raised once, and the project grows inside it instead of being rebuilt for every new feature.',
+      },
+      {
+        title: 'Add the features',
+        demand: 'Walk the steps. One step, one feature: a page, a form, a payment, letters. Tick off what is done and add new ones whenever you think of them.',
+        answer: 'Every step is checked and you are shown that it works: not "the build passed", but a live page with your own text. So you always know where you are, and you never end up with a project that is "sort of ready".',
+      },
+      {
+        title: 'Move the data',
+        demand: 'Give the agent access to your databases. It moves across what has already piled up: users, orders, texts, pictures.',
+        answer: 'This is the last step. After it you have a full working copy of the project on your own server — with your data, your people and your domain. The old invoices can be cancelled: from now on you pay for the server and the domain, and nothing else.',
+      },
+    ],
+  },
+  {
+    kind: 'languageMarquee',
+    title: 'Eighty-two languages, ready before you need them',
+    note: 'Every one of them ships with the product — you enable the ones your market speaks. Static generation, search and AI optimisation, data caching and readiness for heavy load hold efficiency at the top of the industry — and hold it equally whether you run one language, several, or all eighty-two.',
+  },
+],
+  faq: [
     {
-      kind: 'badges',
-      // 🔒 "Open code" FIRST, and never "open source": the licence permits any
-      // purpose except providing a competing product, which does not meet the
-      // OSI definition. Calling it open source would be open-washing.
-      items: [
-        { label: 'Open code', tone: 'access' },
-        { label: 'Lives on your machine', tone: 'code' },
-        { label: 'Sells across the agent network', tone: 'data' },
-        { label: 'Paid directly', tone: 'muted' },
-        { label: 'No middleman', tone: 'muted' },
-      ],
+      q: 'How much does it cost, and are there hidden charges?',
+      a: 'There are no hidden charges because there is nobody to pay: the platform is open code, and everything you install and use belongs to you a hundred per cent. Your costs are your own server, your domain and cloud AI if you use it; you count those yourself and pay the provider directly. We take no subscription, no percentage, no per-user fee.',
     },
     {
-      kind: 'cta',
-      // 🔒 ONE ACTION BLOCK ON THE PAGE — the owner said it twice on 2026-09-19:
-      // make ONE block — "Install Claude Code" plus a button leading to the
-      // architect tab where the subscription is connected.
-      //
-      // ✗ I read that as "fix the second pair" and kept both: four buttons where
-      // two were asked for, the first pair duplicating the second in meaning. The
-      // instruction was about the NUMBER of blocks, not about the labels.
-      href: 'https://code.claude.com/',
-      label: 'Install Claude Code',
-      secondary: { href: '/en/architect/build/subscription', label: 'Start building' },
-    },
-
-    // ── THE HEART OF THE PRODUCT. Second section, right under the first screen ─
-    //
-    // 🛑 ✗ THIS WAS MISSING ENTIRELY, and the owner had to point it out twice.
-    // 🔒 ONE HEADING PER SECTION, DRAWN BY THE SECTION ITSELF.
-    // ✗ paid for twice in one day: the owner found "What next?" sitting right
-    // above "Three steps…", and then I repeated the same pair in this very
-    // rewrite. `flow` and `cards` carry their OWN head (badge → title → note),
-    // so a standalone `h2` beside them gives two headings about one thing.
-    {
-      kind: 'flow',
-      badge: 'Blockchain visibility',
-      title: 'How to earn from your expertise across the agent network',
-      note: 'You have brought the logic and the interface to a state you are not ashamed of. From here that work stops being a private folder: the node settings hold a **blockchain visibility** section, and it turns your microservice into something any agent in the network can buy. You set the rights and the price — including a price of zero.',
-      steps: [
-        {
-          title: 'The architecture writes the description, not you',
-          text: 'The algorithms read your documentation and your source code and compose the preliminary description themselves — what the microservice does, what it needs, what it answers. You correct that description rather than invent it from nothing.',
-        },
-        {
-          title: 'One Fractera catalogue for the whole network',
-          text: 'The description goes into a single catalogue, and from that moment your node is discoverable by every agent. We take no cut and stand nowhere between you and the buyer: the catalogue is a shop window, not a till.',
-        },
-        {
-          title: 'Another agent finds you before it writes any code',
-          text: 'This is what makes the whole scheme work. Anyone who asks their agent for a technical solution gets the catalogue searched FIRST, natively and out of the box. The agent finds existing blocks, offers them for analysis, and only then does the person choose: buy yours, or build their own because their view of the product differs from yours.',
-        },
-      ],
-    },
-
-    // 🔒 THIS BLOCK'S HEADING IS ABOUT THE BLOCKCHAIN, NOT ABOUT TELEMETRY.
-    // ✗ Paid for on the third attempt: the owner asked from the start to "describe
-    // the value of the blockchain solution and of the tools that work on trust and
-    // autonomy", and I made telemetry the headline — the MEANS in place of the
-    // SUBJECT. The word "block" is banned here too: the product has its own name
-    // for this thing, **AGI ITEM**, and "block" in the same text also means a
-    // building block of the page. Telemetry measures TWO numbers, not three; the
-    // third was my own addition and is gone.
-    {
-      kind: 'panel',
-      tone: 'accent',
-      eyebrow: 'Blockchain',
-      title: 'Why a blockchain: every AGI ITEM has an author, a history and a price',
-      children: [
-        {
-          kind: 'p',
-          text: 'What you are looking at on this page is what Fractera calls an **AGI ITEM** — one self-contained microservice. It can work alongside others or stay the only one: that is decided by the project, not by the architecture.',
-        },
-        {
-          kind: 'p',
-          text: 'Every AGI ITEM is **a node of its own in the blockchain**. It has its own history of activity, its own author and its own price, should you decide to put it up for sale. Trust here is not promised in words: it is presented as a record that cannot be rewritten after the fact.',
-        },
-        {
-          kind: 'h4',
-          text: 'What proves the value',
-        },
-        {
-          kind: 'p',
-          text: 'Fractera telemetry collects the history of each AGI ITEM as two numbers:',
-        },
-        {
-          kind: 'list',
-          items: [
-            '**how many different projects installed it**;',
-            '**how many people use it**.',
-          ],
-        },
-        {
-          kind: 'p',
-          text: 'Those two are the best proof of a microservice’s value — they can neither be promised nor faked.',
-        },
-        {
-          kind: 'columns',
-          cols: 2,
-          children: [
-            {
-              kind: 'group',
-              children: [
-                { kind: 'h4', text: 'If you are looking for something ready' },
-                { kind: 'p', text: 'Your Claude Code Agent does this under the hood and natively while it builds: it picks what fits, reads the popularity, offers a solution. The choice stays yours.' },
-              ],
-            },
-            {
-              kind: 'group',
-              children: [
-                { kind: 'h4', text: 'If you are selling' },
-                { kind: 'p', text: 'A good description, high value and popularity multiply the odds of your profit — because those are exactly what somebody else’s agent reads when choosing between you and your neighbour.' },
-              ],
-            },
-          ],
-        },
-        {
-          kind: 'p',
-          text: 'And nothing obliges you to use any of it. Not interested — ignore it: Claude Code Agent will go on building your project the traditional way, fast and cheap.',
-        },
-      ],
+      q: 'What is the main advantage?',
+      a: 'Reliability — that is where the bet is placed. There are many ways to throw an application together today, and it is worth having no illusions: nearly all of them are built so that you pay first of all for your own mistakes. An efficient application is in your interest only; whoever sells you services has an interest in you buying and paying for as many separate ones as possible. The expensive part comes later — breaking the law and being fined over where the data sits, unforeseen shutdowns, sanctions, and simply losing your data. Fractera closes that by keeping all of it on your own server.',
     },
     {
-      kind: 'statement',
-      text: 'Keep using Claude Code Agent exactly as you always have — and Fractera AGI makes finding and installing microservices as native and as natural as installing skills.',
-    },
-
-    {
-      kind: 'flow',
-      badge: 'The working cycle',
-      title: 'Three steps from an idea to a sale',
-      note: 'The node is up and running. Open Claude Code and say what you want: it will find a ready solution in the catalogue, pick the right skills, or build the project itself. The third step returns to the first, and every lap costs less than the one before.',
-      steps: [
-        {
-          title: 'Tell the project what to become',
-          text: '"Become a site for a hair salon", "become a CRM for medical centres", "become a social media promotion platform" — the subject does not matter. Behind it stand tens of thousands of ready skills and microservices, solutions from the catalogue, and the ordinary programmer-agent mode.',
-        },
-        {
-          title: 'Sell it in one click',
-          text: 'Put your expertise into the starter, shape the interface, end up with a product? Set a price — the wallet is created for you, and the microservice becomes available to buyers together with its telemetry.',
-        },
-        {
-          title: 'A new idea arrives — simply carry on',
-          text: 'Every product is its own microservice on your server. There is no limit: two microservices, twenty, or two hundred. They coexist and work as one organism.',
-        },
-      ],
-    },
-    // 🪦 A SECOND ACTION BLOCK STOOD HERE — removed 2026-09-19 by the owner's
-    // decision, "one block instead of two". The page has a single call to action,
-    // in the first screen; repeating it further down offers the reader what he has
-    // already seen and splits one call into two sources.
-    {
-      kind: 'cards',
-      badge: 'Run modes',
-      title: 'Where to run the node: at home, on your domain, or on a server',
-      note: 'The only difference is where the machine stands and whose address the site has. The code, the data and the capabilities are identical — changing mode rewrites nothing.',
-      children: [
-        {
-          kind: 'card',
-          children: [
-            { kind: 'h3', text: 'Trial: your computer and a temporary address' },
-            {
-              kind: 'p',
-              text: 'You buy nothing and agree with nobody: Claude Code brings the node up, and a minute later you have a working link over a secure connection. The link lives as long as the machine is on and changes on restart — enough to show your work and take the first orders.',
-            },
-          ],
-        },
-        {
-          kind: 'card',
-          children: [
-            { kind: 'h3', text: 'Popular: your computer and your own domain' },
-            {
-              kind: 'p',
-              text: 'A permanent address you can say out loud and print on a card, over the same secure channel. You pay the registrar for the domain and pay us nothing. The node stays home: the data never moves, and a switched-off computer means a closed shop — which is honest.',
-            },
-          ],
-        },
-        {
-          kind: 'card',
-          children: [
-            { kind: 'h3', text: 'Industrial: a dedicated server, running around the clock' },
-            {
-              kind: 'p',
-              text: 'The same node moves to a VPS and answers buyers while you sleep and while your laptop is shut. You pay the host for the machine, the domain stays yours, the code stays the same — the move rewrites nothing.',
-            },
-          ],
-        },
-      ],
-    },
-
-    { kind: 'h2', text: 'Node independence: what happens if Fractera disappears' },
-    {
-      kind: 'p',
-      text: 'This is the test we hold every decision against: what stops working for you if Fractera disappears tomorrow? The answer is nothing. The server is yours, the domain is yours, the data is yours, the keys are yours, the code is open and sits on your disk. We do not store your addresses, do not stand between you and the buyer, take no cut of the payment, and cannot switch your node off.',
+      q: 'What if I need more than this?',
+      a: 'Your main tool is your own — Claude Code, Codex or another — and it runs on your own machine. The project scales far: the skeleton is cut for millions of lines and stays efficient. And if you need a conceptual change to the architecture at the control-panel level, or building the application is still hard, send a request to admin@fractera.ai and a developer will get in touch and offer a solution.',
     },
     {
-      kind: 'statement',
-      text: 'There is no platform. There is your node, other people’s nodes, and a direct agreement between them.',
-    },
-
-    {
-      kind: 'cards',
-      badge: 'Microservices',
-      title: 'Which microservices people start with',
-      note: 'Sign-in, a database and skills. Each is a microservice with a life of its own, but everything standing on one machine becomes part of one project: they see each other, share the sign-in and talk directly. Installed one at a time and in any order — the node needs none of them until you decide it does.',
-      cols: 3,
-      children: [
-        {
-          kind: 'card',
-          children: [
-            { kind: 'h3', text: 'Authentication' },
-            {
-              kind: 'p',
-              text: 'Add Fractera authentication and every microservice in your project is protected, role-based access included. Each microservice governs its own visibility on the internet: who gets in — users, subscribers, administrators, or nobody but you.',
-            },
-          ],
-        },
-        {
-          kind: 'card',
-          children: [
-            { kind: 'h3', text: 'Database' },
-            {
-              kind: 'p',
-              text: 'Add the database microservice and you get data storage on your own local machine plus object storage for media files and documents. Everything most applications need, with no subscriptions and no dependency on somebody else’s cloud — and, incidentally, in line with what regulators ask for.',
-            },
-          ],
-        },
-        {
-          // 🔒 Skills replace the chat bot and memory (owner, 2026-09-19). The
-          // point of the wording is that the knowledge graph arrives ALREADY
-          // mapped: the node does not spend months building links at the expense
-          // of its own first user.
-          kind: 'card',
-          children: [
-            { kind: 'h3', text: 'Skills' },
-            {
-              kind: 'p',
-              text: 'Several thousand of the most popular skills, already laid out in a knowledge graph. The links between them are built in advance — once, on our side — so your node receives a finished map instead of constructing one for months out of your own requests. After that a conversation is enough: say "I need to generate images" and the right skill tells you how to assemble that technical solution properly inside your microservice.',
-            },
-          ],
-        },
-      ],
-    },
-
-    {
-      kind: 'flow',
-      badge: 'The path',
-      title: 'Start with one node — everything after that is up to you',
-      note: 'A project grows by nodes, and each new one stands beside the others without rebuilding what already works.',
-      steps: [
-        {
-          title: 'The first node is your first service',
-          text: 'A landing page, a site or a blog. One node, and it already lives on your machine, opens on the internet and is ready for visitors.',
-        },
-        {
-          title: 'Add a few more',
-          text: 'Authentication, a database, skills. And your application already meets the best standards in the field for heavy load and cost efficiency — without you configuring any of it.',
-        },
-        {
-          title: 'After that, anything — and it is a node again',
-          text: 'Whatever you think of next is simply one more node in your project: a ready one built by other specialists · a skill that helps you assemble your own · or your own creative work.',
-        },
-      ],
+      q: 'I already have a site — can I move it to Fractera?',
+      a: 'Yes, and there is a separate working mode for it — «Migration». You name the source: a repository address or a folder on your own machine. From there the agent READS the foreign code as a description rather than running it — capabilities move across, files do not, so a broken or hostile dependency has no way to ride along. The first artefact is the intent tree: what your project becomes on this architecture. Then the capability table, each line ticked off with a proof, and a queue of steps born from the reading rather than from generalities. It all starts with four decisions — the type of application, whether it needs authorization, whether it needs role-based access, and which roles: the answer relays the skeleton rather than edits a page, which is why it is asked before the first line. If you want to know what this means in your case — [get a free audit](#).',
     },
   ],
-  faq: [],
 }
