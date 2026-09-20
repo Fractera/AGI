@@ -136,6 +136,44 @@ cannot see that, and neither can a container. It asks `/api/health` and restarts
 failures in a row. **Patience is its point, not sensitivity:** a cold dev compile takes up to 41 seconds,
 and an eager watchdog turns a slow start into an endless restart loop.
 
+## Proving the three systems — what is checked and what is NOT (step 258, 2026-09-20)
+
+The product installs on a human's home machine, and there are three kinds of machine. It is
+developed on Windows, so two classes of failure never appear here on their own.
+
+| Instrument | Command | What it covers |
+|---|---|---|
+| **case guard** | `npm run check:case` (also inside `prebuild`) | every static import compared byte-for-byte against the **git index** |
+| **three-OS matrix** | `.github/workflows/three-os.yml` | `npm ci` + full build on `ubuntu-latest`, `macos-latest`, `windows-latest` |
+
+🔒 **THE CASE GUARD EARNS ITS PLACE IN A NARROW SPOT, AND THE SPOT WAS MEASURED, NOT ASSUMED.**
+For `.ts`/`.tsx` TypeScript already refuses a wrong-case import on Windows too (TS1261/TS1149) —
+proven by corrupting one importer and then all of them. But `tsconfig.json` includes `**/*.ts`,
+`**/*.tsx`, `**/*.mts` and **not** `.mjs`/`.cjs`. There are 49 such files — the installer, every
+guard, the microservices — the code that actually runs on the human's machine. Nothing type-checks
+them: a wrong-case import there fails **only on Linux, only at runtime, only for the user**.
+Proven: a corrupted import in `scripts/build-api-map.mjs` gave tsc **zero** complaints and the
+guard an error naming the canonical name.
+
+🛑 **WHEN FIXING A CASE BUG, KNOW THE TRAP:** `git config core.ignorecase` is `true` here. Renaming
+a file by case only is invisible to git and never reaches the commit. Fix the **import**, or rename
+in two moves: `git mv Foo.ts tmp.ts && git mv tmp.ts foo.ts`.
+
+🔒 **A FRESH CLONE DOES NOT BUILD WITHOUT `.env.local`, AND THIS IS A REAL HOLE, NOT A CI QUIRK.**
+Seven scripts read that file and **not one writes it**; `.env.local.example` sits in git carrying
+`NEXT_PUBLIC_SUPPORTED_LANGUAGES=en,ru`, and no document tells anyone to copy it. Without it
+`enabledLanguages()` returns `[]`, and the content guard reports 210 violations of the form
+«язык «en» не включён ()» — pointing at content while the installation is what is broken.
+Measured: clean clone → `npm run build` → exit **1**; same folder plus `cp .env.local.example
+.env.local` → exit **0**. The workflow therefore copies it in a named step, and the hole itself is
+owed to the install line.
+
+🛑 **WHAT THE GREEN MATRIX DOES NOT PROVE — say this out loud before calling anything portable:**
+installation by one sentence · autostart at boot (systemd, launchd, startup folder) · `pm2 startup`
+with sudo · the tunnel and `cloudflared` (we look for it, we never install it) · `linux-arm64` and
+musl, since the runners give x64-glibc and arm64-darwin. Green here means «the code builds on three
+systems», never «the product works on them». That needs a live run on a real machine, by a human.
+
 ## The architect layer: ten routes, one source of the menu (step 236, 2026-09-19)
 
 🔒 **EVERY SECTION IS ITS OWN PAGE ON ITS OWN ROUTE — NEVER A QUERY PARAMETER.** The owner's direct
