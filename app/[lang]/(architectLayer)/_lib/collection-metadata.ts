@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { type WorkspacePageData, wordsOf } from '@/lib/collection/types'
 import { buildAlternates, urlFor } from '@/lib/seo/alternates'
 import { brand } from '@/lib/brand'
-import { ARCHITECT_LAYER_IS_PUBLIC } from './collection-visibility'
+import { architectLayerIsPublic } from './collection-visibility'
 
 // МЕТАДАННЫЕ СТРАНИЦЫ КОЛЛЕКЦИИ — ОДНА ФАБРИКА НА ВСЕ СТРАНИЦЫ (255).
 //
@@ -70,7 +70,7 @@ export function collectionMetadata(page: WorkspacePageData, parentDir: string) {
       // объявлять его индексируемым нельзя: `proxy.ts` отвечает чужому 404, и
       // обещание поисковику было бы ложным. Снимут ограничение — та же страница
       // станет полноценно публичной, не меняя ни строки здесь.
-      robots: ARCHITECT_LAYER_IS_PUBLIC
+      robots: architectLayerIsPublic()
         ? { index: true, follow: true }
         : { index: false, follow: false, nocache: true },
     }

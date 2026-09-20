@@ -126,6 +126,7 @@ export function ArchitectPage({
         title={ui.authWarning.title}
         reasonMachine={ui.authWarning.reasonMachine}
         reasonTemporary={ui.authWarning.reasonTemporary}
+        reasonShowcase={ui.authWarning.reasonShowcase}
         body={ui.authWarning.body}
       />
 

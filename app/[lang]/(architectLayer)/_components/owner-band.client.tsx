@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { isTemporaryHostname } from '@/lib/auth/temporary-address'
 import { isLoopbackHostname } from '@/lib/auth/owner-at-machine'
+import { isShowcaseHostname } from '@/lib/showcase'
 
 // ПРЕДУПРЕЖДЕНИЕ СЛОЯ: «ВЫ ЗДЕСЬ БЕЗ АВТОРИЗАЦИИ, И ЭТО ВРЕМЕННОЕ СОСТОЯНИЕ».
 //
@@ -38,7 +39,7 @@ import { isLoopbackHostname } from '@/lib/auth/owner-at-machine'
 // в браузере, пытающееся «на всякий случай» что-то закрыть, дало бы ложное чувство
 // защиты там, где защиты по природе нет.
 
-type Mode = 'machine' | 'temporary' | null
+type Mode = 'machine' | 'temporary' | 'showcase' | null
 
 // 🔒 ПРИЗНАКИ БЕРУТСЯ ИЗ ТЕХ ЖЕ ФАЙЛОВ, ЧТО ЧИТАЕТ СЕРВЕР (2026-09-19). Здесь
 // лежала третья рукописная копия того же знания — список имён петли и суффикс
@@ -50,6 +51,12 @@ function detectMode(): Mode {
   const host = window.location.hostname
   if (isLoopbackHostname(host)) return 'machine'
   if (isTemporaryHostname(host)) return 'temporary'
+  // 🔒 ВИТРИНА — ПОСЛЕДНЕЙ И НАМЕРЕННО (256-2). Порядок здесь имеет смысл: узел
+  // самой Fractera можно открыть и с его машины, и через туннель, и по домену.
+  // Первые два ответа точнее — они говорят человеку, ПОЧЕМУ открыто именно у него
+  // сейчас; витринный текст адресован тому, кто пришёл снаружи по постоянному
+  // адресу, и только для него он верен.
+  if (isShowcaseHostname(host)) return 'showcase'
   return null
 }
 
@@ -57,11 +64,13 @@ export function OwnerBand({
   title,
   reasonMachine,
   reasonTemporary,
+  reasonShowcase,
   body,
 }: {
   title: string
   reasonMachine: string
   reasonTemporary: string
+  reasonShowcase: string
   body: string
 }) {
   const [mode, setMode] = useState<Mode>(null)
@@ -85,8 +94,13 @@ export function OwnerBand({
           </span>
         </AccordionTrigger>
         <AccordionContent className="pb-3 text-[length:var(--fs-small)] text-amber-900 dark:text-amber-200">
-          <p className="mb-2">{mode === 'machine' ? reasonMachine : reasonTemporary}</p>
-          <p>{body}</p>
+          <p className="mb-2">
+            {mode === 'machine' ? reasonMachine : mode === 'showcase' ? reasonShowcase : reasonTemporary}
+          </p>
+          {/* 🔒 ВЫВОД О МИКРОСЕРВИСЕ АВТОРИЗАЦИИ АДРЕСОВАН ХОЗЯИНУ УЗЛА, А НЕ
+              ПРОХОЖЕМУ. На витрине его нет: человеку, пришедшему из поиска,
+              незачем советовать, что активировать в чужом узле. */}
+          {mode !== 'showcase' && <p>{body}</p>}
         </AccordionContent>
       </AccordionItem>
     </Accordion>

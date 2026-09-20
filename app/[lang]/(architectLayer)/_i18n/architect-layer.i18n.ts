@@ -85,6 +85,15 @@ export type ArchitectLayerUi = {
     reasonMachine: string
     /** Почему открыто — версия для временного адреса в интернете. */
     reasonTemporary: string
+    /**
+     * Почему открыто — версия для витрины Fractera (256-2).
+     *
+     * 🔒 ГОВОРИТ ВТОРОЕ, ЧЕГО НЕТ В ДВУХ ОСТАЛЬНЫХ СОСТОЯНИЯХ: это демонстрация,
+     * и запись запрещена. Человек, пришедший сюда из поиска, обязан понимать, что
+     * смотрит чужой узел, а не свой, — иначе он решит, что панель сломана, когда
+     * первая же кнопка ответит отказом.
+     */
+    reasonShowcase: string
     /** Вывод и рекомендация: оба состояния временные, для полноценной работы нужен микросервис авторизации. */
     body: string
   }
@@ -116,6 +125,7 @@ const DICT: Record<string, ArchitectLayerUi> = {
     title: "This layer is open without any sign-in — a temporary state",
     reasonMachine: "You are inside without signing in because you are working from this very machine: whoever sits at this keyboard already owns the files.",
     reasonTemporary: "You are inside without signing in because the node is on a temporary address. While that address is open, anyone who knows the link sees this layer.",
+    reasonShowcase: "You are looking at the Fractera showcase: this node shows its own control surface to anyone, on purpose, so that the product can be seen before it is installed. Nothing here can be changed — the whole site is read-only, and every attempt to save is refused. Your own node, installed from this repository, keeps these pages closed.",
     body: "Both of these are development states, and neither is meant to last. A node that keeps no authentication can only be built in development mode or on a temporary address — on a permanent domain this layer is closed, and from outside its pages simply do not exist. For everyday use, activate the Fractera authentication microservice: it gives the node real roles, and the architect layer starts asking who you are instead of trusting where you came from.",
   },
   },
@@ -139,6 +149,7 @@ const DICT: Record<string, ArchitectLayerUi> = {
     title: "Этот слой открыт без авторизации — состояние временное",
     reasonMachine: "Вы внутри без входа, потому что работаете с этой самой машины: тот, кто сидит за этой клавиатурой, и так владеет файлами.",
     reasonTemporary: "Вы внутри без входа, потому что узел стоит на временном адресе. Пока этот адрес открыт, слой видит каждый, кто знает ссылку.",
+    reasonShowcase: "Вы смотрите витрину Fractera: этот узел намеренно показывает свой пульт управления всем, чтобы продукт можно было увидеть до установки. Изменить здесь нельзя ничего — весь сайт работает только на чтение, и любая попытка сохранить получает отказ. Ваш собственный узел, поставленный из этого репозитория, держит эти страницы закрытыми.",
     body: "Оба состояния — рабочие, и ни одно не рассчитано надолго. Узел, оставшийся без авторизации, можно строить только в режиме разработки или на временном адресе: на постоянном домене этот слой закрыт, и снаружи его страниц просто нет. Для полноценной работы активируйте микросервис авторизации Fractera — он даёт узлу настоящие роли, и слой архитектора начинает спрашивать, кто вы, вместо того чтобы верить, откуда вы пришли.",
   },
   },
