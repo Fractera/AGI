@@ -43,13 +43,28 @@ If you are tempted to reach for one of those to add a language: **stop and use t
   **before** you fan it out — add it via **manage-app-settings** first, then rebuild.
 - Each post = `_data/{meta, en(base), <lang>(override), index}`. Each group = `_data/{en, <lang>, index,
   group.ts}`. The fan-out writes the `<lang>` files and patches the indexes — by construction.
-- **Seed = the DEFAULT language's content** (e.g. default `es` → the new language starts as a copy of
-  Spanish). The site is **valid the instant the build finishes** — no broken pages, no machine
-  translation. Every language-dependent link is rewritten to the new language.
-- **🔒 Doorway guard (SEO, critical).** A seed still shows the default language's text, so each seed is
-  marked `needsTranslation` and the engine serves it as **`robots: noindex`** — Google never indexes a
-  cross-language duplicate. `canonical` + `hreflang` stay correct automatically (derived from the
-  language set). When a page is translated, the marker clears and it becomes indexable on the next Deploy.
+- 🪦 **SEEDING IS CANCELLED IN THIS PROJECT (step 256, 2026-09-20). Do NOT copy the default language
+  into `_data/<lang>.ts`.** This bullet used to say the opposite, and following it now would build
+  exactly the doorway it was written to prevent. Two reasons, both measured:
+
+  1. **The fallback already does the job.** `resolveLocalizedBody` serves the base language for any
+     language without a cell, so the site is valid the instant the build finishes — **without writing
+     a single seed file**. The seed bought nothing and cost one file per page.
+  2. **A seed is now indistinguishable from a real translation.** Indexability is DERIVED from the
+     data (`lib/seo/translation-state.ts`): a page counts as translated when it has its **own
+     non-empty cell**. A cell copied from `en` IS non-empty — so the seeded page would declare itself
+     a translation, enter `hreflang`, enter the sitemap and sit in the index as a cross-language
+     duplicate of the original.
+
+- **🔒 Doorway guard — now BY CONSTRUCTION, not by a marker.** The `needsTranslation` marker this
+  skill relied on **does not exist in this project**. Instead: no cell → the language is not
+  translated → the page is served `noindex`, is absent from every `hreflang` set and from the
+  sitemap, while staying fully visible to a human. When a real translation is written, all three
+  signals switch on together, because all three read one source. `npm run check:seo-html` enforces
+  this on the BUILT HTML and refuses to deploy a build that breaks it.
+
+- **Translation itself is a separate run** — the `translate-pending` skill, by the agent, on the
+  owner's subscription. This skill enables a language; that one fills it.
 - **Non-blocking.** The fan-out returns the pages that need translating in `pagesNeedingTranslation`;
   **name them to the owner so a step per language can be opened in the panel**, listing those pages in
   its plan. Translation happens later, in that step, possibly with a different model — the main work is

@@ -728,6 +728,47 @@ language.
   ✗ Paid for 2026-09-19: the guard pointed at `TRANSLATION-DEBT.md` as the home of the debts, and the
   file did not exist in this repository at all — the practice was named nowhere, so nobody could follow
   it.
+- 🔒 **THE DEBT LINE IS NOW ENFORCED, NOT REQUESTED (256-10).** `check-content` fails the build when a
+  `_data` folder has no cell for an enabled language **and is not named in `TRANSLATION-DEBT.md`**.
+  Note the asymmetry, it is deliberate: the *missing translation* is only a warning (unwritten prose
+  must not black out a working site), while the *missing record* is a refusal — a debt nobody wrote
+  down disappears with the step that created it, and a month later no one can say which pages are
+  still single-language, because the site looks finished. The registry is checked by walking the tree,
+  never by trusting it: a hand-kept list drifts silently (236-1, paid for twice).
+- 🔒 **FILLING THE DEBT IS A SEPARATE RUN, BY THE AGENT** — the `translate-pending` skill. The owner's
+  decision, 2026-09-20: «разработка ведётся на языке по дефолту… затем отдельно модель запускается с
+  требованием пройти по всем ссылкам и добавить перевод… делается только агентом искусственного
+  интеллекта». The agent translates on the owner's subscription; no external service, no API key.
+- 🪦 **SEEDING A NEW LANGUAGE WITH A COPY OF THE BASE IS CANCELLED** (`expand-site-language`, step
+  256). Indexability is derived from the data: a page counts as translated when it has its **own
+  non-empty cell** — so a copied cell would declare itself a translation, enter `hreflang` and the
+  sitemap, and sit in the index as a cross-language duplicate. The fallback already renders the base
+  language for any missing cell, so the seed bought nothing and cost one file per page.
+
+## Three signals about a language, one source (step 256)
+
+🔒 **INDEXABILITY IS DERIVED, NEVER DECLARED.** `lib/seo/translation-state.ts` answers one question —
+does this page have its **own** text in this language — and three signals read that single answer:
+the `robots` meta tag, the `hreflang` set, and the row in `sitemap.xml`. Split them and a state
+appears where the sitemap promises what the meta tag forbids; that state existed until 256-6 and was
+found by measurement, not by eye.
+
+🛑 **A DOORWAY IS WHAT THIS PREVENTS, AND THE OWNER NAMED THE STAKES** (2026-09-20): «если у нас
+появится множество дублей на разных языках, то наш сайт немедленно попадёт в блокировки Google как
+doorway, и вот это хуже, чем не иметь этих страниц». An enabled language always has an address — the
+resolver honestly serves the base text — so without this rule every enabled-but-untranslated language
+is an indexed near-copy of the original.
+
+🔒 **THE GUARD READS THE BUILT HTML, NOT THE SOURCE.** `npm run check:seo-html` walks
+`.next/server/app/**` and enforces nine rules, including a duplicate detector (shared word ratio ≥
+0.9 between two indexable language versions) and `hreflang` reciprocity. It runs inside
+`serve:rebuild` **between the build and the restart**: a build with doorway markup is never deployed,
+and the previous build keeps serving.
+
+✗ **WHY A SOURCE-READING GUARD IS NOT ENOUGH — MEASURED.** The older `check-seo` printed `SEO_OK`
+while the served HTML contained **zero** `canonical` and `hreflang` tags: the mechanism switched
+itself off from the inside when the site URL was empty. It measured the promise; this one measures
+the fact. Both are kept — the old one catches a forgotten call before the build exists.
 
 ## The architect layer — settings edited inside this project
 
