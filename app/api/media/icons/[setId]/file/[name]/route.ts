@@ -1,10 +1,11 @@
+import { dataUrl as nodeDataUrl, isRemoteData } from "@/lib/microservices/urls"
 // @api stream one generated application icon from its set
 import { NextRequest, NextResponse } from "next/server"
 
 // Serve one file from a generated PWA/favicon icon set (favicon.ico, icon-192.png, ...).
 // Proxies the Data/Media service GET /media/icons/:setId/file/:name, mirroring
 // /api/media/[id]/file so the manifest and <head> icon links resolve through the app.
-const DATA_URL    = process.env.REMOTE_DATA_URL ?? "http://localhost:3300"
+const DATA_URL    = nodeDataUrl() ?? ""
 // 🔒 ИМЯ КЛЮЧА — DATA_SECRET (найдено на живом сайте 2026-08-13). Здесь стояло
 // DATA_API_KEY: такой переменной в окружении сервера нет, ключ получался пустым,
 // и прокси пересылал в слой данных COOKIE ПОСЕТИТЕЛЯ. У анонимного гостя сессии

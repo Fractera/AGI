@@ -22,12 +22,13 @@
 // выходим молча. Картинки досеются следующей сборкой, и это гораздо лучше
 // процесса, который висит на сервере до перезагрузки.
 
+import { serviceUrlFor } from "../lib/microservices/urls.mjs";
 import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-const DATA_URL = process.env.REMOTE_DATA_URL ?? "http://localhost:3300";
+const DATA_URL = serviceUrlFor("data") ?? "";
 
 function secret() {
   if (process.env.DATA_SECRET) return process.env.DATA_SECRET;

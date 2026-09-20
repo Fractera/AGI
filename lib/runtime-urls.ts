@@ -18,7 +18,13 @@ import { isIpHost, apexFrom } from "./site-urls";
 
 // Public base URL of the Auth service as the BROWSER must reach it.
 export function authBase(): string {
-  if (typeof window === "undefined") return "http://localhost:3001";
+  // 🔒 СЕРВЕРНАЯ ВЕТКА КЛИЕНТСКОГО МОДУЛЯ (257-6). Реестр `MICROSERVICES.json`
+  // здесь не читается намеренно: файл с "use client" уезжает в браузер, а с ним
+  // уехал бы и `node:fs`. Адрес приходит переменной, которую пишет установщик,
+  // взяв её из того же реестра — производное, а не вторая копия.
+  // 🛑 Пусто лучше неверного: умолчание `localhost:3001` — порт серверной линии,
+  // и на узле оно означало бы стук в пустоту, который человек читает как ответ.
+  if (typeof window === "undefined") return process.env.NEXT_PUBLIC_AUTH_URL ?? "";
   const { protocol, hostname } = window.location;
   if (isIpHost(hostname)) return `${protocol}//${hostname}:3001`;
   return `${protocol}//auth.${apexFrom(hostname)}`;

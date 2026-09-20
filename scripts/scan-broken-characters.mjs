@@ -38,7 +38,11 @@ const SCAN_EXT = /\.(ts|tsx|js|jsx|mjs|cjs|md|json)$/
 //
 // Отсюда правило: имя папки сборки проверяется ПРЕФИКСОМ. Завтра рядом появится
 // `.next.tmp` или `.next.rollback`, и гейт снова начнёт судить машинный вывод.
-const SKIP_DIR = new Set(["node_modules", ".git", ".turbo", "dist", "build", ".vercel"])
+// 🔒 257-6/7: `microservices` — УСТАНОВЛЕННЫЕ КОПИИ ЧУЖИХ СЛУЖБ, а не наш исходник.
+// Их приносит установщик из их собственных репозиториев; чинить их здесь — та же
+// ошибка, что чинить гостевой слот на тест-сервере: правка живёт до первой
+// переустановки и в источник не попадает. Сторож узла в них не заходит.
+const SKIP_DIR = new Set(["node_modules", ".git", ".turbo", "dist", "build", ".vercel", "microservices"])
 const SKIP_PREFIX = [".next"]
 const SKIP_FILE = /\.generated\.|package-lock\.json$|\.tsbuildinfo$/
 

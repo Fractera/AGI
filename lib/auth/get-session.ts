@@ -1,3 +1,4 @@
+import { authUrl as nodeAuthUrl } from '@/lib/microservices/urls';
 import { NextRequest } from "next/server"
 import { shouldBypassAuth } from "@/lib/auth/auth-bypass"
 import { isOwnerAtMachine } from "@/lib/auth/owner-at-machine"
@@ -108,7 +109,7 @@ export async function getSession(req?: NextRequest): Promise<AppSession | null> 
   // отвечал раньше, и до этой строки дело не доходило. Перевод на домен включил
   // настоящий путь — и сломанным он был всё это время.
   const authUrl =
-    process.env.AUTH_SERVICE_URL || process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:3001'
+    nodeAuthUrl() ?? ''
   const cookie = req?.headers.get('cookie') ?? ''
   try {
     const res = await fetch(`${authUrl}/api/session`, { headers: { cookie } })

@@ -33,10 +33,11 @@
 // Сборка, отказавшая из-за посевной картинки, — несопоставимо дороже.
 // Поэтому каждая загрузка под своей защитой, а код выхода всегда нулевой.
 
+import { serviceUrlFor } from "../lib/microservices/urls.mjs";
 import { readFileSync } from "node:fs";
 import sharp from "sharp";
 
-const DATA_URL = process.env.REMOTE_DATA_URL ?? "http://localhost:3300";
+const DATA_URL = serviceUrlFor("data") ?? "";
 // 🔒 ИМЯ КЛЮЧА — `DATA_SECRET`, и оно читается ИЗ `.env.local` САМИМ СКРИПТОМ.
 // Первый заход отбило `Unauthorized`: скрипт спрашивал `DATA_API_KEY` — имя,
 // которое встречается в прокси приложения, но в окружении сервера его нет. Слой

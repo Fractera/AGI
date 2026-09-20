@@ -18,6 +18,7 @@
 // ещё не выполнял установку: службы объявлены, но не поставлены. Это законное
 // состояние, и сторож обязан его пропускать — иначе свежий клон не собирается.
 
+import { execFileSync } from 'node:child_process'
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -114,6 +115,68 @@ for (const [i, s] of reg.services.entries()) {
     }
     if (typeof v === 'string' && /^[A-Za-z0-9+/_-]{24,}={0,2}$/.test(v) && !/^v\d/.test(v)) {
       fail('no-secrets', `${where}: значение поля «${k}» выглядит ключом (${v.length} знаков без пробелов).`)
+    }
+  }
+}
+
+
+// ── 10. no-remembered-address. Порча: вернуть "http://localhost:3300" в любую
+// дверь медиа. ПРАВИЛО НЕ ПРО РЕЕСТР, А ПРО КОД УЗЛА, и живёт здесь потому, что
+// сторож реестра — единственное место, знающее, что адрес назначается, а не
+// помнится. Порты узла берутся из блока 24680-24699 и чисел 3001/3300 не
+// содержат никогда: умолчание с этими номерами есть тихий стук в пустоту.
+{
+  // Адрес бывает не только строкой целиком: `${hostname}:3001` — тот же адрес,
+  // собранный из кусков. ✗ оплачено 257-6: правило видело только первое, и дверь
+  // `/api/users` осталась с зашитым портом, отвечая 502 при живой службе.
+  const ADDRESS = /(localhost|}):(3001|3300)\b/
+  const ENV_ADDRESS = /process\.env\.(AUTH_SERVICE_URL|REMOTE_DATA_URL)/
+  // Единственная дверь, которой это разрешено, — и она названа поимённо.
+  // 🔒 ИСКЛЮЧЕНИЕ, А НЕ ПОСЛАБЛЕНИЕ: `runtime-urls.ts` помечен "use client" и
+  // уезжает в браузер — прочитать реестр он не может, с ним уехал бы `node:fs`.
+  // Браузерная половина получает адрес переменной, которую пишет установщик.
+  const ALLOWED = /^lib\/(microservices\/urls\.(ts|mjs)|runtime-urls\.ts)$/
+  const CODE = /\.(ts|tsx|mjs|cjs)$/
+
+  let tracked = []
+  try {
+    tracked = execFileSync('git', ['ls-files'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 64e6 })
+      .split('\n').map((x) => x.trim()).filter(Boolean)
+  } catch (e) {
+    // 🛑 ОПЛАЧЕНО ЗДЕСЬ ЖЕ, 2026-09-20: сначала стояло `catch { tracked = [] }`,
+    // и правило молча проверяло НОЛЬ файлов, оставаясь зелёным при внесённой
+    // порче. Отсутствие источника — это отказ, а не пустой список.
+    fail('no-remembered-address', 'не удалось перечислить файлы через git: ' + e.message +
+      '. Правило не выполнено — зелёный цвет здесь означал бы, что смотреть было нечем.')
+    tracked = []
+  }
+
+  for (const rel of tracked) {
+    if (!CODE.test(rel)) continue
+    if (rel.startsWith('.claude/') || rel.startsWith('microservices/')) continue
+    if (ALLOWED.test(rel)) continue
+    let text
+    try { text = readFileSync(join(ROOT, rel), 'utf8') } catch { continue }
+    const lines = text.split(/\r?\n/)
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      const bare = line.trim()
+      // Сноски не считаются: они объясняют прошлое, а не задают адрес.
+      if (bare.startsWith('//') || bare.startsWith('*') || bare.startsWith('/*')) continue
+      // 🔒 ТРЕТИЙ ВЕРДИКТ — ИСКЛЮЧЕНИЕ: строка объявляет себя принадлежащей линии
+      // `aifa.dev`, где реестра нет вовсе и порты 3001/3300 законны. Объявление
+      // стоит РЯДОМ С КОДОМ и ищется одним grep — в отличие от списка файлов,
+      // который слепит сторожа целиком.
+      if (/SERVER-LINE-ADDRESS/.test(line) || (i > 0 && /SERVER-LINE-ADDRESS/.test(lines[i - 1]))) continue
+      if (ADDRESS.test(line)) {
+        fail('no-remembered-address',
+          `${rel}:${i + 1}: адрес службы записан в коде. Порт назначает установщик и пишет в ` +
+          'MICROSERVICES.json; спрашивать его надо у lib/microservices/urls.ts.')
+      } else if (ENV_ADDRESS.test(line)) {
+        fail('no-remembered-address',
+          `${rel}:${i + 1}: адрес службы берётся из окружения напрямую. Единственная дверь — ` +
+          'lib/microservices/urls.ts: она спрашивает реестр и лишь потом окружение.')
+      }
     }
   }
 }

@@ -27,11 +27,20 @@ function apexFrom(hostname: string): string {
 // Build the Auth service base URL as the BROWSER must reach it, from a request's
 // host header and protocol. `host` is the Host / X-Forwarded-Host value (may carry
 // a :port in IP mode); `proto` is http or https (X-Forwarded-Proto). Falls back to
-// localhost:3001 when host is missing (e.g. an internal request without a host).
+// the address from MICROSERVICES.json when host is missing (e.g. an internal
+// request without a host) — no port is remembered here any more (step 257-6).
 export function authBaseFromHost(host: string | null, proto: string): string {
-  if (!host) return "http://localhost:3001";
+  // 🔒 257-6: РЕЕСТР ИМЕЕТ ПРИОРИТЕТ НАД ИМЕНЕМ ХОСТА. На узле служба стоит на
+  // назначенном порту из блока 24680-24699, и собрать её адрес из имени хоста
+  // нельзя в принципе — получится `<host>:3001`, порт серверной линии, то есть
+  // стук в пустоту. Реестра нет только на линии `aifa.dev`, и там работает
+  // прежняя ветка ниже.
+  const assigned = nodeAuthUrl();
+  if (assigned) return assigned;
+  if (!host) return "";
   const hostname = host.split(":")[0];
   const scheme = proto === "https" ? "https" : "http";
+  // SERVER-LINE-ADDRESS: линия aifa.dev, реестра там нет, порт 3001 законен.
   if (isIpHost(hostname)) return `${scheme}://${hostname}:3001`;
   return `${scheme}://auth.${apexFrom(hostname)}`;
 }
@@ -47,4 +56,5 @@ export function projectsBaseFromHost(host: string | null, proto: string): string
   const scheme = proto === "https" ? "https" : "http";
   if (isIpHost(hostname)) return `${scheme}://${hostname}:3003`;
   return `${scheme}://projects.${apexFrom(hostname)}`;
-}
+}import { authUrl as nodeAuthUrl } from "@/lib/microservices/urls";
+
