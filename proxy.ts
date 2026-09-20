@@ -6,6 +6,7 @@ import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address";
 import { isShowcaseRequest } from "@/lib/showcase";
 import { getSession } from "@/lib/auth/get-session";
 import { authBaseFromHost, projectsBaseFromHost } from "@/lib/auth-base-server";
+import { authUrl as nodeAuthUrl } from "@/lib/microservices/urls";
 import {
   SUPPORTED_LANGUAGES,
   DEFAULT_LANGUAGE,
@@ -385,12 +386,36 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     // слоя встречают чужого, и он честнее переадресации на мёртвое имя.
     // Признак хозяина берётся готовым (`isOwnerAtMachine`), а не переписывается
     // списком петлевых имён: третья копия того же знания разошлась бы молча.
-    if (isTemporaryPublicAddress(request) || isOwnerAtMachine(request)) {
+    const proto = request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol.replace(":", "");
+    const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+    // 🔒 ВРЕМЕННЫЙ ПУБЛИЧНЫЙ АДРЕС — ПО-ПРЕЖНЕМУ 404 (решение владельца 256-11).
+    if (isTemporaryPublicAddress(request)) {
       return new NextResponse(null, { status: 404 });
     }
 
-    const proto = request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol.replace(":", "");
-    const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+    // 🔒 ХОЗЯИН ЗА КЛАВИАТУРОЙ ПОЛУЧАЕТ НАСТОЯЩУЮ ДВЕРЬ, А НЕ 404 (257-8).
+    //
+    // Решение владельца 2026-09-20 изменило посылку: авторизация больше не чужая
+    // служба на субдомене, а ЧАСТЬ УЗЛА, приезжающая вместе с ним. Реестр знает
+    // её порт, значит дверь существует — и отвечать «страницы нет» о живой
+    // странице было бы ложью. Прежний 404 писался тогда, когда вести было некуда.
+    //
+    // 🛑 ИМЯ ХОСТА БЕРЁТСЯ ИЗ ЗАПРОСА, А ПОРТ ИЗ РЕЕСТРА, И ЭТО НЕ ПРИДИРКА.
+    // Cookie не различает порты, но различает ИМЯ: сессия, выданная на
+    // `127.0.0.1`, не придёт на `localhost`. Уведи мы человека с его же имени —
+    // он зарегистрируется, вернётся и окажется неузнанным.
+    const assignedAuth = nodeAuthUrl();
+    if (assignedAuth && isOwnerAtMachine(request)) {
+      const authPort = new URL(assignedAuth).port;
+      const ownHost = (host ?? "localhost").split(":")[0];
+      const qsOwn = request.nextUrl.search;
+      return NextResponse.redirect(`${proto}://${ownHost}:${authPort}${pathname}${qsOwn}`);
+    }
+
+    if (isOwnerAtMachine(request)) {
+      return new NextResponse(null, { status: 404 });
+    }
+
     const search = new URLSearchParams(request.nextUrl.search);
     // /logout (step 169): the auth service clears the cookie and then must land the visitor
     // BACK on this site — but it cannot derive this origin (IP mode: different port; secure
