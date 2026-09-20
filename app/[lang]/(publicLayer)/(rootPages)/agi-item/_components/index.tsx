@@ -30,20 +30,19 @@ import { PostBody } from '@/components/content-page/post-body'
 const page = createContentPage({
   resolve: homePage,
   meta,
-  // Верхняя часть: короткий абзац и поднятые виды — значки и действия.
-  afterHeader: (lang: string) => {
-    const { intro } = homePage(lang)
-    return (
-      <>
-        {intro && (
-          <p className="max-w-3xl text-[length:var(--fs-small)] leading-relaxed text-muted-foreground">
-            {intro}
-          </p>
-        )}
-        <PostBody blocks={homeLead(lang)} lang={lang} />
-      </>
-    )
-  },
+  // 🔒 ЗАГОЛОВОК ПЕЧАТАЕТ ПЕРВЫЙ ЭКРАН, А НЕ ШАПКА — то же, что на главной.
+  //
+  // ✗ ПОЙМАНО ЗАМЕРОМ 2026-09-20: после перехода страницы на вид `heroSplit` на
+  // ней оказалось ДВА H1 с одним и тем же текстом — один от шапки, другой от
+  // первого экрана. Глазами это выглядит просто как повтор заголовка; для
+  // поисковика два H1 спорят между собой, и страница теряет собственную тему.
+  titleInBody: true,
+  // Верхняя часть: поднятые виды — значки и действия.
+  //
+  // 🪦 ЗДЕСЬ ЖЕ ПЕЧАТАЛСЯ АБЗАЦ `intro` («ядро намеренно мало…»). Поле убрано
+  // 2026-09-20: текст переехал в цитату внутри страницы, где читается как
+  // утверждение о замысле, а не как продолжение подзаголовка.
+  afterHeader: (lang: string) => <PostBody blocks={homeLead(lang)} lang={lang} />,
 })
 
 export const generateMetadata = page.generateMetadata

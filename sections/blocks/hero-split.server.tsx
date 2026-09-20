@@ -1,5 +1,6 @@
 import type { SectionRenderer } from '@/sections/contract'
 import { ConfigImage } from '@/components/media/config-image.server'
+import { AgiNodeDiagram } from '@/components/media/agi-node-diagram.server'
 import { StaticImage } from '@/components/media/static-image.server'
 import { getAppConfig } from '@/config/app-config'
 import { getLogoPath } from '@/config/app-config.defaults'
@@ -144,8 +145,23 @@ export const heroSplit: SectionRenderer<'heroSplit'> = (b, { key: k }) => {
               вокруг копился воздух. Высоте расти при этом можно и нужно:
               пропорции важнее одинаковой высоты колонок. */}
           <div className="w-full">
+            {/* 🔒 ДВА ИСТОЧНИКА ИЗОБРАЖЕНИЯ, И ВЫБИРАЕТ ИХ ДАННЫЕ, А НЕ КОД.
+                Картинка `homePage` настраивается владельцем и уезжает с проектом;
+                схема `agiNode` нарисована здесь и объясняет продукт. Подменить
+                одно другим значило бы либо лишить владельца его картинки, либо
+                дать ему стереть объяснение, не поняв этого. */}
+            {b.image === 'agiNode' && b.diagram ? (
+              <AgiNodeDiagram
+                labels={b.diagram}
+                className="h-auto w-full rounded-2xl border border-border bg-card p-6 text-foreground"
+              />
+            ) : (
             <ConfigImage
-              slot={b.image}
+              // В этой ветке значение может быть только `'homePage'`: схема ушла
+              // выше. Сужение записано явно — типы иначе видят здесь оба варианта,
+              // и это не придирка компилятора, а честный вопрос «что покажется,
+              // если однажды появится третий источник».
+              slot={b.image === 'agiNode' ? 'homePage' : b.image}
               alt={b.imageAlt}
               // Первый экран — грузить сразу: по этой картинке поисковик меряет
               // скорость появления страницы.
@@ -156,6 +172,7 @@ export const heroSplit: SectionRenderer<'heroSplit'> = (b, { key: k }) => {
               sizes="(max-width: 768px) 100vw, 50vw"
               className="h-auto w-full rounded-2xl border border-border"
             />
+            )}
           </div>
         </div>
       </div>

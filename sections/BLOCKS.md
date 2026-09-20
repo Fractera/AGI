@@ -44,7 +44,7 @@
 | `columns01` | `columns` | Page material | — | children: Block[]; cols?: 2 \| 3 | — |
 | `group01` | `group` | Page material | — | children: Block[] | — |
 | `heroBadge01` | `heroBadge` | Hero | the mark and the eyebrow above the title | pill?: string | [карточка](blocks/heroBadge.md) |
-| `heroSplit01` | `heroSplit` | Hero | the landing first screen: words left, picture right | title: string; description: string; pill?: string; image: 'homePage'; imageAlt: string; mark?: boolean; cta?: { href: string; label: string; secondary?: { href: string; label: string } } | [карточка](blocks/heroSplit.md) |
+| `heroSplit01` | `heroSplit` | Hero | the landing first screen: words left, picture right | title: string; description: string; pill?: string; image: 'homePage' \| 'agiNode'; imageAlt: string; diagram?: { core: string; ring: [string, string, string, string]; peers: string }; mark?: boolean; cta?: { href: string; label: string; secondary?: { href: string; label: string } } | [карточка](blocks/heroSplit.md) |
 | `badges01` | `badges` | Benefits and value | a row of capability labels | items: BadgeItem[] | [карточка](blocks/badges.md) |
 | `panel01` | `panel` | Page material | — | tone?: 'plain' \| 'warn' \| 'accent'; eyebrow?: string; title: string; children: Block[] | — |
 | `metrics01` | `metrics` | Trust and logos | the numbers that prove it | items: { value: string; label: string }[] | [карточка](blocks/metrics.md) |

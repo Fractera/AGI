@@ -32,10 +32,49 @@ export const en: HomeCell = {
     'You do exactly what you did before — only easier and faster, and now you get paid for it as well. Turn your expertise into a microservice and earn from it across the agent network: your node lives on your own machine, finds buyers among other projects itself, and takes payment directly. No platform, no middleman, no centre above you.',
   description:
     'Fractera AGI Infrastructure: a home for your agents on your own computer. Your node declares what it can do in a shared catalogue, other agents find it before they start writing code, and telemetry shows the buyer how many projects already run this microservice.',
-  intro:
-    'The core is deliberately small: itself, sign-in, and the data layer. Nothing else is installed by default, because everything else is a choice — and a choice made for you is a dependency you did not ask for.',
+  // 🪦 ПОЛЕ `intro` УБРАНО 2026-09-20. Его текст («ядро намеренно мало…») стоял
+  // в первом экране, а в стандартном первом экране такого места нет — владелец
+  // указал на это прямо. Текст не потерян: он ниже, отдельной цитатой, где
+  // читается как утверждение, а не как продолжение подзаголовка.
   keywords: '',
   blocks: [
+    {
+      kind: 'heroSplit',
+      // 🔒 ТОТ ЖЕ ВИД, ЧТО НА ГЛАВНОЙ — решение владельца 2026-09-20. Две
+      // страницы одного продукта, открытые подряд, не должны выглядеть как два
+      // разных сайта.
+      pill: 'Agentic engineering infrastructure',
+      // Заголовок подставляет сборка (`homePage` в `_data/index.ts`): он обязан
+      // совпадать с H1 страницы, и второго его источника быть не должно.
+      title: '',
+      description: 'A node on your own machine: the core, its capabilities and its link to the network. Everything inside the circle is yours.',
+      cta: {
+        href: 'https://code.claude.com/',
+        label: 'Install Claude Code',
+        secondary: { href: '/en/architect/build/subscription', label: 'Start building' },
+      },
+      // 🔒 СХЕМА, А НЕ СНИМОК ЭКРАНА: снимок показал бы, КАК выглядит панель, а
+      // объяснить надо, ЧТО такое узел, — то есть отношения. Рисуется в коде
+      // (`components/media/agi-node-diagram.server.tsx`), подписи — отсюда.
+      image: 'agiNode',
+      imageAlt: 'Diagram of an AGI node: the core, its capabilities and neighbouring nodes',
+      diagram: {
+        core: 'Core',
+        ring: ['Auth', 'Data', 'Skills', 'Catalogue'],
+        peers: 'Neighbouring nodes',
+      },
+    },
+    // 🔒 «ПОЧЕМУ МЫ НАЗЫВАЕМ ЭТО AGI» — ПЕРВОЕ, ЧТО ИДЁТ ЗА ПЕРВЫМ ЭКРАНОМ.
+    // Слова владельца 2026-09-20, переписанные коротко: сила → люди → что из
+    // этого следует. Вопрос вынесен в заголовок, потому что его задают.
+    { kind: 'h2', text: 'Why we call this AGI' },
+    { kind: 'p', text: 'Claude Code knows how to build. We added people to it: a specialist in any field turns their experience into a node — and anyone can take that node. Need delivery, speech recognition, tax calculation? You do not write the code — you take someone else’s node, and it becomes part of your architecture. Not one model that knows everything, but a network where each knows its own. Hence AGI.' },
+    // 🪦 ЭТОТ ТЕКСТ ПРИЕХАЛ ИЗ ПОЛЯ `intro` ПЕРВОГО ЭКРАНА (2026-09-20).
+    // Цитатой он работает лучше: это утверждение о замысле, а не описание.
+    {
+      kind: 'quote',
+      text: 'The core is deliberately small: itself, authentication and the data layer. Nothing else is installed by default — everything else is a choice, and a choice made for you is a dependency you did not ask for.',
+    },
     {
       kind: 'badges',
       // 🔒 "Open code" FIRST, and never "open source": the licence permits any
