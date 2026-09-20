@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAppConfig } from "@/config/app-config";
 import { SUPPORTED_LANGUAGES } from "@/config/translations/translations.config";
+import { isShowcaseBuild } from "@/lib/showcase.server";
 
 // Static robots (step 131). Config-driven so it stays correct under white-label:
 // indexing toggle, disallow paths and sitemap URL come from Site Settings
@@ -9,17 +10,27 @@ import { SUPPORTED_LANGUAGES } from "@/config/translations/translations.config";
 export const dynamic = "force-static";
 export const revalidate = 86_400;
 
-const SERVICE_DISALLOW = [
-  "/architecture", "/ai-core", "/ai-draft-settings", "/dashboard", "/debug",
-  "/development-steps", "/documents", "/glossary", "/patterns", "/project",
-  // 🛑 СЛОЙ АРХИТЕКТОРА ДОБАВЛЕН В 255, И ЭТО БЫЛА ДЫРА, А НЕ УПУЩЕНИЕ СТИЛЯ.
-  // Измерено: `/ru/architect/tools` отдавал `robots: index, follow` — то есть
-  // пульт узла (домен, подписка, терминал, состав инструментов) был открыт
-  // поисковику. Мета-тег `noindex` теперь ставит `_lib/collection-metadata.ts`,
-  // но одного его мало: тег читает лишь тот робот, который страницу уже
-  // загрузил, а эта строка не пускает его на адрес вовсе.
-  "/architect",
-];
+// 🛑 СЛОЙ АРХИТЕКТОРА ДОБАВЛЕН В 255, И ЭТО БЫЛА ДЫРА, А НЕ УПУЩЕНИЕ СТИЛЯ.
+// Измерено: `/ru/architect/tools` отдавал `robots: index, follow` — то есть пульт
+// узла (домен, подписка, терминал, состав инструментов) был открыт поисковику.
+// Мета-тег `noindex` ставит `_lib/collection-metadata.ts`, но одного его мало: тег
+// читает лишь тот робот, который страницу уже загрузил, а эта строка не пускает
+// его на адрес вовсе.
+//
+// 🪦 ДЕВЯТЬ ПУТЕЙ УДАЛЕНЫ 2026-09-20 (256-7) — ОНИ ВЕЛИ В ПУСТОТУ. Здесь стояли
+// `/ai-core`, `/ai-draft-settings`, `/dashboard`, `/debug`, `/development-steps`,
+// `/documents`, `/glossary`, `/patterns`, `/project` — остатки прежней линии
+// проекта, приехавшие в стартер. Проверено обходом дерева: **маршрута нет ни у
+// одного**. Запрет несуществующего не защищает ничего и мешает главному: длинный
+// список читается как «тут всё продумано», и настоящая дыра в нём не видна.
+//
+// 🛑 `/architecture` УДАЛЁН ОТТУДА ЖЕ, И ЭТО БЫЛ НАСТОЯЩИЙ ДЕФЕКТ. Это **публичная
+// страница продукта** на 480 строк, которая в той же сборке стоит в карте сайта:
+// `robots.txt` запрещал то, что `sitemap.xml` обещал. Сегодня не стреляло лишь
+// потому, что адреса языковые (`/ru/architecture`), а правила robots префиксные, —
+// то есть один дефект прикрывал другой. Включи владелец одноязычный режим, и
+// описание продукта молча исчезло бы из индекса.
+const SERVICE_DISALLOW = ["/architect"];
 
 // 🪦 КАРТА ТОВАРОВ УДАЛЕНА ВМЕСТЕ С МАГАЗИНОМ (229-3, 2026-09-18). Здесь
 // перечислялись порции /products/sitemap/<N>.xml — предмета у них больше нет.
@@ -27,7 +38,23 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
   const cfg = getAppConfig();
   const base = cfg.seo?.sitemapUrl ?? `${cfg.url}/sitemap.xml`;
   const sitemapUrl = [base];
-  const disallow = [...(cfg.seo?.disallowPaths ?? []), ...SERVICE_DISALLOW];
+  // 🛑 СЛУЖЕБНЫЕ ПУТИ РАСКРЫВАЮТСЯ ПО ВКЛЮЧЁННЫМ ЯЗЫКАМ (256-7).
+  //
+  // ✗ ИЗМЕРЕНО: строка `Disallow: /architect` НЕ ЗАКРЫВАЕТ `/ru/architect`.
+  // Правила robots.txt работают по ПРЕФИКСУ, а все страницы живут за языковым
+  // сегментом. То есть запрет стоял, выглядел исполненным и не защищал ничего —
+  // худший вид дефекта: он снимает тревогу, не снимая причины.
+  //
+  // Раскрытие идёт по включённому набору, поэтому новый язык добавляет строку сам,
+  // без правки кода. Голый путь остаётся тоже: одноязычный режим убирает сегмент.
+  //
+  // 🔒 НА ВИТРИНЕ СЛУЖЕБНЫХ ЗАПРЕТОВ НЕТ (256-2): там слой архитектора открыт
+  // намеренно и обязан индексироваться — иначе мы обещаем поисковику страницы,
+  // которые сами же запретили.
+  const servicePaths = isShowcaseBuild()
+    ? []
+    : SERVICE_DISALLOW.flatMap(p => [p, ...SUPPORTED_LANGUAGES.map(l => `/${l}${p}`)]);
+  const disallow = [...(cfg.seo?.disallowPaths ?? []), ...servicePaths];
   const isAllowed = cfg.seo?.indexing !== "disallow";
 
   // 🔒 БЕЗ ПОСТОЯННОГО АДРЕСА САЙТ НЕ ИНДЕКСИРУЕТСЯ ВОВСЕ (256-4).

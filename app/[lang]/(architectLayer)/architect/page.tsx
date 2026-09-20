@@ -1,8 +1,41 @@
 import type { Block, WorkspaceItem } from '@/lib/content/blocks/types'
+import type { WorkspacePageData } from '@/lib/collection/types'
 import { ArchitectPage } from '../_lib/architect-page'
+import { collectionMetadata } from '../_lib/collection-metadata'
 import { architectLayerUi } from '../_i18n/architect-layer.i18n'
 import { architectHomeUi } from '../_i18n/architect-home.i18n'
 import { ARCHITECT_HOME } from '../_lib/architect-menu'
+
+// ✗ У ВХОДА В СЛОЙ НЕ БЫЛО МЕТАДАННЫХ ВОВСЕ — ИЗМЕРЕНО 2026-09-20 (256-7):
+//
+//   /ru/architect        → <meta name="robots" content="index, follow">
+//   /ru/architect/tools  → <meta name="robots" content="noindex, nofollow, nocache">
+//
+// Двадцать девять разделов слоя объявляли себя закрытыми, а их собственный вход —
+// открытым: у него не было `generateMetadata`, и он наследовал корневые. Правило,
+// которого нет, читается как разрешение.
+//
+// 🔒 ЭТО ТРЕТИЙ РАЗ, КОГДА ВХОД ВЫПАДАЕТ ИЗ СПИСКА СВОИХ ЖЕ РАЗДЕЛОВ: 240 — не
+// попал в список маршрутов и отдавал владельцу 404; 254 — корневой список пережил
+// снос страниц. Признак один и тот же: **вход не считает себя элементом того, что
+// перечисляет.**
+//
+// 🔒 МЕТАДАННЫЕ СТРОИТ ТА ЖЕ ФАБРИКА, ЧТО И У РАЗДЕЛОВ, — второго способа не
+// заводится. Отличие входа только в том, ГДЕ лежат его слова: у разделов — в своей
+// папке `_data`, у него — в словаре слоя, потому что он не элемент дерева папок, а
+// его корень. Данные собираются здесь в ту же форму, и фабрика разницы не видит.
+const entranceData = (lang: string): WorkspacePageData => {
+  const ui = architectLayerUi(lang)
+  const words = { title: ui.home.title, lead: ui.home.lead }
+  // Словарь уже отдал слова на нужном языке, поэтому основа и перевод здесь
+  // совпадают: разойтись источнику и переводу негде.
+  return { meta: { slug: 'architect', order: 0 }, en: words, overrides: { [lang]: words } }
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params
+  return collectionMetadata(entranceData(lang), '')({ params })
+}
 
 // ВХОД В СЛОЙ АРХИТЕКТОРА — страница `/{lang}/architect`.
 //
