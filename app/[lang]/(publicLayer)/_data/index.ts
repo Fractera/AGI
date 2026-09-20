@@ -8,14 +8,6 @@ import { DEFAULT_APP_CONFIG } from '@/config/app-config.defaults'
 import { ALL_ROLES } from '@/lib/roles'
 import { en } from './en'
 import { ru } from './ru'
-import { es } from './es'
-import { fr } from './fr'
-import { it } from './it'
-import { de } from './de'
-import { pt } from './pt'
-import { pl } from './pl'
-import { tr } from './tr'
-import { nl } from './nl'
 
 // Данные главной страницы — ТА ЖЕ АРХИТЕКТУРА, ЧТО У ПОСТА (шаг 508).
 //
@@ -50,7 +42,7 @@ export type HomeData = {
   overrides: Record<string, Partial<HomeCell>>
 }
 
-export const data: HomeData = { en, overrides: { ru, es, fr, it, de, pt, pl, tr, nl } }
+export const data: HomeData = { en, overrides: { ru } }
 
 /**
  * Подстановки, которые может знать только сервер: адрес панели, язык и число

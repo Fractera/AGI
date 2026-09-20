@@ -16,7 +16,7 @@
 // (news, docs) needs no change here — the walk finds it.
 
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs"
-import { join, relative, sep } from "node:path"
+import { join, relative, sep, basename } from "node:path"
 
 const ROOT = process.cwd()
 const APP = join(ROOT, "app", "[lang]")
@@ -514,6 +514,111 @@ if (existsSync(PUBLIC_LAYER)) {
     if (dyn) fail(f, "surface-dynamic", `${dyn[0]} — публичная поверхность обязана оставаться статической`)
   }
 }
+
+// ── ДВА ЯЗЫКА ВЕЗДЕ: ЛИШНИЙ ЯЗЫК — ОТКАЗ (шаг 255, 2026-09-20) ──────────────
+//
+// 🔒 РЕШЕНИЕ ВЛАДЕЛЬЦА, дословно: «у всех просто сейчас должен остаться русский и
+// английский язык пройти по всему приложению… языки которые там существуют это
+// чаще всего просто заглушки они мешают правильному поведению».
+//
+// 🔒 ПОЧЕМУ ЭТО ОТКАЗ, А НЕ ПРЕДУПРЕЖДЕНИЕ — В ОТЛИЧИЕ ОТ СОСЕДНЕГО ПРАВИЛА О
+// ПОКРЫТИИ. Нет перевода — это ненаписанная проза, и ронять ею сборку клиента
+// нельзя. Лишний язык — структурный мусор: ячейка выглядит переводом, не
+// читается никем и расходится с живым текстом МОЛЧА. Именно это и случилось с
+// восемью ячейками главной: они переводили страницу, снесённую шагом 245, и
+// врали бы в тот день, когда владелец включит испанский.
+//
+// 🛑 ПРИЗНАК СЛОВАРЯ — НЕ `Record<string, …>`, А ТО, ЧТО **ВСЕ** КЛЮЧИ ЯВЛЯЮТСЯ
+// КОДАМИ ЯЗЫКОВ. ✗ оплачено в этом же шаге: резак, доверившийся типу, обрезал
+// `FONT_VAR` (имена шрифтов) и карту иконок соцсетей — объекты того же типа, не
+// имеющие к языкам отношения.
+//
+// 🔒 КАТАЛОГ ЯЗЫКОВ ПРОДУКТА ИСКЛЮЧЁН, И ПРИЧИНА В ШАПКЕ, А НЕ В ГОЛОВЕ:
+// `config/translations/language-metadata.ts` — это не перевод наших слов, а
+// список языков, которые продукт УМЕЕТ включать. Обрезав его, мы удалили бы
+// способность, а не заглушку.
+const LANG_CATALOG = "config/translations/language-metadata.ts"
+const ENABLED = new Set(enabledLanguages())
+
+const catalogSrc = existsSync(join(ROOT, LANG_CATALOG)) ? readFileSync(join(ROOT, LANG_CATALOG), "utf8") : ""
+const ALL_LANG_CODES = new Set([...catalogSrc.matchAll(/^ {2}([a-z]{2}): \{/gm)].map(m => m[1]))
+
+/** Ячейка языка в `_data`: файл `<код>.ts` рядом с `index.ts`. */
+function checkDataCells(dir) {
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name)
+    if (statSync(p).isDirectory()) { checkDataCells(p); continue }
+    if (basename(dir) !== "_data" || !/\.tsx?$/.test(name)) continue
+    const code = name.replace(/\.tsx?$/, "")
+    if (!ALL_LANG_CODES.has(code) || ENABLED.has(code)) continue
+    fail(p, "lang-extra-cell", `язык «${code}» не включён (${[...ENABLED].join(",")}) — ячейка не обслуживает ни одного адреса`)
+  }
+}
+
+/** Словарь языков в любом файле: объект, все ключи которого — коды языков. */
+function checkLangDicts(dir) {
+  for (const name of readdirSync(dir)) {
+    if (name === "node_modules" || name === ".next" || name === ".git") continue
+    const p = join(dir, name)
+    if (statSync(p).isDirectory()) { checkLangDicts(p); continue }
+    if (!/\.(tsx?|json)$/.test(name)) continue
+    if (relative(ROOT, p).split(sep).join("/") === LANG_CATALOG) continue
+
+    const src = readFileSync(p, "utf8")
+    const starts = []
+    if (name.endsWith(".json")) { const k = src.indexOf("{"); if (k >= 0) starts.push(k + 1) }
+    for (const m of src.matchAll(/=\s*\{/g)) starts.push(m.index + m[0].length)
+
+    for (const start of starts) {
+      const keys = objectKeys(src, start)
+      if (!keys || keys.length < 3) continue
+      if (!keys.every(k => ALL_LANG_CODES.has(k))) continue
+      const extra = keys.filter(k => !ENABLED.has(k))
+      if (extra.length) fail(p, "lang-extra-dict", `языки вне включённого набора: ${extra.join(",")}`)
+    }
+  }
+}
+
+/** Ключи объекта верхнего уровня; null, если это не объектный литерал. */
+function objectKeys(src, i) {
+  const keys = []
+  while (i < src.length) {
+    while (i < src.length && /\s/.test(src[i])) i++
+    if (src[i] === "}") return keys
+    const km = /^(?:'([a-zA-Z-]+)'|"([a-zA-Z-]+)"|([a-zA-Z-]+))\s*:\s*/.exec(src.slice(i))
+    if (!km) return null
+    keys.push(km[1] ?? km[2] ?? km[3])
+    let j = i + km[0].length
+    const open = { "{": "}", "[": "]" }
+    const stack = []
+    while (j < src.length) {
+      const c = src[j]
+      if (c === '"' || c === "'" || c === "`") {
+        const q = c
+        j++
+        while (j < src.length) { if (src[j] === "\\") { j += 2; continue } if (src[j] === q) { j++; break } j++ }
+        continue
+      }
+      if (open[c]) { stack.push(open[c]); j++; continue }
+      if (c === "}" || c === "]") {
+        if (stack.length && stack[stack.length - 1] === c) { stack.pop(); j++; if (!stack.length) break; continue }
+        break
+      }
+      if (c === "," && !stack.length) break
+      j++
+    }
+    if (src[j] === ",") j++
+    i = j
+  }
+  return keys
+}
+
+checkDataCells(APP)
+for (const root of ["app", "lib", "components", "sections", "config", "_tools"]) {
+  const d = join(ROOT, root)
+  if (existsSync(d)) checkLangDicts(d)
+}
+
 
 for (const w of warnings) {
   console.log(`  предупреждение: ${w.rule} — ${w.file}\n    ${w.detail}`)

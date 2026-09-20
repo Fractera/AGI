@@ -68,11 +68,26 @@ a link in an index, and the whole no-sign-in warning. The shape is
 `Record<lang, Ui>`, and it must stay that shape: `check-i18n` does not understand
 a pair of `const EN` / `const RU` and silently reports "0 languages".
 
-🔒 **Two languages here, not 82, and that is a rule rather than a shortcut.** The
-82-language rule covers parts of the product that are REUSED and must speak in any
-enabled language. This layer is one closed surface behind a lock, so it follows
-the page-set rule: `en` + `ru`, with the rest recorded in
-`development-docs/TRANSLATION-DEBT.md` when they are promised.
+🔒 **Two languages — and since step 255 that is true of the WHOLE application, not
+of this layer alone.** The owner's decision of 2026-09-20 cancelled the
+82-language rule here: `en` is the base, `ru` is the override, everywhere. What
+used to make this layer special is now the standard, so a page of this layer and a
+page of the public layer are shaped identically — which is the point, in the
+owner's own words: «минимальный достаточный набор, чтобы создать идеальный
+паттерн».
+
+🛑 **This is enforced, not remembered.** `scripts/check-content.mjs` fails the
+build on a `_data` cell for a language that is not enabled (`lang-extra-cell`) and
+on a dictionary that declares one (`lang-extra-dict`). It walks the tree instead
+of holding a list, because a page arrives as a FOLDER and a hand-kept list would
+never learn about it — the lesson of 236-1. The one exclusion is
+`config/translations/language-metadata.ts`, the catalogue of languages the product
+can offer; the reason stands in the guard's own header.
+
+🛑 **No comments inside a language cell.** `en.ts` and `ru.ts` carry text and
+nothing else. A law about the MECHANISM goes into `_data/index.ts` beside the
+type; the reason a sentence is worded a certain way goes into the step record.
+Written once per cell, one law becomes N copies that drift apart silently.
 
 🛑 **Never inline a language check** (`lang === 'ru' ? … : …`). It defeats the
 fallback, hides from the guard, and has to be found by hand in every file the day

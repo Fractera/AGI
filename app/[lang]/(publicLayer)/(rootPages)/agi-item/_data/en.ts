@@ -1,51 +1,23 @@
 import type { HomeCell } from './index'
 
-// Английская основа главной — Fractera AGI Infrastructure.
-//
-// 🔒 ФОРМА ВЕРХНЕЙ ЧАСТИ ВЗЯТА С ЛЕНДИНГА ПАМЯТИ (memory.aifa.dev) ПО СЛОВУ
-// ВЛАДЕЛЬЦА и объявлена стандартной для приложения: ярлык над заголовком → H1 →
-// подзаголовок → мелкий абзац → ряд значков → два действия → оглавление.
-// Здесь она собрана НАШИМИ видами каталога, а не перенесена разметкой.
-//
-// 🔒 ОГЛАВЛЕНИЕ НЕ ОБЪЯВЛЕНО И ОБЪЯВЛЯТЬСЯ НЕ ДОЛЖНО: вид `toc` строится
-// фабрикой из блоков `h2` этого же материала, с теми же якорями.
-//
-// 🔒 СТРАНИЦА ОПИСЫВАЕТ ПРОДУКТ В ЗАКОНЧЕННОМ ВИДЕ — прямое слово владельца
-// 2026-09-18: «переписывай так, как будто мы это всё уже реализовали».
-//
-// 🔒 ПЕРЕРАБОТАНА 2026-09-19 — состав разделов зеркалит русскую ячейку, потому
-// что правки владельца касались СТРУКТУРЫ, а не перевода. Разбор каждой правки —
-// в шапке `ru.ts`; главная из них: философия блокчейна была пропущена вовсе и
-// теперь стоит вторым разделом, сразу под первым экраном.
 export const en: HomeCell = {
-  // Подпись пункта верхнего меню — её читает сканер `lib/menu/group-menus.ts`.
+
   eyebrow: 'AGI core',
-  // 🔒 H1 carries the name, the class and the subject. Web3 is claimed, Web4 is
-  // not: the second has no agreed meaning, and claiming it is the same class of
-  // risk as saying "open source" where the licence is source-available.
+
   title: 'Fractera AGI — Web3 infrastructure for your agents',
-  // 🔒 The opening sentence is the owner's, dictated 2026-09-19, and it leads on
-  // purpose: it is the PROMISE, and the two sentences after it are the mechanism
-  // that keeps it. Promise first, machinery second — that order is the difference
-  // between a subtitle people read and one they scroll past.
+
   subtitle:
     'You do exactly what you did before — only easier and faster, and now you get paid for it as well. Turn your expertise into a microservice and earn from it across the agent network: your node lives on your own machine, finds buyers among other projects itself, and takes payment directly. No platform, no middleman, no centre above you.',
   description:
     'Fractera AGI Infrastructure: a home for your agents on your own computer. Your node declares what it can do in a shared catalogue, other agents find it before they start writing code, and telemetry shows the buyer how many projects already run this microservice.',
-  // 🪦 ПОЛЕ `intro` УБРАНО 2026-09-20. Его текст («ядро намеренно мало…») стоял
-  // в первом экране, а в стандартном первом экране такого места нет — владелец
-  // указал на это прямо. Текст не потерян: он ниже, отдельной цитатой, где
-  // читается как утверждение, а не как продолжение подзаголовка.
+
   keywords: '',
   blocks: [
     {
       kind: 'heroSplit',
-      // 🔒 ТОТ ЖЕ ВИД, ЧТО НА ГЛАВНОЙ — решение владельца 2026-09-20. Две
-      // страницы одного продукта, открытые подряд, не должны выглядеть как два
-      // разных сайта.
+
       pill: 'Agentic engineering infrastructure',
-      // Заголовок подставляет сборка (`homePage` в `_data/index.ts`): он обязан
-      // совпадать с H1 страницы, и второго его источника быть не должно.
+
       title: '',
       description: 'A node on your own machine: the core, its capabilities and its link to the network. Everything inside the circle is yours.',
       cta: {
@@ -53,9 +25,7 @@ export const en: HomeCell = {
         label: 'Install Claude Code',
         secondary: { href: '/en/architect/build/subscription', label: 'Start building' },
       },
-      // 🔒 СХЕМА, А НЕ СНИМОК ЭКРАНА: снимок показал бы, КАК выглядит панель, а
-      // объяснить надо, ЧТО такое узел, — то есть отношения. Рисуется в коде
-      // (`components/media/agi-node-diagram.server.tsx`), подписи — отсюда.
+
       image: 'agiNode',
       imageAlt: 'Diagram of an AGI node: the core, its capabilities and neighbouring nodes',
       diagram: {
@@ -64,22 +34,17 @@ export const en: HomeCell = {
         peers: 'Neighbouring nodes',
       },
     },
-    // 🔒 «ПОЧЕМУ МЫ НАЗЫВАЕМ ЭТО AGI» — ПЕРВОЕ, ЧТО ИДЁТ ЗА ПЕРВЫМ ЭКРАНОМ.
-    // Слова владельца 2026-09-20, переписанные коротко: сила → люди → что из
-    // этого следует. Вопрос вынесен в заголовок, потому что его задают.
+
     { kind: 'h2', text: 'Why we call this AGI' },
     { kind: 'p', text: 'Claude Code knows how to build. We added people to it: a specialist in any field turns their experience into a node — and anyone can take that node. Need delivery, speech recognition, tax calculation? You do not write the code — you take someone else’s node, and it becomes part of your architecture. Not one model that knows everything, but a network where each knows its own. Hence AGI.' },
-    // 🪦 ЭТОТ ТЕКСТ ПРИЕХАЛ ИЗ ПОЛЯ `intro` ПЕРВОГО ЭКРАНА (2026-09-20).
-    // Цитатой он работает лучше: это утверждение о замысле, а не описание.
+
     {
       kind: 'quote',
       text: 'The core is deliberately small: itself, authentication and the data layer. Nothing else is installed by default — everything else is a choice, and a choice made for you is a dependency you did not ask for.',
     },
     {
       kind: 'badges',
-      // 🔒 "Open code" FIRST, and never "open source": the licence permits any
-      // purpose except providing a competing product, which does not meet the
-      // OSI definition. Calling it open source would be open-washing.
+
       items: [
         { label: 'Open code', tone: 'access' },
         { label: 'Lives on your machine', tone: 'code' },
@@ -89,14 +54,6 @@ export const en: HomeCell = {
       ],
     },
 
-    // ── THE HEART OF THE PRODUCT. Second section, right under the first screen ─
-    //
-    // 🛑 ✗ THIS WAS MISSING ENTIRELY, and the owner had to point it out twice.
-    // 🔒 ONE HEADING PER SECTION, DRAWN BY THE SECTION ITSELF.
-    // ✗ paid for twice in one day: the owner found "What next?" sitting right
-    // above "Three steps…", and then I repeated the same pair in this very
-    // rewrite. `flow` and `cards` carry their OWN head (badge → title → note),
-    // so a standalone `h2` beside them gives two headings about one thing.
     {
       kind: 'flow',
       badge: 'Blockchain visibility',
@@ -118,14 +75,6 @@ export const en: HomeCell = {
       ],
     },
 
-    // 🔒 THIS BLOCK'S HEADING IS ABOUT THE BLOCKCHAIN, NOT ABOUT TELEMETRY.
-    // ✗ Paid for on the third attempt: the owner asked from the start to "describe
-    // the value of the blockchain solution and of the tools that work on trust and
-    // autonomy", and I made telemetry the headline — the MEANS in place of the
-    // SUBJECT. The word "block" is banned here too: the product has its own name
-    // for this thing, **AGI ITEM**, and "block" in the same text also means a
-    // building block of the page. Telemetry measures TWO numbers, not three; the
-    // third was my own addition and is gone.
     {
       kind: 'panel',
       tone: 'accent',
@@ -210,10 +159,7 @@ export const en: HomeCell = {
         },
       ],
     },
-    // 🪦 A SECOND ACTION BLOCK STOOD HERE — removed 2026-09-19 by the owner's
-    // decision, "one block instead of two". The page has a single call to action,
-    // in the first screen; repeating it further down offers the reader what he has
-    // already seen and splits one call into two sources.
+
     {
       kind: 'cards',
       badge: 'Run modes',
@@ -291,10 +237,7 @@ export const en: HomeCell = {
           ],
         },
         {
-          // 🔒 Skills replace the chat bot and memory (owner, 2026-09-19). The
-          // point of the wording is that the knowledge graph arrives ALREADY
-          // mapped: the node does not spend months building links at the expense
-          // of its own first user.
+
           kind: 'card',
           children: [
             { kind: 'h3', text: 'Skills' },

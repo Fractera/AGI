@@ -673,6 +673,39 @@ platform — through a deployment the project travels only by `push`.
 
 ## Languages
 
+🔒 **TWO LANGUAGES EVERYWHERE — `en` IS THE BASE, `ru` IS THE OVERRIDE (step 255, 2026-09-20).** The
+owner's decision, verbatim: «я хочу начать с минимальной достаточного набора чтобы создать идеальный
+паттерн поэтому у всех просто сейчас должен остаться русский и английский язык пройти по всему
+приложению». No `_data` folder and no dictionary may carry a third language. A language that is not
+there degrades to English — the resolver always did that; a full dictionary merely hid it.
+
+🪦 **RULE 4д — "82 languages for every REUSED part of the product" — IS CANCELLED IN THIS PROJECT** by
+that decision. It still holds in the `fractera-next-starter` line; do not carry it back here from a
+file you read there.
+
+🛑 **THE PRICE IS NAMED, NOT HIDDEN: real translations were cut, not stubs.** 890 language blocks left
+twenty dictionary files — the top menu, the cookie consent, the access gate, the dialogs — and 40 content
+cells left five pages. Enable a third language tomorrow and its interface is English. Where to get
+them back: the commit of step 255, and `fractera-next-starter`. What is recorded:
+`development-docs/TRANSLATION-DEBT.md`.
+
+🔒 **ONE EXCLUSION, AND IT IS NOT TASTE: `config/translations/language-metadata.ts` IS NEVER CUT.** It
+is not a translation of our words but the catalogue of languages the product can OFFER — name, native
+name, writing direction. Trim it and you delete a capability, not a stub.
+
+🛑 **A DICTIONARY IS NOT RECOGNISED BY `Record<string, …>` BUT BY ITS KEYS BEING LANGUAGE CODES — ALL
+OF THEM.** ✗ Paid for inside step 255 itself: a cutter that trusted the type mangled `FONT_VAR` (font
+names) and the socials icon map — same type, nothing to do with language. The guard that now enforces
+all of this lives in `scripts/check-content.mjs` (`lang-extra-cell`, `lang-extra-dict`), derives its
+list by walking the tree rather than holding one, and is verified by corruption in both directions.
+
+🔒 **NO COMMENTS INSIDE A LANGUAGE CELL.** `_data/en.ts` and `_data/ru.ts` carry text and nothing else.
+The same law written once per cell is one piece of knowledge in N copies, and copies drift: the edit
+goes into whichever file was open. A law about the MECHANISM belongs in `_data/index.ts` next to the
+type; a note about WHY a sentence is worded that way belongs in the step record, not in the data.
+The 67 comment blocks removed by step 255 were archived verbatim before deletion —
+`/code/development-docs/archive/255-comments-from-data-cells.md`.
+
 The site's language set is `NEXT_PUBLIC_SUPPORTED_LANGUAGES` in the slot's `.env.local`: the single
 source, changed in the panel, applied by a rebuild. A fresh slot gets English plus the deployment
 language.

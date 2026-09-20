@@ -1,12 +1,8 @@
 import type { HomeCell } from './index'
 
-// Английская основа главной. Слова перенесены из прежнего словаря
-// `home.i18n.json` (шаг 508) — заново не переводились.
 export const en: HomeCell = {
   title: 'From Vibe-Coded MVP to Commercially Ready Product',
-  // Описание для ПОИСКА — коротко и по делу. Длинный текст первого экрана живёт
-  // в секции `heroSplit` ниже: сниппет обрезается примерно на 160 знаках, и
-  // сильный абзац, попав сюда целиком, превратился бы в оборванную фразу.
+
   description: 'Your own server, your own code: authorization, database, storage and vector search already wired together. Build a landing page or a SaaS in 82 languages.',
   keywords: '',
   blocks: [
@@ -16,10 +12,7 @@ export const en: HomeCell = {
     title: 'From Vibe-Coded MVP to Commercially Ready Product',
     description:
       'Scale 100× without scaling your infrastructure costs — with enterprise-level reliability, security, and compliance.',
-    // 🔒 ТЕ ЖЕ ДВА ДЕЙСТВИЯ, ЧТО И ПОСЛЕ КАЖДОГО РАЗДЕЛА — решение владельца
-    // 2026-09-20. 🪦 Здесь стояла одна кнопка «Забирай бесплатно, масштабируй»,
-    // уводившая на сайт платформы: первый экран предлагал не то, что вся
-    // остальная страница.
+
     cta: {
       href: 'https://code.claude.com/',
       label: 'Install Claude Code',
@@ -28,18 +21,9 @@ export const en: HomeCell = {
     image: 'homePage',
     imageAlt: 'SaaS starter template',
   },
-  // 🔒 ЛЕНТА НАПРАВЛЕНИЙ — ПЕРВОЕ, ЧТО ИДЁТ ЗА ПЕРВЫМ ЭКРАНОМ (владелец
-  // 2026-08-22). Человек, только что прочитавший, ЧТО это, сразу видит, ЧТО этим
-  // строят: двадцать два направления проходят перед ним прежде любых доводов.
-  // Она стоит вне ленты страницы, во всю ширину, вместе с рядом ярлыков.
+
   { kind: 'projectTypeMarquee' },
-  // 🔒 РЯД МЕР УШЁЛ ВНИЗ, под виджет безопасности (владелец 2026-08-22). Три
-  // множителя — это довод, а доводу место после того, как названа ценность:
-  // сначала «безопасность встроена в основу», потом «во сколько раз дешевле»,
-  // и только потом «как это работает».
-  //
-  // Механически: ряда мер больше нет среди поднятых видов (`LEAD_KINDS` в
-  // `_data/index.ts`), поэтому он рисуется в ленте страницы — первым её блоком.
+
   {
     kind: 'metrics',
     items: [
@@ -51,11 +35,7 @@ export const en: HomeCell = {
   {
     kind: 'badges',
     items: [
-      // 🔒 ПЕРВЫМ И БЕЗ ПЕРЕВОДА — решение владельца 2026-08-22. «Open Code» это
-      // ИМЯ лицензионной модели (source-available), а не описание свойства: у него
-      // есть точное определение, и перевод его теряет — «открытый код» читается
-      // как open source по OSI, чем эта лицензия не является. Имя остаётся одним
-      // и тем же во всех языках, как остаётся «SEO» и «AIO» строкой ниже.
+
       { label: 'Open Code', tone: 'code' },
       { label: '82 languages', tone: 'reach' },
       { label: 'SEO built in', tone: 'reach' },
@@ -85,14 +65,7 @@ export const en: HomeCell = {
       { title: 'Push, and it deploys itself', text: 'Finish on the local machine and push the project to GitHub. That immediately starts a new deployment on your own server — and the visitor sees the new project.' },
     ],
   },
-  // 🔒 ПЕРЕНОС ЧУЖОГО ПРОЕКТА — ЧЕТВЁРТЫЙ ТИП РАБОТЫ (владелец 2026-08-22).
-  // Раздел описывает НАМЕРЕНИЕ, и это сказано в нём прямо: сегодня шаги, из
-  // которых миграция состоит, ещё строятся. Раздел, обещающий готовую кнопку,
-  // стоит дороже отсутствующего — за ним приходят и не находят.
-  // 🔒 IN PLACE OF THE QUIZ — TWO COLUMNS OF SELF-SELECTION (owner, 2026-08-29).
-  // The frame is borrowed from «How to start» on his direct instruction («for
-  // compare use … design»): badge, title, note, two toned columns. That section
-  // was removed by the same decision, so its layout moved here rather than died.
+
   {
     kind: 'cards',
     badge: 'Fit',
@@ -134,15 +107,7 @@ export const en: HomeCell = {
       },
     ],
   },
-  // 🔒 A DUMMY BUTTON, SAID OUT LOUD (owner, 2026-08-29: «action for new CTA i
-  // will next now dummy button only»). It has no destination yet — the audit page
-  // does not exist, and `href` deliberately leads nowhere. An invented address
-  // would look functional and drop the visitor into a 404.
-  // 🪦 ЗДЕСЬ СТОЯЛА ОДИНОЧНАЯ КНОПКА С АДРЕСОМ `#`, то есть ведущая в никуда.
-  // Владелец назвал её выполненной неправильно и некрасиво (2026-09-20) и велел
-  // взять блок из двух кнопок со страницы AGI ядра. Блок теперь не вписывается
-  // в данные вовсе: он ставится после КАЖДОГО раздела функцией
-  // `lib/content/cta-after-sections.ts`, одной на обе страницы.
+
   {
     kind: 'cards',
     badge: 'Architecture',
@@ -161,7 +126,7 @@ export const en: HomeCell = {
       'The hidden reality of vibe coding: most of a project is built with no thought for heavy load, for saving database queries, for caching. Not because developers do not know about it — but because holding that standard inside a framework is genuinely hard. Too many small things quietly push a page off static generation and into dynamic rendering. And the difference is not five percent, or ten: in some cases the load on your server grows a thousandfold, and your bill for servers and platforms grows with it. Fractera is built on one long experience: more than thirty years of web development. Everything about heavy load, search optimisation and saving on databases is written into the DNA of this project. It is its skeleton and its life force. And it is yours for free.',
     cite: 'Roma Armstrong · founder of Fractera',
   },
-  // Завершающая секция (outro) — всегда последняя, всегда во всю ширину.
+
   {
     kind: 'noBill',
     badge: 'Independence',
