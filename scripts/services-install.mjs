@@ -34,8 +34,8 @@
 // постоянными аргументами. `windowsHide: true` — каждому порождённому процессу,
 // иначе на экране человека мигают чёрные окна консоли.
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, readdirSync, cpSync } from 'node:fs'
+import { join, dirname, relative } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { randomBytes, createHash } from 'node:crypto'
 import { createRequire } from 'node:module'
@@ -243,6 +243,53 @@ function derivedValue(name, ctx) {
   return ''
 }
 
+// ── Чем запускать службу ─────────────────────────────────────────────────────
+//
+// Возвращает { cmd, args, cwd } или null. Ни одной строки, зависящей от имени
+// конкретной службы: всё выводится из того, что лежит в её папке.
+function findStandaloneServer(dir) {
+  const stack = [join(dir, '.next', 'standalone')]
+  for (let depth = 0; depth < 5 && stack.length; depth += 1) {
+    const next = []
+    for (const d of stack) {
+      if (!existsSync(d)) continue
+      if (existsSync(join(d, 'server.js'))) return d
+      for (const name of readdirSync(d, { withFileTypes: true })) {
+        if (name.isDirectory() && name.name !== 'node_modules') next.push(join(d, name.name))
+      }
+    }
+    stack.length = 0
+    stack.push(...next)
+  }
+  return null
+}
+
+function resolveStart(dir, props) {
+  const standaloneDir = findStandaloneServer(dir)
+  if (standaloneDir) {
+    // Статика — рядом с найденным сервером, а не в корне standalone.
+    const staticFrom = join(dir, '.next', 'static')
+    if (existsSync(staticFrom)) {
+      cpSync(staticFrom, join(standaloneDir, '.next', 'static'), { recursive: true })
+    }
+    if (existsSync(join(dir, 'public'))) {
+      cpSync(join(dir, 'public'), join(standaloneDir, 'public'), { recursive: true })
+    }
+    return { cmd: 'node', args: [relative(dir, join(standaloneDir, 'server.js')).split('\\').join('/')], cwd: dir }
+  }
+
+  // Простая служба: берём её же команду старта, если это честный вызов node.
+  // `npm run start` через оболочку не годится в pm2: убитый npm оставляет
+  // сироту — узел уже платил за этот класс отказа.
+  try {
+    const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'))
+    const m = String(pkg.scripts?.start ?? '').match(/^node\s+([^\s]+)$/)
+    if (m) return { cmd: 'node', args: [m[1]], cwd: dir }
+  } catch { /* нет package.json — ответим null */ }
+
+  return null
+}
+
 // ── Сам обход ────────────────────────────────────────────────────────────────
 const nodePort = (() => {
   try { return JSON.parse(readFileSync(join(ROOT, 'logs', 'runtime.json'), 'utf8')).port ?? PORT_BLOCK_START }
@@ -429,7 +476,33 @@ for (const entry of registry.services) {
     }
   }
 
-  writeFileSync(stampFile, JSON.stringify({ version: entry.version, env: envFingerprint, at: new Date().toISOString() }, null, 2), 'utf8')
+  // 6. ЧЕМ ЭТУ СЛУЖБУ ЗАПУСКАТЬ — выясняется здесь и записывается в отметку.
+  //
+  // 🔒 ЭТО МАШИННЫЙ ФАКТ, И ПОТОМУ ЕМУ НЕ МЕСТО В ПАСПОРТЕ. Паспорт принадлежит
+  // службе и одинаков у всех, кто её поставил; путь к собранному серверу зависит
+  // от того, как Next вывел корень трассировки НА ЭТОЙ машине. Измерено: из-за
+  // соседнего package-lock.json узла standalone-сервер авторизации уехал в
+  // `.next/standalone/microservices/auth/server.js`, а не в корень standalone.
+  //
+  // 🛑 И ВТОРОЕ, ЧЕГО NEXT НЕ ДЕЛАЕТ САМ: статику в standalone он не копирует.
+  // Без этого страницы рисуются, а КАЖДЫЙ стиль и скрипт отдают 404 — снаружи
+  // это выглядит «сломалась вёрстка», а не «не доделана упаковка».
+  const start = resolveStart(dir, props)
+  if (!start) {
+    say('  ОШИБКА: нечем запускать — не нашёл ни standalone-сервера, ни простой команды старта')
+    failed += 1
+    continue
+  }
+  say(`  запуск: ${start.cmd} ${start.args.join(' ')}`)
+
+  writeFileSync(stampFile, JSON.stringify({
+    version: entry.version,
+    env: envFingerprint,
+    port,
+    start,
+    health: props.health?.path ?? null,
+    at: new Date().toISOString(),
+  }, null, 2), 'utf8')
 
   summary.push({ id: entry.id, version: entry.version, port, stack: props.runtime?.stack })
 }
@@ -462,6 +535,36 @@ if (newNodeVars.size > 0) {
   mkdirSync(dirname(NODE_ENV_FILE), { recursive: true })
   writeFileSync(NODE_ENV_FILE, text, 'utf8')
   say(`\n  .env.local узла: обновлено переменных — ${newNodeVars.size}`)
+}
+
+// ── 8. Обновить живущие процессы, если они уже запущены ──────────────────────
+//
+// 🛑 `pm2 delete` + `pm2 start`, А НЕ `restart`. pm2 ХРАНИТ ОКРУЖЕНИЕ ПРОЦЕССА:
+// переменная, убранная из конфига, остаётся в живом процессе, и `--update-env`
+// её не вычищает. Оплачено дважды за один вечер, и оба раза выглядело как
+// «правка не применилась».
+//
+// 🔒 ЗАПУСКАЕМ ТОЛЬКО ТО, ЧТО УЖЕ БЫЛО ЗАПУЩЕНО. Установка — не команда «подними
+// узел»: её зовут и на свежей машине, где сайт ещё не поднимали. Подняться
+// целиком — дело `npm run serve:start`.
+const pm2cmd = IS_WIN ? 'pm2.cmd' : 'pm2'
+const listed = run(pm2cmd, ['jlist'], ROOT, { quiet: true })
+let running = []
+try { running = JSON.parse(listed.out.slice(listed.out.indexOf('['))).map((a) => a.name) } catch { /* pm2 не отвечает */ }
+
+const refreshed = []
+for (const s of summary) {
+  for (const suffix of ['', '-watch']) {
+    const name = `fractera-svc-${s.id}${suffix}`
+    if (!running.includes(name)) continue
+    run(pm2cmd, ['delete', name], ROOT, { quiet: true })
+    const st = run(pm2cmd, ['start', 'ecosystem.config.cjs', '--only', name], ROOT, { quiet: true })
+    if (st.rc === 0) refreshed.push(name)
+  }
+}
+if (refreshed.length) {
+  run(pm2cmd, ['save'], ROOT, { quiet: true })
+  say(`\n  перезапущено с чистым окружением (delete + start): ${refreshed.join(', ')}`)
 }
 
 // ── Итог ─────────────────────────────────────────────────────────────────────

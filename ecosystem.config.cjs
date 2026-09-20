@@ -17,8 +17,99 @@
 // проверка по HTTP, и она живёт отдельно (232-3, `scripts/health-watch.mjs`).
 
 const path = require('node:path')
+const fs = require('node:fs')
 
 const root = __dirname
+
+// ── ЖИТЕЛИ СМЕННЫХ БЛОКОВ ПОРОЖДАЮТСЯ ИЗ РЕЕСТРА, А НЕ ПЕРЕЧИСЛЯЮТСЯ (257-5).
+//
+// 🔒 ПОЧЕМУ НЕ СПИСКОМ. Состав узла меняется: блок покупают, заменяют, удаляют
+// строкой в MICROSERVICES.json. Рукописный список здесь разошёлся бы с реестром
+// молча — и в худшую сторону: pm2 поднимал бы удалённую службу или не поднимал
+// купленную, а ни сборка, ни типы этого не видят.
+//
+// 🔒 ПО ДВА ЖИТЕЛЯ НА БЛОК — ЗАКОН ПРОЕКТА, А НЕ ОСТОРОЖНОСТЬ. Диспетчер
+// процессов не видит состояния «жив, но не отвечает»: для pm2 служба, отдающая
+// 500 на каждый запрос, — `online`. Ловит это только опрос по HTTP, и он живёт
+// отдельным процессом рядом со службой.
+//
+// Чем именно запускать блок, знает не этот файл, а отметка установки
+// `.install-stamp.json`: путь к собранному серверу — машинный факт, он выясняется
+// установщиком на той машине, где собирали.
+function serviceApps() {
+  let registry
+  try {
+    registry = JSON.parse(fs.readFileSync(path.join(root, 'MICROSERVICES.json'), 'utf8'))
+  } catch {
+    return [] // реестра нет — узел без блоков, это законное состояние
+  }
+
+  const apps = []
+  for (const s of registry.services || []) {
+    const dir = path.join(root, 'microservices', s.id)
+    const stampFile = path.join(dir, '.install-stamp.json')
+    // Блок объявлен, но не установлен — его нечем запускать, и придумывать
+    // команду нельзя: pm2 ушёл бы в вечный рестарт по несуществующему файлу.
+    if (!fs.existsSync(stampFile)) continue
+    let stamp
+    try { stamp = JSON.parse(fs.readFileSync(stampFile, 'utf8')) } catch { continue }
+    if (!stamp.start || !Number.isInteger(stamp.port)) continue
+
+    apps.push({
+      name: `fractera-svc-${s.id}`,
+      script: stamp.start.args[0],
+      cwd: stamp.start.cwd || dir,
+      instances: 1,
+      exec_mode: 'fork',
+      watch: false,
+      autorestart: true,
+      min_uptime: 20000,
+      max_restarts: 10,
+      exp_backoff_restart_delay: 1000,
+      kill_timeout: 10000,
+      out_file: path.join(root, 'logs', `svc-${s.id}-out.log`),
+      error_file: path.join(root, 'logs', `svc-${s.id}-err.log`),
+      merge_logs: true,
+      time: true,
+      env: {
+        NODE_ENV: 'production',
+        // Порт и адрес — приказ узла. Всё остальное служба читает из своего
+        // файла окружения, имя которого она же и назвала в паспорте.
+        PORT: String(stamp.port),
+        HOSTNAME: '127.0.0.1',
+      },
+    })
+
+    apps.push({
+      name: `fractera-svc-${s.id}-watch`,
+      script: path.join(root, 'scripts', 'health-watch.mjs'),
+      cwd: root,
+      instances: 1,
+      exec_mode: 'fork',
+      watch: false,
+      autorestart: true,
+      min_uptime: 20000,
+      max_restarts: 10,
+      out_file: path.join(root, 'logs', `svc-${s.id}-watch.log`),
+      error_file: path.join(root, 'logs', `svc-${s.id}-watch.log`),
+      merge_logs: true,
+      time: true,
+      env: {
+        // Сторож в режиме службы: спрашивает НЕ сайт узла, а дверь этого блока,
+        // и перезапускает именно его.
+        FRACTERA_WATCH_SERVICE: s.id,
+        FRACTERA_APP_NAME: `fractera-svc-${s.id}`,
+        FRACTERA_HEALTH_INTERVAL_MS: '30000',
+        FRACTERA_HEALTH_FAILURES: '3',
+        // Службе не нужно компилировать страницы: она собрана. Пауза короче, чем
+        // у узла, но не нулевая — после перезапуска ей нужны секунды, чтобы
+        // открыть базу и встать на порт.
+        FRACTERA_HEALTH_COOLDOWN_MS: '30000',
+      },
+    })
+  }
+  return apps
+}
 
 module.exports = {
   apps: [
@@ -153,5 +244,7 @@ module.exports = {
         FRACTERA_TUNNEL_TIMEOUT_MS: '15000',
       },
     },
+    // Сюда дописываются жители сменных блоков — по два на каждый установленный.
+    ...serviceApps(),
   ],
 }
