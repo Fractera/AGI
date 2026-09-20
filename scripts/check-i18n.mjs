@@ -104,7 +104,7 @@ const CELLS = [
 // зовётся в меню, в рубрикаторе и в своём заголовке. Пустое имя не ломает ни
 // типы, ни сборку: в меню просто появляется пункт без подписи.
 const COLLECTION_ROOTS = ["app/[lang]/(architectLayer)/architect"]
-const COLLECTION_LANGS = ["en", "ru"]
+const COLLECTION_LANGS = enabledLanguages()
 
 function collectionPages(dir, found = []) {
   if (!fs.existsSync(dir)) return found
@@ -123,6 +123,46 @@ function collectionPages(dir, found = []) {
 // проверка, пропускающая часть ключей, опаснее отсутствующей.
 const KEY_RE = /^ {2}([a-zA-Z][a-zA-Z0-9]*)\??:/gm
 const LANG_RE = /^ {2}([a-z]{2,3}(?:-[A-Za-z]+)?): \{/gm
+
+// 🔒 ОЖИДАЕМОЕ ЧИСЛО ЯЗЫКОВ БЕРЁТСЯ У ВКЛЮЧЁННОГО НАБОРА, А НЕ ИЗ СПИСКА (256-9).
+//
+// ✗ ИЗМЕРЕНО 2026-09-20, И ЭТО БЫЛА ТИХАЯ ДЫРА. После шага 255 у каждого словаря
+// в списке выше стояло число `2`. Прогон с третьим включённым языком:
+//
+//   $ NEXT_PUBLIC_SUPPORTED_LANGUAGES=en,ru,es node scripts/check-i18n.mjs
+//   ===I18N_OK=== все словари полны        (код возврата 0)
+//
+// То есть прибор объявлял порядок в тот момент, когда верхнее меню, согласие на
+// cookie, замок доступа и модальные окна остались бы английскими на всём
+// испанском сайте. Число описывало НЕ ТО, ЧТО МЕНЯЕТСЯ.
+//
+// 🔒 ТЕПЕРЬ ОТВЕЧАЕТ ВКЛЮЧЁННЫЙ НАБОР, А ЧИСЛО В СПИСКЕ ОСТАЁТСЯ ЗАПИСЬЮ О ТОМ,
+// СКОЛЬКО ОБЕЩАНО. Словарь обязан нести ровно столько языков, сколько включено:
+// меньше — интерфейс говорит не на языке страницы, больше — лежит перевод без
+// адреса.
+//
+// ✗ ПЕРВАЯ РЕДАКЦИЯ ЭТОЙ ЖЕ ПРАВКИ БЫЛА НЕВЕРНОЙ, И ЭТО ПОЙМАНО ПРОГОНОМ: там
+// стоял `Math.min(declared, ENABLED.length)`, то есть при двух объявленных и трёх
+// включённых ожидалось по-прежнему два — дыра сохранялась в точности. Направление
+// у ограничения было перевёрнуто.
+function enabledLanguages() {
+  const fromEnv = process.env.NEXT_PUBLIC_SUPPORTED_LANGUAGES?.trim()
+  if (fromEnv) return fromEnv.split(",").map(s => s.trim().toLowerCase()).filter(Boolean)
+  for (const name of [".env.local", ".env"]) {
+    try {
+      const line = fs.readFileSync(name, "utf8")
+        .split(/\r?\n/)
+        .find(l => l.trim().startsWith("NEXT_PUBLIC_SUPPORTED_LANGUAGES="))
+      if (line) return line.slice(line.indexOf("=") + 1).split(",").map(s => s.trim().toLowerCase()).filter(Boolean)
+    } catch { /* нет файла — идём дальше */ }
+  }
+  return []
+}
+
+const ENABLED = enabledLanguages()
+const expected = declared => (ENABLED.length ? ENABLED.length : declared)
+
+console.log(`включено языков: ${ENABLED.join(",") || "(не задано)"}\n`)
 
 let bad = 0
 for (const [file, type, want] of FILES) {
@@ -152,9 +192,9 @@ for (const [file, type, want] of FILES) {
         if (typeof v !== "string" || !v.trim()) holes.push(`${lang}.${k}`)
       }
     }
-    const ok = langs.length === want && keys.length > 0 && holes.length === 0
+    const ok = langs.length === expected(want) && keys.length > 0 && holes.length === 0
     if (!ok) bad++
-    let line = `${ok ? "  OK   " : "  БЕДА "} ${file}\n         языков ${langs.length}/${want}, ключей ${keys.length} (слова в ${jsonPath.split("/").pop()})`
+    let line = `${ok ? "  OK   " : "  БЕДА "} ${file}\n         языков ${langs.length}/${expected(want)}, ключей ${keys.length} (слова в ${jsonPath.split("/").pop()})`
     if (!keys.length) line += " — ТИП НЕ РАЗОБРАН"
     if (holes.length) {
       line += `\n         не хватает: ${holes.slice(0, 8).join(", ")}`
@@ -196,10 +236,10 @@ for (const [file, type, want] of FILES) {
     }
   }
 
-  const ok = langs.length === want && keys.length > 0 && holes.length === 0
+  const ok = langs.length === expected(want) && keys.length > 0 && holes.length === 0
   if (!ok) bad++
   const head = ok ? "  OK   " : "  БЕДА "
-  let line = `${head} ${file}\n         языков ${langs.length}/${want}, ключей ${keys.length}`
+  let line = `${head} ${file}\n         языков ${langs.length}/${expected(want)}, ключей ${keys.length}`
   if (!keys.length) line += " — ТИП НЕ РАЗОБРАН"
   if (holes.length) {
     line += `\n         не хватает: ${holes.slice(0, 8).join(", ")}`
