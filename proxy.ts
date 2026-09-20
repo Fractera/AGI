@@ -335,6 +335,27 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   // Job 0 — rescue stray auth-form links to the auth host (before language
   // routing, which would otherwise rewrite "/register" → "/<lang>/register").
   if (AUTH_FORM_PATHS.has(pathname)) {
+    // 🔒 АВТОРИЗАЦИЯ СУЩЕСТВУЕТ ТОЛЬКО НА НАСТОЯЩЕМ ДОМЕНЕ (256-11).
+    //
+    // Слово владельца 2026-09-20, дословно: «неправильно, что временный
+    // trycloudflare домен запрашивает редирект на авторизацию — как мы говорили
+    // раньше, авторизация только на настоящем домене».
+    //
+    // ✗ ИЗМЕРЕНО: `/login` на туннеле отвечал `307` и уводил на
+    // `https://auth.<четыре-случайных-слова>.trycloudflare.com/login` — поддомен
+    // быстрого туннеля, которого НЕ СУЩЕСТВУЕТ и не может существовать: Cloudflare
+    // раздаёт одно имя, а не зону. То есть кнопка входа вела в никуда.
+    //
+    // 🔒 ОТВЕТ — 404, А НЕ МОЛЧАЛИВЫЙ ПРОПУСК ДАЛЬШЕ. На этих адресах двери входа
+    // нет: её либо заменяет правило хозяина за клавиатурой, либо (на туннеле)
+    // открытый режим. «Страницы здесь не существует» — тот же ответ, каким ворота
+    // слоя встречают чужого, и он честнее переадресации на мёртвое имя.
+    // Признак хозяина берётся готовым (`isOwnerAtMachine`), а не переписывается
+    // списком петлевых имён: третья копия того же знания разошлась бы молча.
+    if (isTemporaryPublicAddress(request) || isOwnerAtMachine(request)) {
+      return new NextResponse(null, { status: 404 });
+    }
+
     const proto = request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol.replace(":", "");
     const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
     const search = new URLSearchParams(request.nextUrl.search);
