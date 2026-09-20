@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { type WorkspacePageData, wordsOf } from '@/lib/collection/types'
 import { buildAlternates, urlFor } from '@/lib/seo/alternates'
-import { translatedLanguages } from '@/lib/seo/translation-state'
+import { translatedLanguages, isTranslated } from '@/lib/seo/translation-state'
 import { brand } from '@/lib/brand'
 import { architectLayerIsPublic } from './collection-visibility'
 
@@ -69,11 +69,25 @@ export function collectionMetadata(page: WorkspacePageData, parentDir: string) {
             url: urlFor(lang, path),
       },
 
-      // 🛑 ЕДИНСТВЕННОЕ, ЧТО МЕНЯЕТ ПЕРЕКЛЮЧАТЕЛЬ. Пока слой закрыт замком,
-      // объявлять его индексируемым нельзя: `proxy.ts` отвечает чужому 404, и
-      // обещание поисковику было бы ложным. Снимут ограничение — та же страница
-      // станет полноценно публичной, не меняя ни строки здесь.
-      robots: architectLayerIsPublic()
+      // 🛑 ДВА УСЛОВИЯ, А НЕ ОДНО, И ВТОРОЕ НАЙДЕНО ПРИБОРОМ, А НЕ ГОЛОВОЙ.
+      //
+      // Первое: пока слой закрыт замком, объявлять его индексируемым нельзя —
+      // `proxy.ts` отвечает чужому 404, и обещание поисковику было бы ложным.
+      // Снимут ограничение (витрина) — та же страница станет публичной.
+      //
+      // ✗ ВТОРОЕ ОПЛАЧЕНО В ТОТ ЖЕ ЧАС, 2026-09-20. Правило «непереведённая версия
+      // не индексируется» я внёс в фабрики публичных страниц (256-6) и ЗАБЫЛ про
+      // слой: здесь стояло одно `architectLayerIsPublic()`. На витринной сборке с
+      // третьим языком это дало **198 нарушений** — испанские страницы слоя
+      // объявляли себя индексируемыми и называли `en`/`ru` переводами, а те их в
+      // ответ не называли, потому что перевода нет. Односторонний `hreflang`
+      // поисковик игнорирует целиком, а набор индексируемых копий под разными
+      // языками и есть дорвей.
+      //
+      // 🔒 НАШЁЛ ЭТО `check-seo-html` — сторож, который читает ОТДАННЫЙ HTML.
+      // Правило было написано в двух местах из трёх, и ни `tsc`, ни сборка, ни
+      // старый `check-seo` этого не видели: все три смотрят на исходник.
+      robots: architectLayerIsPublic() && isTranslated(lang, page)
         ? { index: true, follow: true }
         : { index: false, follow: false, nocache: true },
     }

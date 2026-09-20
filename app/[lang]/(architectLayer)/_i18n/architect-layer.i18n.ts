@@ -159,3 +159,17 @@ const DICT: Record<string, ArchitectLayerUi> = {
 export function architectLayerUi(lang: string): ArchitectLayerUi {
   return DICT[lang] ?? DICT.en
 }
+
+/**
+ * Языки, на которых слова слоя есть ПО-НАСТОЯЩЕМУ (256-8).
+ *
+ * ✗ ОПЛАЧЕНО ПРИБОРОМ В ТОТ ЖЕ ЧАС. Вход слоя строил свои данные как
+ * `overrides: { [текущий язык]: words }` — то есть список переводов ЗАВИСЕЛ ОТ
+ * ТОГО, КТО СПРАШИВАЕТ: английская версия видела только себя, русская — себя и
+ * английскую. Отсюда односторонний `hreflang`, который поисковик игнорирует
+ * целиком. Нашёл `check-seo-html`, глазами это невидимо.
+ *
+ * 🔒 ОТВЕТ ОБЯЗАН БЫТЬ ОДИНАКОВ ДЛЯ ВСЕХ СПРАШИВАЮЩИХ — он про словарь, а не про
+ * запрос.
+ */
+export const ARCHITECT_LAYER_LANGS: readonly string[] = Object.keys(DICT)

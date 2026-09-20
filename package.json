@@ -53,7 +53,8 @@
     "serve:rebuild": "node scripts/serve.mjs rebuild",
     "serve:publish": "node scripts/serve.mjs publish",
     "serve:unpublish": "node scripts/serve.mjs unpublish",
-    "check:architect-routes": "node scripts/check-architect-routes.mjs"
+    "check:architect-routes": "node scripts/check-architect-routes.mjs",
+    "check:seo-html": "node scripts/check-seo-html.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.55",

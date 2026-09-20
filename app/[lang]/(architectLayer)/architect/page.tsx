@@ -2,7 +2,7 @@ import type { Block, WorkspaceItem } from '@/lib/content/blocks/types'
 import type { WorkspacePageData } from '@/lib/collection/types'
 import { ArchitectPage } from '../_lib/architect-page'
 import { collectionMetadata } from '../_lib/collection-metadata'
-import { architectLayerUi } from '../_i18n/architect-layer.i18n'
+import { architectLayerUi, ARCHITECT_LAYER_LANGS } from '../_i18n/architect-layer.i18n'
 import { architectHomeUi } from '../_i18n/architect-home.i18n'
 import { ARCHITECT_HOME } from '../_lib/architect-menu'
 
@@ -24,17 +24,29 @@ import { ARCHITECT_HOME } from '../_lib/architect-menu'
 // заводится. Отличие входа только в том, ГДЕ лежат его слова: у разделов — в своей
 // папке `_data`, у него — в словаре слоя, потому что он не элемент дерева папок, а
 // его корень. Данные собираются здесь в ту же форму, и фабрика разницы не видит.
-const entranceData = (lang: string): WorkspacePageData => {
-  const ui = architectLayerUi(lang)
-  const words = { title: ui.home.title, lead: ui.home.lead }
-  // Словарь уже отдал слова на нужном языке, поэтому основа и перевод здесь
-  // совпадают: разойтись источнику и переводу негде.
-  return { meta: { slug: 'architect', order: 0 }, en: words, overrides: { [lang]: words } }
+// ✗ ЗДЕСЬ СТОЯЛО `overrides: { [lang]: words }`, И ЭТО БЫЛ ДЕФЕКТ, НАЙДЕННЫЙ
+// ПРИБОРОМ ЧЕРЕЗ ДЕСЯТЬ МИНУТ ПОСЛЕ НАПИСАНИЯ (256-8). Список переводов ЗАВИСЕЛ
+// ОТ ТОГО, КТО СПРАШИВАЕТ: английская версия видела только себя, русская — себя и
+// английскую. `hreflang` выходил односторонним, а такой поисковик игнорирует
+// целиком — то есть работа выглядела сделанной и не работала.
+//
+// 🔒 СПИСОК ЯЗЫКОВ — СВОЙСТВО СЛОВАРЯ, А НЕ ЗАПРОСА, и берётся у самого словаря
+// (`ARCHITECT_LAYER_LANGS`). Ответ обязан быть одинаков для всех спрашивающих.
+const entranceData = (): WorkspacePageData => {
+  const wordsOfLang = (l: string) => {
+    const ui = architectLayerUi(l)
+    return { title: ui.home.title, lead: ui.home.lead }
+  }
+  return {
+    meta: { slug: 'architect', order: 0 },
+    en: wordsOfLang('en'),
+    overrides: Object.fromEntries(ARCHITECT_LAYER_LANGS.map(l => [l, wordsOfLang(l)])),
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params
-  return collectionMetadata(entranceData(lang), '')({ params })
+  return collectionMetadata(entranceData(), '')({ params })
 }
 
 // ВХОД В СЛОЙ АРХИТЕКТОРА — страница `/{lang}/architect`.
