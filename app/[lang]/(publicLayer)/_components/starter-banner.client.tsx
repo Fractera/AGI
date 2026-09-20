@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { TriangleAlert } from 'lucide-react'
-import { adminBase } from '@/lib/runtime-urls'
 import type { StarterBannerStrings } from './starter-banner.i18n'
 
-// БАННЕР СТАРТОВОГО ШАБЛОНА (шаг 38-1, 2026-08-29) — полоса во всю ширину экрана,
-// выезжающая из-под шапки при прокрутке.
+// ПОЛОСА-ПОДСКАЗКА (шаг 38-1, 2026-08-29) — во всю ширину экрана, выезжает из-под
+// шапки при прокрутке.
 //
 // Просьба владельца дословно: «баннер, который как Push-уведомления будет иметь
 // ширину от левого края экрана до правого края экрана и будет отпускаться от
@@ -14,28 +13,37 @@ import type { StarterBannerStrings } from './starter-banner.i18n'
 // пикселей страницу экрана, и будет исчезать каждый раз, когда мы будем
 // возвращаться к началу страницы».
 //
+// 🔒 ВИД УТВЕРЖДЁН ВЛАДЕЛЬЦЕМ 2026-09-20 («выглядит идеально») И РАСПРОСТРАНЁН НА
+// ВТОРОЙ СЛУЧАЙ — служебные страницы, где ту же мысль несла серая курсивная
+// строка: «он несёт правильную идею, но выполнен с отвратительным дизайном».
+// Отсюда режим `inline` ниже: вид один, поводы разные. Второй компонент «почти
+// такой же» разошёлся бы с первым на первой же правке тона.
+//
 // 🔒 ВИД — ПРЕДУПРЕЖДЕНИЕ (владелец 2026-08-29: «по задумке должен был бы быть в
 // стиле Warning»). Янтарный тон здесь не украшение: это то же значение, каким
-// панель помечает «сделать до старта». Баннер говорит человеку, что он смотрит
+// панель помечает «сделать до старта». Полоса говорит человеку, что он смотрит
 // ЧУЖОЙ шаблон, а не свой проект, — это состояние, которое надо снять, а не
 // сообщение, которое приятно прочитать.
 //
-// 🔒 ОСТРОВОК, А НЕ СТРАНИЦА. Главная предрендерена (`revalidate = 300`), и
-// слушатель прокрутки обязан жить здесь. Подними его на страницу — и главная
-// уедет в динамику, а вместе с ней поисковая выдача.
+// 🔒 ОСТРОВОК, А НЕ СТРАНИЦА. Страницы предрендерены, и слушатель прокрутки обязан
+// жить здесь. Подними его на страницу — и она уедет в динамику, а вместе с ней
+// поисковая выдача.
 //
 // 🔒 `top-14` — ЭТО НИЖНЯЯ ГРАНИЦА ШАПКИ, А НЕ КРАСИВОЕ ЧИСЛО. Шапка объявлена
 // `sticky top-0` высотой `h-14` (`components/menu/top/top-menu.server.tsx`).
 // Полоса висит ПОД ней и потому не закрывает меню; поедет высота шапки — поедет
 // и это число, поэтому связь названа здесь словами.
 //
-// 🔒 АДРЕС ПАНЕЛИ БЕРЁТСЯ ИЗ ДВУХ ИСТОЧНИКОВ, И ЭТО ОПЛАЧЕНО ПУСТОЙ ССЫЛКОЙ
-// (владелец 2026-08-29: «сейчас вообще никакой ссылки нету»). Сервер знает адрес
-// только из `APP-CONFIG.url`, а на свежем сервере настройки ещё не сохраняли —
-// файл пуст, и ссылка исчезала совсем. Поэтому: сервер даёт адрес, когда он
-// есть, а островок после гидратации выводит его из СОБСТВЕННОГО адреса окна
-// (`adminBase()` — IP → `:3002`, домен → `admin.<апекс>`). Выдуманного адреса
-// по-прежнему не появляется: оба источника считают, а не угадывают.
+// 🔒 ССЫЛКА ВЕДЁТ ВНУТРЬ ЭТОГО ЖЕ САЙТА — решение владельца 2026-09-20: «кнопка
+// должна вести на страницу архитектора, которая отвечает за активацию подписки
+// Claude Code Agent».
+//
+// 🪦 ПРЕЖДЕ ОНА ВЕЛА НА ВНЕШНЮЮ ПАНЕЛЬ, и адрес приходилось добывать из двух
+// источников: сервер брал его из `APP-CONFIG.url`, островок после гидратации
+// выводил из адреса окна. ✗ На свежем сервере настройки ещё не сохраняли, файл
+// был пуст — и ссылка исчезала совсем («сейчас вообще никакой ссылки нету»).
+// Теперь адрес СВОЙ и известен всегда: ни настроек, ни угадывания, ни пустой
+// ссылки, и на узле без домена работает так же, как на узле с доменом.
 //
 // 🔒 ПОРОГ И ВОЗВРАТ — РАЗНЫЕ ЧИСЛА НАМЕРЕННО НЕ СДЕЛАНЫ. Владелец описал одно
 // поведение: больше 300 — показать, вернулись к началу — убрать. Гистерезис
@@ -48,29 +56,33 @@ const SHOW_AFTER_PX = 300
 
 export function StarterBanner({
   strings,
-  href,
   lang,
+  inline = false,
 }: {
   strings: StarterBannerStrings
-  /** Адрес раздела запуска, посчитанный сервером. Пусто — считает островок. */
-  href: string
   lang: string
+  /**
+   * Стоять В ПОТОКЕ страницы, а не выезжать из-под шапки.
+   *
+   * 🔒 Для служебных страниц: их подсказка относится к СОДЕРЖИМОМУ страницы, а не
+   * к сайту целиком, поэтому она стоит там, где это содержимое должно быть, и не
+   * зависит от прокрутки.
+   */
+  inline?: boolean
 }) {
   const [shown, setShown] = useState(false)
-  const [fallbackHref, setFallbackHref] = useState('')
 
   useEffect(() => {
+    if (inline) return
     const onScroll = () => setShown(window.scrollY > SHOW_AFTER_PX)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+  }, [inline])
 
-  useEffect(() => {
-    if (!href) setFallbackHref(`${adminBase()}/${lang}/project-start`)
-  }, [href, lang])
-
-  const target = href || fallbackHref
+  // Адрес страницы, где включают подписку агента-программиста. Он внутренний,
+  // поэтому известен всегда и не зависит ни от настроек, ни от домена.
+  const target = `/${lang}/architect/build/subscription`
 
   return (
     <div
@@ -79,25 +91,29 @@ export function StarterBanner({
       // гидратации.
       data-starter-banner
       role="status"
-      aria-hidden={!shown}
-      className={[
-        'fixed inset-x-0 top-14 z-30 border-b border-tone-access/40',
-        'bg-tone-access/15 backdrop-blur-sm',
-        'transition-all duration-300 ease-out',
-        shown ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-full opacity-0',
-      ].join(' ')}
+      aria-hidden={!inline && !shown}
+      className={
+        inline
+          ? // В потоке: та же заливка и тот же тон, но со скруглением — полоса во
+            // всю ширину посреди колонки текста читалась бы как чужой элемент.
+            'my-6 rounded-lg border border-tone-access/40 bg-tone-access/15'
+          : [
+              'fixed inset-x-0 top-14 z-30 border-b border-tone-access/40',
+              'bg-tone-access/15 backdrop-blur-sm',
+              'transition-all duration-300 ease-out',
+              shown ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-full opacity-0',
+            ].join(' ')
+      }
     >
       <div className="w-full px-6 py-2.5 md:px-8 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center">
         <TriangleAlert aria-hidden className="size-4 shrink-0 text-tone-access" />
         <span className="text-sm leading-relaxed text-foreground">{strings.lead}</span>
-        {target ? (
-          <a
-            href={target}
-            className="text-sm font-semibold text-tone-access underline underline-offset-4 hover:opacity-80"
-          >
-            {strings.linkLabel}
-          </a>
-        ) : null}
+        <a
+          href={target}
+          className="text-sm font-semibold text-tone-access underline underline-offset-4 hover:opacity-80"
+        >
+          {strings.linkLabel}
+        </a>
         {strings.tail ? (
           <span className="text-sm leading-relaxed text-foreground">{strings.tail}</span>
         ) : null}

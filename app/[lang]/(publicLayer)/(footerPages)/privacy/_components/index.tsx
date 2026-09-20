@@ -1,7 +1,8 @@
 import { createContentPage } from '@/lib/content/create-content-page'
 import { brand } from '@/lib/brand'
-import { footerPage, panelNotice } from '@/lib/pages/footer-page'
-import { noticeUi } from '@/lib/pages/notice.i18n'
+import { footerPage } from '@/lib/pages/footer-page'
+import { StarterBanner } from '../../../_components/starter-banner.client'
+import { pageTextBannerStrings } from '../../../_components/starter-banner.i18n'
 import { data } from '../_data'
 import { PageTextRequest } from '@/components/request/page-text-request.server'
 
@@ -17,17 +18,26 @@ import { PageTextRequest } from '@/components/request/page-text-request.server'
 const page = createContentPage({
   meta: { subPath: `/${data.meta.slug}`, ogImage: data.meta.ogImage },
   resolve: lang => {
-    const ui = noticeUi(lang)
     const content = footerPage(data, lang)
     return {
       ...content,
-      // Врезка «текст размещается в панели» стоит ПЕРВОЙ и собирается здесь:
-      // её адрес выводится из настроек на сервере, а в языковой ячейке лежит
-      // только текст. Ячейку владелец заменит своим документом — врезка уйдёт
-      // вместе с этим кодом, а не останется висеть посреди готовой страницы.
-      blocks: [panelNotice(lang, ui), ...content.blocks],
+      // 🪦 ЗДЕСЬ ВРЕЗКА ВСТАВЛЯЛАСЬ БЛОКОМ `panelNotice` и рисовалась серой
+      // курсивной строкой. Владелец назвал вид негодным (2026-09-20), и полоса
+      // переехала в слот `afterHeader` ниже — то же место на экране, вид,
+      // который он утвердил.
+      blocks: content.blocks,
     }
-  },
+  },
+  // 🔒 ПОЛОСА «У СТРАНИЦЫ ПОКА НЕТ ТЕКСТА» — ТОТ ЖЕ ВИД, ЧТО У ПОЛОСЫ САЙТА.
+  // Вид один, поводы разные: там «сайт ещё не ваш», здесь «у страницы ещё нет
+  // текста». Второй компонент «почти такой же» разошёлся бы с первым на первой
+  // же правке тона.
+  //
+  // 🔒 `inline` — ПОТОМУ ЧТО ПОДСКАЗКА ОТНОСИТСЯ К ЭТОЙ СТРАНИЦЕ, а не к сайту
+  // целиком: она стоит на месте отсутствующего текста и не зависит от прокрутки.
+  afterHeader: (lang: string) => (
+    <StarterBanner strings={pageTextBannerStrings(lang)} lang={lang} inline />
+  ),
   // 🔒 КНОПКА ЗАЯВКИ СТОИТ ПОСЛЕ ТЕКСТА ЗАГЛУШКИ (69, слово владельца: «вместо
   // текста „что здесь должно быть“, а лучше ПОСЛЕ этого текста»). Слот `afterBody`
   // заведён ради неё и рисует ровно между телом и завершающей секцией.

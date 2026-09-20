@@ -18,6 +18,8 @@ import type { HomeCell } from './index'
 // в шапке `ru.ts`; главная из них: философия блокчейна была пропущена вовсе и
 // теперь стоит вторым разделом, сразу под первым экраном.
 export const en: HomeCell = {
+  // Подпись пункта верхнего меню — её читает сканер `lib/menu/group-menus.ts`.
+  eyebrow: 'AGI core',
   // 🔒 H1 carries the name, the class and the subject. Web3 is claimed, Web4 is
   // not: the second has no agreed meaning, and claiming it is the same class of
   // risk as saying "open source" where the licence is source-available.

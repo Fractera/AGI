@@ -35,6 +35,8 @@ import type { FooterPageCell } from '@/lib/pages/footer-page'
 // своей очереди. Считать их можно командой, и именно так проверяется прогресс.
 
 export const en: FooterPageCell = {
+  // Подпись пункта верхнего меню — её читает сканер `lib/menu/group-menus.ts`.
+  eyebrow: 'Architecture',
   title: 'Architecture',
   description:
     'How this application is put together: the installer robot that builds the server, the starter template you are standing in, and the infrastructure shell around them.',

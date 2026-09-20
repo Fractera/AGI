@@ -3,6 +3,8 @@ import { brand } from '@/lib/brand'
 import { footerPage } from '@/lib/pages/footer-page'
 import { data } from '../_data'
 import { PageTextRequest } from '@/components/request/page-text-request.server'
+import { StarterBanner } from '../../../_components/starter-banner.client'
+import { pageTextBannerStrings } from '../../../_components/starter-banner.i18n'
 
 // Точка входа страницы «Доступность». Форма — ровно та же, что у соседних
 // страниц подвала: тонкий `page.tsx`, фабрика `createContentPage`, языковые
@@ -23,6 +25,16 @@ import { PageTextRequest } from '@/components/request/page-text-request.server'
 const page = createContentPage({
   meta: { subPath: `/${data.meta.slug}`, ogImage: data.meta.ogImage },
   resolve: lang => footerPage(data, lang),
+  // 🔒 ПОЛОСА «У СТРАНИЦЫ ПОКА НЕТ ТЕКСТА» — ТОТ ЖЕ ВИД, ЧТО У ПОЛОСЫ САЙТА.
+  // Вид один, поводы разные: там «сайт ещё не ваш», здесь «у страницы ещё нет
+  // текста». Второй компонент «почти такой же» разошёлся бы с первым на первой
+  // же правке тона.
+  //
+  // 🔒 `inline` — ПОТОМУ ЧТО ПОДСКАЗКА ОТНОСИТСЯ К ЭТОЙ СТРАНИЦЕ, а не к сайту
+  // целиком: она стоит на месте отсутствующего текста и не зависит от прокрутки.
+  afterHeader: (lang: string) => (
+    <StarterBanner strings={pageTextBannerStrings(lang)} lang={lang} inline />
+  ),
   // 🔒 КНОПКА ЗАЯВКИ СТОИТ ПОСЛЕ ТЕКСТА ЗАГЛУШКИ (69, слово владельца: «вместо
   // текста „что здесь должно быть“, а лучше ПОСЛЕ этого текста»). Слот `afterBody`
   // заведён ради неё и рисует ровно между телом и завершающей секцией.
