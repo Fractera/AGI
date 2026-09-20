@@ -15,6 +15,7 @@
 // Scope: any folder under app/[lang]/<section>/<slug>/_data. Adding a section
 // (news, docs) needs no change here — the walk finds it.
 
+import { isForeign, foreignRootInList } from './microservices-boundary.mjs'
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs"
 import { join, relative, sep, basename } from "node:path"
 
@@ -588,7 +589,8 @@ function checkDataCells(dir) {
 /** Словарь языков в любом файле: объект, все ключи которого — коды языков. */
 function checkLangDicts(dir) {
   for (const name of readdirSync(dir)) {
-    if (name === "node_modules" || name === ".next" || name === ".git") continue
+    // Граница чужого продукта — scripts/microservices-boundary.mjs.
+    if (name === "node_modules" || name === ".next" || name === ".git" || isForeign(name)) continue
     const p = join(dir, name)
     if (statSync(p).isDirectory()) { checkLangDicts(p); continue }
     if (!/\.(tsx?|json)$/.test(name)) continue
@@ -644,7 +646,12 @@ function objectKeys(src, i) {
 }
 
 checkDataCells(APP)
-for (const root of ["app", "lib", "components", "sections", "config", "_tools"]) {
+const DICT_ROOTS = ["app", "lib", "components", "sections", "config", "_tools"]
+// 🔒 СТОРОЖ НАД СПИСКОМ: у обхода с белым списком граница невидима — её нет ни в
+// коде, ни в выводе. Допиши сюда чужую папку, и узел начнёт судить чужой продукт.
+const rootsProblem = foreignRootInList(DICT_ROOTS, "check-content, словари")
+if (rootsProblem) fail(join(ROOT, "scripts", "check-content.mjs"), "foreign-root", rootsProblem)
+for (const root of DICT_ROOTS) {
   const d = join(ROOT, root)
   if (existsSync(d)) checkLangDicts(d)
 }

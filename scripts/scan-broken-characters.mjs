@@ -23,6 +23,7 @@
 // Exit code: 0 = clean, 1 = findings (so it works as a pre-commit / CI gate), 2 = usage error.
 // Read-only. Self-sufficient: plain Node-ESM, no deps.
 
+import { FOREIGN_DIRS } from './microservices-boundary.mjs'
 import { readFile, readdir, stat } from "node:fs/promises"
 import { join, relative, basename, sep } from "node:path"
 
@@ -42,7 +43,7 @@ const SCAN_EXT = /\.(ts|tsx|js|jsx|mjs|cjs|md|json)$/
 // Их приносит установщик из их собственных репозиториев; чинить их здесь — та же
 // ошибка, что чинить гостевой слот на тест-сервере: правка живёт до первой
 // переустановки и в источник не попадает. Сторож узла в них не заходит.
-const SKIP_DIR = new Set(["node_modules", ".git", ".turbo", "dist", "build", ".vercel", "microservices"])
+const SKIP_DIR = new Set(["node_modules", ".git", ".turbo", "dist", "build", ".vercel", ...FOREIGN_DIRS])
 const SKIP_PREFIX = [".next"]
 const SKIP_FILE = /\.generated\.|package-lock\.json$|\.tsbuildinfo$/
 
