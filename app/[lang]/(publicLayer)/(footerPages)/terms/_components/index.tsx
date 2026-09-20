@@ -16,6 +16,8 @@ import { PageTextRequest } from '@/components/request/page-text-request.server'
 // а не динамикой.
 
 const page = createContentPage({
+  // Языки, на которых у страницы есть СВОЙ текст (256-6).
+  data,
   meta: { subPath: `/${data.meta.slug}`, ogImage: data.meta.ogImage },
   resolve: lang => {
     const content = footerPage(data, lang)

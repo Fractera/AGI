@@ -15,6 +15,8 @@ import { data } from '../_data'
 // отправила владельца править то, что править не нужно.
 
 const page = createContentPage({
+  // Языки, на которых у страницы есть СВОЙ текст (256-6).
+  data,
   meta: { subPath: `/${data.meta.slug}`, ogImage: data.meta.ogImage },
   resolve: lang => footerPage(data, lang),
   chrome: (lang, content) => ({

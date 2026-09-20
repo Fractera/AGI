@@ -69,7 +69,24 @@ export function mdUrlFor(lang: string, subPath: string): string {
 // cost is not a worse position: it is whole languages missing from results while
 // the site looks perfectly fine to its owner. `npm run check:seo` enforces it, so
 // that "someone forgot" stops being a possible state of the tree.
-export function buildAlternates(lang: string, subPath = ''): Metadata['alternates'] {
+export function buildAlternates(
+  lang: string,
+  subPath = '',
+  // 🔒 ТРЕТИЙ АРГУМЕНТ ОБЯЗАТЕЛЕН, И ЭТО ГЛАВНОЕ РЕШЕНИЕ ПРАВКИ 256-6.
+  //
+  // Языки, на которых страница существует ПО-НАСТОЯЩЕМУ
+  // (`lib/seo/translation-state.ts`). Раньше набор строился из
+  // `SUPPORTED_LANGUAGES` — то есть страница объявляла переводом КАЖДЫЙ включённый
+  // язык, включая тот, где отдаётся английская основа. Это и есть дорвей: набор
+  // почти одинаковых адресов, обещанных поисковику. Измерено 2026-09-20: включив
+  // `es`, я получил английский текст под `<html lang="es">`.
+  //
+  // 🛑 ПОЧЕМУ ОБЯЗАТЕЛЕН, А НЕ «ПО УМОЛЧАНИЮ ВСЕ ВКЛЮЧЁННЫЕ». Умолчание означало
+  // бы, что вызов, забывший его передать, молча возвращается к прежнему опасному
+  // поведению, — и узнают об этом просевшей выдачей через месяцы. Обязательный
+  // аргумент делает забывчивость невозможной: `tsc` краснеет в тот же миг.
+  translated: readonly string[],
+): Metadata['alternates'] {
   // Адрес сайта не задан — альтернатив нет. Выдать hreflang на чужой домен
   // значит объявить, что переводы этой страницы живут не здесь.
   if (!base()) return undefined
@@ -85,12 +102,23 @@ export function buildAlternates(lang: string, subPath = ''): Metadata['alternate
   // записи — не сигнал, а шум; канонический адрес при этом обязателен и остаётся.
   if (SINGLE_LANG_MODE) return { canonical: urlFor(lang, subPath), types }
 
+  // 🔒 ПЕРЕВОД ОДИН — ОБЪЯВЛЯТЬ НЕЧЕГО. Набор `hreflang` из одной записи не сигнал,
+  // а шум: он говорит «эта страница есть на одном языке», что и так видно. Тот же
+  // довод, что у одноязычного сайта строкой выше. Канонический адрес остаётся.
+  if (translated.length < 2) return { canonical: urlFor(lang, subPath), types }
+
   return {
     canonical: urlFor(lang, subPath),
     types,
     languages: {
+      // 🔒 `x-default` — ЯЗЫК ОСНОВЫ, И ОН ПЕРЕВЕДЁН ВСЕГДА (он и есть оригинал).
       'x-default': urlFor(DEFAULT_LANGUAGE, subPath),
-      ...Object.fromEntries(SUPPORTED_LANGS.map(l => [l, urlFor(l, subPath)])),
+      // 🛑 ТОЛЬКО НАСТОЯЩИЕ ПЕРЕВОДЫ. Раньше здесь стоял `SUPPORTED_LANGS` — все
+      // включённые языки без разбора. Взаимность при этом выходит сама собой:
+      // список считается из одних и тех же данных страницы, поэтому если `/ru`
+      // назвал `/en`, то `/en` назовёт `/ru`. Односторонний `hreflang` поисковик
+      // игнорирует целиком — то есть он выглядит сделанной работой и не работает.
+      ...Object.fromEntries(translated.map(l => [l, urlFor(l, subPath)])),
     },
   }
 }

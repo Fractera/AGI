@@ -38,11 +38,22 @@ export const ARCHITECT_HOME = '/architect'
  */
 const dirOf = (slug: string) => `${ARCHITECT_HOME}/${slug}`
 
+/**
+ * Адрес каждой страницы слоя ВМЕСТЕ С ЕЁ ДАННЫМИ (256-6).
+ *
+ * 🔒 ПАРА, А НЕ ОДИН ПУТЬ, И ЭТО НУЖНО КАРТЕ САЙТА. Карта обязана перечислять
+ * страницу на тех языках, на которых у неё есть СВОЙ текст, — а знают об этом
+ * только её данные. Отдавая наружу голый путь, мы заставили бы карту
+ * догадываться, и она догадывалась: печатала каждый включённый язык подряд.
+ */
+export const ARCHITECT_PAGES: readonly { path: string; page: { overrides?: Record<string, unknown> } }[] =
+  TREE.flatMap((b) => [
+    { path: dirOf(b.page.meta.slug), page: b.page },
+    ...b.children.map((c) => ({ path: `${dirOf(b.page.meta.slug)}/${c.meta.slug}`, page: c })),
+  ])
+
 /** Адрес каждой страницы слоя — для сторожа маршрутов и любого обхода. */
-export const ARCHITECT_PATHS: readonly string[] = TREE.flatMap((b) => [
-  dirOf(b.page.meta.slug),
-  ...b.children.map((c) => `${dirOf(b.page.meta.slug)}/${c.meta.slug}`),
-])
+export const ARCHITECT_PATHS: readonly string[] = ARCHITECT_PAGES.map((p) => p.path)
 
 /**
  * Левое меню: группы, а под каждой — её разделы раскрывающимся подменю.

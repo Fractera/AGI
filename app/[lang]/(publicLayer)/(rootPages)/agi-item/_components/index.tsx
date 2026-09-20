@@ -1,5 +1,5 @@
 import { createContentPage } from '@/lib/content/create-content-page'
-import { homePage, homeLead } from '../_data'
+import { homePage, homeLead, data } from '../_data'
 import { meta } from '../_data/meta'
 import { PostBody } from '@/components/content-page/post-body'
 
@@ -28,6 +28,8 @@ import { PostBody } from '@/components/content-page/post-body'
 // и `starter-banner.i18n.ts` — они существовали только ради него; вернуть можно
 // из git.
 const page = createContentPage({
+  // Языки, на которых у страницы есть СВОЙ текст (256-6).
+  data,
   resolve: homePage,
   meta,
   // 🔒 ЗАГОЛОВОК ПЕЧАТАЕТ ПЕРВЫЙ ЭКРАН, А НЕ ШАПКА — то же, что на главной.

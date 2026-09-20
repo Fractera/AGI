@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import type { Block, FaqPair } from '@/lib/content/blocks/types'
 import { buildAlternates } from '@/lib/seo/alternates'
+import { translatedLanguages, isTranslated, type TranslatedPage } from '@/lib/seo/translation-state'
 import { author, authorSameAs } from '@/lib/author'
 import { brand } from '@/lib/brand'
 import { StandardContentPage, type Breadcrumb } from '@/components/content-page/standard-content-page'
@@ -53,6 +54,19 @@ export type ContentPageChrome = {
 export type ContentPageConfig<C extends ContentPageContent> = {
   /** Per-document, per-language resolver (resolveEntry-based). */
   resolve: (lang: string) => C
+  /**
+   * Данные страницы — ради одного вопроса: на каких языках у неё есть СВОЙ текст
+   * (256-6, `lib/seo/translation-state.ts`).
+   *
+   * 🔒 ПОЛЕ ОБЯЗАТЕЛЬНОЕ, И ЭТО РЕШЕНИЕ, А НЕ НЕДОСМОТР. Из него строится набор
+   * `hreflang`; «забытое» поле означало бы, что страница объявляет переводом
+   * каждый включённый язык — включая тот, где отдаётся английская основа. Набор
+   * почти одинаковых адресов, обещанных поисковику, и есть дорвей. Обязательность
+   * переносит эту ошибку из «просевшей выдачи через месяцы» в красный `tsc`.
+   *
+   * Передаётся тот же объект `data`, что уже лежит рядом в каждом маршруте.
+   */
+  data: TranslatedPage
   /**
    * Крошки и ссылка «назад». НЕОБЯЗАТЕЛЬНЫ (шаг 508).
    *
@@ -136,7 +150,18 @@ export function createContentPage<C extends ContentPageContent>(config: ContentP
       title: { absolute: seoTitle ? `${seoTitle} | ${brand().name}` : brand().name },
       description: c.description,
       keywords: c.keywords,
-      alternates: buildAlternates(lang, meta.subPath),
+      alternates: buildAlternates(lang, meta.subPath, translatedLanguages(config.data)),
+      // 🔒 НЕПЕРЕВЕДЁННАЯ ВЕРСИЯ НЕ ИНДЕКСИРУЕТСЯ (256-6), и здесь это сказано
+      // ЯВНО, хотя раньше `robots` страница вовсе не объявляла и наследовала его
+      // от корня. Наследование — ровно то, из-за чего непереведённый адрес
+      // получал `index, follow` вместе со всеми: правило, которого нет, читается
+      // как разрешение.
+      //
+      // 🛑 `index: false` НЕ ОТМЕНЯЕТ ПОКАЗ. Человек открывает страницу и видит
+      // английский текст; невидима она только для поисковика. Правило о том, что
+      // ПОКАЗЫВАТЬ, и правило о том, что ОБЕЩАТЬ машине, — разные, и смешение их
+      // дало бы 404 там, где нужен просто честный сигнал.
+      ...(isTranslated(lang, config.data) ? {} : { robots: { index: false, follow: true } }),
       openGraph: {
         type: 'article',
         url: `${SITE}/${lang}${meta.subPath}`,

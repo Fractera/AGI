@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import type { Block, FaqPair } from '@/lib/content/blocks/types'
 import { buildAlternates } from '@/lib/seo/alternates'
+import { translatedLanguages, isTranslated, type TranslatedPage } from '@/lib/seo/translation-state'
 import { author, authorSameAs } from '@/lib/author'
 import { brand } from '@/lib/brand'
 import { StandardContentPage, type Breadcrumb } from '@/components/content-page/standard-content-page'
@@ -74,6 +75,14 @@ export type ContentPostConfig = {
   subPath: string
   /** Co-located resolver: returns this post's localized content. */
   resolve: (lang: string) => ContentPost
+  /**
+   * Данные поста — на каких языках у него есть СВОЙ текст (256-6).
+   *
+   * 🔒 ОБЯЗАТЕЛЬНО по той же причине, что и у страницы: из этого строится
+   * `hreflang`, и умолчание вернуло бы прежнее поведение — объявлять переводом
+   * каждый включённый язык, то есть обещать поисковику дубли.
+   */
+  data: TranslatedPage
   /** Localized breadcrumb trail + back link for this post. */
   chrome: (lang: string, post: ContentPost) => {
     breadcrumbs: Breadcrumb[]
@@ -131,8 +140,18 @@ export function createContentPost(config: ContentPostConfig) {
       title: { absolute: `${seoTitle} | ${titleSuffix(lang)} | ${brand().name}` },
       description: post.description,
       ...(post.keywords ? { keywords: post.keywords } : {}),
-      alternates: buildAlternates(lang, subPath),
-      robots: { index: true, follow: true },
+      alternates: buildAlternates(lang, subPath, translatedLanguages(config.data)),
+      // 🔒 НЕПЕРЕВЕДЁННАЯ ВЕРСИЯ НЕ ИНДЕКСИРУЕТСЯ (256-6). Здесь стояло
+      // безусловное `index: true`. Адрес на включённом языке существует всегда —
+      // резолвер честно отдаёт английскую основу, — и без этой строки такая
+      // страница попадала бы в индекс копией оригинала под чужим `lang`. Набор
+      // почти одинаковых адресов и есть то, что поисковик зовёт дорвеем.
+      //
+      // Человек её по-прежнему видит: правило о том, что ПОКАЗЫВАТЬ, и правило о
+      // том, что ОБЕЩАТЬ машине, — разные.
+      robots: isTranslated(lang, config.data)
+        ? { index: true, follow: true }
+        : { index: false, follow: true },
       openGraph: {
         title: seoTitle,
         description: post.description,

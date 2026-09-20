@@ -1,5 +1,5 @@
 import { createContentPage } from '@/lib/content/create-content-page'
-import { homePage, homeLead } from '../_data'
+import { homePage, homeLead, data } from '../_data'
 import { meta } from '../_data/meta'
 import { PostBody } from '@/components/content-page/post-body'
 import { SecurityOrbit } from '../_widgets/static/security-orbit'
@@ -22,6 +22,8 @@ import { SecurityOrbit } from '../_widgets/static/security-orbit'
 // Главная» была бы ложью. Это причина НЕ ДАВАТЬ хром, а не причина заводить
 // второй шаблон страницы.
 const page = createContentPage({
+  // Языки, на которых у страницы есть СВОЙ текст (256-6).
+  data,
   resolve: homePage,
   meta,
   // Первый экран главной — сетка (секция `heroSplit`): слово слева, иллюстрация

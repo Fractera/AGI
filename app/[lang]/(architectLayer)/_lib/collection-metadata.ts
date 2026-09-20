@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { type WorkspacePageData, wordsOf } from '@/lib/collection/types'
 import { buildAlternates, urlFor } from '@/lib/seo/alternates'
+import { translatedLanguages } from '@/lib/seo/translation-state'
 import { brand } from '@/lib/brand'
 import { architectLayerIsPublic } from './collection-visibility'
 
@@ -56,7 +57,9 @@ export function collectionMetadata(page: WorkspacePageData, parentDir: string) {
       // смыслом, то есть дублем. Связанные — одной страницей на двух языках.
       // Строится тем же `buildAlternates`, что у публичных страниц: второго
       // источника правды об адресах в проекте не существует.
-      alternates: buildAlternates(lang, path),
+      // 🔒 ЯЗЫКИ БЕРУТСЯ ИЗ ДАННЫХ САМОЙ СТРАНИЦЫ (256-6), а не из включённого
+      // набора: страница слоя устроена так же — `en` основа, `overrides` переводы.
+      alternates: buildAlternates(lang, path, translatedLanguages(page)),
 
       openGraph: {
             title: words.title,
