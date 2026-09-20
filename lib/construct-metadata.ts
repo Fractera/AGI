@@ -102,8 +102,15 @@ export function constructMetadata(args: ConstructArgs = {}): Metadata {
   const base = cfg.seo.canonicalBase || cfg.url;
   const canonical = base && pathname ? new URL(normalizePath(pathname), base).toString() : undefined;
   const desc = truncate(description);
-  const index = !noIndex && cfg.seo.robotsIndex && cfg.seo.indexing === "allow";
-  const follow = !noFollow && cfg.seo.robotsFollow;
+  // 🔒 НЕТ ПОСТОЯННОГО АДРЕСА — НЕТ ИНДЕКСАЦИИ (256-4). То же правило, что в
+  // `app/robots.ts`, и стоять оно обязано в ОБОИХ местах: `robots.txt` не пускает
+  // робота на адрес, мета-тег останавливает того, кто пришёл по ссылке, минуя
+  // файл. Одного слоя мало ровно так же, как одного слоя мало у авторизации.
+  //
+  // ✗ Измерено до правки: на туннеле каждая страница отдавала `index, follow`.
+  const hasPermanentAddress = Boolean(cfg.url);
+  const index = hasPermanentAddress && !noIndex && cfg.seo.robotsIndex && cfg.seo.indexing === "allow";
+  const follow = hasPermanentAddress && !noFollow && cfg.seo.robotsFollow;
 
   const verification: Record<string, string> = {};
   if (cfg.seo.googleVerification) verification.google = cfg.seo.googleVerification;
