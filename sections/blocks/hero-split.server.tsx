@@ -4,7 +4,7 @@ import { StaticImage } from '@/components/media/static-image.server'
 import { getAppConfig } from '@/config/app-config'
 import { getLogoPath } from '@/config/app-config.defaults'
 import { inline } from '@/lib/content/blocks/inline'
-import { CtaButton } from '@/sections/cta-button.server'
+import { CtaButton, CtaLink } from '@/sections/cta-button.server'
 import { H1 } from '@/components/ui/typography'
 
 // Первый экран лендинга: знак и лейбл по центру, под ними слово слева и
@@ -122,9 +122,17 @@ export const heroSplit: SectionRenderer<'heroSplit'> = (b, { key: k }) => {
                 где раньше стоял призыв Quiz, — одним компонентом, а не копией
                 классов. Секции без призыва он не навязывается: поле
                 необязательное. */}
+            {/* 🔒 ВТОРОЕ ДЕЙСТВИЕ РЯДОМ С ПЕРВЫМ — решение владельца 2026-09-20:
+                на первом экране стоят те же две кнопки, что и после каждого
+                раздела. Рисуются теми же примитивами `CtaButton` + `CtaLink`,
+                что и блок `cta`, — иначе две пары кнопок на одной странице
+                разошлись бы по виду, оставаясь одинаковыми по смыслу. */}
             {b.cta && (
-              <div className="mt-2">
+              <div className="mt-2 flex flex-wrap items-center gap-3">
                 <CtaButton href={b.cta.href}>{b.cta.label}</CtaButton>
+                {b.cta.secondary ? (
+                  <CtaLink href={b.cta.secondary.href}>{b.cta.secondary.label}</CtaLink>
+                ) : null}
               </div>
             )}
           </div>

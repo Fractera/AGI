@@ -16,7 +16,15 @@ export const en: HomeCell = {
     title: 'From Vibe-Coded MVP to Commercially Ready Product',
     description:
       'Scale 100× without scaling your infrastructure costs — with enterprise-level reliability, security, and compliance.',
-    cta: { href: 'https://www.fractera.ai/deployments/vps', label: 'Take it free, scale it up' },
+    // 🔒 ТЕ ЖЕ ДВА ДЕЙСТВИЯ, ЧТО И ПОСЛЕ КАЖДОГО РАЗДЕЛА — решение владельца
+    // 2026-09-20. 🪦 Здесь стояла одна кнопка «Забирай бесплатно, масштабируй»,
+    // уводившая на сайт платформы: первый экран предлагал не то, что вся
+    // остальная страница.
+    cta: {
+      href: 'https://code.claude.com/',
+      label: 'Install Claude Code',
+      secondary: { href: '/en/architect/build/subscription', label: 'Start building' },
+    },
     image: 'homePage',
     imageAlt: 'SaaS starter template',
   },
@@ -130,7 +138,11 @@ export const en: HomeCell = {
   // will next now dummy button only»). It has no destination yet — the audit page
   // does not exist, and `href` deliberately leads nowhere. An invented address
   // would look functional and drop the visitor into a 404.
-  { kind: 'cta', href: '#', label: 'Get a free audit' },
+  // 🪦 ЗДЕСЬ СТОЯЛА ОДИНОЧНАЯ КНОПКА С АДРЕСОМ `#`, то есть ведущая в никуда.
+  // Владелец назвал её выполненной неправильно и некрасиво (2026-09-20) и велел
+  // взять блок из двух кнопок со страницы AGI ядра. Блок теперь не вписывается
+  // в данные вовсе: он ставится после КАЖДОГО раздела функцией
+  // `lib/content/cta-after-sections.ts`, одной на обе страницы.
   {
     kind: 'cards',
     badge: 'Architecture',

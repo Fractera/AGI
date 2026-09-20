@@ -1,3 +1,5 @@
+import { withCtaAfterSections, buildCta } from '@/lib/content/cta-after-sections'
+import { ctaLabels } from '@/lib/content/cta-labels.i18n'
 import type { Block, FaqPair } from '@/lib/content/blocks/types'
 import { resolveFields, resolveLocalizedBody } from '@/lib/content/resolve'
 import { adminUrlFromSite } from '@/lib/site-urls'
@@ -178,9 +180,19 @@ export function homePage(lang: string): HomeCell {
   // полуслове, либо на первом экране остаётся одна строка.
   // Поднятые блоки убраны из ленты: они уже нарисованы выше, и второй раз
   // означал бы два одинаковых ряда мер на одной странице.
-  const blocks = filled
-    .filter(b => !LEAD_KINDS.has(b.kind))
-    .map(b => (b.kind === 'heroSplit' ? { ...b, title } : b))
+  // 🔒 БЛОК ДЕЙСТВИЙ ПОСЛЕ КАЖДОГО РАЗДЕЛА — решение владельца 2026-09-20.
+  // Ставится ПОСЛЕДНИМ действием сборки: к этому моменту лента уже собрана,
+  // поднятые блоки убраны, а заголовок подставлен — иначе действие попало бы
+  // между разделом и его же продолжением.
+  //
+  // Правило «что считается разделом» и защита от двух блоков подряд живут в
+  // `lib/content/cta-after-sections.ts` — одном месте на обе страницы.
+  const blocks = withCtaAfterSections(
+    filled
+      .filter(b => !LEAD_KINDS.has(b.kind))
+      .map(b => (b.kind === 'heroSplit' ? { ...b, title } : b)),
+    buildCta(lang, ctaLabels(lang)),
+  )
 
   return { ...fields, title, description, blocks, faq: override?.faq ?? data.en.faq }
 }

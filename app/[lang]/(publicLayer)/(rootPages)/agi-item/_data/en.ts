@@ -49,19 +49,6 @@ export const en: HomeCell = {
         { label: 'No middleman', tone: 'muted' },
       ],
     },
-    {
-      kind: 'cta',
-      // 🔒 ONE ACTION BLOCK ON THE PAGE — the owner said it twice on 2026-09-19:
-      // make ONE block — "Install Claude Code" plus a button leading to the
-      // architect tab where the subscription is connected.
-      //
-      // ✗ I read that as "fix the second pair" and kept both: four buttons where
-      // two were asked for, the first pair duplicating the second in meaning. The
-      // instruction was about the NUMBER of blocks, not about the labels.
-      href: 'https://code.claude.com/',
-      label: 'Install Claude Code',
-      secondary: { href: '/en/architect/build/subscription', label: 'Start building' },
-    },
 
     // ── THE HEART OF THE PRODUCT. Second section, right under the first screen ─
     //

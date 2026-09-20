@@ -242,7 +242,7 @@
         },
         {
           "page": "agi-item",
-          "order": 5,
+          "order": 4,
           "times": 15
         },
         {
@@ -282,7 +282,7 @@
       "usedOn": [
         {
           "page": "agi-item",
-          "order": 31,
+          "order": 30,
           "times": 1
         },
         {
@@ -327,7 +327,7 @@
         },
         {
           "page": "agi-item",
-          "order": 23,
+          "order": 22,
           "times": 6
         },
         {
@@ -352,7 +352,7 @@
       "usedOn": [
         {
           "page": "agi-item",
-          "order": 7,
+          "order": 6,
           "times": 3
         },
         {
@@ -397,7 +397,7 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 23,
+          "order": 22,
           "times": 1
         }
       ]
@@ -417,7 +417,7 @@
       "usedOn": [
         {
           "page": "agi-item",
-          "order": 9,
+          "order": 8,
           "times": 1
         },
         {
@@ -507,18 +507,7 @@
       "title": "призыв к действию",
       "description": "Кнопка там, где читателю предлагают следующий шаг. Одна на все такие места:\n`sections/cta-button.server.tsx`.\n\n## Правила владельца\n\nТри замечания, каждое сделано по живой странице и каждое меняет вид блока.\n\n**Подпись над кнопкой необязательна** (2026-08-16). Когда кнопка стоит внутри раздела, чей заголовок\nуже сказал то же самое, подпись превращается в дословный повтор через полэкрана.\n\n**Нет подписи — нет и рамки** (2026-08-19). Рамка существует, чтобы держать подпись; без неё она\nдержала пустоту: кнопка жалась влево, а справа тянулся пустой прямоугольник во всю ширину. Владелец\nназвал это «некрасиво», и он прав по существу — **контейнер без содержимого читается как поломка\nвёрстки, а не как воздух**.\n\n**Кнопка стоит по центру** (2026-08-20). Прижатая влево, она читается как продолжение абзаца, а не как\nприглашение: взгляд, дойдя до конца текста, уходит вниз по левому краю и минует её. Центр —\nединственное место, где кнопка принадлежит себе, а не предыдущей строке. Касается обеих раскладок: и\nвнутри рамки с подписью, и отдельно стоящей.\n\n## Когда не брать\n\nКнопка ведёт наружу или на страницу, которой нет, — это не `cta`, а ошибка: сторож ссылок\n(`check:links`) откажет. Нужна кнопка внутри рабочего экрана, а не в материале страницы, — её место в\nостровке, а не в блоке.",
       "hasCard": true,
-      "usedOn": [
-        {
-          "page": "(home)",
-          "order": 15,
-          "times": 1
-        },
-        {
-          "page": "agi-item",
-          "order": 2,
-          "times": 1
-        }
-      ]
+      "usedOn": []
     },
     {
       "id": "0021",
@@ -597,7 +586,7 @@
       "usedOn": [
         {
           "page": "agi-item",
-          "order": 11,
+          "order": 10,
           "times": 1
         }
       ]
@@ -617,7 +606,7 @@
       "usedOn": [
         {
           "page": "agi-item",
-          "order": 12,
+          "order": 11,
           "times": 2
         }
       ]
@@ -644,7 +633,7 @@
       "kind": "heroSplit",
       "type": "hero",
       "shape": "hero-split",
-      "fields": "title: string; description: string; pill?: string; image: 'homePage'; imageAlt: string; mark?: boolean; cta?: { href: string; label: string }",
+      "fields": "title: string; description: string; pill?: string; image: 'homePage'; imageAlt: string; mark?: boolean; cta?: { href: string; label: string; secondary?: { href: string; label: string } }",
       "title": "the landing first screen: words left, picture right",
       "description": "**Type:** Hero (1). The only kind meant to open a landing page.\n\n## What it actually draws\n\nMark and eyebrow centred; under them two columns — the heading with its text and button on the left, an\nillustration on the right.\n\n🔒 **This is the ONE kind that carries the H1 itself.** Everywhere else the title is printed by the page\nfactory. Here it has to stand inside the left column, and outside the grid it cannot get there. A page\nusing this section declares `titleInBody`, and the factory stops printing its own — otherwise the page\ngets two H1s.\n\n🔒 **The picture names a SETTINGS SLOT, not a file.** Every project has its own image and changes it in\nthe panel without a rebuild. Hard-coding a path here would ship one picture to every customer.\n\n🔒 **Its own width limit: 56rem, and it is a meaning decision** (owner, 2026-08-15). The section spans\nthe full screen and ignores the width toggle, but its CONTENT must not stretch: on a 2500px monitor a\nheading and a picture pushed to opposite edges read as a broken page, not a wide one.\n\n## When to take it\n\nThe first screen of a landing page — the one where the offer has to be readable in three seconds.\n\n## When NOT to take it\n\n- On a post, a legal page or a catalogue: they get their title from the factory, and this section would\n  fight it.\n- More than once on a site. Two different first screens teach the visitor that the site has no front\n  door.",
       "hasCard": true,
@@ -696,7 +685,7 @@
       "usedOn": [
         {
           "page": "agi-item",
-          "order": 4,
+          "order": 3,
           "times": 1
         }
       ]
@@ -741,7 +730,7 @@
         },
         {
           "page": "agi-item",
-          "order": 3,
+          "order": 2,
           "times": 3
         }
       ]
@@ -761,7 +750,7 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 25,
+          "order": 24,
           "times": 1
         }
       ]
@@ -786,7 +775,7 @@
         },
         {
           "page": "agi-item",
-          "order": 21,
+          "order": 20,
           "times": 2
         }
       ]
@@ -811,7 +800,7 @@
         },
         {
           "page": "agi-item",
-          "order": 22,
+          "order": 21,
           "times": 6
         }
       ]
@@ -831,7 +820,7 @@
       "usedOn": [
         {
           "page": "agi-item",
-          "order": 19,
+          "order": 18,
           "times": 2
         }
       ]
@@ -865,7 +854,7 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 24,
+          "order": 23,
           "times": 1
         }
       ]
@@ -913,7 +902,7 @@
       "usedOn": [
         {
           "page": "(home)",
-          "order": 26,
+          "order": 25,
           "times": 1
         }
       ]
