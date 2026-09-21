@@ -88,6 +88,9 @@ export type LeafBlock =
   // 🔒 БЕЗ `secondary` ВИД РИСУЕТСЯ БАЙТ В БАЙТ КАК ПРЕЖДЕ: поле необязательное,
   // существующие страницы не знают о нём и не меняются.
   | { kind: 'cta'; text?: string; href: string; label: string; secondary?: { href: string; label: string } }
+  // Лестница подключения своего домена: ступени, замки, состояние с узла.
+  // Слова приходят В БЛОКЕ — рисовальщик серверный, словарь в браузер не едет.
+  | { kind: 'domainLadder'; words: import('@/components/domain/domain-ladder.i18n').DomainLadderWords }
   | { kind: 'note'; text: string }
   // Founder pull-quote in the homepage testimonial design (gradient-violet text +
   // author photo/name/role + social links). Author defaults to the site founder.

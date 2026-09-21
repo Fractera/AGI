@@ -1,4 +1,5 @@
 import type { Block } from '@/lib/content/blocks/types'
+import { domainLadderWords } from '@/components/domain/domain-ladder.i18n'
 
 // ОБРАЗЦЫ ВСЕХ ВИДОВ СЕКЦИЙ — по одному на каждый вид каталога.
 //
@@ -1140,6 +1141,17 @@ export const SPECIMEN: SpecimenSection[] = [
             text: 'Forwarded messages keep the line above the text — who wrote it, when, and where it came from.',
           },
         ],
+      },
+    ],
+  },
+  {
+    kind: 'domainLadder',
+    when: 'The ladder that walks a person through connecting their own domain: five steps, the closed ones named by a grey line instead of hidden. Take it wherever setup depends on actions outside this machine — the first steps happen at a registrar and in another dashboard, and only the node can confirm the rest. It asks the node for its state instead of remembering its own.',
+    whenRu: 'Лестница, проводящая человека через подключение собственного домена: пять ступеней, закрытые названы серой строкой, а не спрятаны. Берут там, где настройка зависит от действий вне этой машины — первые шаги проходят у регистратора и в чужой панели, а подтвердить остальное может только узел. Состояние она спрашивает у узла, а не помнит своё.',
+    blocks: [
+      {
+        kind: 'domainLadder',
+        words: domainLadderWords('en'),
       },
     ],
   },
