@@ -130,10 +130,31 @@ export async function tunnelToken(token: string, accountId: string, tunnelId: st
  * ОТКАЗЫВАЕТ. Правил должно быть хотя бы одно, и последнее обязано быть без
  * имени хоста: иначе запрос, не совпавший ни с чем, некуда деть.
  */
-export async function setIngress(token: string, accountId: string, tunnelId: string, hostname: string, service: string) {
+export type IngressRule = { hostname: string; service: string }
+
+// 🔒 СПИСОК ПРАВИЛ, А НЕ ОДНО ИМЯ (259-8): сайт и вход идут одним туннелем на
+// разные порты машины. `PUT` заменяет конфигурацию целиком, поэтому правила
+// передаются все сразу — второе имя, добавленное отдельным вызовом, стёрло бы первое.
+export async function setIngress(token: string, accountId: string, tunnelId: string, rules: IngressRule[]) {
   return send<unknown>("PUT", `/accounts/${accountId}/cfd_tunnel/${tunnelId}/configurations`, token, {
-    config: { ingress: [{ hostname, service }, { service: "http_status:404" }] },
+    config: { ingress: [...rules, { service: "http_status:404" }] },
   })
+}
+
+/**
+ * Туннель с этим именем, если он уже есть.
+ *
+ * 🔒 ПОВТОРНОЕ НАЖАТИЕ НЕ ПЛОДИТ ТУННЕЛИ (259-7). Прежде каждая активация звала
+ * `createTunnel`, и вторая падала на занятом имени — то есть кнопку нельзя было
+ * нажать второй раз даже ради починки. Теперь туннель переиспользуется.
+ */
+export async function findTunnel(token: string, accountId: string, name: string) {
+  const r = await send<Array<{ id: string; name: string; deleted_at?: string | null }>>(
+    "GET", `/accounts/${accountId}/cfd_tunnel?name=${encodeURIComponent(name)}&is_deleted=false`, token,
+  )
+  if (!r.ok) return r
+  const hit = r.result.find((t) => t.name === name && !t.deleted_at)
+  return { ok: true as const, result: hit?.id ?? null }
 }
 
 /**

@@ -42,6 +42,7 @@ import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
 const { isFree, PORT_BLOCK_START, PORT_BLOCK_END } = require('../lib/server-port.cjs')
+const { authEnvOverrides } = require('../lib/domain/public-auth.cjs')
 
 const ROOT = process.cwd()
 const REGISTRY = join(ROOT, 'MICROSERVICES.json')
@@ -203,6 +204,13 @@ function derivedValue(name, ctx) {
   const nodePort = ctx.nodePort
   const nodeUrl = `http://127.0.0.1:${nodePort}`
   const self = `http://127.0.0.1:${port}`
+
+  // 🔒 СВОЙ ДОМЕН ПЕРЕКРЫВАЕТ ПЕТЛЮ (259-8). Подключённый домен выводит вход на
+  // `auth.<зона>`, и переустановка обязана дать то же самое: иначе она молча
+  // вернёт `127.0.0.1`, и вход снаружи умрёт без единой ошибки. Формула одна —
+  // в `lib/domain/public-auth.cjs`, её же зовёт дверь активации.
+  const domain = authEnvOverrides(ROOT, [nodeUrl, self])
+  if (domain && Object.prototype.hasOwnProperty.call(domain, name)) return domain[name]
 
   switch (name) {
     case 'PORT': return String(port)

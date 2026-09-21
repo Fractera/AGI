@@ -5,8 +5,12 @@ import { join } from "node:path"
 import { isOwnerAtMachine } from "@/lib/auth/owner-at-machine"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
 import {
-  accountOfZone, createTunnel, listZones, setIngress, tunnelToken, upsertTunnelRecord,
+  accountOfZone, createTunnel, findTunnel, listZones, setIngress, tunnelToken, upsertTunnelRecord,
+  type IngressRule,
 } from "@/lib/domain/cloudflare"
+import { serviceUrl } from "@/lib/microservices/registry"
+import { startDomainResident } from "@/lib/domain/resident"
+import { applyDomainToAuth } from "@/lib/domain/auth-env"
 
 // ДВЕРЬ АКТИВАЦИИ ДОМЕНА (259-3).
 //
@@ -100,17 +104,35 @@ export async function POST(req: NextRequest) {
   if (!account.ok) return fail(account.reason)
 
   const name = `fractera-${hostname.replace(/[^a-z0-9]+/g, "-")}`
-  const tunnel = await createTunnel(key, account.result, name)
+  const known = await findTunnel(key, account.result, name)
+  if (!known.ok) return fail(known.reason)
+  const tunnel = known.result
+    ? { ok: true as const, result: known.result }
+    : await createTunnel(key, account.result, name)
   if (!tunnel.ok) return fail(tunnel.reason)
 
   const runToken = await tunnelToken(key, account.result, tunnel.result)
   if (!runToken.ok) return fail(runToken.reason)
 
-  const ingress = await setIngress(key, account.result, tunnel.result, hostname, service)
+  // 🔒 ВХОД ИДЁТ ТЕМ ЖЕ ТУННЕЛЕМ НА `auth.<зона>` (259-8). Без этого правила кнопка
+  // «Войти» на домене вела на петлю машины посетителя. Имя строится от ЗОНЫ, а не
+  // от подключённого имени: сертификат Cloudflare покрывает `*.<зона>`, а
+  // `auth.site.<зона>` — нет. Службы входа нет — правила нет, и это честно.
+  const authService = serviceUrl("auth")
+  const authHostname = authService ? `auth.${zone.name}` : null
+  const rules: IngressRule[] = [{ hostname, service }]
+  if (authHostname && authService) rules.push({ hostname: authHostname, service: authService })
+
+  const ingress = await setIngress(key, account.result, tunnel.result, rules)
   if (!ingress.ok) return fail(ingress.reason)
 
   const record = await upsertTunnelRecord(key, zone.id, hostname, tunnel.result)
   if (!record.ok) return fail(record.reason)
+
+  if (authHostname) {
+    const authRecord = await upsertTunnelRecord(key, zone.id, authHostname, tunnel.result)
+    if (!authRecord.ok) return fail(`auth-${authRecord.reason}`)
+  }
 
   putEnv(RUN_TOKEN, runToken.result)
   process.env[RUN_TOKEN] = runToken.result
@@ -152,9 +174,18 @@ export async function POST(req: NextRequest) {
     tunnelId: tunnel.result,
     hostname,
     service,
+    authHostname,
+    authRouted: !!authHostname,
     siteUrlWritten,
     activatedAt: new Date().toISOString(),
   }, null, 2)}\n`, "utf8")
 
-  return NextResponse.json({ ok: true, hostname, zone: zone.name, tunnel: name, siteUrlWritten })
+  // Порядок не случаен: окружение службы входа читает только что записанный
+  // `logs/domain.json`, а житель туннеля — только что записанный токен.
+  const auth = authHostname ? applyDomainToAuth() : { files: 0, restarted: false, reason: "no-auth-service" }
+  const resident = startDomainResident()
+
+  return NextResponse.json({
+    ok: true, hostname, zone: zone.name, tunnel: name, siteUrlWritten, authHostname, auth, resident,
+  })
 }

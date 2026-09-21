@@ -5,7 +5,7 @@ import { isOwnerAtMachine } from "@/lib/auth/owner-at-machine";
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address";
 import { isShowcaseRequest } from "@/lib/showcase";
 import { getSession } from "@/lib/auth/get-session";
-import { authBaseFromHost, projectsBaseFromHost } from "@/lib/auth-base-server";
+import { authBaseFromHost, connectedDomainAuthBase, projectsBaseFromHost, publicAuthBaseFor } from "@/lib/auth-base-server";
 import { authUrl as nodeAuthUrl } from "@/lib/microservices/urls";
 import { temporaryAddressPage } from "@/lib/auth/temporary-address.page";
 import {
@@ -423,6 +423,16 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     // Cookie не различает порты, но различает ИМЯ: сессия, выданная на
     // `127.0.0.1`, не придёт на `localhost`. Уведи мы человека с его же имени —
     // он зарегистрируется, вернётся и окажется неузнанным.
+    // 🔒 259-8: ДОМЕН ПОДКЛЮЧЁН — ВХОД ЖИВЁТ ТОЛЬКО НА НЁМ, И ДЛЯ ХОЗЯИНА ТОЖЕ.
+    // Служба входа ставит cookie на `.<зона>` с флагом Secure; на `localhost` браузер
+    // такой cookie не примет, и вход на петле «прошёл бы», оставив человека
+    // неузнанным. Хозяину за клавиатурой вход не нужен (его узнаёт правило
+    // хозяина), но если он пошёл входить — ведём туда, где вход работает.
+    const domainAuth = connectedDomainAuthBase();
+    if (domainAuth && isOwnerAtMachine(request)) {
+      return NextResponse.redirect(`${domainAuth}${pathname}${request.nextUrl.search}`);
+    }
+
     const assignedAuth = nodeAuthUrl();
     if (assignedAuth && isOwnerAtMachine(request)) {
       const authPort = new URL(assignedAuth).port;
@@ -445,6 +455,16 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
         ?? DEFAULT_LANGUAGE;
       const backLang = SUPPORTED_LANGUAGES.includes(lang) ? lang : DEFAULT_LANGUAGE;
       search.set("redirectUrl", `${proto === "https" ? "https" : "http"}://${host}/${backLang}`);
+    }
+    // 🔒 259-8: НА СВОЁМ ДОМЕНЕ ВХОД ВОЗВРАЩАЕТ ЧЕЛОВЕКА НА САЙТ. Служба входа живёт
+    // на `auth.<зона>` и без адреса возврата оставляет вошедшего у себя. Роль
+    // `user`: по умолчанию служба ждёт архитектора и показала бы обычному
+    // посетителю «доступ запрещён» сразу после успешной регистрации.
+    if ((pathname === "/login" || pathname === "/register") && host && publicAuthBaseFor(host) && !search.has("callbackUrl")) {
+      const lang = search.get("lang") ?? request.cookies.get(LOCALE_COOKIE)?.value ?? DEFAULT_LANGUAGE;
+      const backLang = SUPPORTED_LANGUAGES.includes(lang) ? lang : DEFAULT_LANGUAGE;
+      search.set("callbackUrl", `https://${host}/${backLang}`);
+      if (!search.has("requireRole")) search.set("requireRole", "user");
     }
     const qs = search.toString();
     const target = `${authBaseFromHost(host, proto)}${pathname}${qs ? `?${qs}` : ""}`;
