@@ -65,6 +65,12 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
   // Сколько ступеней человек объявил пройденными. Это НЕ состояние узла: узел
   // не может проверить, сменил ли человек серверы имён, пока у него нет ключа.
   const [claimed, setClaimed] = useState(0)
+  const [token, setToken] = useState("")
+  const [busy, setBusy] = useState(false)
+  // 🔒 ОТВЕТ ДВЕРИ ЖИВЁТ НА ЭКРАНЕ, А НЕ МЕЛЬКАЕТ. Закон образца: молчаливый
+  // успех неотличим от молчаливого отказа, и у успеха обязан быть назван
+  // СЛЕДУЮЩИЙ шаг — иначе человек не знает, куда смотреть дальше.
+  const [answer, setAnswer] = useState<{ ok: boolean; text: string; zones?: string[] } | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -80,6 +86,45 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
   // Ключ работает — значит первые три ступени пройдены по факту, а не по слову.
   const outside = state.keyConfigured ? 3 : claimed
   const mark = (n: number) => setClaimed((c) => Math.max(c, n))
+
+  /** Перевод причины отказа в человеческие слова. Голый код беды — тот же тупик. */
+  const reasonText = (reason: string): string => {
+    if (reason === "empty") return words.reasonEmpty
+    if (reason === "no-zones") return words.reasonNoZones
+    if (reason === "not-owner") return words.reasonNotOwner
+    if (reason.startsWith("network:")) return words.reasonNetwork
+    if (reason.startsWith("token-")) return words.reasonToken
+    // Слова самого Cloudflare передаются как есть: они точнее нашего пересказа.
+    if (reason.startsWith("cloudflare:")) return `${words.keyRejected} ${reason.slice("cloudflare:".length)}`
+    return words.keyRejected
+  }
+
+  async function sendKey() {
+    if (busy) return
+    setBusy(true)
+    setAnswer(null)
+    try {
+      const res = await fetch(`${BASE}/api/domain/key`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token }),
+      })
+      const data = (await res.json()) as { ok?: boolean; reason?: string; keyTail?: string; zones?: Array<{ name: string }> }
+      // 🛑 ПОЛЕ ОЧИЩАЕТСЯ В ЛЮБОМ ИСХОДЕ. Токен, оставшийся на экране после
+      // отправки, виден каждому, кто подойдёт к компьютеру.
+      setToken("")
+      if (data.ok) {
+        setAnswer({ ok: true, text: `${words.keyAccepted} ${words.keyNextStep}`, zones: (data.zones ?? []).map((z) => z.name) })
+        setState((prev) => (prev ? { ...prev, keyConfigured: true, keyTail: data.keyTail ?? null } : prev))
+      } else {
+        setAnswer({ ok: false, text: reasonText(data.reason ?? "") })
+      }
+    } catch {
+      setAnswer({ ok: false, text: words.reasonNetwork })
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const manual: Array<{ n: number; title: string; text: string }> = [
     { n: 1, title: words.step1Title, text: words.step1Text },
@@ -105,7 +150,34 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
       {outside >= 3 ? (
         <Step n={4} title={words.step4Title} done={state.keyConfigured}>
           <p className="text-muted-foreground text-sm">{state.keyConfigured ? `${words.keyConfigured} · ····${state.keyTail}` : words.step4Text}</p>
-          {!state.keyConfigured ? <p className="mt-2 text-muted-foreground text-xs italic">{words.soon}</p> : null}
+          {!state.keyConfigured ? (
+            <div className="mt-3 flex flex-col gap-2" data-key-form>
+              <Small className="text-muted-foreground">{words.keyHelp}</Small>
+              <div className="flex flex-wrap gap-2">
+                <input
+                  autoComplete="off"
+                  className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 font-mono text-sm"
+                  onChange={(e) => setToken(e.target.value)}
+                  placeholder={words.keyPlaceholder}
+                  type="password"
+                  value={token}
+                />
+                <Button disabled={busy || !token.trim()} onClick={sendKey} size="sm">
+                  {busy ? words.keySaving : words.keySave}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+          {answer ? (
+            <p className={`mt-3 rounded-md border px-3 py-2 text-sm ${answer.ok ? "border-primary/40 bg-primary/5 text-foreground" : "border-destructive/40 bg-destructive/5 text-foreground"}`} data-key-answer={answer.ok ? "ok" : "fail"}>
+              {answer.text}
+            </p>
+          ) : null}
+          {answer?.zones?.length ? (
+            <p className="mt-2 text-muted-foreground text-xs">
+              {words.zonesFound}: <span className="font-mono">{answer.zones.join(", ")}</span>
+            </p>
+          ) : null}
         </Step>
       ) : (
         <Locked n={4} text={words.locked4} />

@@ -30,6 +30,19 @@ export type DomainLadderWords = {
   quickAddress: string
   loading: string
   soon: string
+  keyPlaceholder: string
+  keyHelp: string
+  keySave: string
+  keySaving: string
+  keyAccepted: string
+  keyRejected: string
+  keyNextStep: string
+  zonesFound: string
+  reasonEmpty: string
+  reasonNoZones: string
+  reasonNotOwner: string
+  reasonNetwork: string
+  reasonToken: string
 }
 
 const W: Record<string, DomainLadderWords> = {
@@ -54,6 +67,19 @@ const W: Record<string, DomainLadderWords> = {
     quickAddress: "Temporary address in use",
     loading: "Reading the node state…",
     soon: "Built in the next sub-step.",
+    keyPlaceholder: "Paste the Cloudflare API token",
+    keyHelp: "In Cloudflare: My Profile → API Tokens → Create Token. It needs permission to edit DNS in your zone and to manage Cloudflare Tunnel.",
+    keySave: "Give the node the key",
+    keySaving: "Checking with Cloudflare…",
+    keyAccepted: "The key works.",
+    keyRejected: "Cloudflare did not accept this key.",
+    keyNextStep: "Next: step 5 — the node creates the tunnel and the DNS record.",
+    zonesFound: "Domains this key can see",
+    reasonEmpty: "The field is empty.",
+    reasonNoZones: "The key is alive but sees no domain. It was most likely created without access to your zone — create it again and grant the zone.",
+    reasonNotOwner: "This can only be done on the computer where the node runs.",
+    reasonNetwork: "Could not reach Cloudflare — check the connection. The key was not saved.",
+    reasonToken: "Cloudflare says this token is not active.",
   },
   ru: {
     lead: "Пять шагов. Первые три происходят вне этого компьютера — их можете сделать только вы. Остальное узел делает сам.",
@@ -76,6 +102,19 @@ const W: Record<string, DomainLadderWords> = {
     quickAddress: "Сейчас работает временный адрес",
     loading: "Читаю состояние узла…",
     soon: "Строится в следующем подшаге.",
+    keyPlaceholder: "Вставьте токен API Cloudflare",
+    keyHelp: "В Cloudflare: My Profile → API Tokens → Create Token. Токену нужно право править DNS в вашей зоне и управлять Cloudflare Tunnel.",
+    keySave: "Выдать узлу ключ",
+    keySaving: "Проверяю у Cloudflare…",
+    keyAccepted: "Ключ работает.",
+    keyRejected: "Cloudflare не принял этот ключ.",
+    keyNextStep: "Дальше: шаг 5 — узел создаёт туннель и запись DNS.",
+    zonesFound: "Домены, которые видит этот ключ",
+    reasonEmpty: "Поле пустое.",
+    reasonNoZones: "Ключ жив, но не видит ни одного домена. Скорее всего его создали без доступа к вашей зоне — создайте заново и дайте зону.",
+    reasonNotOwner: "Это можно сделать только на том компьютере, где работает узел.",
+    reasonNetwork: "Не достучался до Cloudflare — проверьте связь. Ключ не сохранён.",
+    reasonToken: "Cloudflare говорит, что этот токен не активен.",
   },
 }
 
