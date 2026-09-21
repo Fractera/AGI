@@ -246,14 +246,14 @@
           "times": 16
         },
         {
-          "page": "architecture",
-          "order": 1,
-          "times": 61
-        },
-        {
           "page": "cookies",
           "order": 2,
           "times": 2
+        },
+        {
+          "page": "core",
+          "order": 1,
+          "times": 6
         },
         {
           "page": "privacy",
@@ -264,6 +264,11 @@
           "page": "terms",
           "order": 2,
           "times": 2
+        },
+        {
+          "page": "web3",
+          "order": 3,
+          "times": 16
         }
       ]
     },
@@ -286,11 +291,6 @@
           "times": 2
         },
         {
-          "page": "architecture",
-          "order": 4,
-          "times": 3
-        },
-        {
           "page": "cookies",
           "order": 1,
           "times": 1
@@ -304,6 +304,11 @@
           "page": "terms",
           "order": 1,
           "times": 1
+        },
+        {
+          "page": "web3",
+          "order": 2,
+          "times": 2
         }
       ]
     },
@@ -331,9 +336,14 @@
           "times": 6
         },
         {
-          "page": "architecture",
-          "order": 7,
-          "times": 19
+          "page": "core",
+          "order": 9,
+          "times": 2
+        },
+        {
+          "page": "web3",
+          "order": 26,
+          "times": 6
         }
       ]
     },
@@ -356,9 +366,9 @@
           "times": 3
         },
         {
-          "page": "architecture",
-          "order": 13,
-          "times": 18
+          "page": "web3",
+          "order": 10,
+          "times": 3
         }
       ]
     },
@@ -374,13 +384,7 @@
       "title": null,
       "description": null,
       "hasCard": false,
-      "usedOn": [
-        {
-          "page": "architecture",
-          "order": 47,
-          "times": 3
-        }
-      ]
+      "usedOn": []
     },
     {
       "id": "0015",
@@ -402,6 +406,16 @@
         },
         {
           "page": "agi-item",
+          "order": 4,
+          "times": 1
+        },
+        {
+          "page": "core",
+          "order": 23,
+          "times": 1
+        },
+        {
+          "page": "web3",
           "order": 4,
           "times": 1
         }
@@ -426,9 +440,9 @@
           "times": 1
         },
         {
-          "page": "architecture",
-          "order": 3,
-          "times": 10
+          "page": "web3",
+          "order": 12,
+          "times": 1
         }
       ]
     },
@@ -448,6 +462,11 @@
         {
           "page": "(home)",
           "order": 10,
+          "times": 2
+        },
+        {
+          "page": "core",
+          "order": 11,
           "times": 2
         }
       ]
@@ -492,13 +511,7 @@
       "title": null,
       "description": null,
       "hasCard": false,
-      "usedOn": [
-        {
-          "page": "architecture",
-          "order": 9,
-          "times": 6
-        }
-      ]
+      "usedOn": []
     },
     {
       "id": "0029",
@@ -540,13 +553,7 @@
       "title": null,
       "description": null,
       "hasCard": false,
-      "usedOn": [
-        {
-          "page": "architecture",
-          "order": 27,
-          "times": 4
-        }
-      ]
+      "usedOn": []
     },
     {
       "id": "0023",
@@ -593,6 +600,11 @@
           "page": "agi-item",
           "order": 14,
           "times": 1
+        },
+        {
+          "page": "web3",
+          "order": 14,
+          "times": 1
         }
       ]
     },
@@ -611,6 +623,11 @@
       "usedOn": [
         {
           "page": "agi-item",
+          "order": 15,
+          "times": 2
+        },
+        {
+          "page": "web3",
           "order": 15,
           "times": 2
         }
@@ -652,6 +669,16 @@
           "page": "agi-item",
           "order": 1,
           "times": 1
+        },
+        {
+          "page": "core",
+          "order": 2,
+          "times": 1
+        },
+        {
+          "page": "web3",
+          "order": 1,
+          "times": 1
         }
       ]
     },
@@ -677,6 +704,16 @@
           "page": "agi-item",
           "order": 5,
           "times": 1
+        },
+        {
+          "page": "core",
+          "order": 5,
+          "times": 1
+        },
+        {
+          "page": "web3",
+          "order": 5,
+          "times": 1
         }
       ]
     },
@@ -695,6 +732,11 @@
       "usedOn": [
         {
           "page": "agi-item",
+          "order": 7,
+          "times": 1
+        },
+        {
+          "page": "web3",
           "order": 7,
           "times": 1
         }
@@ -716,6 +758,11 @@
         {
           "page": "(home)",
           "order": 3,
+          "times": 1
+        },
+        {
+          "page": "core",
+          "order": 4,
           "times": 1
         }
       ]
@@ -742,6 +789,16 @@
           "page": "agi-item",
           "order": 6,
           "times": 3
+        },
+        {
+          "page": "core",
+          "order": 6,
+          "times": 1
+        },
+        {
+          "page": "web3",
+          "order": 6,
+          "times": 3
         }
       ]
     },
@@ -761,6 +818,11 @@
         {
           "page": "(home)",
           "order": 24,
+          "times": 1
+        },
+        {
+          "page": "core",
+          "order": 25,
           "times": 1
         }
       ]
@@ -785,6 +847,16 @@
         },
         {
           "page": "agi-item",
+          "order": 24,
+          "times": 2
+        },
+        {
+          "page": "core",
+          "order": 7,
+          "times": 2
+        },
+        {
+          "page": "web3",
           "order": 24,
           "times": 2
         }
@@ -812,6 +884,16 @@
           "page": "agi-item",
           "order": 25,
           "times": 6
+        },
+        {
+          "page": "core",
+          "order": 8,
+          "times": 5
+        },
+        {
+          "page": "web3",
+          "order": 25,
+          "times": 6
         }
       ]
     },
@@ -830,6 +912,11 @@
       "usedOn": [
         {
           "page": "agi-item",
+          "order": 22,
+          "times": 2
+        },
+        {
+          "page": "web3",
           "order": 22,
           "times": 2
         }
@@ -857,7 +944,7 @@
       "kind": "noBill",
       "type": "pricing",
       "shape": "statement",
-      "fields": "badge?: string; heading: string; note?: string; items: { vendor: string; text: string; badge: BadgeItem }[]; title: string; text: string; cta?: { page: 'architecture' }",
+      "fields": "badge?: string; heading: string; note?: string; items: { vendor: string; text: string; badge: BadgeItem }[]; title: string; text: string; cta?: { page: 'm2m' }",
       "title": "the invoices that will not come",
       "description": "**Type:** Pricing and plans (7). The only kind in this type today, and it argues about price from the\nother side: not what you pay, but what you stop paying.\n\n## What it actually draws\n\nA named section: an H2 above, a list of other companies' names struck through with what you no longer\nbuy from them, and an H3 conclusion below.\n\n🔒 **Two headings of different levels, and it is not a repetition.** The H2 on top NAMES the section:\nwithout it the section stood in the middle of the page nameless — there were arguments, but the page did\nnot say whose. The H3 below is the CONCLUSION, and it has to come after the list: three struck-through\nnames are the evidence, the conclusion follows from them. Put the conclusion on top and the reader gets\na verdict before its grounds — that is asking him to take your word.\n\n🔒 **The NAME is struck through, not the whole phrase.** A struck-through line \"you do not pay Vercel\"\nreads as a cancelled statement — the exact opposite of what is meant.\n\n## When to take it\n\nThe pricing part of a landing page where the argument is savings, not a price list.\n\n## When NOT to take it\n\n- You need plans with prices and a \"popular\" one: no kind does that yet — say so instead of bending\n  this one.\n- The list is your own features, not somebody else's invoices — that is `cards` or `badges`.",
       "hasCard": true,
@@ -865,6 +952,11 @@
         {
           "page": "(home)",
           "order": 23,
+          "times": 1
+        },
+        {
+          "page": "core",
+          "order": 24,
           "times": 1
         }
       ]
@@ -914,6 +1006,11 @@
           "page": "(home)",
           "order": 25,
           "times": 1
+        },
+        {
+          "page": "core",
+          "order": 26,
+          "times": 1
         }
       ]
     },
@@ -933,6 +1030,11 @@
         {
           "page": "(home)",
           "order": 2,
+          "times": 1
+        },
+        {
+          "page": "core",
+          "order": 3,
           "times": 1
         }
       ]
