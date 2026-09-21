@@ -188,7 +188,7 @@ export const SPECIMEN: SpecimenSection[] = [
   },
   {
     kind: 'table',
-    when: 'A comparison. The LAST column is emphasized as “ours”.',
+    when: 'A comparison. The LAST column is emphasized as “ours”. Always a full set: search on top, pages below (262).',
     blocks: [
       {
         kind: 'table',
@@ -198,6 +198,17 @@ export const SPECIMEN: SpecimenSection[] = [
           ['Who repeats the work', 'a person', 'a machine'],
           ['Who notices a mistake', 'a person, later', 'a gate, immediately'],
           ['What scales', 'nothing', '**the verification**'],
+          ['Who writes the tests', 'nobody, usually', 'the same loop, first'],
+          ['How long a release takes', 'a day', 'minutes'],
+          ['Who remembers the decisions', 'whoever was in the room', 'the step file'],
+          ['What a new teammate reads', 'chat history', 'the instruction'],
+          ['What a failed build costs', 'an evening', 'one retry'],
+          ['Who checks the language', 'a proofreader', 'a guard before the build'],
+          ['Where the proof lives', 'in someone’s head', 'next to the commit'],
+          ['How a rollback happens', 'by hand, carefully', 'one command'],
+          ['What grows with the team', 'meetings', 'the guards'],
+          ['Who sees the site first', 'the customer', 'the owner, on their own domain'],
+          ['What survives a restart', 'luck', '**the saved snapshot**'],
         ],
       },
     ],
