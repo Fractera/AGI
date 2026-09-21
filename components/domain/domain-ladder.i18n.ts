@@ -15,8 +15,12 @@ export type DomainLadderWords = {
   step1Text: string
   step2Title: string
   step2Text: string
+  step2Steps: string[]
+  step2Take: string
   step3Title: string
   step3Text: string
+  step3Steps: string[]
+  step3Wait: string
   step4Title: string
   step4Text: string
   step5Title: string
@@ -67,6 +71,17 @@ export type DomainLadderWords = {
   cfLimit5: string
   cfLimitsSource: string
   dashOpen: string
+  domainLabel: string
+  domainSave: string
+  domainSaved: string
+  checkNs: string
+  checking: string
+  nsOk: string
+  nsForeign: string
+  nsUnknown: string
+  nsCurrent: string
+  fastPath: string
+  fastPathSaving: string
 }
 
 const W: Record<string, DomainLadderWords> = {
@@ -74,10 +89,26 @@ const W: Record<string, DomainLadderWords> = {
     lead: "Five steps. The first three happen outside this computer — only you can do them. The rest the node does itself.",
     step1Title: "A domain of your own",
     step1Text: "Register a domain at any registrar, or take one you already own. This is the only part that costs money.",
-    step2Title: "Add the domain to Cloudflare",
-    step2Text: "In the Cloudflare dashboard: Onboard a domain → enter the apex domain (example.com) → select a plan. Cloudflare will show you two nameservers.",
-    step3Title: "Change the nameservers at the registrar",
-    step3Text: "Enter those two nameservers in your registrar's panel, replacing the current ones. Until this is done nothing further works, and this is the step that takes the longest — Cloudflare has to see the change.",
+    step2Title: "Add the domain to Cloudflare and copy two names",
+    step2Text: "Cloudflare does not take the domain away from your registrar — it takes over its DNS. At the end of this step you will have two names to carry over to step 3.",
+    step2Steps: [
+      "Open the dashboard and choose Add a domain.",
+      "Type the domain without www and without https — example.com.",
+      "Pick the Free plan if you are not sure: it is enough for everything on this page.",
+      "Cloudflare will scan the existing records and show them. Nothing to change here — Continue.",
+      "The last screen shows TWO names like kate.ns.cloudflare.com. COPY BOTH — step 3 needs them.",
+    ],
+    step2Take: "Copied both names? Then go to step 3 — they go into your registrar.",
+    step3Title: "Put those two names into your registrar",
+    step3Text: "This is the only step that happens at the place where you bought the domain — Porkbun, GoDaddy, wherever it is. You are replacing its nameservers with the two you copied in step 2.",
+    step3Steps: [
+      "Sign in to your registrar and open the domain.",
+      "Find the nameservers section — it is usually called Nameservers, NS or DNS.",
+      "Switch it from the default ones to custom.",
+      "DELETE what is there and paste the TWO names from step 2 — the ones ending in ns.cloudflare.com.",
+      "Save. Cloudflare will notice the change by itself.",
+    ],
+    step3Wait: "It takes from a few minutes to a day — not because of us: this is how the change spreads across the internet. Cloudflare will email you when the domain goes active. Until then step 5 will honestly say the domain is not active yet.",
     step4Title: "Give the node a Cloudflare key",
     step4Text: "Create an API token in Cloudflare with permission to edit DNS and tunnels, and paste it here. The node keeps it to itself and never shows it again.",
     step5Title: "The node does the rest",
@@ -128,15 +159,42 @@ const W: Record<string, DomainLadderWords> = {
     cfLimit5: "Moving away has waiting periods set by ICANN — 60 days after a change of registrar or of WHOIS data.",
     cfLimitsSource: "Source: Cloudflare Registrar documentation, read 2026-09-21. Check the current terms before you pay — they are theirs to change, not ours.",
     dashOpen: "Open the Cloudflare dashboard",
+    domainLabel: "Which domain will this be? Type it and the node will check the rest by itself.",
+    domainSave: "This is my domain",
+    domainSaved: "Remembered — the node will check this name from now on.",
+    checkNs: "Check whether it worked",
+    checking: "Asking the internet…",
+    nsOk: "The domain already points at Cloudflare. This step is done.",
+    nsForeign: "The domain still points at its old nameservers — the change has not taken effect yet.",
+    nsUnknown: "The internet does not know this name yet. Either it was just registered, or there is a typo.",
+    nsCurrent: "Right now it answers with",
+    fastPath: "Buying at Cloudflare skips steps 2 and 3 entirely.",
+    fastPathSaving: "Those two steps are where the waiting lives: a nameserver change spreads across the internet for anything from a few minutes to 24 hours, and nobody can speed it up. A domain registered at Cloudflare is already on their nameservers — there is nothing to change and nothing to wait for.",
   },
   ru: {
     lead: "Пять шагов. Первые три происходят вне этого компьютера — их можете сделать только вы. Остальное узел делает сам.",
     step1Title: "Собственный домен",
     step1Text: "Зарегистрируйте домен у любого регистратора или возьмите тот, что уже есть. Это единственная часть, которая стоит денег.",
-    step2Title: "Заведите домен в Cloudflare",
-    step2Text: "В панели Cloudflare: Onboard a domain → введите корневой домен (example.com) → выберите план. Cloudflare покажет два своих сервера имён.",
-    step3Title: "Смените серверы имён у регистратора",
-    step3Text: "Впишите эти два сервера имён в панели своего регистратора вместо нынешних. Пока это не сделано, дальше ничего не работает, и это самый долгий шаг — Cloudflare должен увидеть смену.",
+    step2Title: "Заведите домен в Cloudflare и скопируйте два имени",
+    step2Text: "Cloudflare не забирает домен у регистратора — он берёт на себя его DNS. В конце этого шага у вас будут два имени, которые понадобятся на шаге 3.",
+    step2Steps: [
+      "Откройте панель и выберите «Add a domain».",
+      "Введите домен без www и без https — example.com.",
+      "Выберите план Free, если не уверены: для всего, что на этой странице, его хватает.",
+      "Cloudflare прочитает существующие записи и покажет их. Менять здесь нечего — Continue.",
+      "На последнем экране будут ДВА имени вида kate.ns.cloudflare.com. СКОПИРУЙТЕ ОБА — они нужны на шаге 3.",
+    ],
+    step2Take: "Скопировали оба имени? Тогда переходите к шагу 3 — они пойдут к вашему регистратору.",
+    step3Title: "Впишите эти два имени у своего регистратора",
+    step3Text: "Единственный шаг, который проходит там, где вы купили домен, — Porkbun, GoDaddy, где угодно. Вы заменяете его серверы имён на те два, что скопировали на шаге 2.",
+    step3Steps: [
+      "Войдите к регистратору и откройте свой домен.",
+      "Найдите раздел серверов имён — он обычно называется Nameservers, NS или DNS.",
+      "Переключите его с серверов по умолчанию на собственные (custom).",
+      "УДАЛИТЕ то, что там стоит, и вставьте ДВА имени с шага 2 — те, что оканчиваются на ns.cloudflare.com.",
+      "Сохраните. Cloudflare заметит смену сам.",
+    ],
+    step3Wait: "Занимает от нескольких минут до суток — и не по нашей вине: так смена расходится по интернету. Cloudflare пришлёт письмо, когда домен станет активен. До этого шаг 5 честно скажет, что домен ещё не активен.",
     step4Title: "Выдайте узлу ключ Cloudflare",
     step4Text: "Создайте в Cloudflare токен API с правом править DNS и туннели и вставьте его здесь. Узел оставит его себе и больше никогда не покажет.",
     step5Title: "Остальное узел делает сам",
@@ -187,6 +245,17 @@ const W: Record<string, DomainLadderWords> = {
     cfLimit5: "У переезда есть сроки ожидания, заданные ICANN, — 60 дней после смены регистратора или данных WHOIS.",
     cfLimitsSource: "Источник: документация Cloudflare Registrar, прочитана 2026-09-21. Проверьте действующие условия перед оплатой — менять их вправе они, а не мы.",
     dashOpen: "Открыть панель Cloudflare",
+    domainLabel: "Какой это будет домен? Введите его — остальное узел проверит сам.",
+    domainSave: "Это мой домен",
+    domainSaved: "Запомнил — дальше узел проверяет именно это имя.",
+    checkNs: "Проверить, получилось ли",
+    checking: "Спрашиваю интернет…",
+    nsOk: "Домен уже указывает на Cloudflare. Этот шаг сделан.",
+    nsForeign: "Домен пока указывает на прежние серверы имён — смена ещё не вступила в силу.",
+    nsUnknown: "Интернет ещё не знает этого имени. Либо оно только что зарегистрировано, либо в нём опечатка.",
+    nsCurrent: "Сейчас он отвечает",
+    fastPath: "Покупка в Cloudflare пропускает шаги 2 и 3 целиком.",
+    fastPathSaving: "Именно в этих двух шагах живёт ожидание: смена серверов имён расходится по интернету от нескольких минут до 24 часов, и ускорить это не может никто. Домен, зарегистрированный в Cloudflare, уже на их серверах имён — менять нечего и ждать нечего.",
   },
 }
 

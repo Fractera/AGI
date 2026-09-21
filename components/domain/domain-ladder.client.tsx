@@ -1,6 +1,6 @@
 "use client"
 
-import { Check, CircleAlert, ExternalLink, TriangleAlert } from "lucide-react"
+import { Check, ChevronDown, CircleAlert, ExternalLink, TriangleAlert } from "lucide-react"
 import { type ReactNode, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { H3, Small } from "@/components/ui/typography"
@@ -54,6 +54,8 @@ const CLOUDFLARE_REGISTRAR = "https://www.cloudflare.com/products/registrar/"
 const CLOUDFLARE_DASH = "https://dash.cloudflare.com/"
 
 type State = {
+  wanted: string | null
+  nsVerifiedAt: string | null
   keyConfigured: boolean
   keyTail: string | null
   zone: string | null
@@ -88,9 +90,6 @@ function Locked({ n, text }: { n: number; text: string }) {
 
 export function DomainLadder({ words }: { words: DomainLadderWords }) {
   const [state, setState] = useState<State | null>(null)
-  // Сколько ступеней человек объявил пройденными. Это НЕ состояние узла: узел
-  // не может проверить, сменил ли человек серверы имён, пока у него нет ключа.
-  const [claimed, setClaimed] = useState(0)
   const [token, setToken] = useState("")
   const [busy, setBusy] = useState(false)
   // 🔒 ОТВЕТ ДВЕРИ ЖИВЁТ НА ЭКРАНЕ, А НЕ МЕЛЬКАЕТ. Закон образца: молчаливый
@@ -104,6 +103,13 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
   // ступень пятью абзацами и человек перестаёт видеть, что вообще надо сделать.
   // Спрятанные совсем — мы бы посоветовали короткий путь, умолчав о его цене.
   const [cfLimits, setCfLimits] = useState(false)
+  // 🔒 КАРТОЧКА РЕГИСТРАТОРОВ СВЁРНУТА (слово владельца 2026-09-21). У человека,
+  // у которого домен УЖЕ есть, она занимает половину первой ступени и отвечает
+  // на вопрос, которого он не задавал.
+  const [registrars, setRegistrars] = useState(false)
+  const [wanted, setWanted] = useState("")
+  const [checking, setChecking] = useState(false)
+  const [nsAnswer, setNsAnswer] = useState<{ kind: "ok" | "foreign" | "unknown" | "fail"; text: string; ns?: string[] } | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -116,9 +122,18 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
 
   if (!state) return <p className="text-muted-foreground text-sm">{words.loading}</p>
 
-  // Ключ работает — значит первые три ступени пройдены по факту, а не по слову.
-  const outside = state.keyConfigured ? 3 : claimed
-  const mark = (n: number) => setClaimed((c) => Math.max(c, n))
+  // 🔒 ЧТО СДЕЛАНО — ВЫВОДИТСЯ ИЗ ИЗМЕРЕНИЙ, А НЕ ИЗ САМООТЧЁТА (переделано
+  // 2026-09-21 по слову владельца). Ступень 1 закрыта, когда человек назвал имя;
+  // 2 и 3 — когда серверы имён домена ДЕЙСТВИТЕЛЬНО указывают на Cloudflare. Это
+  // видно публично, без единого ключа, поэтому спрашивать незачем.
+  //
+  // 🛑 КНОПКА «Я ЭТО СДЕЛАЛ» УБРАНА НАМЕРЕННО: человек отмечал шаг, дальше ничего
+  // не работало, и причина была не названа нигде. Самоотчёт там, где есть
+  // измерение, — уступка, за которую платит он, а не мы.
+  const named = !!(state.wanted || wanted.trim())
+  const nsDone = !!state.nsVerifiedAt || nsAnswer?.kind === "ok"
+  const outside = state.keyConfigured || nsDone ? 3 : named ? 1 : 0
+  const domainName = state.wanted ?? wanted.trim()
 
   /** Перевод причины отказа в человеческие слова. Голый код беды — тот же тупик. */
   const reasonText = (reason: string): string => {
@@ -159,6 +174,45 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
     }
   }
 
+  /**
+   * Спросить интернет, куда сейчас указывает домен.
+   *
+   * 🔒 ЭТО ИЗМЕРЕНИЕ, А НЕ САМООТЧЁТ. Прежде здесь стояла кнопка «Я это сделал»,
+   * и человек отмечал шаг сам — а дальше всё молча не работало. Серверы имён
+   * публичны, значит спросить можно, и спрашивать надо.
+   */
+  async function checkNs(name: string) {
+    if (checking || !name.trim()) return
+    setChecking(true)
+    setNsAnswer(null)
+    try {
+      const res = await fetch(`${BASE}/api/domain/check`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ hostname: name }),
+      })
+      const d = (await res.json()) as {
+        ok?: boolean; reason?: string; onCloudflare?: boolean; unknown?: boolean; nameservers?: string[]
+      }
+      if (!d.ok) {
+        setNsAnswer({ kind: "fail", text: d.reason === "bad-hostname" ? words.reasonBadHostname : words.reasonNetwork })
+      } else if (d.onCloudflare) {
+        setNsAnswer({ kind: "ok", text: words.nsOk })
+        setState((prev) => (prev ? { ...prev, wanted: name, nsVerifiedAt: new Date().toISOString() } : prev))
+      } else if (d.unknown) {
+        setNsAnswer({ kind: "unknown", text: words.nsUnknown })
+        setState((prev) => (prev ? { ...prev, wanted: name } : prev))
+      } else {
+        setNsAnswer({ kind: "foreign", text: words.nsForeign, ns: d.nameservers })
+        setState((prev) => (prev ? { ...prev, wanted: name } : prev))
+      }
+    } catch {
+      setNsAnswer({ kind: "fail", text: words.reasonNetwork })
+    } finally {
+      setChecking(false)
+    }
+  }
+
   const reason5 = (reason: string): string => {
     if (reason === "zone-not-found") return words.reasonZoneNotFound
     if (reason.startsWith("zone-")) return words.reasonZoneInactive
@@ -194,10 +248,18 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
     }
   }
 
-  const manual: Array<{ n: number; title: string; text: string }> = [
+  // 🔒 ДЕЙСТВИЯ НУМЕРОВАННЫМ СПИСКОМ, А НЕ ПРОЗОЙ. ✗ оплачено словами владельца
+  // 2026-09-21 о прежнем тексте: «здесь совершенно непонятно что нужно делать».
+  // Абзац описывает, что произойдёт; список говорит, что нажать. Человек у чужой
+  // панели читает не для понимания, а для исполнения.
+  //
+  // 🔒 СТУПЕНИ 2 И 3 СВЯЗАНЫ ЯВНО: вторая кончается «скопируйте оба имени»,
+  // третья начинается «вставьте те два имени с шага 2». Два шага, между которыми
+  // человек должен сам догадаться перенести данные, — это разорванная цепочка.
+  const manual: Array<{ n: number; title: string; text: string; steps?: string[]; tail?: string }> = [
     { n: 1, title: words.step1Title, text: words.step1Text },
-    { n: 2, title: words.step2Title, text: words.step2Text },
-    { n: 3, title: words.step3Title, text: words.step3Text },
+    { n: 2, title: words.step2Title, text: words.step2Text, steps: words.step2Steps, tail: words.step2Take },
+    { n: 3, title: words.step3Title, text: words.step3Text, steps: words.step3Steps, tail: words.step3Wait },
   ]
 
   return (
@@ -207,14 +269,51 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
       {manual.map((s) => (
         <Step key={s.n} n={s.n} title={s.title} done={outside >= s.n}>
           <p className="text-muted-foreground text-sm">{s.text}</p>
-          {s.n === 1 && outside < 1 ? (
+          {s.steps ? (
+            <ol className="mt-2 flex list-decimal flex-col gap-1 pl-5 text-foreground text-sm" data-actions={s.n}>
+              {s.steps.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ol>
+          ) : null}
+          {s.tail ? <Small className="mt-2 block text-muted-foreground">{s.tail}</Small> : null}
+          {s.n === 1 ? (
+            <div className="mt-3 flex flex-col gap-2" data-domain-form>
+              <Small className="text-muted-foreground">{words.domainLabel}</Small>
+              <div className="flex flex-wrap gap-2">
+                <input
+                  autoComplete="off"
+                  className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 font-mono text-sm"
+                  onChange={(e) => setWanted(e.target.value)}
+                  placeholder={words.hostPlaceholder}
+                  type="text"
+                  value={state.wanted && !wanted ? state.wanted : wanted}
+                />
+                <Button disabled={checking || !(state.wanted ?? wanted).trim()} onClick={() => checkNs(wanted.trim() || (state.wanted ?? ""))} size="sm">
+                  {checking ? words.checking : words.domainSave}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+          {s.n === 1 ? (
             <div className="mt-3 rounded-md border border-border bg-muted/40 p-3" data-registrars>
-              <Small className="font-semibold text-foreground">{words.registrarsTitle}</Small>
+              <button
+                aria-expanded={registrars}
+                className="flex w-full items-center justify-between gap-2 text-left"
+                onClick={() => setRegistrars((v) => !v)}
+                type="button"
+              >
+                <Small className="font-semibold text-foreground">{words.registrarsTitle}</Small>
+                <ChevronDown className={`size-4 shrink-0 text-muted-foreground transition-transform ${registrars ? "rotate-180" : ""}`} aria-hidden />
+              </button>
+              {registrars ? (<>
               <p className="mt-1 text-muted-foreground text-sm">
                 <a className="underline" href={CLOUDFLARE_REGISTRAR} rel="noreferrer noopener" target="_blank">Cloudflare Registrar</a>
                 {" — "}{words.registrarCloudflare}
               </p>
-              <p className="mt-1 text-foreground text-sm">{words.registrarShortcut}</p>
+              <p className="mt-2 rounded-md border border-primary/40 bg-primary/5 px-3 py-2 text-foreground text-sm" data-fast-path>
+                <span className="font-semibold">{words.fastPath}</span>{" "}{words.fastPathSaving}
+              </p>
               <button
                 aria-expanded={cfLimits}
                 className="mt-2 inline-flex items-center gap-1.5 text-left text-foreground text-sm underline"
@@ -249,6 +348,7 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
                 ))}
               </ul>
               <Small className="mt-2 block text-muted-foreground">{words.registrarPriceNote}</Small>
+              </>) : null}
             </div>
           ) : null}
           {s.n === 2 ? (
@@ -259,10 +359,25 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
               </a>
             </p>
           ) : null}
-          {outside < s.n && outside === s.n - 1 ? (
-            <Button className="mt-3" size="sm" variant="outline" onClick={() => mark(s.n)}>
-              {words.next}
-            </Button>
+          {s.n === 3 && domainName ? (
+            <div className="mt-3 flex flex-col gap-2" data-ns-check>
+              <Button className="w-fit" disabled={checking} onClick={() => checkNs(domainName)} size="sm" variant="outline">
+                {checking ? words.checking : words.checkNs}
+              </Button>
+              {nsAnswer ? (
+                <p
+                  className={`rounded-md border px-3 py-2 text-sm ${nsAnswer.kind === "ok" ? "border-primary/40 bg-primary/5 text-foreground" : "border-border bg-muted/40 text-foreground"}`}
+                  data-ns-answer={nsAnswer.kind}
+                >
+                  {nsAnswer.text}
+                  {nsAnswer.ns?.length ? (
+                    <span className="mt-1 block font-mono text-muted-foreground text-xs">
+                      {words.nsCurrent}: {nsAnswer.ns.join(", ")}
+                    </span>
+                  ) : null}
+                </p>
+              ) : null}
+            </div>
           ) : null}
         </Step>
       ))}
