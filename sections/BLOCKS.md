@@ -83,7 +83,7 @@
 | `chartTooltip01` | `chartTooltip` | Charts | подсказка, видимая без наведения | title: string; description?: string; rows?: ChartRow[]; labels?: { a?: string; b?: string }; openAt?: number | [карточка](blocks/chartTooltip.md) |
 | `orbitLayers01` | `orbitLayers` | Product in action | орбита: четыре опоры как одна конструкция | badge?: string; title: string; accent?: string; lead?: string; core?: FeatureIcon; cards: [OrbitLayerCard, OrbitLayerCard, OrbitLayerCard, OrbitLayerCard] | [карточка](blocks/orbitLayers.md) |
 | `chat01` | `chat` | Workspace | `chat` — переписка как секция страницы | title?: string; note?: string; size?: 'compact' \| 'tall'; messages: ChatBlockMessage[] | [карточка](blocks/chat.md) |
-| `domainLadder01` | `domainLadder` | Page material | — | words: import('@/components/domain/domain-ladder.i18n').DomainLadderWords | — |
+| `domainLadder01` | `domainLadder` | Page material | — | lang: string; words: import('@/components/domain/domain-ladder.i18n').DomainLadderWords | — |
 
 ## Чего в этой таблице нет
 

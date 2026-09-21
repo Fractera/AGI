@@ -4,6 +4,7 @@ import { Check, ChevronDown, CircleAlert, ExternalLink, TriangleAlert } from "lu
 import { type ReactNode, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { H3, Small } from "@/components/ui/typography"
+import { isTemporaryHostname } from "@/lib/auth/temporary-address"
 import type { DomainLadderWords } from "@/components/domain/domain-ladder.i18n"
 
 // ЛЕСТНИЦА ПОДКЛЮЧЕНИЯ СВОЕГО ДОМЕНА (259-1).
@@ -88,7 +89,7 @@ function Locked({ n, text }: { n: number; text: string }) {
   )
 }
 
-export function DomainLadder({ words }: { words: DomainLadderWords }) {
+export function DomainLadder({ lang, words }: { lang: string; words: DomainLadderWords }) {
   const [state, setState] = useState<State | null>(null)
   const [token, setToken] = useState("")
   const [busy, setBusy] = useState(false)
@@ -107,8 +108,22 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
   // у которого домен УЖЕ есть, она занимает половину первой ступени и отвечает
   // на вопрос, которого он не задавал.
   const [registrars, setRegistrars] = useState(false)
+  // 🔒 СВЁРНУТО ПО ТОЙ ЖЕ ПРИЧИНЕ, ЧТО И РЕГИСТРАТОРЫ: человек, у которого токен
+  // уже есть, не должен продираться через инструкцию его создания.
+  const [tokenHow, setTokenHow] = useState(false)
+  // 🔒 ПРЕДУПРЕЖДАЕМ ДО ВВОДА, А НЕ ПОСЛЕ ОТКАЗА. ✗ оплачено 2026-09-21: владелец
+  // сидел за этим самым компьютером, вставил токен и получил «это можно сделать
+  // только на том компьютере, где работает узел» — неправду. Он смотрел сайт по
+  // публичному адресу туннеля. Поле, которое заведомо откажет, показывать нельзя:
+  // человек тратит действие и получает неверное объяснение.
+  const [onTemporary, setOnTemporary] = useState(false)
+  useEffect(() => {
+    setOnTemporary(isTemporaryHostname(window.location.hostname))
+  }, [])
   const [wanted, setWanted] = useState("")
   const [checking, setChecking] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState<{ ok: boolean; text: string } | null>(null)
   const [nsAnswer, setNsAnswer] = useState<{ kind: "ok" | "foreign" | "unknown" | "fail"; text: string; ns?: string[] } | null>(null)
 
   useEffect(() => {
@@ -130,7 +145,7 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
   // 🛑 КНОПКА «Я ЭТО СДЕЛАЛ» УБРАНА НАМЕРЕННО: человек отмечал шаг, дальше ничего
   // не работало, и причина была не названа нигде. Самоотчёт там, где есть
   // измерение, — уступка, за которую платит он, а не мы.
-  const named = !!(state.wanted || wanted.trim())
+  const named = !!state.wanted
   const nsDone = !!state.nsVerifiedAt || nsAnswer?.kind === "ok"
   const outside = state.keyConfigured || nsDone ? 3 : named ? 1 : 0
   const domainName = state.wanted ?? wanted.trim()
@@ -171,6 +186,37 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
       setAnswer({ ok: false, text: words.reasonNetwork })
     } finally {
       setBusy(false)
+    }
+  }
+
+  /**
+   * Запомнить имя домена. Это ВСЁ, что делает первая ступень.
+   *
+   * 🔒 ПРОВЕРКИ ЗДЕСЬ НЕТ НАМЕРЕННО (слово владельца 2026-09-21). Привязка к
+   * Cloudflare появляется только после третьего шага; спрашивать о ней на первом
+   * значит показывать человеку отказ за работу, которую он ещё не начинал.
+   */
+  async function saveName(name: string) {
+    if (saving || !name.trim()) return
+    setSaving(true)
+    setSaved(null)
+    try {
+      const res = await fetch(`${BASE}/api/domain/check`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ hostname: name, verify: false }),
+      })
+      const d = (await res.json()) as { ok?: boolean; reason?: string; hostname?: string }
+      if (d.ok) {
+        setSaved({ ok: true, text: words.domainSaved })
+        setState((prev) => (prev ? { ...prev, wanted: d.hostname ?? name } : prev))
+      } else {
+        setSaved({ ok: false, text: d.reason === "bad-hostname" ? words.reasonBadHostname : words.reasonNetwork })
+      }
+    } catch {
+      setSaved({ ok: false, text: words.reasonNetwork })
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -289,10 +335,18 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
                   type="text"
                   value={state.wanted && !wanted ? state.wanted : wanted}
                 />
-                <Button disabled={checking || !(state.wanted ?? wanted).trim()} onClick={() => checkNs(wanted.trim() || (state.wanted ?? ""))} size="sm">
-                  {checking ? words.checking : words.domainSave}
+                <Button className="h-[38px]" disabled={saving || !(wanted.trim() || state.wanted)} onClick={() => saveName(wanted.trim() || (state.wanted ?? ""))} size="sm">
+                  {saving ? words.saving : words.domainSave}
                 </Button>
               </div>
+              {saved ? (
+                <p
+                  className={`rounded-md border px-3 py-2 text-sm ${saved.ok ? "border-primary/40 bg-primary/5 text-foreground" : "border-border bg-muted/40 text-foreground"}`}
+                  data-saved={saved.ok ? "ok" : "fail"}
+                >
+                  {saved.text}
+                </p>
+              ) : null}
             </div>
           ) : null}
           {s.n === 1 ? (
@@ -311,9 +365,12 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
                 <a className="underline" href={CLOUDFLARE_REGISTRAR} rel="noreferrer noopener" target="_blank">Cloudflare Registrar</a>
                 {" — "}{words.registrarCloudflare}
               </p>
-              <p className="mt-2 rounded-md border border-primary/40 bg-primary/5 px-3 py-2 text-foreground text-sm" data-fast-path>
-                <span className="font-semibold">{words.fastPath}</span>{" "}{words.fastPathSaving}
-              </p>
+              <div className="mt-2 flex gap-2 rounded-md border border-warning/50 bg-warning/10 px-3 py-2" data-fast-path>
+                <CircleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
+                <p className="text-foreground text-sm">
+                  <span className="font-semibold">{words.fastPath}</span>{" "}{words.fastPathSaving}
+                </p>
+              </div>
               <button
                 aria-expanded={cfLimits}
                 className="mt-2 inline-flex items-center gap-1.5 text-left text-foreground text-sm underline"
@@ -385,13 +442,80 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
       {outside >= 3 ? (
         <Step n={4} title={words.step4Title} done={state.keyConfigured}>
           <p className="text-muted-foreground text-sm">{state.keyConfigured ? `${words.keyConfigured} · ····${state.keyTail}` : words.step4Text}</p>
-          {!state.keyConfigured ? (
+          {!state.keyConfigured && onTemporary ? (
+            <div className="mt-3 flex gap-2 rounded-md border border-warning/50 bg-warning/10 px-3 py-2" data-key-blocked>
+              <CircleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
+              <div>
+                <p className="text-foreground text-sm">{words.reasonTemporary}</p>
+                {state.nodeUrl ? (
+                  <a className="mt-1 inline-flex items-center gap-1 font-mono text-sm underline" href={`${state.nodeUrl}/${lang}/architect/hosting/domain`}>
+                    {words.openLocally}: {state.nodeUrl}
+                    <ExternalLink className="size-3" aria-hidden />
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+          {!state.keyConfigured && !onTemporary ? (
             <div className="mt-3 flex flex-col gap-2" data-key-form>
               <Small className="text-muted-foreground">{words.keyHelp}</Small>
               <a className="inline-flex w-fit items-center gap-1 text-sm underline" href={CLOUDFLARE_DASH} rel="noreferrer noopener" target="_blank">
                 {words.dashOpen}
                 <ExternalLink className="size-3" aria-hidden />
               </a>
+              <div className="rounded-md border border-border bg-muted/40 p-3" data-token-how>
+                <button
+                  aria-expanded={tokenHow}
+                  className="flex w-full items-center justify-between gap-2 text-left"
+                  onClick={() => setTokenHow((v) => !v)}
+                  type="button"
+                >
+                  <Small className="font-semibold text-foreground">{words.tokenHowToggle}</Small>
+                  <ChevronDown className={`size-4 shrink-0 text-muted-foreground transition-transform ${tokenHow ? "rotate-180" : ""}`} aria-hidden />
+                </button>
+                {tokenHow ? (
+                  <>
+                    <ol className="mt-2 flex list-decimal flex-col gap-1 pl-5 text-foreground text-sm">
+                      {words.tokenHowSteps.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ol>
+                    <Small className="mt-3 block font-semibold text-foreground">{words.tokenPermsTitle}</Small>
+                    {/* 🛑 Таблица в своей прокрутке: на телефоне три столбца шире экрана,
+                        а страница целиком горизонтально ездить не должна. */}
+                    <div className="mt-1 overflow-x-auto">
+                      <table className="w-full min-w-[20rem] border-collapse text-sm">
+                        <thead>
+                          <tr>
+                            {words.tokenPermsHead.map((h) => (
+                              <th className="border border-border bg-muted px-2 py-1 text-left font-semibold" key={h} scope="col">{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {words.tokenPermsRows.map((row) => (
+                            <tr key={row.join("-")}>
+                              {row.map((cell) => (
+                                <td className="border border-border px-2 py-1 font-mono" key={cell}>{cell}</td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-muted-foreground text-sm">
+                      {words.tokenPermsWhy.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                    <ul className="mt-3 flex list-disc flex-col gap-1 pl-5 text-foreground text-sm">
+                      {words.tokenTail.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </>
+                ) : null}
+              </div>
               <div className="flex flex-wrap gap-2">
                 <input
                   autoComplete="off"
@@ -401,7 +525,7 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
                   type="password"
                   value={token}
                 />
-                <Button disabled={busy || !token.trim()} onClick={sendKey} size="sm">
+                <Button className="h-[38px]" disabled={busy || !token.trim()} onClick={sendKey} size="sm">
                   {busy ? words.keySaving : words.keySave}
                 </Button>
               </div>
@@ -437,7 +561,7 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
                   type="text"
                   value={host}
                 />
-                <Button disabled={busy5 || !host.trim()} onClick={activate} size="sm">
+                <Button className="h-[38px]" disabled={busy5 || !host.trim()} onClick={activate} size="sm">
                   {busy5 ? words.activating : words.activate}
                 </Button>
               </div>

@@ -41,7 +41,17 @@ function putEnv(name: string, value: string) {
 }
 
 export async function POST(req: NextRequest) {
-  if (isTemporaryPublicAddress(req) || !isOwnerAtMachine(req)) {
+  // 🛑 ДВЕ РАЗНЫЕ БЕДЫ — ДВА РАЗНЫХ ОТВЕТА (найдено владельцем 2026-09-21).
+  // Прежде обе отвечали `not-owner`, и человек, сидящий ЗА ЭТИМ САМЫМ
+  // компьютером, читал «это можно сделать только на том компьютере, где работает
+  // узел» — то есть чистую неправду. На деле он открыл страницу по публичному
+  // адресу туннеля, а узел различает только имя хоста, не человека.
+  // Отказ, называющий неверную причину, дороже отказа без причины: он уводит в
+  // сторону, и человек ищет несуществующую поломку.
+  if (isTemporaryPublicAddress(req)) {
+    return NextResponse.json({ ok: false, reason: "temporary-address" }, { status: 403 })
+  }
+  if (!isOwnerAtMachine(req)) {
     return NextResponse.json({ ok: false, reason: "not-owner" }, { status: 403 })
   }
 

@@ -1282,7 +1282,7 @@
       "kind": "domainLadder",
       "type": "page-material",
       "shape": "text",
-      "fields": "words: import('@/components/domain/domain-ladder.i18n').DomainLadderWords",
+      "fields": "lang: string; words: import('@/components/domain/domain-ladder.i18n').DomainLadderWords",
       "title": null,
       "description": null,
       "hasCard": false,

@@ -63,7 +63,15 @@ function nodeService(): string {
 const fail = (reason: string, status = 400) => NextResponse.json({ ok: false, reason }, { status })
 
 export async function POST(req: NextRequest) {
-  if (isTemporaryPublicAddress(req) || !isOwnerAtMachine(req)) return fail("not-owner", 403)
+  // 🛑 ДВЕ РАЗНЫЕ БЕДЫ — ДВА РАЗНЫХ ОТВЕТА (найдено владельцем 2026-09-21).
+  // Прежде обе отвечали `not-owner`, и человек, сидящий ЗА ЭТИМ САМЫМ
+  // компьютером, читал «это можно сделать только на том компьютере, где работает
+  // узел» — то есть чистую неправду. На деле он открыл страницу по публичному
+  // адресу туннеля, а узел различает только имя хоста, не человека.
+  // Отказ, называющий неверную причину, дороже отказа без причины: он уводит в
+  // сторону, и человек ищет несуществующую поломку.
+  if (isTemporaryPublicAddress(req)) return fail("temporary-address", 403)
+  if (!isOwnerAtMachine(req)) return fail("not-owner", 403)
 
   const key = envValue(KEY_NAME)
   if (!key) return fail("no-key")
@@ -107,6 +115,35 @@ export async function POST(req: NextRequest) {
   putEnv(RUN_TOKEN, runToken.result)
   process.env[RUN_TOKEN] = runToken.result
 
+  // 🔒 ПОСТОЯННЫЙ АДРЕС ЗАПИСЫВАЕТСЯ В APP-CONFIG, И БЕЗ ЭТОГО ПОЛОВИНА РАБОТЫ
+  // НАПРАСНА. `cfg.url` — единственное место, откуда узел узнаёт своё имя в
+  // интернете, и от него зависят: канонический адрес каждой страницы, карта
+  // сайта, разметка для поисковиков и сам факт разрешения индексации
+  // (`hasPermanentAddress` в `lib/construct-metadata.ts`). Пока значение пусто,
+  // сайт честно объявляет себя неиндексируемым — ровно ради этого и подключают
+  // домен. Оставить его пустым значило бы построить дверь и не открыть её.
+  //
+  // 🛑 ЦЕНА НАЗВАНА: эти значения попадают в страницы НА СБОРКЕ. Домен заработает
+  // сразу, а канонические адреса и карта сайта обновятся после пересборки —
+  // человеку это говорится, а не выясняется им потом.
+  const appConfigFile = join(ROOT, "APP-CONFIG", "app-config.json")
+  let siteUrlWritten = false
+  try {
+    let cfg: Record<string, unknown> = {}
+    if (existsSync(appConfigFile)) {
+      try { cfg = JSON.parse(readFileSync(appConfigFile, "utf8")) as Record<string, unknown> } catch { cfg = {} }
+    }
+    cfg.url = `https://${hostname}`
+    mkdirSync(join(ROOT, "APP-CONFIG"), { recursive: true })
+    writeFileSync(appConfigFile, `${JSON.stringify(cfg, null, 2)}
+`, "utf8")
+    siteUrlWritten = true
+  } catch {
+    // Не смогли записать — это не повод считать активацию неудачной: туннель и
+    // запись DNS уже созданы. Но и молчать нельзя: скажем человеку в ответе.
+    siteUrlWritten = false
+  }
+
   mkdirSync(join(ROOT, "logs"), { recursive: true })
   writeFileSync(STATE_FILE, `${JSON.stringify({
     zone: zone.name,
@@ -115,8 +152,9 @@ export async function POST(req: NextRequest) {
     tunnelId: tunnel.result,
     hostname,
     service,
+    siteUrlWritten,
     activatedAt: new Date().toISOString(),
   }, null, 2)}\n`, "utf8")
 
-  return NextResponse.json({ ok: true, hostname, zone: zone.name, tunnel: name })
+  return NextResponse.json({ ok: true, hostname, zone: zone.name, tunnel: name, siteUrlWritten })
 }

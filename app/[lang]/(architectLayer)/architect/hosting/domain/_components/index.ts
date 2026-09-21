@@ -13,5 +13,5 @@ import { domainLadderWords } from '@/components/domain/domain-ladder.i18n'
 // мы островку весь словарь — он уехал бы в браузер целиком, и это поймал бы
 // сторож `check:lang-delivery`.
 export function content(lang: string): Block[] {
-  return [{ kind: 'domainLadder', words: domainLadderWords(lang) }]
+  return [{ kind: 'domainLadder', lang, words: domainLadderWords(lang) }]
 }

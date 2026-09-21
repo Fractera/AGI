@@ -1151,6 +1151,7 @@ export const SPECIMEN: SpecimenSection[] = [
     blocks: [
       {
         kind: 'domainLadder',
+        lang: 'en',
         words: domainLadderWords('en'),
       },
     ],

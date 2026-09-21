@@ -45,6 +45,8 @@ export type DomainLadderWords = {
   reasonEmpty: string
   reasonNoZones: string
   reasonNotOwner: string
+  reasonTemporary: string
+  openLocally: string
   reasonNetwork: string
   reasonToken: string
   hostPlaceholder: string
@@ -76,12 +78,20 @@ export type DomainLadderWords = {
   domainSaved: string
   checkNs: string
   checking: string
+  saving: string
   nsOk: string
   nsForeign: string
   nsUnknown: string
   nsCurrent: string
   fastPath: string
   fastPathSaving: string
+  tokenHowToggle: string
+  tokenHowSteps: string[]
+  tokenPermsTitle: string
+  tokenPermsHead: string[]
+  tokenPermsRows: string[][]
+  tokenPermsWhy: string[]
+  tokenTail: string[]
 }
 
 const W: Record<string, DomainLadderWords> = {
@@ -133,6 +143,8 @@ const W: Record<string, DomainLadderWords> = {
     reasonEmpty: "The field is empty.",
     reasonNoZones: "The key is alive but sees no domain. It was most likely created without access to your zone — create it again and grant the zone.",
     reasonNotOwner: "This can only be done on the computer where the node runs.",
+    reasonTemporary: "You are looking at the site through its temporary public address. A key must never travel over a public link, so this field is switched off here. Open the same page on this computer — the address is below — and it will work.",
+    openLocally: "Open this page locally",
     reasonNetwork: "Could not reach Cloudflare — check the connection. The key was not saved.",
     reasonToken: "Cloudflare says this token is not active.",
     hostPlaceholder: "example.com or www.example.com",
@@ -164,11 +176,37 @@ const W: Record<string, DomainLadderWords> = {
     domainSaved: "Remembered — the node will check this name from now on.",
     checkNs: "Check whether it worked",
     checking: "Asking the internet…",
+    saving: "Saving…",
     nsOk: "The domain already points at Cloudflare. This step is done.",
     nsForeign: "The domain still points at its old nameservers — the change has not taken effect yet.",
     nsUnknown: "The internet does not know this name yet. Either it was just registered, or there is a typo.",
     nsCurrent: "Right now it answers with",
     fastPath: "Buying at Cloudflare skips steps 2 and 3 entirely.",
+    tokenHowToggle: "How to create this token — step by step",
+    tokenHowSteps: [
+      "In Cloudflare: My Profile → API Tokens → Create Token → Create Custom Token.",
+      "Token name: anything you recognise, for example Fractera node.",
+      "Permissions: three rows. Use Add more for the second and the third.",
+    ],
+    tokenPermsTitle: "The three rows",
+    tokenPermsHead: ["Scope", "What", "Level"],
+    tokenPermsRows: [
+      ["Account", "Cloudflare Tunnel", "Edit"],
+      ["Zone", "DNS", "Edit"],
+      ["Zone", "Zone", "Read"],
+    ],
+    tokenPermsWhy: [
+      "Cloudflare Tunnel · Edit — the node creates the tunnel, takes its run token and sets the routing.",
+      "DNS · Edit — it writes the record that points your name at that tunnel.",
+      "Zone · Read — it finds your zone by the domain name and learns which account owns it.",
+    ],
+    tokenTail: [
+      "Account Resources: leave Include / All accounts.",
+      "Zone Resources: appears once you add the Zone rows — choose Include → Specific zone → your domain.",
+      "Client IP Address Filtering: leave empty.",
+      "TTL: leave it. A token with an end date dies one day, and the site stops updating its record without explaining why.",
+      "Continue to summary → Create Token. The token is shown ONCE — copy it straight away.",
+    ],
     fastPathSaving: "Those two steps are where the waiting lives: a nameserver change spreads across the internet for anything from a few minutes to 24 hours, and nobody can speed it up. A domain registered at Cloudflare is already on their nameservers — there is nothing to change and nothing to wait for.",
   },
   ru: {
@@ -219,6 +257,8 @@ const W: Record<string, DomainLadderWords> = {
     reasonEmpty: "Поле пустое.",
     reasonNoZones: "Ключ жив, но не видит ни одного домена. Скорее всего его создали без доступа к вашей зоне — создайте заново и дайте зону.",
     reasonNotOwner: "Это можно сделать только на том компьютере, где работает узел.",
+    reasonTemporary: "Вы смотрите сайт через его временный публичный адрес. Ключ не должен идти по публичной ссылке, поэтому здесь поле выключено. Откройте ту же страницу на этом компьютере — адрес ниже — и всё заработает.",
+    openLocally: "Открыть эту страницу локально",
     reasonNetwork: "Не достучался до Cloudflare — проверьте связь. Ключ не сохранён.",
     reasonToken: "Cloudflare говорит, что этот токен не активен.",
     hostPlaceholder: "example.com или www.example.com",
@@ -250,11 +290,37 @@ const W: Record<string, DomainLadderWords> = {
     domainSaved: "Запомнил — дальше узел проверяет именно это имя.",
     checkNs: "Проверить, получилось ли",
     checking: "Спрашиваю интернет…",
+    saving: "Сохраняю…",
     nsOk: "Домен уже указывает на Cloudflare. Этот шаг сделан.",
     nsForeign: "Домен пока указывает на прежние серверы имён — смена ещё не вступила в силу.",
     nsUnknown: "Интернет ещё не знает этого имени. Либо оно только что зарегистрировано, либо в нём опечатка.",
     nsCurrent: "Сейчас он отвечает",
     fastPath: "Покупка в Cloudflare пропускает шаги 2 и 3 целиком.",
+    tokenHowToggle: "Как создать этот токен — по шагам",
+    tokenHowSteps: [
+      "В Cloudflare: My Profile → API Tokens → Create Token → Create Custom Token.",
+      "Token name: любое понятное, например Fractera node.",
+      "Permissions: три строки. Вторую и третью добавьте кнопкой Add more.",
+    ],
+    tokenPermsTitle: "Три строки прав",
+    tokenPermsHead: ["Область", "Что", "Уровень"],
+    tokenPermsRows: [
+      ["Account", "Cloudflare Tunnel", "Edit"],
+      ["Zone", "DNS", "Edit"],
+      ["Zone", "Zone", "Read"],
+    ],
+    tokenPermsWhy: [
+      "Cloudflare Tunnel · Edit — узел создаёт туннель, забирает его токен запуска и задаёт правила входа.",
+      "DNS · Edit — заводит запись, которая ведёт ваше имя на этот туннель.",
+      "Zone · Read — находит вашу зону по имени домена и узнаёт, какой учётной записи она принадлежит.",
+    ],
+    tokenTail: [
+      "Account Resources: оставьте Include / All accounts.",
+      "Zone Resources: появится, как только добавите строки со Zone — выберите Include → Specific zone → ваш домен.",
+      "Client IP Address Filtering: оставьте пустым.",
+      "TTL: не трогайте. Токен с датой окончания однажды умрёт, и сайт перестанет обновлять запись без объяснения.",
+      "Continue to summary → Create Token. Токен покажут ОДИН раз — скопируйте сразу.",
+    ],
     fastPathSaving: "Именно в этих двух шагах живёт ожидание: смена серверов имён расходится по интернету от нескольких минут до 24 часов, и ускорить это не может никто. Домен, зарегистрированный в Cloudflare, уже на их серверах имён — менять нечего и ждать нечего.",
   },
 }

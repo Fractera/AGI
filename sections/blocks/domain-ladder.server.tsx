@@ -11,5 +11,5 @@ import { DomainLadder } from '@/components/domain/domain-ladder.client'
 // 🔒 СЛОВА ПРИХОДЯТ В БЛОКЕ, А НЕ БЕРУТСЯ ЗДЕСЬ: рисовальщик серверный, язык
 // известен странице, и словарь остаётся на сервере целиком.
 export const domainLadder: SectionRenderer<'domainLadder'> = (b, { key: k }) => (
-  <DomainLadder key={k} words={b.words} />
+  <DomainLadder key={k} lang={b.lang} words={b.words} />
 )

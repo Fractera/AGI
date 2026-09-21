@@ -61,7 +61,7 @@ export async function GET() {
     // Имя, которое человек ввёл на первой ступени, и отметка, что серверы имён
     // уже указывают на Cloudflare. Лестница не помнит этого сама — спрашивает.
     wanted: typeof domain.wanted === "string" ? domain.wanted : null,
-    nsVerifiedAt: typeof domain.nsVerifiedAt === "string" ? domain.nsVerifiedAt : null,
+    nsVerifiedAt: typeof domain.nsVerifiedAt === "string" && domain.nsVerifiedAt ? domain.nsVerifiedAt : null,
     zone: typeof domain.zone === "string" ? domain.zone : null,
     zoneStatus: typeof domain.zoneStatus === "string" ? domain.zoneStatus : null,
     tunnel: typeof domain.tunnelName === "string" ? domain.tunnelName : null,
