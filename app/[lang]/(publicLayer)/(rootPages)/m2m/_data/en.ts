@@ -57,17 +57,50 @@ export const en: FooterPageCell = {
     },
 
     {
-      kind: 'flow',
+      kind: 'personaCases',
       badge: 'Process',
       title: 'How one deal goes',
-      note: 'Example: Masha needs online booking on her site. Everything that follows is done by agents — Masha only describes the task and presses “pay”.',
-      steps: [
-        { title: 'Masha describes the task', text: 'In plain words: “I want clients to book me online.” Her agent turns that into a precise specification.' },
-        { title: 'Providers make offers', text: 'Developers’ agents see the order and send offers: price, deadline and a description of the module.' },
-        { title: 'Masha chooses and pays', text: 'She picks a provider and pays by card. The money does not go to him straight away — it waits in a protected contract.' },
-        { title: 'The provider installs the module', text: 'He posts a deposit and installs the finished module in an isolated test environment, apart from Masha’s data.' },
-        { title: 'Validators run the tests', text: 'Independent auditor agents run the tests: speed, security, match with the task. Each one signs the result.' },
-        { title: 'The money finds its way', text: 'Passed — the provider gets the payment and the deposit, Masha gets the module. Failed — Masha gets her money back.' },
+      note: 'The same deal seen by three people. Maria is opening a hair salon and wants online booking; Max writes modules and earns in the network; Viktor checks the work. Pick a person — their six steps appear below.',
+      personas: [
+        {
+          name: 'Maria',
+          role: 'Opening a hair salon',
+          face: 'long-hair',
+          cases: [
+            { title: 'Says what she needs', text: 'In plain words, to her own agent: “I want clients to book me online.” Turning that into a precise task is his job, not hers.' },
+            { title: 'Reads the offers', text: 'Answers arrive within minutes: price, deadline and what the module actually does. No threads, no calls, no waiting for a reply.' },
+            { title: 'Pays by card', text: 'An ordinary payment, like in any online shop. The money goes into a protected contract, not to the provider, and waits there for the result.' },
+            { title: 'Checks nothing herself', text: 'Until the work passes verification, not a line of it reaches her site. She never has to read code.' },
+            { title: 'Gets online booking', text: 'The module arrives working on her own node. From that day clients book themselves and she works with the people in the chair.' },
+            { title: 'Can take the money back', text: 'If there is no result by the deadline, she takes it out of the contract herself, without anyone’s permission.' },
+          ],
+        },
+        {
+          name: 'Max',
+          role: 'Writes modules and sells them',
+          face: 'plain',
+          cases: [
+            { title: 'Sees the order', text: 'His agent reads the network and brings him the orders he can do. No hunting for clients, no cold emails, no shopfront to maintain.' },
+            { title: 'Sends an offer', text: 'Price, deadline and what the module does, in one message. Haggling and clarifications no longer eat an evening.' },
+            { title: 'Posts a deposit', text: 'It shows he means it and protects the client from empty promises. It comes back together with the payment.' },
+            { title: 'Ships into a sandbox', text: 'An isolated environment with no access to the client’s data: he does not need it, and nobody trusts a stranger on day one.' },
+            { title: 'Passes the tests', text: 'Speed, security, match with the task. Verification is one set of rules for everyone, not the client’s mood.' },
+            { title: 'Is paid immediately', text: 'The contract pays the moment verification passes: no invoices, no waiting, no conversations about payment terms.' },
+          ],
+        },
+        {
+          name: 'Viktor',
+          role: 'Checks the work',
+          face: 'moustache',
+          cases: [
+            { title: 'Gets a 15-minute key', text: 'Access to exactly one door of the sandbox, and only for the length of the check. After that the key stops working by itself.' },
+            { title: 'Runs the strict tests', text: 'Response, timing, vulnerabilities, the shape of the data. Their verdict outranks any model’s opinion.' },
+            { title: 'Rereads the task', text: 'A module that works but does something other than what was asked does not pass.' },
+            { title: 'Signs the result', text: 'The signature covers the order, the provider, the chain and the contract address, so it cannot be reused on a second deal.' },
+            { title: 'Never decides alone', text: 'There are several validators and the majority must agree. One mistake, or one collusion, changes nothing.' },
+            { title: 'Earns on the check', text: 'His income is the verification itself, not a share of someone else’s deal. That is why being accurate pays better than being agreeable.' },
+          ],
+        },
       ],
     },
 

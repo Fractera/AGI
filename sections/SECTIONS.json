@@ -827,7 +827,7 @@
       "kind": "flow",
       "type": "how-it-works",
       "shape": "steps",
-      "fields": "badge?: string; title: string; note?: string; steps: { title: string; text: string }[]",
+      "fields": "badge?: string; title: string; note?: string; steps: [FlowStep, FlowStep, FlowStep] }; | { kind: 'personaCases'; badge?: string; title: string; note?: string; personas: [Persona, Persona, Persona] }; | { kind: 'statement'; text: string }; | { kind: 'invite'; href: string; label: string }; | {; title?: string; note?: string; cols?: 2 | 3; items: { title: string; text: string; href?: string; linkLabel?: string }[]",
       "title": "how it works, step by step",
       "description": "**Type:** How it works (3). The only kind in this type today.\n\n## What it actually draws\n\nA titled section with steps that light up in order, and light travelling along the link between them.\nEach step has its own title and text.\n\n🔒 **The heading uses the `content` variant, and that is a corrected mistake** (2026-08-16, spotted by\nthe owner at first glance). It stood as `variant=\"ui\"`. The typography primitive splits variants by the\nMEANING of the surface: `content` is the storefront — home page, posts, legal pages, catalogue; `ui` is\nwork screens. The home page is a storefront, so there is nothing to argue about.\n\nThe cost of that mistake was visible to the eye: two standalone sections stood side by side with\nDIFFERENT headings — one sans at 18px, the next serif at 24px. Exactly the mismatch the primitive\nexists to prevent.\n\n## When to take it\n\nA process with an order: first this, then that. Three steps read best; more than five and the section\nturns into a list that happens to be drawn as cards.\n\n## When NOT to take it\n\n- The pieces are equal and have no order — that is `cards`. Cards promise no sequence.\n- It is one process shown in two states, before and after — that is `problemSolution`.",
       "hasCard": true,
@@ -848,14 +848,29 @@
           "times": 1
         },
         {
-          "page": "m2m",
-          "order": 13,
-          "times": 1
-        },
-        {
           "page": "web3",
           "order": 6,
           "times": 3
+        }
+      ]
+    },
+    {
+      "id": null,
+      "codes": [
+        "personaCases01"
+      ],
+      "kind": "personaCases",
+      "type": "page-material",
+      "shape": "text",
+      "fields": "badge?: string; title: string; note?: string; personas: [Persona, Persona, Persona] }; | { kind: 'statement'; text: string }; | { kind: 'invite'; href: string; label: string }; | {; title?: string; note?: string; cols?: 2 | 3; items: { title: string; text: string; href?: string; linkLabel?: string }[]",
+      "title": "one deal, told three times",
+      "description": "**Type:** How it works (3). Its neighbours are `flow` and `problemSolution`.\n\n## What it actually draws\n\nA titled section with a row of three person cards on top — a round avatar on the left, the name and\nthe role on the right — and, underneath, the six cases of whoever is selected. Picking a person\nchanges the container: the card gains a border, a tinted background and a glow.\n\n🔒 **Switching is radio inputs plus CSS, not an island.** All eighteen cases sit in the markup, so a\nsearch engine reads them and a person with JavaScript off still sees the whole story. An island would\ngive the opposite: the text would travel to the browser and the section would be empty without a\nscript. The rules live in `styles/globals.css` (`.pc-*`) — a `:checked ~` relation belongs to the\nlink between elements and cannot be written as a utility on one of them.\n\n🔒 **Exactly three people, exactly six cases each.** This is not a list of people: it is one story\ntold from three sides. A fourth person would turn a scenario into a catalogue, and the type refuses\nit.\n\n## When to take it\n\nOne process that touches several parties, where the interesting part is that the same events look\ndifferent to each of them: a client, a provider and a validator in one deal.\n\n## When NOT to take it\n\n- A process with an order and no second point of view — that is `flow`, and it takes exactly three\n  steps (the owner's rule, 2026-09-21).\n- Two states of one process, before and after — that is `problemSolution`.\n- Equal pieces with no order and no people — that is `cards`.",
+      "hasCard": true,
+      "usedOn": [
+        {
+          "page": "m2m",
+          "order": 13,
+          "times": 1
         }
       ]
     },
@@ -867,7 +882,7 @@
       "kind": "problemSolution",
       "type": "comparison",
       "shape": "two-columns",
-      "fields": "badge?: string; title: string; note?: string; demandLabel: string; answerLabel: string; items: { title: string; demand: string; answer: string }[] }; | { kind: 'flow'; badge?: string; title: string; note?: string; steps: { title: string; text: string }[] }; | { kind: 'statement'; text: string }; | { kind: 'invite'; href: string; label: string }; | {; title?: string; note?: string; cols?: 2 | 3; items: { title: string; text: string; href?: string; linkLabel?: string }[]",
+      "fields": "badge?: string; title: string; note?: string; demandLabel: string; answerLabel: string; items: { title: string; demand: string; answer: string }[] }; | { kind: 'flow'; badge?: string; title: string; note?: string; steps: [FlowStep, FlowStep, FlowStep] }; | { kind: 'personaCases'; badge?: string; title: string; note?: string; personas: [Persona, Persona, Persona] }; | { kind: 'statement'; text: string }; | { kind: 'invite'; href: string; label: string }; | {; title?: string; note?: string; cols?: 2 | 3; items: { title: string; text: string; href?: string; linkLabel?: string }[]",
       "title": "cases on the left, the chosen one broken down on the right",
       "description": "**Type:** Comparison (6). The only kind in this type today.\n\n## What it actually draws\n\nTwo halves: a list of cases on the left, and on the right the one selected — \"what you do\" on top,\n\"why it works here\" below.\n\n🔒 **Not a single line of script, and that is the main decision of this kind.** The example it was taken\nfrom switches tabs with React state: without JavaScript there is not one case on the page, and the\ncrawler gets a separate invisible copy of the text — an admission that the visible version does not\nserve it. Here the switching is done by the browser itself: the list is `radio` inputs, the labels are\ntheir labels, and showing the right half is a `:checked` rule in `styles/globals.css`.\n\nWhat that buys at once: the text of ALL cases sits in the server markup; a person without scripts uses\nthe section fully, not \"tolerably\"; the keyboard works because it is a real form control.\n\n## When to take it\n\nTwo things set against each other — old way versus new, us versus them, before versus after. Or several\ncases where the visitor picks the one that is his.\n\n## When NOT to take it\n\n- The pieces are not opposed, they simply differ — that is `cards`.\n- It is a real table of ticks and crosses — that is `table`.\n- There is only one case: the left column becomes a list of one, and the section looks broken.",
       "hasCard": true,

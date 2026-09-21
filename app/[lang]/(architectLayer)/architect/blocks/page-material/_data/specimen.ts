@@ -391,6 +391,59 @@ export const SPECIMEN: SpecimenSection[] = [
     ],
   },
   {
+    kind: 'personaCases',
+    when: 'One deal told three times — a row of three person cards on top, the six cases of whoever is selected underneath. Switching is radio inputs plus CSS, so all eighteen cases sit in the markup and the section works with JavaScript off. Take it when the same events look different to each party; take `flow` when there is an order and one point of view (and it allows exactly three steps).',
+    blocks: [
+      {
+        kind: 'personaCases',
+        badge: 'Roles',
+        title: 'The same deal, seen by each side',
+        note: 'Pick a person: the container below changes to their six cases.',
+        personas: [
+          {
+            name: 'Maria',
+            role: 'Orders the work',
+            face: 'long-hair',
+            cases: [
+              { title: 'Says what she needs', text: 'In plain words, to her own agent.' },
+              { title: 'Reads the offers', text: 'Price, deadline, what the module does.' },
+              { title: 'Pays by card', text: 'The money waits in the contract, not with the provider.' },
+              { title: 'Waits for the check', text: 'Nothing reaches her site before it passes.' },
+              { title: 'Gets the module', text: 'It arrives working, on her own node.' },
+              { title: 'Keeps the receipt', text: 'The deal stays readable in the open record.' },
+            ],
+          },
+          {
+            name: 'Max',
+            role: 'Builds the module',
+            face: 'plain',
+            cases: [
+              { title: 'Sees the order', text: 'His agent reads the network, he does not hunt for clients.' },
+              { title: 'Sends an offer', text: 'One price, one deadline, no negotiation thread.' },
+              { title: 'Posts a deposit', text: 'It proves he means it, and it comes back with the payment.' },
+              { title: 'Ships to a sandbox', text: 'Isolated, with no access to anyone’s data.' },
+              { title: 'Passes the tests', text: 'Strict ones: speed, security, match with the task.' },
+              { title: 'Is paid at once', text: 'The contract pays the moment the check passes.' },
+            ],
+          },
+          {
+            name: 'Viktor',
+            role: 'Checks the work',
+            face: 'moustache',
+            cases: [
+              { title: 'Gets a short-lived key', text: 'Fifteen minutes, one door, nothing else.' },
+              { title: 'Runs the strict tests', text: 'Their verdict outranks any model’s opinion.' },
+              { title: 'Reads the task again', text: 'A module that works but solves the wrong thing still fails.' },
+              { title: 'Signs the result', text: 'The signature carries the chain and the contract.' },
+              { title: 'Is one of several', text: 'The majority decides; a single validator does not.' },
+              { title: 'Earns on the check', text: 'His income is the verification, not a platform fee.' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
     kind: 'cards',
     when: 'A section of equal cards with NO order between them — the same strip as `flow`, minus the numbers, the link and the animation. The difference is meaning, not decoration: lighting cards up in turn would show a sequence that does not exist, and an untruth told by a good animation is the more convincing kind. Hence `<ul>`, not `<ol>`. The header (badge, heading, lead) is the SHARED `SectionHead`, identical to `flow` and `noBill`. Equal height comes from the grid, never from measuring.',
     blocks: [

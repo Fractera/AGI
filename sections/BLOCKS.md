@@ -21,7 +21,7 @@
 и только карточка говорит, что он выдержит** — сколько элементов, что ломается за пределом, когда
 его не брать. Есть карточка — прочти её перед использованием.
 
-Видов: **59** · рендереров: **58** · карточек: **35**
+Видов: **60** · рендереров: **60** · карточек: **36**
 
 | Код | Вид | Семейство | Что это | Поля | Правила владельца |
 |---|---|---|---|---|---|
@@ -48,8 +48,9 @@
 | `badges01` | `badges` | Benefits and value | a row of capability labels | items: BadgeItem[] | [карточка](blocks/badges.md) |
 | `panel01` | `panel` | Page material | — | tone?: 'plain' \| 'warn' \| 'accent'; eyebrow?: string; title: string; children: Block[] | — |
 | `metrics01` | `metrics` | Trust and logos | the numbers that prove it | items: { value: string; label: string }[] | [карточка](blocks/metrics.md) |
-| `flow01` | `flow` | How it works | how it works, step by step | badge?: string; title: string; note?: string; steps: { title: string; text: string }[] | [карточка](blocks/flow.md) |
-| `problemSolution01` | `problemSolution` | Comparison | cases on the left, the chosen one broken down on the right | badge?: string; title: string; note?: string; demandLabel: string; answerLabel: string; items: { title: string; demand: string; answer: string }[] }; \| { kind: 'flow'; badge?: string; title: string; note?: string; steps: { title: string; text: string }[] }; \| { kind: 'statement'; text: string }; \| { kind: 'invite'; href: string; label: string }; \| {; title?: string; note?: string; cols?: 2 \| 3; items: { title: string; text: string; href?: string; linkLabel?: string }[] | [карточка](blocks/problemSolution.md) |
+| `flow01` | `flow` | How it works | how it works, step by step | badge?: string; title: string; note?: string; steps: [FlowStep, FlowStep, FlowStep] }; \| { kind: 'personaCases'; badge?: string; title: string; note?: string; personas: [Persona, Persona, Persona] }; \| { kind: 'statement'; text: string }; \| { kind: 'invite'; href: string; label: string }; \| {; title?: string; note?: string; cols?: 2 \| 3; items: { title: string; text: string; href?: string; linkLabel?: string }[] | [карточка](blocks/flow.md) |
+| `personaCases01` | `personaCases` | Page material | one deal, told three times | badge?: string; title: string; note?: string; personas: [Persona, Persona, Persona] }; \| { kind: 'statement'; text: string }; \| { kind: 'invite'; href: string; label: string }; \| {; title?: string; note?: string; cols?: 2 \| 3; items: { title: string; text: string; href?: string; linkLabel?: string }[] | [карточка](blocks/personaCases.md) |
+| `problemSolution01` | `problemSolution` | Comparison | cases on the left, the chosen one broken down on the right | badge?: string; title: string; note?: string; demandLabel: string; answerLabel: string; items: { title: string; demand: string; answer: string }[] }; \| { kind: 'flow'; badge?: string; title: string; note?: string; steps: [FlowStep, FlowStep, FlowStep] }; \| { kind: 'personaCases'; badge?: string; title: string; note?: string; personas: [Persona, Persona, Persona] }; \| { kind: 'statement'; text: string }; \| { kind: 'invite'; href: string; label: string }; \| {; title?: string; note?: string; cols?: 2 \| 3; items: { title: string; text: string; href?: string; linkLabel?: string }[] | [карточка](blocks/problemSolution.md) |
 | `cards01` | `cards` | Benefits and value | a section made of cards | badge?: string; title: string; note?: string; cols?: 2 \| 3; children: Block[] | [карточка](blocks/cards.md) |
 | `card01` | `card` | Page material | — | tone?: Tone; children: Block[] | — |
 | `statement01` | `statement` | Page material | крупное утверждение в разрядку | text: string | [карточка](blocks/statement.md) |
