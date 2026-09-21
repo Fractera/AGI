@@ -1,5 +1,6 @@
 import type { Block } from '@/lib/content/blocks/types'
 import { domainLadderWords } from '@/components/domain/domain-ladder.i18n'
+import { servicePortWords } from '@/components/services/service-port.i18n'
 
 // ОБРАЗЦЫ ВСЕХ ВИДОВ СЕКЦИЙ — по одному на каждый вид каталога.
 //
@@ -1217,6 +1218,18 @@ export const SPECIMEN: SpecimenSection[] = [
         kind: 'domainLadder',
         lang: 'en',
         words: domainLadderWords('en'),
+      },
+    ],
+  },
+  {
+    kind: 'servicePort',
+    when: 'One line naming the port a replaceable block actually runs on, asked of the node in the browser. Take it on any page that describes a service of this node. Never write such a number into the text: the pages of this layer are prerendered, so a number read on the server freezes into the HTML and keeps printing the old port on the day the installer assigns a new one. Four states, a guess in none of them — asking, a port, not installed, unknown.',
+    whenRu: 'Одна строка о том, на каком порту на самом деле работает сменный блок; число спрашивается у узла в браузере. Берут на любой странице, описывающей службу этого узла. В текст такое число не вписывают никогда: страницы слоя предрендерены, и прочитанное на сервере застывает в HTML — в день, когда установщик назначит другой порт, страница продолжит печатать прежний. Состояний четыре, и ни в одном не угадывается: спрашиваю · порт · не установлена · неизвестно.',
+    blocks: [
+      {
+        kind: 'servicePort',
+        serviceId: 'auth',
+        words: servicePortWords('en'),
       },
     ],
   },

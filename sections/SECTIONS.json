@@ -1482,6 +1482,20 @@
       "description": null,
       "hasCard": false,
       "usedOn": []
+    },
+    {
+      "id": null,
+      "codes": [
+        "servicePort01"
+      ],
+      "kind": "servicePort",
+      "type": "page-material",
+      "shape": "text",
+      "fields": "serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords",
+      "title": null,
+      "description": null,
+      "hasCard": false,
+      "usedOn": []
     }
   ]
 }

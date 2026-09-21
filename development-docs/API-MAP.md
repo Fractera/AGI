@@ -7,13 +7,16 @@
 Имя маршрута — то, чем его находят: 6–12 слов, глагол первым. Правило проверяется `npm run check:api`,
 который стоит в `prebuild` — маршрут без имени роняет сборку.
 
-Всего маршрутов: **15**
+Всего маршрутов: **19**
 
 | Адрес | Методы | Что делает | Продукт |
 |---|---|---|---|
-| `/api/catalogue` | GET | load more public catalogue rows for the storefront page | — |
 | `/api/config-image/[slot]` | GET | serve a settings image slot at one stable address | — |
-| `/api/health` | GET | answer whether this application process is alive right now | — |
+| `/api/domain/activate` | POST | create the named tunnel and the DNS record, then remember what happened | — |
+| `/api/domain/check` | POST | check publicly whether the domain already points at Cloudflare nameservers | — |
+| `/api/domain/key` | POST | accept the Cloudflare API token and remember it on the node | — |
+| `/api/domain/state` | GET | state of the own-domain connection: what is done and what is next | — |
+| `/api/health` | GET | report liveness and which build of this application answers | — |
 | `/api/i18n/translate` | POST | translate one record's fields without exposing the model key | — |
 | `/api/me` | GET | tell the browser who is signed in and with which roles | — |
 | `/api/media-proxy/[...path]` | GET | proxy media files the browser cannot reach directly | — |
@@ -22,10 +25,11 @@
 | `/api/media/upload` | POST | upload a file into the platform media store | — |
 | `/api/openai-models` | GET | list the live model names this key can actually use | — |
 | `/api/project-types/[lang]/[id]` | GET | describe one project direction for the home page window | — |
-| `/api/project/default/products` | GET, POST | list and create catalogue products behind a role check | — |
-| `/api/project/default/products/[id]` | GET, PATCH, DELETE | read update or delete one catalogue product by id | — |
 | `/api/revalidate` | POST | rebuild public pages after the owner changes app settings | — |
+| `/api/services` | GET | report which service blocks this node carries and on which ports | — |
 | `/api/transcribe` | POST | turn a recorded voice fragment into written text | — |
+| `/api/users` | GET | list user accounts from the auth service for the administration page | — |
+| `/api/users/[id]` | PATCH | change the roles of one user account through the auth service | — |
 
 ## Как этим пользоваться
 

@@ -21,7 +21,7 @@
 и только карточка говорит, что он выдержит** — сколько элементов, что ломается за пределом, когда
 его не брать. Есть карточка — прочти её перед использованием.
 
-Видов: **60** · рендереров: **59** · карточек: **36**
+Видов: **61** · рендереров: **60** · карточек: **36**
 
 | Код | Вид | Семейство | Что это | Поля | Правила владельца |
 |---|---|---|---|---|---|
@@ -85,6 +85,7 @@
 | `orbitLayers01` | `orbitLayers` | Product in action | орбита: четыре опоры как одна конструкция | badge?: string; title: string; accent?: string; lead?: string; core?: FeatureIcon; cards: [OrbitLayerCard, OrbitLayerCard, OrbitLayerCard, OrbitLayerCard] | [карточка](blocks/orbitLayers.md) |
 | `chat01` | `chat` | Workspace | `chat` — переписка как секция страницы | title?: string; note?: string; size?: 'compact' \| 'tall'; messages: ChatBlockMessage[] | [карточка](blocks/chat.md) |
 | `domainLadder01` | `domainLadder` | Page material | — | lang: string; words: import('@/components/domain/domain-ladder.i18n').DomainLadderWords | — |
+| `servicePort01` | `servicePort` | Page material | — | serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords | — |
 
 ## Чего в этой таблице нет
 

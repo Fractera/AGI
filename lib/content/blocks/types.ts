@@ -114,6 +114,9 @@ export type LeafBlock =
   // Лестница подключения своего домена: ступени, замки, состояние с узла.
   // Слова приходят В БЛОКЕ — рисовальщик серверный, словарь в браузер не едет.
   | { kind: 'domainLadder'; lang: string; words: import('@/components/domain/domain-ladder.i18n').DomainLadderWords }
+  // Порт сменного блока, спрошенный у узла в браузере, а не запечённый в сборку.
+  // `serviceId` — вечное имя блока в `MICROSERVICES.json` (`auth`, `data`, …).
+  | { kind: 'servicePort'; serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords }
   | { kind: 'note'; text: string }
   // Founder pull-quote in the homepage testimonial design (gradient-violet text +
   // author photo/name/role + social links). Author defaults to the site founder.
