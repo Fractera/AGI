@@ -198,6 +198,14 @@ function parseExample(text) {
   return vars
 }
 
+// Папка постоянных данных службы у узла. Создаётся здесь: без папки SQLite не
+// создаст файл и служба упадёт на первом запросе.
+function serviceDataDir(id) {
+  const dir = join(ROOT, 'data', 'services', id)
+  mkdirSync(dir, { recursive: true })
+  return dir.split('\\').join('/')
+}
+
 // ── Значения, которые установщик знает сам ───────────────────────────────────
 function derivedValue(name, ctx) {
   const { port, id, props } = ctx
@@ -220,7 +228,14 @@ function derivedValue(name, ctx) {
     case 'DATA_PUBLIC_URL': return self
     case 'COOKIE_DOMAIN': return ''            // host-only: одна машина
     case 'COOKIE_SECURE': return 'false'       // http://localhost, Secure не вернётся
-    case 'DATABASE_URL': return `file:./data/${id}.db`
+    // 🔒 БАЗА ВХОДА ЖИВЁТ У УЗЛА, А НЕ У СЛУЖБЫ, И ПУТЬ АБСОЛЮТНЫЙ (260-1).
+    // ✗ ИЗМЕРЕНО 2026-09-21: при `file:./data/auth.db` живая база оказалась в
+    // `.next/standalone/…/data/` — собранный сервер делает chdir в свою папку, и
+    // относительный путь уводит в сборку. Любая пересборка стирала бы всех
+    // пользователей вместе с архитектором, а вернуть право архитектора нельзя.
+    // Папка службы не годится тоже: клон без `.git` установщик удаляет целиком.
+    // `data/` узла лежит в `.gitignore` и не трогается ни сборкой, ни клоном.
+    case 'DATABASE_URL': return `file:${serviceDataDir(id)}/${id}.db`
     case 'APP_DB_PATH': return `./data/${id}.db`
     case 'ALLOWED_ORIGINS': return [nodeUrl, self].join(',')
     case 'EMBED_MODEL': return 'text-embedding-3-large'
@@ -306,6 +321,15 @@ const nodePort = (() => {
 
 mkdirSync(SERVICES_DIR, { recursive: true })
 
+// Что было запущено ДО установки — спрашивается один раз, в начале: шаг 4
+// останавливает живые службы перед заменой зависимостей, шаг 8 поднимает их.
+const pm2cmd = IS_WIN ? 'pm2.cmd' : 'pm2'
+const runningAtStart = (() => {
+  const listed = run(pm2cmd, ['jlist'], ROOT, { quiet: true })
+  try { return JSON.parse(listed.out.slice(listed.out.indexOf('['))).map((a) => a.name) } catch { return [] }
+})()
+const stoppedByInstaller = new Set()
+
 let failed = 0
 const summary = []
 
@@ -386,6 +410,18 @@ for (const entry of registry.services) {
   if (depsReady && !FORCE) {
     say('  зависимости на месте (та же версия) — пропущено')
   } else {
+    // 🔒 ЖИВУЮ СЛУЖБУ ОСТАНАВЛИВАЕМ ДО ЗАМЕНЫ ЕЁ ЗАВИСИМОСТЕЙ (260-1).
+    // ✗ ИЗМЕРЕНО 2026-09-21 на Windows: `npm ci` падал `EPERM unlink` на
+    // `better_sqlite3.node` и `vec0.dll` — работающий процесс держит свои нативные
+    // файлы, и Windows не даёт их удалить. Повторная установка на живом узле была
+    // невозможна вовсе. Цена названа: служба молчит, пока идёт установка; в конце
+    // её поднимает шаг 8, а после отказа — та же ветка ниже (`stoppedByInstaller`).
+    for (const suffix of ['-watch', '']) {
+      const name = `fractera-svc-${entry.id}${suffix}`
+      if (runningAtStart.includes(name) && run(pm2cmd, ['stop', name], ROOT, { quiet: true }).rc === 0) {
+        stoppedByInstaller.add(name)
+      }
+    }
     const ci = run('npm', ['ci', '--no-audit', '--no-fund'], dir)
     if (ci.rc !== 0) {
       say('  ОШИБКА установки зависимостей:')
@@ -565,10 +601,7 @@ if (newNodeVars.size > 0) {
 // 🔒 ЗАПУСКАЕМ ТОЛЬКО ТО, ЧТО УЖЕ БЫЛО ЗАПУЩЕНО. Установка — не команда «подними
 // узел»: её зовут и на свежей машине, где сайт ещё не поднимали. Подняться
 // целиком — дело `npm run serve:start`.
-const pm2cmd = IS_WIN ? 'pm2.cmd' : 'pm2'
-const listed = run(pm2cmd, ['jlist'], ROOT, { quiet: true })
-let running = []
-try { running = JSON.parse(listed.out.slice(listed.out.indexOf('['))).map((a) => a.name) } catch { /* pm2 не отвечает */ }
+const running = runningAtStart
 
 const refreshed = []
 for (const s of summary) {
@@ -579,6 +612,12 @@ for (const s of summary) {
     const st = run(pm2cmd, ['start', 'ecosystem.config.cjs', '--only', name], ROOT, { quiet: true })
     if (st.rc === 0) refreshed.push(name)
   }
+}
+// Остановленное установщиком и не поднятое выше (блок упал) поднимается прежним:
+// узел без службы входа хуже узла со старой службой входа.
+for (const name of stoppedByInstaller) {
+  if (refreshed.includes(name)) continue
+  if (run(pm2cmd, ['start', name], ROOT, { quiet: true }).rc === 0) refreshed.push(name)
 }
 if (refreshed.length) {
   run(pm2cmd, ['save'], ROOT, { quiet: true })
