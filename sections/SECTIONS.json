@@ -1510,6 +1510,20 @@
       "description": null,
       "hasCard": false,
       "usedOn": []
+    },
+    {
+      "id": null,
+      "codes": [
+        "authResendSetup01"
+      ],
+      "kind": "authResendSetup",
+      "type": "page-material",
+      "shape": "text",
+      "fields": "words: import('@/components/auth/resend-setup.i18n').ResendSetupWords",
+      "title": null,
+      "description": null,
+      "hasCard": false,
+      "usedOn": []
     }
   ]
 }

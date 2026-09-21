@@ -2,6 +2,7 @@ import type { Block } from '@/lib/content/blocks/types'
 import { domainLadderWords } from '@/components/domain/domain-ladder.i18n'
 import { servicePortWords } from '@/components/services/service-port.i18n'
 import { googleSetupWords } from '@/components/auth/google-setup.i18n'
+import { resendSetupWords } from '@/components/auth/resend-setup.i18n'
 
 // ОБРАЗЦЫ ВСЕХ ВИДОВ СЕКЦИЙ — по одному на каждый вид каталога.
 //
@@ -1242,6 +1243,17 @@ export const SPECIMEN: SpecimenSection[] = [
       {
         kind: 'authGoogleSetup',
         words: googleSetupWords('en'),
+      },
+    ],
+  },
+  {
+    kind: 'authResendSetup',
+    when: "The same ladder as the Google screen, for a provider whose first step is proving you own a domain. Five steps: an account, the domain and its DNS records, a key that can only send, the key and the sender, the state. Take it for any provider that sends mail on your behalf. It names the provider trap on the step where it bites — here, that an unverified domain delivers only to the account owner — rather than at the end.",
+    whenRu: "Та же лестница, что у экрана Google, для провайдера, первый шаг которого — доказать, что домен ваш. Пять ступеней: аккаунт, домен и его записи DNS, ключ, который умеет только отправлять, ключ и отправитель, состояние. Берут для любого провайдера, который шлёт почту от вашего имени. Ловушку провайдера называет на той ступени, где она кусает, — здесь это то, что неподтверждённый домен доставляет письма только владельцу аккаунта, — а не в конце.",
+    blocks: [
+      {
+        kind: 'authResendSetup',
+        words: resendSetupWords('en'),
       },
     ],
   },
