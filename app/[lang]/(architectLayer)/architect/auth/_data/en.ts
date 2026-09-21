@@ -45,6 +45,7 @@ export const en: WorkspacePageWords = {
         'Email and password — on from the first minute, and deliberately without password recovery. There is no reset route in the service at all: a recovery letter is only as trustworthy as the mailbox behind it, and on a fresh node there is no mail yet.',
         'Google — the code is in place and waits for a client id and a client secret. Fill them in and the button appears.',
         'A sign-in letter through Resend — same thing: the code is in place and waits for one API key. No password is stored at all; the letter is the key.',
+        'Each method has its own section below — so do your agent\'s subscription, this node\'s terminal, and the Telegram bot you talk to it through from a phone.',
       ],
     },
     {

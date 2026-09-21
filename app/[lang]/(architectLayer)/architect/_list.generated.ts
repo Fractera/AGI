@@ -18,6 +18,7 @@ import { data as p12 } from './testing/_data'
 import { data as p13 } from './tools/_data'
 import { data as p14 } from './tools-app/_data'
 import { PAGES as c0 } from './app-config/_list.generated'
+import { PAGES as c1 } from './auth/_list.generated'
 import { PAGES as c2 } from './blocks/_list.generated'
 import { PAGES as c3 } from './build/_list.generated'
 import { PAGES as c4 } from './cron/_list.generated'
@@ -36,7 +37,7 @@ export const PAGES: WorkspacePageData[] = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p
 /** Each child together with its own children — see the law in the generator. */
 export const TREE: CollectionBranch[] = [
   { page: p0, children: c0 },
-  { page: p1, children: [] },
+  { page: p1, children: c1 },
   { page: p2, children: c2 },
   { page: p3, children: c3 },
   { page: p4, children: c4 },

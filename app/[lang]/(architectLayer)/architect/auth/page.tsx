@@ -1,22 +1,31 @@
-import { CollectionPage } from '../../_lib/collection-page'
+import { CollectionIndex } from '../../_lib/collection-index'
 import { collectionMetadata } from '../../_lib/collection-metadata'
 import { data } from './_data'
 import { content } from './_components'
+import { PAGES } from './_list.generated'
 
-// РАЗДЕЛ «Authorization» — `/{lang}/architect/auth`.
+// РУБРИКАТОР ГРУППЫ «Authorization» — `/{lang}/architect/auth`.
 //
-// 🔒 ТОНКИЙ ВХОД: страница называет свою папку и папку-родителя, отдаёт свои слова
-// и свою работающую часть. Меню, раскладка и обработка пустоты — в оболочке.
-// Устройство страницы и её правила — в README рядом.
+// 🔒 ТОНКИЙ ВХОД: страница называет свою папку и отдаёт три вещи — свои слова
+// (`_data`), свою работающую часть (`_components`) и список детей, порождённый
+// сборкой. Ничего из этого она не знает сама. Устройство — в README рядом.
 //
-// 🔒 РАЗДЕЛ ПЕРВОГО УРОВНЯ БЕЗ ДЕТЕЙ — ЭТО `CollectionPage`, А НЕ `CollectionIndex`.
-// Рубрикатор перечисляет детей и берёт их из `_list.generated.ts`, а генератор
-// такого списка папке без детей не пишет вовсе (и удаляет устаревший): импорт
-// уронил бы сборку. Появятся подразделы — вход меняется на рубрикатор, и это
-// одна правка здесь.
+// 🪦 ДО 264-3 ЗДЕСЬ СТОЯЛ `CollectionPage`, И ЭТО БЫЛО ВЕРНО: у папки не было
+// детей, а генератор не пишет `_list.generated.ts` бездетной папке — импорт
+// такого списка уронил бы сборку. Появились пять подразделов — появился и
+// список, и вход стал рубрикатором. Ровно эта правка описана в README как
+// «Growing children», и больше делать было нечего.
 export const generateMetadata = collectionMetadata(data, '/architect')
 
 export default async function Page({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params
-  return <CollectionPage lang={lang} dir="/architect" page={data} content={content(lang)} />
+  return (
+    <CollectionIndex
+      lang={lang}
+      dir="/architect/auth"
+      page={data}
+      pages={PAGES}
+      content={content(lang)}
+    />
+  )
 }
