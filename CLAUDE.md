@@ -297,6 +297,27 @@ no users yet (the first one becomes the architect) and shows "First time here?" 
 
 ---
 
+## The top menu and the M2M document (step 261, 2026-09-21)
+
+The owner's menu, in his order: **Core · Host · AGI · WEB3 · M2M · Nostr · Blog** (the brand link on the left is the root).
+
+| Item | Route | What it is |
+|---|---|---|
+| Core | `/core` | a COPY of the home page cells, `noindex` until the home becomes a new landing |
+| Host | `/host` | a compact landing; its button leads to `/architect/hosting/hosting` — the deploy form will live THERE, never on the public page |
+| AGI | `/agi-item` | unchanged, label shortened |
+| WEB3 | `/web3` | a COPY of the AGI cells, `noindex` until it has its own text |
+| M2M | `/m2m` | the M2M document; `/architecture` answers 308 to it (`next.config.ts`) |
+| Nostr, Blog | — | inert buttons (`inert: true` on `MenuGroup`), no address on purpose |
+
+🔒 **The M2M page text is GENERATED.** Source: `development-docs/external/M2M-v2.{ru,en}.md` in the Fractera dev
+repository, converted by `development-docs/instruments/261-md-to-blocks.mjs`. Edit the source and rerun the tool —
+a hand edit of `m2m/_data/*.ts` is lost on the next run.
+🔒 **A copy page is a copy, not an import from a sibling folder** — `check:content` (`post-tail`) forbids one page
+reading another page's `_data`. `noindex` is the factory flag `createContentPage({ noindex: true })`.
+
+---
+
 ## How you answer me
 
 The shape of your answer to ANY request of the owner, without exception. Your own words, this meaning,
