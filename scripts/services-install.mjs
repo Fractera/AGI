@@ -457,6 +457,16 @@ for (const entry of registry.services) {
     }
   }
 
+  // 🔒 ДОМЕН ДОПИСЫВАЕТ ТО, ЧЕГО БЛОК НЕ ОБЪЯВИЛ (259-8): `AUTH_TRUST_HOST` не
+  // стоит в `.env.example` службы входа, а без него за туннелем она отвечает 500.
+  // Дописываются только блоку, который объявил `NEXTAUTH_URL`, — то есть входу.
+  if (vars.some((v) => v.name === 'NEXTAUTH_URL')) {
+    const domain = authEnvOverrides(ROOT, [])
+    for (const [name, value] of Object.entries(domain || {})) {
+      if (!vars.some((v) => v.name === name)) lines.push(`${name}=${value}`)
+    }
+  }
+
   const envText = lines.join('\n') + '\n'
   writeFileSync(join(dir, envName), envText, 'utf8')
   say(`  ${envName} написан (${vars.length} переменных)`)
