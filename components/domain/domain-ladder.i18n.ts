@@ -47,6 +47,8 @@ export type DomainLadderWords = {
   reasonNotOwner: string
   reasonTemporary: string
   openLocally: string
+  activateFor: string
+  noNameYet: string
   reasonNetwork: string
   reasonToken: string
   hostPlaceholder: string
@@ -122,7 +124,7 @@ const W: Record<string, DomainLadderWords> = {
     step4Title: "Give the node a Cloudflare key",
     step4Text: "Create an API token in Cloudflare with permission to edit DNS and tunnels, and paste it here. The node keeps it to itself and never shows it again.",
     step5Title: "The node does the rest",
-    step5Text: "It creates a tunnel, writes the DNS record and points your domain at this computer. Nothing to install by hand.",
+    step5Text: "One press. The node creates the tunnel, writes the DNS record and points the domain you named in step 1 at this computer. Nothing to fill in and nothing to install by hand.",
     done: "done",
     next: "I have done this",
     locked4: "The key field appears here once you have changed the nameservers.",
@@ -145,6 +147,8 @@ const W: Record<string, DomainLadderWords> = {
     reasonNotOwner: "This can only be done on the computer where the node runs.",
     reasonTemporary: "You are looking at the site through its temporary public address. A key must never travel over a public link, so this field is switched off here. Open the same page on this computer — the address is below — and it will work.",
     openLocally: "Open this page locally",
+    activateFor: "Point this address at the node",
+    noNameYet: "Go back to step 1 and name the domain — this step works with that name.",
     reasonNetwork: "Could not reach Cloudflare — check the connection. The key was not saved.",
     reasonToken: "Cloudflare says this token is not active.",
     hostPlaceholder: "example.com or www.example.com",
@@ -236,7 +240,7 @@ const W: Record<string, DomainLadderWords> = {
     step4Title: "Выдайте узлу ключ Cloudflare",
     step4Text: "Создайте в Cloudflare токен API с правом править DNS и туннели и вставьте его здесь. Узел оставит его себе и больше никогда не покажет.",
     step5Title: "Остальное узел делает сам",
-    step5Text: "Он создаст туннель, заведёт запись DNS и направит ваш домен на этот компьютер. Руками ставить нечего.",
+    step5Text: "Одно нажатие. Узел создаст туннель, заведёт запись DNS и направит на этот компьютер тот домен, который вы назвали на шаге 1. Заполнять ничего не нужно и ставить руками нечего.",
     done: "сделано",
     next: "Я это сделал",
     locked4: "Поле для ключа появится здесь, когда вы смените серверы имён.",
@@ -259,6 +263,8 @@ const W: Record<string, DomainLadderWords> = {
     reasonNotOwner: "Это можно сделать только на том компьютере, где работает узел.",
     reasonTemporary: "Вы смотрите сайт через его временный публичный адрес. Ключ не должен идти по публичной ссылке, поэтому здесь поле выключено. Откройте ту же страницу на этом компьютере — адрес ниже — и всё заработает.",
     openLocally: "Открыть эту страницу локально",
+    activateFor: "Направить этот адрес на узел",
+    noNameYet: "Вернитесь к шагу 1 и назовите домен — этот шаг работает с ним.",
     reasonNetwork: "Не достучался до Cloudflare — проверьте связь. Ключ не сохранён.",
     reasonToken: "Cloudflare говорит, что этот токен не активен.",
     hostPlaceholder: "example.com или www.example.com",

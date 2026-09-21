@@ -97,7 +97,6 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
   // успех неотличим от молчаливого отказа, и у успеха обязан быть назван
   // СЛЕДУЮЩИЙ шаг — иначе человек не знает, куда смотреть дальше.
   const [answer, setAnswer] = useState<{ ok: boolean; text: string; zones?: string[] } | null>(null)
-  const [host, setHost] = useState("")
   const [busy5, setBusy5] = useState(false)
   const [answer5, setAnswer5] = useState<{ ok: boolean; text: string } | null>(null)
   // 🔒 ОГРАНИЧЕНИЯ СВЁРНУТЫ, НО НЕ СПРЯТАНЫ. Развёрнутые, они забивают первую
@@ -271,19 +270,19 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
   }
 
   async function activate() {
-    if (busy5) return
+    if (busy5 || !domainName) return
     setBusy5(true)
     setAnswer5(null)
     try {
       const res = await fetch(`${BASE}/api/domain/activate`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ hostname: host }),
+        body: JSON.stringify({ hostname: domainName }),
       })
       const data = (await res.json()) as { ok?: boolean; reason?: string; hostname?: string }
       if (data.ok) {
         setAnswer5({ ok: true, text: `${words.activated} ${words.activatedNext}` })
-        setState((prev) => (prev ? { ...prev, hostname: data.hostname ?? host } : prev))
+        setState((prev) => (prev ? { ...prev, hostname: data.hostname ?? domainName } : prev))
       } else {
         setAnswer5({ ok: false, text: reason5(data.reason ?? "") })
       }
@@ -549,22 +548,22 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
       {state.keyConfigured ? (
         <Step n={5} title={words.step5Title} done={!!state.hostname}>
           <p className="text-muted-foreground text-sm">{state.hostname ?? words.step5Text}</p>
+          {/* 🛑 ВТОРОГО ПОЛЯ ЗДЕСЬ НЕТ, И ЭТО ИСПРАВЛЕНИЕ, А НЕ УПРОЩЕНИЕ. ✗ оплачено
+              словами владельца 2026-09-21: «говоришь, здесь ничего заполнять не надо —
+              и тут же заполни это поле». Имя домена он назвал на ПЕРВОЙ ступени;
+              спрашивать его снова значит либо не помнить сказанного, либо готовиться
+              принять два разных имени. Лестница помнит. */}
           {!state.hostname ? (
             <div className="mt-3 flex flex-col gap-2" data-host-form>
-              <Small className="text-muted-foreground">{words.hostHelp}</Small>
-              <div className="flex flex-wrap gap-2">
-                <input
-                  autoComplete="off"
-                  className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 font-mono text-sm"
-                  onChange={(e) => setHost(e.target.value)}
-                  placeholder={words.hostPlaceholder}
-                  type="text"
-                  value={host}
-                />
-                <Button className="h-[38px]" disabled={busy5 || !host.trim()} onClick={activate} size="sm">
-                  {busy5 ? words.activating : words.activate}
-                </Button>
-              </div>
+              {domainName ? (
+                <>
+                  <Button className="w-fit" disabled={busy5} onClick={activate} size="sm">
+                    {busy5 ? words.activating : `${words.activateFor}: ${domainName}`}
+                  </Button>
+                </>
+              ) : (
+                <Small className="text-muted-foreground">{words.noNameYet}</Small>
+              )}
             </div>
           ) : null}
           {answer5 ? (
