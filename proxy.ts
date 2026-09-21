@@ -499,7 +499,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   }
 
   // Job 1.5 — ворота СТРАНИЦ слоя архитектора.
-  const architectGate = architectPagesGate(request);
+  const architectGate = await architectPagesGate(request);
   if (architectGate) return architectGate;
 
   // Job 2 — language routing for everything else.
@@ -545,7 +545,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 // второго замка: замок один, зато названный.
 const ARCHITECT_PAGE = /^\/[a-z]{2}\/architect(?:\/|$)/;
 
-function architectPagesGate(request: NextRequest): NextResponse | null {
+async function architectPagesGate(request: NextRequest): Promise<NextResponse | null> {
   if (!ARCHITECT_PAGE.test(request.nextUrl.pathname)) return null;
 
   if (isOwnerAtMachine(request)) return null;
@@ -568,7 +568,24 @@ function architectPagesGate(request: NextRequest): NextResponse | null {
   // это тот же продукт в режиме, который включается адресом.
   if (isShowcaseRequest(request)) return null;
 
-  // Чужой на постоянном адресе: страницы для него не существует.
+  // 🔒 ПЯТОЕ — ВОШЕДШИЙ АРХИТЕКТОР НА СВОЁМ ДОМЕНЕ (2026-09-21). Долг, названный
+  // выше («день, когда у узла появится вход, — день, когда здесь появится проверка
+  // роли»), наступил в 259-8/260 и не был закрыт: вход на `auth.<зона>` работал, а
+  // ворота по-прежнему отвечали 404 всем. ✗ увидено владельцем: «Начать строить» на
+  // главной → страница ошибки браузера на `throughsongs.com/ru/architect/...`.
+  // Не вошёл или вошёл без роли → на вход с возвратом сюда: служба входа сама
+  // говорит «нужна роль architect», а пустой 404 не говорил ничего.
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  const domainAuth = publicAuthBaseFor(host);
+  if (domainAuth) {
+    const session = await getSession(request);
+    if (session?.roles?.includes("architect")) return null;
+    const back = `https://${host}${request.nextUrl.pathname}${request.nextUrl.search}`;
+    const qs = new URLSearchParams({ callbackUrl: back, requireRole: "architect" });
+    return NextResponse.redirect(`${domainAuth}/login?${qs}`);
+  }
+
+  // Чужой на постоянном адресе без подключённого входа: страницы для него не существует.
   return new NextResponse(null, { status: 404 });
 }
 
