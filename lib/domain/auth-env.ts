@@ -158,3 +158,59 @@ export function setAuthGoogleKeys(clientId: string, clientSecret: string): AuthE
   for (const f of files) patch(f, { [GOOGLE_ID]: clientId, [GOOGLE_SECRET]: clientSecret })
   return { files: files.length, restarted: restartService("fractera-svc-auth") }
 }
+
+// ── ВХОД ПИСЬМОМ ЧЕРЕЗ RESEND (266-1) ────────────────────────────────────────
+//
+// 🔒 ТОТ ЖЕ МЕХАНИЗМ И ТОТ ЖЕ ВЫКЛЮЧАТЕЛЬ. Служба поднимает провайдера при
+// непустом `RESEND_API_KEY` (`auth.config.ts`), значит пустой ключ и есть
+// «выключено», и отдельного флага не заводится.
+//
+// 🔒 ОТПРАВИТЕЛЬ — НЕ СЕКРЕТ, И ОН ВОЗВРАЩАЕТСЯ. Ключ наружу не выходит никогда,
+// а адрес отправителя человек обязан видеть: письмо с неверного адреса Resend не
+// отправит, и единственный способ это заметить — прочитать, что записано.
+//
+// 🛑 УМОЛЧАНИЕ СЛУЖБЫ — `noreply@localhost`, И С НЕГО ПИСЬМО НЕ УЙДЁТ НИКОГДА.
+// Поэтому пустой отправитель при включении не принимается дверью: включить вход
+// письмом с отправителем, которого Resend заведомо отвергнет, значит поставить на
+// страницу кнопку, которая молча ничего не шлёт.
+
+const RESEND_KEY = "RESEND_API_KEY"
+const RESEND_FROM = "AUTH_RESEND_FROM"
+
+export type AuthResendState = {
+  installed: boolean
+  /** узел на своём домене — тот же признак, что у Google */
+  onOwnDomain: boolean
+  /** зона своего домена — чтобы подсказать, какой домен добавлять в Resend */
+  zone: string | null
+  /** ключ задан — САМО ЗНАЧЕНИЕ НАРУЖУ НЕ ВЫХОДИТ НИКОГДА */
+  apiKey: boolean
+  /** адрес отправителя как записан; не секрет */
+  from: string | null
+}
+
+/** Что сейчас знает служба о входе письмом. Ключа не отдаёт. */
+export function authResendState(): AuthResendState {
+  const files = authFiles()
+  const pub = publicAuth(ROOT)
+  if (files.length === 0) {
+    return { installed: false, onOwnDomain: pub !== null, zone: pub?.zone ?? null, apiKey: false, from: null }
+  }
+  const f = files[0]
+  const from = envValueOf(f, RESEND_FROM)
+  return {
+    installed: true,
+    onOwnDomain: pub !== null,
+    zone: pub?.zone ?? null,
+    apiKey: envValueOf(f, RESEND_KEY) !== "",
+    from: from || null,
+  }
+}
+
+/** Записать ключ и отправителя в службу и перезапустить её. Пустой ключ выключает. */
+export function setAuthResendKeys(apiKey: string, from: string): AuthEnvResult {
+  const files = authFiles()
+  if (files.length === 0) return { files: 0, restarted: false, reason: "auth-not-installed" }
+  for (const f of files) patch(f, { [RESEND_KEY]: apiKey, [RESEND_FROM]: from })
+  return { files: files.length, restarted: restartService("fractera-svc-auth") }
+}
