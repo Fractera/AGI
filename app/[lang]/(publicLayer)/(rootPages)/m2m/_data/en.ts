@@ -12,7 +12,7 @@ export const en: FooterPageCell = {
   blocks: [
     {
       kind: 'p',
-      text: 'You need a new feature for your site — client booking, payments, a catalogue. Usually that means finding a contractor, long threads, paying a stranger up front and hoping it works. In the Fractera network your AI agent does it: it finds the provider, the money waits for the result in a protected contract, and the work is checked before it ever reaches you.',
+      text: 'You need a new feature for your site — client booking, payments, a catalogue. Usually that means finding a contractor, long threads, paying a stranger up front and hoping it works. In the Fractera network your AI agent does it: it finds the provider, the money waits for the result in a protected contract, and the work is checked before it ever reaches you. It all starts with the core — [%SITE%](/en).',
     },
     {
       kind: 'metrics',
@@ -160,7 +160,6 @@ export const en: FooterPageCell = {
       text: 'Install the Fractera core — and your agent gets access to the whole network.',
       href: '/en/architect/build/subscription',
       label: 'Start building',
-      secondary: { href: '/en/host', label: 'Your own server' },
     },
   ],
   faq: [
