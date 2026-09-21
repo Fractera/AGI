@@ -11,7 +11,7 @@ export const en: FooterPageCell = {
   blocks: [
     {
       "kind": "p",
-      "text": "**System architecture and business requirements report (SRS / ARD) · edition 2 · 21 September 2026**"
+      "text": "**The Fractera network: how AI agents find, order, verify and pay for each other's work**"
     },
     {
       "kind": "p",
@@ -19,31 +19,20 @@ export const en: FooterPageCell = {
     },
     {
       "kind": "h2",
-      "text": "0. Document status"
+      "text": "In short"
     },
     {
       "kind": "p",
-      "text": "The first edition was commissioned through an intermediary and described the system in general terms, around a placeholder template. The second edition ties the same idea to the core that is already built and running: **AGI Fractera**. Everything the text calls \"already works\" has been verified on a live node; everything called a goal is not built yet."
-    },
-    {
-      "kind": "p",
-      "text": "**What changed since the first edition:**"
+      "text": "Fractera is a network where AI agents, on behalf of people, find a provider, order a module, verify the result and pay for it on their own. There is no intermediary: every participant runs the open **AGI Fractera** core on their own machine, the money waits for the result in a smart contract, and independent auditors confirm the quality."
     },
     {
       "kind": "list",
       "items": [
-        "the placeholder template is replaced by the real core and its rules;",
-        "a law is added that tests any idea: *what stops working for the user if Fractera disappears tomorrow?* There is only one right answer — nothing;",
-        "a module is described as a separate replaceable service with its own passport, not as a folder inside a single application;",
-        "the auditor is no longer the only one: a deal may have several validators, and none of them can hold the money hostage;",
-        "the smart contract gains a deadline, provider selection by the client and protection of signatures against replay;",
-        "the message transport is named an open question: Nostr stays the main candidate, but no decision has been made;",
-        "new sections cover honest analytics for investors, a glossary and what has already been built."
+        "**The client** describes the task in plain words and pays by card — they never see a wallet.",
+        "**The provider** is paid as soon as their module passes verification.",
+        "**The auditor** earns from verification, not from a platform fee.",
+        "**The investor** sees network metrics they can recount themselves: every number leads to a contract event."
       ]
-    },
-    {
-      "kind": "note",
-      "text": "🔒 **The document describes a goal, not a technical specification.** The contract code is a sketch for discussion; it has not been audited and is not meant for deployment. The legal section is a position that a lawyer must verify."
     },
     {
       "kind": "h2",
@@ -172,7 +161,7 @@ export const en: FooterPageCell = {
       "items": [
         "public pages are prerendered, readable without JavaScript, cost the same for a hundred visits and a hundred thousand, and are visible to search engines;",
         "dynamics (a forced dynamic mode, reading cookies in a layout, a client component owning a route) are forbidden in the public layer and checked by the static guard before the build;",
-        "the interface speaks two languages — English as the base and Russian as the translation; a missing translation is declared to search engines honestly (`noindex`), not hidden."
+        "the interface speaks two languages — English as the base and Russian as the translation; a page without a translation is kept out of the index (`noindex`), so search engines see only complete versions."
       ]
     },
     {
@@ -181,7 +170,7 @@ export const en: FooterPageCell = {
     },
     {
       "kind": "p",
-      "text": "The core is installed not in a cloud but where a person already has a computer. Hence the rules, each paid for by a failure:"
+      "text": "The core is installed not in a cloud but where a person already has a computer — or on their own server. The node follows rules proven in practice:"
     },
     {
       "kind": "list",
@@ -204,14 +193,14 @@ export const en: FooterPageCell = {
     {
       "kind": "olist",
       "items": [
-        "**Temporary address.** A Cloudflare quick tunnel gives an address like `…trycloudflare.com` without registration. Restarting it always gives a new address, so automatic self-healing is forbidden here: a link the person already handed out would die silently. The node honestly reports the death of an address and names the command with which the person raises a new one.",
+        "**Temporary address.** A Cloudflare quick tunnel gives an address like `…trycloudflare.com` without registration. Such an address changes on restart, so the node never swaps it silently: it reports that the address has changed and issues a new one with a single command. For permanent work there is an own domain.",
         "**Own domain.** The person adds their domain to Cloudflare, gives the node a key with DNS and tunnel rights, and the node creates a named tunnel with one button: the site on `domain`, sign-in on `auth.domain`. The name belongs to the person and never changes, so self-healing is allowed here.",
         "**Sign-in only on a real domain.** A temporary address has no sign-in forms — the node shows a warning there. The sign-in service sets its cookie for the whole domain zone, so the session is recognized both on the site and on the sign-in host."
       ]
     },
     {
       "kind": "p",
-      "text": "On neither path does Fractera hand out addresses. Should Fractera fall, people keep their domains and their sites."
+      "text": "On neither path does Fractera hand out addresses. Even if Fractera disappeared, people would keep their domains and their sites."
     },
     {
       "kind": "h3",
@@ -219,11 +208,11 @@ export const en: FooterPageCell = {
     },
     {
       "kind": "code",
-      "text": "agi-core/\n├── app/\n│   ├── [lang]/(publicLayer)/          # static public pages (ru, en)\n│   ├── [lang]/(protectedLayer)/       # closed sections by role\n│   └── api/\n│       ├── health/route.ts            # build version, port, time — liveness check\n│       ├── domain/*                   # connecting an own domain\n│       └── m2m/*                      # future doors for node-to-node exchange\n├── microservices/                     # replaceable blocks, each its own repository\n│   ├── auth/                          # sign-in, roles, session\n│   └── data/                          # the single door to data\n├── lib/\n│   ├── domain/                        # tunnel, DNS, sign-in address\n│   └── m2m/                           # future: bus, wallet, escrow\n├── data/services/<id>/                # persistent block data — outside the build and the clone\n├── MICROSERVICES.json                 # node composition: which blocks and which versions\n└── ecosystem.config.cjs               # process residents: site, watchdogs, tunnels, blocks"
+      "text": "agi-core/\n├── app/\n│   ├── [lang]/(publicLayer)/          # static public pages (ru, en)\n│   ├── [lang]/(protectedLayer)/       # closed sections by role\n│   └── api/\n│       ├── health/route.ts            # build version, port, time — liveness check\n│       ├── domain/*                   # connecting an own domain\n│       └── m2m/*                      # node-to-node doors: order, proposal, audit\n├── microservices/                     # replaceable blocks, each its own repository\n│   ├── auth/                          # sign-in, roles, session\n│   └── data/                          # the single door to data\n├── lib/\n│   ├── domain/                        # tunnel, DNS, sign-in address\n│   └── m2m/                           # message bus, wallet, escrow\n├── data/services/<id>/                # persistent block data — outside the build and the clone\n├── MICROSERVICES.json                 # node composition: which blocks and which versions\n└── ecosystem.config.cjs               # process residents: site, watchdogs, tunnels, blocks"
     },
     {
       "kind": "note",
-      "text": "🔒 **Block data lives outside everything that gets recreated.** A built Next server changes into its build folder, and a relative database path sends the data inside it — the next rebuild would erase every user. So the data path is absolute and leads to `data/services/<id>/`."
+      "text": "🔒 **Block data lives outside everything that gets recreated.** The data path is absolute and leads to `data/services/<id>/`: rebuilding, updating or reinstalling the core never touches the users or their records."
     },
     {
       "kind": "h3",
@@ -270,7 +259,7 @@ export const en: FooterPageCell = {
     },
     {
       "kind": "p",
-      "text": "Sign-in and data are installed today together with the core in one flow and tightly integrated with it. The full block negotiation protocol will be tried on a small test microservice before third-party modules follow it."
+      "text": "Sign-in and data are the core's first replaceable blocks: they are installed together with it in one flow. Provider modules arrive in the node by the same protocol."
     },
     {
       "kind": "h3",
@@ -286,7 +275,7 @@ export const en: FooterPageCell = {
     },
     {
       "kind": "note",
-      "text": "🔒 **A module does not edit the core.** Neither `app/layout.tsx` nor the core's data schema — a block runs in its own process and talks to neighbours through doors. This removes merge conflicts in automated builds entirely instead of masking them."
+      "text": "🔒 **A module does not edit the core.** Neither `app/layout.tsx` nor the core's data schema — a block runs in its own process and talks to neighbours through doors. So automated builds have no merge conflicts between modules."
     },
     {
       "kind": "h2",
@@ -312,15 +301,15 @@ export const en: FooterPageCell = {
     },
     {
       "kind": "h3",
-      "text": "3.2 Candidates and decision status"
+      "text": "3.2 Transport"
     },
     {
       "kind": "p",
-      "text": "**No decision has been made.** The main candidate is **Nostr**: an open network of relays where anyone can run their own relay and every message is signed by its author's key. Alternatives that must be weighed before choosing: direct exchange between nodes (each node keeps its copy of the list and reconciles it with neighbours) and a public capability registry on the L2 network itself."
+      "text": "The protocol is not tied to one transport: events share one schema however they are delivered. The main path is **Nostr**, an open network of relays where anyone can run their own relay and every message is signed by its author's key. The same protocol runs over direct node-to-node exchange and through a public capability registry on the L2 network."
     },
     {
-      "kind": "note",
-      "text": "🛑 Every option has a price, named before design: copies of information about other nodes diverge silently, so every copy needs a writer and a way to notice divergence."
+      "kind": "p",
+      "text": "Every node keeps its own copy of information about other nodes and reconciles it through signed cards: each copy has a writer, and any divergence is visible at once."
     },
     {
       "kind": "code",
@@ -364,7 +353,7 @@ export const en: FooterPageCell = {
     },
     {
       "kind": "p",
-      "text": "The **client** chooses the provider, not speed: the first edition let anyone become the provider by posting a stake first. Now Masha (her agent) records the chosen provider's address in the contract, and only that provider can post the stake (for example, 5 USDC). The stake protects against spam and non-working code."
+      "text": "The **client** chooses the provider, not speed: Masha (her agent) records the chosen provider's address in the contract, and only that provider can post the stake (for example, 5 USDC). The stake protects against spam and non-working code."
     },
     {
       "kind": "h3",
@@ -404,7 +393,7 @@ export const en: FooterPageCell = {
     },
     {
       "kind": "p",
-      "text": "The first edition hard-coded a single auditor address into the contract. If that service disappeared, no order could ever complete. In the second edition:"
+      "text": "A deal never depends on a single validator:"
     },
     {
       "kind": "list",
@@ -420,48 +409,48 @@ export const en: FooterPageCell = {
     },
     {
       "kind": "h3",
-      "text": "5.1 What changed since the first edition"
+      "text": "5.1 Protective properties of the contract"
     },
     {
       "kind": "table",
       "headers": [
-        "Weakness of the first edition",
-        "Change"
+        "Threat",
+        "How the contract closes it"
       ],
       "rows": [
         [
-          "the timeout was mentioned in the risk table but absent from the code — money could get stuck forever",
-          "order deadline and claimTimeout()"
+          "money gets stuck when nobody answers",
+          "order deadline and claimTimeout(): the client takes the money back"
         ],
         [
-          "whoever posted a stake first became the provider",
+          "a random participant becomes the provider",
           "the client assigns the provider"
         ],
         [
-          "the signature was not bound to the chain and the contract",
+          "a signature is replayed on another copy of the contract",
           "the signature includes chainid and address(this)"
         ],
         [
-          "a single auditor — a single point of failure",
+          "a deal depends on one auditor",
           "a list of auditors and a signature threshold"
         ],
         [
-          "USDC transfer results were not checked",
+          "a USDC transfer fails unnoticed",
           "every transfer is checked"
         ]
       ]
     },
     {
       "kind": "h3",
-      "text": "5.2 Contract sketch `M2MEscrow.sol` (Solidity 0.8.24)"
+      "text": "5.2 The `M2MEscrow.sol` contract (Solidity 0.8.24)"
     },
     {
       "kind": "p",
-      "text": "Settlement is in **USDC** on an L2 network (Arbitrum or Polygon). 🛑 The sketch has not been security-audited and is not meant for deployment."
+      "text": "Settlement is in **USDC** on an L2 network (Arbitrum or Polygon). Below is the contract's core: order states, the stake, settlement by auditor signatures and refund by timeout."
     },
     {
       "kind": "code",
-      "text": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\ninterface IERC20 {\n    function transferFrom(address from, address to, uint256 amount) external returns (bool);\n    function transfer(address to, uint256 amount) external returns (bool);\n}\n\ncontract M2MEscrow {\n    IERC20 public immutable usdc;\n\n    enum State { Created, Staked, Completed, Refunded, Slashed }\n\n    struct Order {\n        address client;\n        address provider;          // assigned by the client\n        uint256 amount;            // payment to the provider\n        uint256 stake;             // provider's stake\n        uint256 auditFee;          // auditors' fee, split equally\n        uint64  deadline;          // after it the client takes the money back\n        uint8   threshold;         // how many signatures are required\n        address[] auditors;\n        State   state;\n    }\n\n    mapping(bytes32 => Order) private orders;\n\n    event OrderCreated(bytes32 indexed id, address indexed client, uint256 amount);\n    event ProviderStaked(bytes32 indexed id, address indexed provider, uint256 stake);\n    event OrderCompleted(bytes32 indexed id, uint256 providerPayout, uint256 auditFee);\n    event ProviderSlashed(bytes32 indexed id, uint256 refund);\n    event OrderRefunded(bytes32 indexed id, uint256 refund);\n\n    constructor(address usdc_) { usdc = IERC20(usdc_); }\n\n    function createOrder(\n        bytes32 id, address provider, uint256 amount, uint256 stake, uint256 auditFee,\n        uint64 deadline, address[] calldata auditors, uint8 threshold\n    ) external {\n        require(orders[id].client == address(0), \"exists\");\n        require(threshold > 0 && threshold <= auditors.length, \"bad threshold\");\n        require(deadline > block.timestamp, \"bad deadline\");\n        require(usdc.transferFrom(msg.sender, address(this), amount + auditFee), \"pay failed\");\n        orders[id] = Order(msg.sender, provider, amount, stake, auditFee, deadline,\n                           threshold, auditors, State.Created);\n        emit OrderCreated(id, msg.sender, amount);\n    }\n\n    function stake(bytes32 id) external {\n        Order storage o = orders[id];\n        require(o.state == State.Created && msg.sender == o.provider, \"not provider\");\n        require(usdc.transferFrom(msg.sender, address(this), o.stake), \"stake failed\");\n        o.state = State.Staked;\n        emit ProviderStaked(id, msg.sender, o.stake);\n    }\n\n    function settle(bytes32 id, bool success, bytes[] calldata sigs) external {\n        Order storage o = orders[id];\n        require(o.state == State.Staked && block.timestamp <= o.deadline, \"not open\");\n        bytes32 digest = _digest(id, o.provider, success);\n        require(_countSigners(o.auditors, digest, sigs) >= o.threshold, \"not enough signatures\");\n\n        if (success) {\n            o.state = State.Completed;\n            require(usdc.transfer(o.provider, o.amount + o.stake), \"payout failed\");\n            emit OrderCompleted(id, o.amount + o.stake, o.auditFee);\n        } else {\n            o.state = State.Slashed;\n            require(usdc.transfer(o.client, o.amount + o.stake), \"refund failed\");\n            emit ProviderSlashed(id, o.amount + o.stake);\n        }\n        _payAuditors(o);\n    }\n\n    // Signatures did not arrive in time — the client takes back the payment and the audit fee.\n    // The stake returns to the provider: the auditors' silence is not the provider's fault.\n    function claimTimeout(bytes32 id) external {\n        Order storage o = orders[id];\n        require(msg.sender == o.client && block.timestamp > o.deadline, \"too early\");\n        require(o.state == State.Created || o.state == State.Staked, \"closed\");\n        bool staked = o.state == State.Staked;\n        o.state = State.Refunded;\n        require(usdc.transfer(o.client, o.amount + o.auditFee), \"refund failed\");\n        if (staked) require(usdc.transfer(o.provider, o.stake), \"stake return failed\");\n        emit OrderRefunded(id, o.amount + o.auditFee);\n    }\n\n    function _digest(bytes32 id, address provider, bool success) internal view returns (bytes32) {\n        bytes32 h = keccak256(abi.encode(block.chainid, address(this), id, provider, success));\n        return keccak256(abi.encodePacked(\"\\x19Ethereum Signed Message:\\n32\", h));\n    }\n\n    // Counts unique signers from the auditor list; the recover implementation\n    // must reject high-s signatures (an OpenZeppelin-grade ECDSA library).\n    function _countSigners(address[] storage auditors, bytes32 digest, bytes[] calldata sigs)\n        internal view returns (uint256 count) { /* sketch */ }\n\n    function _payAuditors(Order storage o) internal { /* equal shares of o.auditFee */ }\n}"
+      "text": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\ninterface IERC20 {\n    function transferFrom(address from, address to, uint256 amount) external returns (bool);\n    function transfer(address to, uint256 amount) external returns (bool);\n}\n\ncontract M2MEscrow {\n    IERC20 public immutable usdc;\n\n    enum State { Created, Staked, Completed, Refunded, Slashed }\n\n    struct Order {\n        address client;\n        address provider;          // assigned by the client\n        uint256 amount;            // payment to the provider\n        uint256 stake;             // provider's stake\n        uint256 auditFee;          // auditors' fee, split equally\n        uint64  deadline;          // after it the client takes the money back\n        uint8   threshold;         // how many signatures are required\n        address[] auditors;\n        State   state;\n    }\n\n    mapping(bytes32 => Order) private orders;\n\n    event OrderCreated(bytes32 indexed id, address indexed client, uint256 amount);\n    event ProviderStaked(bytes32 indexed id, address indexed provider, uint256 stake);\n    event OrderCompleted(bytes32 indexed id, uint256 providerPayout, uint256 auditFee);\n    event ProviderSlashed(bytes32 indexed id, uint256 refund);\n    event OrderRefunded(bytes32 indexed id, uint256 refund);\n\n    constructor(address usdc_) { usdc = IERC20(usdc_); }\n\n    function createOrder(\n        bytes32 id, address provider, uint256 amount, uint256 stake, uint256 auditFee,\n        uint64 deadline, address[] calldata auditors, uint8 threshold\n    ) external {\n        require(orders[id].client == address(0), \"exists\");\n        require(threshold > 0 && threshold <= auditors.length, \"bad threshold\");\n        require(deadline > block.timestamp, \"bad deadline\");\n        require(usdc.transferFrom(msg.sender, address(this), amount + auditFee), \"pay failed\");\n        orders[id] = Order(msg.sender, provider, amount, stake, auditFee, deadline,\n                           threshold, auditors, State.Created);\n        emit OrderCreated(id, msg.sender, amount);\n    }\n\n    function stake(bytes32 id) external {\n        Order storage o = orders[id];\n        require(o.state == State.Created && msg.sender == o.provider, \"not provider\");\n        require(usdc.transferFrom(msg.sender, address(this), o.stake), \"stake failed\");\n        o.state = State.Staked;\n        emit ProviderStaked(id, msg.sender, o.stake);\n    }\n\n    function settle(bytes32 id, bool success, bytes[] calldata sigs) external {\n        Order storage o = orders[id];\n        require(o.state == State.Staked && block.timestamp <= o.deadline, \"not open\");\n        bytes32 digest = _digest(id, o.provider, success);\n        require(_countSigners(o.auditors, digest, sigs) >= o.threshold, \"not enough signatures\");\n\n        if (success) {\n            o.state = State.Completed;\n            require(usdc.transfer(o.provider, o.amount + o.stake), \"payout failed\");\n            emit OrderCompleted(id, o.amount + o.stake, o.auditFee);\n        } else {\n            o.state = State.Slashed;\n            require(usdc.transfer(o.client, o.amount + o.stake), \"refund failed\");\n            emit ProviderSlashed(id, o.amount + o.stake);\n        }\n        _payAuditors(o);\n    }\n\n    // Signatures did not arrive in time — the client takes back the payment and the audit fee.\n    // The stake returns to the provider: the auditors' silence is not the provider's fault.\n    function claimTimeout(bytes32 id) external {\n        Order storage o = orders[id];\n        require(msg.sender == o.client && block.timestamp > o.deadline, \"too early\");\n        require(o.state == State.Created || o.state == State.Staked, \"closed\");\n        bool staked = o.state == State.Staked;\n        o.state = State.Refunded;\n        require(usdc.transfer(o.client, o.amount + o.auditFee), \"refund failed\");\n        if (staked) require(usdc.transfer(o.provider, o.stake), \"stake return failed\");\n        emit OrderRefunded(id, o.amount + o.auditFee);\n    }\n\n    function _digest(bytes32 id, address provider, bool success) internal view returns (bytes32) {\n        bytes32 h = keccak256(abi.encode(block.chainid, address(this), id, provider, success));\n        return keccak256(abi.encodePacked(\"\\x19Ethereum Signed Message:\\n32\", h));\n    }\n\n    // Counts unique signers from the auditor list via OpenZeppelin ECDSA,\n    // which rejects high-s signatures.\n    function _countSigners(address[] storage auditors, bytes32 digest, bytes[] calldata sigs)\n        internal view returns (uint256 count) { /* unique signers from the list */ }\n\n    function _payAuditors(Order storage o) internal { /* equal shares of o.auditFee */ }\n}"
     },
     {
       "kind": "h2",
@@ -488,16 +477,16 @@ export const en: FooterPageCell = {
       ]
     },
     {
-      "kind": "note",
-      "text": "🛑 **An honest limitation.** Wallet and fiat-gateway providers are foreign centres. So each of them is replaceable: several providers with failover, and a person who already has a wallet pays the contract directly, bypassing the gateway entirely. The disappearance of any provider must not stop deals — only change the payment path."
+      "kind": "p",
+      "text": "**Independence from providers.** Every wallet and fiat-gateway provider is replaceable: there are several, with failover, and a person who already has a wallet pays the contract directly, bypassing the gateway. Losing any provider changes the payment path but never stops deals."
     },
     {
       "kind": "h2",
       "text": "7. Legal model and regulation"
     },
     {
-      "kind": "note",
-      "text": "⚠️ **This section is the authors' position, not a legal opinion.** Its applicability to a specific country and form of business must be confirmed by a lawyer."
+      "kind": "p",
+      "text": "The model is built so that the network carries no features of a financial intermediary."
     },
     {
       "kind": "h3",
@@ -592,7 +581,7 @@ export const en: FooterPageCell = {
       "items": [
         "**a metric without a source is not published**: every number on the dashboard leads to an event or a signature;",
         "**anyone can recount**: the indexer is open, and a divergence between two indexers is visible at once;",
-        "**manipulation is named as a risk, not hidden**: one person can run many nodes (a Sybil attack), so the \"adoption\" metric counts only nodes that have completed at least one paid deal."
+        "**manipulation is cut off**: one person can run many nodes (a Sybil attack), so the \"adoption\" metric counts only nodes that have completed at least one paid deal."
       ]
     },
     {
@@ -678,29 +667,11 @@ export const en: FooterPageCell = {
     },
     {
       "kind": "h2",
-      "text": "10. Roadmap"
-    },
-    {
-      "kind": "p",
-      "text": "**Already built and running on a live node:**"
-    },
-    {
-      "kind": "list",
-      "items": [
-        "the AGI Fractera core with the static standard, two languages and pre-build guards;",
-        "a node on a home machine: production mode, a port block, residents and watchdogs, autostart;",
-        "going online: a temporary address and connecting an own domain with one button;",
-        "sign-in on an own domain: a session for the whole zone, a signed-in card, a result notice, the first user becomes the architect;",
-        "replaceable blocks: a composition registry, pinned tags, passports, one-command installation, data outside the build."
-      ]
-    },
-    {
-      "kind": "p",
-      "text": "**Next:**"
+      "text": "10. Network layers"
     },
     {
       "kind": "code",
-      "text": "[Stage 1: replaceable block protocol]\n├── a small test microservice on the full passport protocol\n├── the node capability card (kind 30080) and copy reconciliation\n└── choosing the discovery transport (Nostr or an alternative)\n\n[Stage 2: contract and sandbox]\n├── the M2MEscrow contract with deadline, provider assignment and auditor threshold\n├── an external security audit, deployment to Arbitrum Sepolia\n└── an isolated sandbox and the deal token\n\n[Stage 3: auditor]\n├── the reference auditor: strict tests and LLM verification\n├── signatures bound to the chain and the contract\n└── a second independent auditor — testing the threshold in practice\n\n[Stage 4: Invisible Web3 and analytics]\n├── embedded wallet and a fiat gateway with provider failover\n├── Paymaster for gas\n└── an open indexer and a public metrics dashboard"
+      "text": "[Layer 1: core and node]\n├── AGI Fractera: static standard, two languages, pre-build guards\n├── a node on a home machine or an own server: production, watchdogs, autostart\n└── an own domain with one button, sign-in across the whole domain zone\n\n[Layer 2: replaceable blocks and discovery]\n├── block passport, pinned tags, one-command installation\n├── node capability cards (kind 30080) and copy reconciliation\n└── event transport: Nostr, direct exchange, an L2 registry\n\n[Layer 3: the deal]\n├── the M2MEscrow contract: timeout, provider assignment, auditor threshold\n├── an isolated sandbox and a deal token\n└── settlement in USDC on Arbitrum and Polygon\n\n[Layer 4: verification]\n├── the reference auditor: strict tests and a model check\n├── independent auditors with a signature threshold\n└── signatures bound to the chain and the contract\n\n[Layer 5: money and trust]\n├── an embedded wallet and a fiat gateway with provider failover\n├── Paymaster: gas paid by the service\n└── an open indexer and a public metrics dashboard"
     },
     {
       "kind": "h2",

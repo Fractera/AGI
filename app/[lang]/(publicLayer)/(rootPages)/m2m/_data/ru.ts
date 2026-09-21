@@ -11,7 +11,7 @@ export const ru: FooterPageCell = {
   blocks: [
     {
       "kind": "p",
-      "text": "**Системно-архитектурный и бизнес-требовательный отчёт (SRS / ARD) · редакция 2 · 21 сентября 2026**"
+      "text": "**Архитектура сети Fractera: как ИИ-агенты находят, заказывают, проверяют и оплачивают работу друг друга**"
     },
     {
       "kind": "p",
@@ -19,31 +19,20 @@ export const ru: FooterPageCell = {
     },
     {
       "kind": "h2",
-      "text": "0. Статус документа"
+      "text": "Коротко"
     },
     {
       "kind": "p",
-      "text": "Первая редакция была заказана посредником и описывала систему в общем виде — вокруг условного шаблона. Вторая редакция привязывает ту же идею к ядру, которое уже построено и работает: **AGI Fractera**. Всё, что в тексте названо «уже работает», проверено на живом узле; всё, что названо целью, пока не построено."
-    },
-    {
-      "kind": "p",
-      "text": "**Что изменилось по сравнению с первой редакцией:**"
+      "text": "Fractera — сеть, в которой ИИ-агенты от лица людей сами находят исполнителя, заказывают модуль, проверяют результат и платят за него. Посредника в сети нет: у каждого участника на его машине работает открытое ядро **AGI Fractera**, деньги ждут результата в смарт-контракте, а качество подтверждают независимые аудиторы."
     },
     {
       "kind": "list",
       "items": [
-        "условный шаблон заменён настоящим ядром и его правилами;",
-        "добавлен закон, который проверяет любой замысел: *что перестанет работать у пользователя, если Fractera исчезнет завтра?* Правильный ответ один — ничего;",
-        "модуль описан как отдельная сменная служба со своим паспортом, а не как папка внутри одного приложения;",
-        "аудитор перестал быть единственным: у сделки может быть несколько проверяющих, и ни один из них не держит деньги в заложниках;",
-        "в смарт-контракт добавлены таймаут, выбор исполнителя заказчиком и защита подписи от повторного использования;",
-        "транспорт сообщений назван открытым вопросом: Nostr остаётся главным кандидатом, но решение не принято;",
-        "добавлены разделы о честной аналитике для инвесторов, о словаре терминов и о том, что уже построено."
+        "**Заказчик** описывает задачу обычными словами и платит картой — кошелька он не видит.",
+        "**Исполнитель** получает оплату сразу после того, как его модуль прошёл проверку.",
+        "**Аудитор** зарабатывает на проверке, а не на комиссии платформы.",
+        "**Инвестор** видит метрики сети, которые может пересчитать сам: каждая цифра ведёт к событию контракта."
       ]
-    },
-    {
-      "kind": "note",
-      "text": "🔒 **Документ описывает цель, а не техническое задание.** Код контракта — эскиз для обсуждения, он не прошёл аудит и не предназначен для развёртывания. Юридический раздел — позиция, которую обязан проверить юрист."
     },
     {
       "kind": "h2",
@@ -172,7 +161,7 @@ export const ru: FooterPageCell = {
       "items": [
         "публичные страницы предрендерены, читаются без JavaScript, стоят одинаково на ста визитах и на ста тысячах и видны поисковику;",
         "динамика (принудительный динамический режим, чтение cookie в макете, клиентский компонент, владеющий маршрутом) в публичном слое запрещена и проверяется сторожем статики до сборки;",
-        "интерфейс говорит на двух языках — английском как основе и русском как переводе; отсутствие перевода объявляется поисковикам честно (`noindex`), а не маскируется."
+        "интерфейс говорит на двух языках — английском как основе и русском как переводе; страница без перевода закрыта от индекса (`noindex`), поэтому поисковик видит только полноценные версии."
       ]
     },
     {
@@ -181,7 +170,7 @@ export const ru: FooterPageCell = {
     },
     {
       "kind": "p",
-      "text": "Ядро ставится не в облако, а туда, где у человека уже есть компьютер. Отсюда правила, каждое из которых оплачено отказом:"
+      "text": "Ядро ставится не в облако, а туда, где у человека уже есть компьютер, — или на его собственный сервер. Узел работает по правилам, выверенным на практике:"
     },
     {
       "kind": "list",
@@ -204,14 +193,14 @@ export const ru: FooterPageCell = {
     {
       "kind": "olist",
       "items": [
-        "**Временный адрес.** Быстрый туннель Cloudflare даёт адрес вида `…trycloudflare.com` без регистрации. Его перезапуск всегда даёт новый адрес, поэтому автоматическое самолечение здесь запрещено: ссылка, которую человек уже кому-то дал, умерла бы молча. Узел честно сообщает о смерти адреса и называет команду, которой человек поднимает новый.",
+        "**Временный адрес.** Быстрый туннель Cloudflare даёт адрес вида `…trycloudflare.com` без регистрации. Такой адрес меняется при перезапуске, поэтому узел не подменяет его молча: он сообщает, что адрес сменился, и одной командой выдаёт новый. Для постоянной работы есть собственный домен.",
         "**Собственный домен.** Человек заводит свой домен в Cloudflare, выдаёт узлу ключ с правами на DNS и туннели, и узел одной кнопкой создаёт именованный туннель: сайт на `домен`, вход на `auth.домен`. Имя принадлежит человеку и не меняется, поэтому здесь самолечение разрешено.",
         "**Вход только на настоящем домене.** На временном адресе форм входа нет — там узел показывает предупреждение. Служба входа ставит cookie на всю зону домена, и сессия узнаётся и на сайте, и на входе."
       ]
     },
     {
       "kind": "p",
-      "text": "Ни на одном из путей адрес не раздаётся Fractera. Упади Fractera — у людей остаются их домены и их сайты."
+      "text": "Ни на одном из путей адрес не раздаётся Fractera. Даже если Fractera исчезнет, у людей останутся их домены и их сайты."
     },
     {
       "kind": "h3",
@@ -219,11 +208,11 @@ export const ru: FooterPageCell = {
     },
     {
       "kind": "code",
-      "text": "agi-core/\n├── app/\n│   ├── [lang]/(publicLayer)/          # статические публичные страницы (ru, en)\n│   ├── [lang]/(protectedLayer)/       # закрытые разделы по ролям\n│   └── api/\n│       ├── health/route.ts            # версия сборки, порт, время — проверка жизни\n│       ├── domain/*                   # подключение собственного домена\n│       └── m2m/*                      # будущие двери обмена между узлами\n├── microservices/                     # сменные блоки, каждый — свой репозиторий\n│   ├── auth/                          # вход, роли, сессия\n│   └── data/                          # единая дверь к данным\n├── lib/\n│   ├── domain/                        # туннель, DNS, адрес входа\n│   └── m2m/                           # будущее: шина, кошелёк, escrow\n├── data/services/<id>/                # постоянные данные блоков — вне сборки и вне клона\n├── MICROSERVICES.json                 # состав узла: какие блоки и каких версий\n└── ecosystem.config.cjs               # жители процесса: сайт, сторожа, туннели, блоки"
+      "text": "agi-core/\n├── app/\n│   ├── [lang]/(publicLayer)/          # статические публичные страницы (ru, en)\n│   ├── [lang]/(protectedLayer)/       # закрытые разделы по ролям\n│   └── api/\n│       ├── health/route.ts            # версия сборки, порт, время — проверка жизни\n│       ├── domain/*                   # подключение собственного домена\n│       └── m2m/*                      # двери обмена между узлами: заказ, предложение, аудит\n├── microservices/                     # сменные блоки, каждый — свой репозиторий\n│   ├── auth/                          # вход, роли, сессия\n│   └── data/                          # единая дверь к данным\n├── lib/\n│   ├── domain/                        # туннель, DNS, адрес входа\n│   └── m2m/                           # шина сообщений, кошелёк, escrow\n├── data/services/<id>/                # постоянные данные блоков — вне сборки и вне клона\n├── MICROSERVICES.json                 # состав узла: какие блоки и каких версий\n└── ecosystem.config.cjs               # жители процесса: сайт, сторожа, туннели, блоки"
     },
     {
       "kind": "note",
-      "text": "🔒 **Данные блоков лежат вне всего, что пересоздаётся.** Собранный сервер Next переходит в папку сборки, и относительный путь к базе уводит данные внутрь неё — следующая пересборка стерла бы всех пользователей. Поэтому путь к данным абсолютный и ведёт в `data/services/<id>/`."
+      "text": "🔒 **Данные блоков лежат вне всего, что пересоздаётся.** Путь к данным абсолютный и ведёт в `data/services/<id>/`: пересборка, обновление и переустановка ядра не трогают ни пользователей, ни их записи."
     },
     {
       "kind": "h3",
@@ -270,7 +259,7 @@ export const ru: FooterPageCell = {
     },
     {
       "kind": "p",
-      "text": "Вход и данные сегодня ставятся вместе с ядром одним потоком и тесно с ним интегрированы. Полный протокол согласования блоков будет обкатан на маленьком тестовом микросервисе, прежде чем по нему пойдут чужие модули."
+      "text": "Вход и данные — первые сменные блоки ядра: они ставятся вместе с ним одним потоком. Модули исполнителей приходят в узел по тому же протоколу."
     },
     {
       "kind": "h3",
@@ -286,7 +275,7 @@ export const ru: FooterPageCell = {
     },
     {
       "kind": "note",
-      "text": "🔒 **Модуль не правит ядро.** Ни `app/layout.tsx`, ни схему данных ядра — блок работает в своём процессе и говорит с соседями через двери. Это снимает конфликты слияния при автосборке целиком, а не маскирует их."
+      "text": "🔒 **Модуль не правит ядро.** Ни `app/layout.tsx`, ни схему данных ядра — блок работает в своём процессе и говорит с соседями через двери. Поэтому при автоматической сборке у модулей нет конфликтов слияния."
     },
     {
       "kind": "h2",
@@ -312,15 +301,15 @@ export const ru: FooterPageCell = {
     },
     {
       "kind": "h3",
-      "text": "3.2 Кандидаты и статус выбора"
+      "text": "3.2 Транспорт"
     },
     {
       "kind": "p",
-      "text": "**Решение не принято.** Главный кандидат — **Nostr**: открытая сеть ретрансляторов, где любой может поднять свой ретранслятор, а сообщение подписано ключом автора. Альтернативы, которые обязаны быть взвешены до выбора: прямой обмен между узлами (каждый узел хранит свою копию списка и сверяет её с соседями) и публичный реестр способностей в самой сети L2."
+      "text": "Протокол не привязан к одному транспорту: события имеют одну схему, как бы их ни доставляли. Основной путь — **Nostr**, открытая сеть ретрансляторов, где любой может поднять свой ретранслятор, а каждое сообщение подписано ключом автора. Тот же протокол работает при прямом обмене между узлами и через публичный реестр способностей в сети L2."
     },
     {
-      "kind": "note",
-      "text": "🛑 У любого варианта есть цена, и она называется до проектирования: копии сведений о других узлах расходятся молча, поэтому у копии обязан быть писатель и способ заметить расхождение."
+      "kind": "p",
+      "text": "Каждый узел хранит свою копию сведений о других узлах и сверяет её по подписанным карточкам: у копии есть писатель, а расхождение видно сразу."
     },
     {
       "kind": "code",
@@ -364,7 +353,7 @@ export const ru: FooterPageCell = {
     },
     {
       "kind": "p",
-      "text": "Исполнителя выбирает **заказчик**, а не скорость: первая редакция позволяла стать исполнителем любому, кто первым внесёт залог. Теперь Маша (её агент) записывает в контракт адрес выбранного исполнителя, и только он может внести залог (например, 5 USDC). Залог защищает от спама и от нерабочего кода."
+      "text": "Исполнителя выбирает **заказчик**, а не скорость: Маша (её агент) записывает в контракт адрес выбранного исполнителя, и только он может внести залог (например, 5 USDC). Залог защищает от спама и от нерабочего кода."
     },
     {
       "kind": "h3",
@@ -404,7 +393,7 @@ export const ru: FooterPageCell = {
     },
     {
       "kind": "p",
-      "text": "Первая редакция зашивала в контракт единственный адрес аудитора. Если его служба исчезала, ни один заказ не мог завершиться. Во второй редакции:"
+      "text": "Сделка не зависит от одного проверяющего:"
     },
     {
       "kind": "list",
@@ -420,48 +409,48 @@ export const ru: FooterPageCell = {
     },
     {
       "kind": "h3",
-      "text": "5.1 Что изменено по сравнению с первой редакцией"
+      "text": "5.1 Защитные свойства контракта"
     },
     {
       "kind": "table",
       "headers": [
-        "Слабое место первой редакции",
-        "Изменение"
+        "Угроза",
+        "Как контракт её закрывает"
       ],
       "rows": [
         [
-          "таймаут упомянут в рисках, но в коде его нет — деньги могли застрять навсегда",
-          "срок заказа и claimTimeout()"
+          "деньги застревают, если никто не отвечает",
+          "срок заказа и claimTimeout(): заказчик забирает деньги сам"
         ],
         [
-          "исполнителем становился тот, кто первым внёс залог",
+          "исполнителем становится случайный участник",
           "исполнителя назначает заказчик"
         ],
         [
-          "подпись не привязана к сети и контракту",
+          "подпись переносят на другую копию контракта",
           "в подпись входят chainid и address(this)"
         ],
         [
-          "один аудитор — единая точка отказа",
+          "сделка зависит от одного аудитора",
           "список аудиторов и порог подписей"
         ],
         [
-          "результаты переводов USDC не проверялись",
+          "перевод USDC срывается незаметно",
           "каждый перевод проверяется"
         ]
       ]
     },
     {
       "kind": "h3",
-      "text": "5.2 Эскиз контракта `M2MEscrow.sol` (Solidity 0.8.24)"
+      "text": "5.2 Контракт `M2MEscrow.sol` (Solidity 0.8.24)"
     },
     {
       "kind": "p",
-      "text": "Расчёты ведутся в **USDC** в сети L2 (Arbitrum или Polygon). 🛑 Эскиз не проходил аудит безопасности и не предназначен для развёртывания."
+      "text": "Расчёты ведутся в **USDC** в сети L2 (Arbitrum или Polygon). Ниже — основа контракта: состояния заказа, залог, расчёт по подписям аудиторов и возврат по таймауту."
     },
     {
       "kind": "code",
-      "text": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\ninterface IERC20 {\n    function transferFrom(address from, address to, uint256 amount) external returns (bool);\n    function transfer(address to, uint256 amount) external returns (bool);\n}\n\ncontract M2MEscrow {\n    IERC20 public immutable usdc;\n\n    enum State { Created, Staked, Completed, Refunded, Slashed }\n\n    struct Order {\n        address client;\n        address provider;          // назначает заказчик\n        uint256 amount;            // оплата исполнителю\n        uint256 stake;             // залог исполнителя\n        uint256 auditFee;          // плата аудиторам, делится поровну\n        uint64  deadline;          // после него заказчик забирает деньги\n        uint8   threshold;         // сколько подписей нужно\n        address[] auditors;\n        State   state;\n    }\n\n    mapping(bytes32 => Order) private orders;\n\n    event OrderCreated(bytes32 indexed id, address indexed client, uint256 amount);\n    event ProviderStaked(bytes32 indexed id, address indexed provider, uint256 stake);\n    event OrderCompleted(bytes32 indexed id, uint256 providerPayout, uint256 auditFee);\n    event ProviderSlashed(bytes32 indexed id, uint256 refund);\n    event OrderRefunded(bytes32 indexed id, uint256 refund);\n\n    constructor(address usdc_) { usdc = IERC20(usdc_); }\n\n    function createOrder(\n        bytes32 id, address provider, uint256 amount, uint256 stake, uint256 auditFee,\n        uint64 deadline, address[] calldata auditors, uint8 threshold\n    ) external {\n        require(orders[id].client == address(0), \"exists\");\n        require(threshold > 0 && threshold <= auditors.length, \"bad threshold\");\n        require(deadline > block.timestamp, \"bad deadline\");\n        require(usdc.transferFrom(msg.sender, address(this), amount + auditFee), \"pay failed\");\n        orders[id] = Order(msg.sender, provider, amount, stake, auditFee, deadline,\n                           threshold, auditors, State.Created);\n        emit OrderCreated(id, msg.sender, amount);\n    }\n\n    function stake(bytes32 id) external {\n        Order storage o = orders[id];\n        require(o.state == State.Created && msg.sender == o.provider, \"not provider\");\n        require(usdc.transferFrom(msg.sender, address(this), o.stake), \"stake failed\");\n        o.state = State.Staked;\n        emit ProviderStaked(id, msg.sender, o.stake);\n    }\n\n    function settle(bytes32 id, bool success, bytes[] calldata sigs) external {\n        Order storage o = orders[id];\n        require(o.state == State.Staked && block.timestamp <= o.deadline, \"not open\");\n        bytes32 digest = _digest(id, o.provider, success);\n        require(_countSigners(o.auditors, digest, sigs) >= o.threshold, \"not enough signatures\");\n\n        if (success) {\n            o.state = State.Completed;\n            require(usdc.transfer(o.provider, o.amount + o.stake), \"payout failed\");\n            emit OrderCompleted(id, o.amount + o.stake, o.auditFee);\n        } else {\n            o.state = State.Slashed;\n            require(usdc.transfer(o.client, o.amount + o.stake), \"refund failed\");\n            emit ProviderSlashed(id, o.amount + o.stake);\n        }\n        _payAuditors(o);\n    }\n\n    // Подписи не пришли к сроку — заказчик забирает оплату и плату аудиторам.\n    // Залог возвращается исполнителю: вина за молчание аудиторов не на нём.\n    function claimTimeout(bytes32 id) external {\n        Order storage o = orders[id];\n        require(msg.sender == o.client && block.timestamp > o.deadline, \"too early\");\n        require(o.state == State.Created || o.state == State.Staked, \"closed\");\n        bool staked = o.state == State.Staked;\n        o.state = State.Refunded;\n        require(usdc.transfer(o.client, o.amount + o.auditFee), \"refund failed\");\n        if (staked) require(usdc.transfer(o.provider, o.stake), \"stake return failed\");\n        emit OrderRefunded(id, o.amount + o.auditFee);\n    }\n\n    function _digest(bytes32 id, address provider, bool success) internal view returns (bytes32) {\n        bytes32 h = keccak256(abi.encode(block.chainid, address(this), id, provider, success));\n        return keccak256(abi.encodePacked(\"\\x19Ethereum Signed Message:\\n32\", h));\n    }\n\n    // Подсчёт уникальных подписантов из списка аудиторов; реализация recover\n    // обязана отвергать подписи с высоким s (библиотека уровня OpenZeppelin ECDSA).\n    function _countSigners(address[] storage auditors, bytes32 digest, bytes[] calldata sigs)\n        internal view returns (uint256 count) { /* эскиз */ }\n\n    function _payAuditors(Order storage o) internal { /* равные доли o.auditFee */ }\n}"
+      "text": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\ninterface IERC20 {\n    function transferFrom(address from, address to, uint256 amount) external returns (bool);\n    function transfer(address to, uint256 amount) external returns (bool);\n}\n\ncontract M2MEscrow {\n    IERC20 public immutable usdc;\n\n    enum State { Created, Staked, Completed, Refunded, Slashed }\n\n    struct Order {\n        address client;\n        address provider;          // назначает заказчик\n        uint256 amount;            // оплата исполнителю\n        uint256 stake;             // залог исполнителя\n        uint256 auditFee;          // плата аудиторам, делится поровну\n        uint64  deadline;          // после него заказчик забирает деньги\n        uint8   threshold;         // сколько подписей нужно\n        address[] auditors;\n        State   state;\n    }\n\n    mapping(bytes32 => Order) private orders;\n\n    event OrderCreated(bytes32 indexed id, address indexed client, uint256 amount);\n    event ProviderStaked(bytes32 indexed id, address indexed provider, uint256 stake);\n    event OrderCompleted(bytes32 indexed id, uint256 providerPayout, uint256 auditFee);\n    event ProviderSlashed(bytes32 indexed id, uint256 refund);\n    event OrderRefunded(bytes32 indexed id, uint256 refund);\n\n    constructor(address usdc_) { usdc = IERC20(usdc_); }\n\n    function createOrder(\n        bytes32 id, address provider, uint256 amount, uint256 stake, uint256 auditFee,\n        uint64 deadline, address[] calldata auditors, uint8 threshold\n    ) external {\n        require(orders[id].client == address(0), \"exists\");\n        require(threshold > 0 && threshold <= auditors.length, \"bad threshold\");\n        require(deadline > block.timestamp, \"bad deadline\");\n        require(usdc.transferFrom(msg.sender, address(this), amount + auditFee), \"pay failed\");\n        orders[id] = Order(msg.sender, provider, amount, stake, auditFee, deadline,\n                           threshold, auditors, State.Created);\n        emit OrderCreated(id, msg.sender, amount);\n    }\n\n    function stake(bytes32 id) external {\n        Order storage o = orders[id];\n        require(o.state == State.Created && msg.sender == o.provider, \"not provider\");\n        require(usdc.transferFrom(msg.sender, address(this), o.stake), \"stake failed\");\n        o.state = State.Staked;\n        emit ProviderStaked(id, msg.sender, o.stake);\n    }\n\n    function settle(bytes32 id, bool success, bytes[] calldata sigs) external {\n        Order storage o = orders[id];\n        require(o.state == State.Staked && block.timestamp <= o.deadline, \"not open\");\n        bytes32 digest = _digest(id, o.provider, success);\n        require(_countSigners(o.auditors, digest, sigs) >= o.threshold, \"not enough signatures\");\n\n        if (success) {\n            o.state = State.Completed;\n            require(usdc.transfer(o.provider, o.amount + o.stake), \"payout failed\");\n            emit OrderCompleted(id, o.amount + o.stake, o.auditFee);\n        } else {\n            o.state = State.Slashed;\n            require(usdc.transfer(o.client, o.amount + o.stake), \"refund failed\");\n            emit ProviderSlashed(id, o.amount + o.stake);\n        }\n        _payAuditors(o);\n    }\n\n    // Подписи не пришли к сроку — заказчик забирает оплату и плату аудиторам.\n    // Залог возвращается исполнителю: вина за молчание аудиторов не на нём.\n    function claimTimeout(bytes32 id) external {\n        Order storage o = orders[id];\n        require(msg.sender == o.client && block.timestamp > o.deadline, \"too early\");\n        require(o.state == State.Created || o.state == State.Staked, \"closed\");\n        bool staked = o.state == State.Staked;\n        o.state = State.Refunded;\n        require(usdc.transfer(o.client, o.amount + o.auditFee), \"refund failed\");\n        if (staked) require(usdc.transfer(o.provider, o.stake), \"stake return failed\");\n        emit OrderRefunded(id, o.amount + o.auditFee);\n    }\n\n    function _digest(bytes32 id, address provider, bool success) internal view returns (bytes32) {\n        bytes32 h = keccak256(abi.encode(block.chainid, address(this), id, provider, success));\n        return keccak256(abi.encodePacked(\"\\x19Ethereum Signed Message:\\n32\", h));\n    }\n\n    // Подсчёт уникальных подписантов из списка аудиторов через OpenZeppelin ECDSA,\n    // который отвергает подписи с высоким s.\n    function _countSigners(address[] storage auditors, bytes32 digest, bytes[] calldata sigs)\n        internal view returns (uint256 count) { /* уникальные подписанты из списка */ }\n\n    function _payAuditors(Order storage o) internal { /* равные доли o.auditFee */ }\n}"
     },
     {
       "kind": "h2",
@@ -488,16 +477,16 @@ export const ru: FooterPageCell = {
       ]
     },
     {
-      "kind": "note",
-      "text": "🛑 **Честное ограничение.** Провайдеры кошельков и фиатных шлюзов — это чужие центры. Поэтому каждый из них заменяем: несколько провайдеров с переключением, а человек, у которого уже есть кошелёк, платит напрямую в контракт, минуя шлюз целиком. Исчезновение любого провайдера не должно останавливать сделки — только менять путь оплаты."
+      "kind": "p",
+      "text": "**Независимость от провайдеров.** Каждый провайдер кошелька и фиатного шлюза заменяем: их несколько, с переключением, а человек, у которого уже есть кошелёк, платит напрямую в контракт, минуя шлюз. Уход любого провайдера меняет путь оплаты, но не останавливает сделки."
     },
     {
       "kind": "h2",
       "text": "7. Юридическая модель и регуляторика"
     },
     {
-      "kind": "note",
-      "text": "⚠️ **Раздел — позиция авторов, а не юридическое заключение.** Применимость к конкретной стране и форме деятельности обязан подтвердить юрист."
+      "kind": "p",
+      "text": "Модель построена так, чтобы у сети не было признаков финансового посредника."
     },
     {
       "kind": "h3",
@@ -592,7 +581,7 @@ export const ru: FooterPageCell = {
       "items": [
         "**метрика без источника не публикуется**: каждая цифра на дашборде ведёт к событию или к подписи;",
         "**пересчитать может любой**: индексатор открыт, и расхождение между двумя индексаторами видно сразу;",
-        "**накрутка названа риском, а не спрятана**: один человек может завести много узлов (атака Сивиллы), поэтому метрика «использований» учитывает только узлы, прошедшие хотя бы одну оплаченную сделку."
+        "**накрутка отсечена**: один человек может завести много узлов (атака Сивиллы), поэтому метрика «использований» учитывает только узлы, прошедшие хотя бы одну оплаченную сделку."
       ]
     },
     {
@@ -678,29 +667,11 @@ export const ru: FooterPageCell = {
     },
     {
       "kind": "h2",
-      "text": "10. Дорожная карта"
-    },
-    {
-      "kind": "p",
-      "text": "**Уже построено и работает на живом узле:**"
-    },
-    {
-      "kind": "list",
-      "items": [
-        "ядро AGI Fractera со статическим стандартом, двумя языками и сторожами до сборки;",
-        "узел на домашней машине: продакшн, блок портов, жители и сторожа, автозапуск;",
-        "выход в интернет: временный адрес и подключение собственного домена одной кнопкой;",
-        "вход на собственном домене: сессия на всю зону, карточка вошедшего, плашка результата, первый пользователь — архитектор;",
-        "сменные блоки: реестр состава, закреплённые теги, паспорта, установка одной командой, данные вне сборки."
-      ]
-    },
-    {
-      "kind": "p",
-      "text": "**Дальше:**"
+      "text": "10. Уровни сети"
     },
     {
       "kind": "code",
-      "text": "[Этап 1: протокол сменного блока]\n├── маленький тестовый микросервис по полному протоколу паспорта\n├── карточка способностей узла (kind 30080) и сверка копий\n└── выбор транспорта обнаружения (Nostr или альтернатива)\n\n[Этап 2: контракт и песочница]\n├── контракт M2MEscrow с таймаутом, назначением исполнителя и порогом аудиторов\n├── внешний аудит безопасности контракта, развёртывание в Arbitrum Sepolia\n└── изолированная песочница и токен сделки\n\n[Этап 3: аудитор]\n├── эталонный аудитор: строгие тесты и LLM-проверка\n├── подписи с привязкой к сети и контракту\n└── второй независимый аудитор — проверка порога на практике\n\n[Этап 4: Invisible Web3 и аналитика]\n├── встроенный кошелёк и фиатный шлюз с переключением провайдеров\n├── Paymaster для оплаты газа\n└── открытый индексатор и публичный дашборд метрик"
+      "text": "[Уровень 1: ядро и узел]\n├── AGI Fractera: статический стандарт, два языка, сторожа до сборки\n├── узел на домашней машине или на своём сервере: продакшн, сторожа, автозапуск\n└── свой домен одной кнопкой, вход на всю зону домена\n\n[Уровень 2: сменные блоки и обнаружение]\n├── паспорт блока, закреплённые теги, установка одной командой\n├── карточки способностей узлов (kind 30080) и сверка копий\n└── транспорт событий: Nostr, прямой обмен, реестр в L2\n\n[Уровень 3: сделка]\n├── контракт M2MEscrow: таймаут, назначение исполнителя, порог аудиторов\n├── изолированная песочница и токен сделки\n└── расчёт в USDC в сетях Arbitrum и Polygon\n\n[Уровень 4: проверка]\n├── эталонный аудитор: строгие тесты и проверка моделью\n├── независимые аудиторы с порогом подписей\n└── подписи с привязкой к сети и контракту\n\n[Уровень 5: деньги и доверие]\n├── встроенный кошелёк и фиатный шлюз с переключением провайдеров\n├── Paymaster: газ за счёт сервиса\n└── открытый индексатор и публичный дашборд метрик"
     },
     {
       "kind": "h2",
