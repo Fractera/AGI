@@ -580,10 +580,27 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
         {state.nodeUrl ? (
           <div className="flex gap-2"><dt>{words.nodeAddress}:</dt><dd className="font-mono">{state.nodeUrl}</dd></div>
         ) : null}
+        {/* 🔒 ПОДКЛЮЧЁННЫЙ ДОМЕН СТАНОВИТСЯ ГЛАВНЫМ АДРЕСОМ, А ВРЕМЕННЫЙ — СНОСКОЙ.
+            ✗ оплачено 2026-09-21: домен уже отвечал, а внизу по-прежнему висело
+            «сейчас работает временный адрес» — человек читал это как «ничего не
+            получилось». Подпись обязана меняться вместе с тем, что она описывает. */}
+        {state.hostname ? (
+          <div className="flex gap-2">
+            <dt className="font-semibold text-foreground">{words.liveAddress}:</dt>
+            <dd>
+              <a className="inline-flex items-center gap-1 font-semibold text-foreground underline" href={`https://${state.hostname}`} rel="noreferrer noopener" target="_blank">
+                https://{state.hostname}
+                <ExternalLink className="size-3" aria-hidden />
+              </a>
+            </dd>
+          </div>
+        ) : null}
         {state.quickTunnel ? (
           <div className="flex gap-2">
-            <dt>{words.quickAddress}:</dt>
-            <dd><a className="inline-flex items-center gap-1 underline" href={state.quickTunnel} rel="noreferrer noopener" target="_blank">{state.quickTunnel}<ExternalLink className="size-3" aria-hidden /></a></dd>
+            <dt>{state.hostname ? words.quickRetired : `${words.quickAddress}:`}</dt>
+            {state.hostname ? null : (
+              <dd><a className="inline-flex items-center gap-1 underline" href={state.quickTunnel} rel="noreferrer noopener" target="_blank">{state.quickTunnel}<ExternalLink className="size-3" aria-hidden /></a></dd>
+            )}
           </div>
         ) : null}
       </dl>

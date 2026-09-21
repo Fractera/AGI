@@ -32,6 +32,8 @@ export type DomainLadderWords = {
   keyConfigured: string
   nodeAddress: string
   quickAddress: string
+  liveAddress: string
+  quickRetired: string
   loading: string
   soon: string
   keyPlaceholder: string
@@ -132,6 +134,8 @@ const W: Record<string, DomainLadderWords> = {
     keyConfigured: "Key is configured",
     nodeAddress: "Node address",
     quickAddress: "Temporary address in use",
+    liveAddress: "Your address in the internet",
+    quickRetired: "The temporary address is still running and is no longer needed — stop it with npm run serve:unpublish",
     loading: "Reading the node state…",
     soon: "Built in the next sub-step.",
     keyPlaceholder: "Paste the Cloudflare API token",
@@ -248,6 +252,8 @@ const W: Record<string, DomainLadderWords> = {
     keyConfigured: "Ключ настроен",
     nodeAddress: "Адрес узла",
     quickAddress: "Сейчас работает временный адрес",
+    liveAddress: "Ваш адрес в интернете",
+    quickRetired: "Временный адрес ещё работает и больше не нужен — остановить его: npm run serve:unpublish",
     loading: "Читаю состояние узла…",
     soon: "Строится в следующем подшаге.",
     keyPlaceholder: "Вставьте токен API Cloudflare",
