@@ -243,17 +243,17 @@ export const en: FooterPageCell = {
       "rows": [
         [
           "node composition",
-          "`MICROSERVICES.json` in the core",
+          "MICROSERVICES.json in the core",
           "which blocks are installed and which versions — \"knows everything about everyone\""
         ],
         [
           "block passport",
-          "`OWN-SERVICE-PROPS.json` in the block's repository",
+          "OWN-SERVICE-PROPS.json in the block's repository",
           "who the block is, which health door it holds, how it starts — \"knows only itself\""
         ],
         [
           "version",
-          "a tag `v1.2.3`, never a branch",
+          "a tag v1.2.3, never a branch",
           "two people running the same command on different days get the same node"
         ],
         [
@@ -263,7 +263,7 @@ export const en: FooterPageCell = {
         ],
         [
           "installation",
-          "one command `npm run services:install`",
+          "one command npm run services:install",
           "clones the tag, installs dependencies, writes the environment, assigns the port, starts the residents"
         ]
       ]
@@ -431,7 +431,7 @@ export const en: FooterPageCell = {
       "rows": [
         [
           "the timeout was mentioned in the risk table but absent from the code — money could get stuck forever",
-          "order deadline and `claimTimeout()`"
+          "order deadline and claimTimeout()"
         ],
         [
           "whoever posted a stake first became the provider",
@@ -439,7 +439,7 @@ export const en: FooterPageCell = {
         ],
         [
           "the signature was not bound to the chain and the contract",
-          "the signature includes `chainid` and `address(this)`"
+          "the signature includes chainid and address(this)"
         ],
         [
           "a single auditor — a single point of failure",
@@ -559,22 +559,22 @@ export const en: FooterPageCell = {
         [
           "Total Volume",
           "total volume of completed orders in USDC",
-          "`OrderCompleted`"
+          "OrderCompleted"
         ],
         [
           "Success Rate",
           "share of successful verifications",
-          "`OrderCompleted` / (`Completed` + `Slashed`)"
+          "OrderCompleted / (Completed + Slashed)"
         ],
         [
           "Refund Rate",
           "share of orders closed by timeout",
-          "`OrderRefunded` — a direct indicator of auditor health"
+          "OrderRefunded — a direct indicator of auditor health"
         ],
         [
           "Active Providers",
           "unique provider addresses",
-          "`ProviderStaked`"
+          "ProviderStaked"
         ],
         [
           "Adoption",
@@ -618,7 +618,7 @@ export const en: FooterPageCell = {
           "**Provider vanishes after staking**",
           "operational",
           "the stake is posted, no code arrives",
-          "order deadline and `claimTimeout()`: the client takes the money back"
+          "order deadline and claimTimeout(): the client takes the money back"
         ],
         [
           "**Auditors stay silent**",
@@ -727,11 +727,11 @@ export const en: FooterPageCell = {
         ],
         [
           "**passport**",
-          "`OWN-SERVICE-PROPS.json` — what a block knows about itself"
+          "OWN-SERVICE-PROPS.json — what a block knows about itself"
         ],
         [
           "**composition registry**",
-          "`MICROSERVICES.json` — what a node knows about its blocks"
+          "MICROSERVICES.json — what a node knows about its blocks"
         ],
         [
           "**siblings**",

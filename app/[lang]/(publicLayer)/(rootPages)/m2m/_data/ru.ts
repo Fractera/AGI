@@ -243,17 +243,17 @@ export const ru: FooterPageCell = {
       "rows": [
         [
           "состав узла",
-          "`MICROSERVICES.json` в ядре",
+          "MICROSERVICES.json в ядре",
           "какие блоки стоят и каких версий — «знает всё обо всех»"
         ],
         [
           "паспорт блока",
-          "`OWN-SERVICE-PROPS.json` в репозитории блока",
+          "OWN-SERVICE-PROPS.json в репозитории блока",
           "кто этот блок, какую дверь здоровья держит, как запускается — «знает только себя»"
         ],
         [
           "версия",
-          "тег `v1.2.3`, никогда не ветка",
+          "тег v1.2.3, никогда не ветка",
           "два человека, выполнившие одну команду в разные дни, получают один и тот же узел"
         ],
         [
@@ -263,7 +263,7 @@ export const ru: FooterPageCell = {
         ],
         [
           "установка",
-          "одна команда `npm run services:install`",
+          "одна команда npm run services:install",
           "клонирует тег, ставит зависимости, пишет окружение, назначает порт, поднимает жителей"
         ]
       ]
@@ -431,7 +431,7 @@ export const ru: FooterPageCell = {
       "rows": [
         [
           "таймаут упомянут в рисках, но в коде его нет — деньги могли застрять навсегда",
-          "срок заказа и `claimTimeout()`"
+          "срок заказа и claimTimeout()"
         ],
         [
           "исполнителем становился тот, кто первым внёс залог",
@@ -439,7 +439,7 @@ export const ru: FooterPageCell = {
         ],
         [
           "подпись не привязана к сети и контракту",
-          "в подпись входят `chainid` и `address(this)`"
+          "в подпись входят chainid и address(this)"
         ],
         [
           "один аудитор — единая точка отказа",
@@ -559,22 +559,22 @@ export const ru: FooterPageCell = {
         [
           "Total Volume",
           "общий объём выполненных заказов в USDC",
-          "`OrderCompleted`"
+          "OrderCompleted"
         ],
         [
           "Success Rate",
           "доля успешных проверок",
-          "`OrderCompleted` / (`Completed` + `Slashed`)"
+          "OrderCompleted / (Completed + Slashed)"
         ],
         [
           "Refund Rate",
           "доля заказов, закрытых по таймауту",
-          "`OrderRefunded` — прямой показатель здоровья аудиторов"
+          "OrderRefunded — прямой показатель здоровья аудиторов"
         ],
         [
           "Active Providers",
           "уникальные адреса исполнителей",
-          "`ProviderStaked`"
+          "ProviderStaked"
         ],
         [
           "Adoption",
@@ -618,7 +618,7 @@ export const ru: FooterPageCell = {
           "**Исполнитель пропал после залога**",
           "операционный",
           "залог внесён, кода нет",
-          "срок заказа и `claimTimeout()`: заказчик забирает деньги сам"
+          "срок заказа и claimTimeout(): заказчик забирает деньги сам"
         ],
         [
           "**Аудиторы молчат**",
@@ -727,11 +727,11 @@ export const ru: FooterPageCell = {
         ],
         [
           "**паспорт**",
-          "`OWN-SERVICE-PROPS.json` — что блок знает о себе"
+          "OWN-SERVICE-PROPS.json — что блок знает о себе"
         ],
         [
           "**реестр состава**",
-          "`MICROSERVICES.json` — что узел знает о своих блоках"
+          "MICROSERVICES.json — что узел знает о своих блоках"
         ],
         [
           "**братья**",
