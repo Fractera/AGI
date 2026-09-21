@@ -2,7 +2,6 @@ import type { SectionRenderer } from '@/sections/contract'
 import { inline } from '@/lib/content/blocks/inline'
 import { H3, H4, P, Small } from '@/components/ui/typography'
 import { SectionHead } from '@/sections/section-head.server'
-import { PersonaAvatar } from './persona-avatar.server'
 
 // ЛИЧНОСТИ И ИХ КЕЙСЫ: одна сделка, рассказанная трижды — глазами каждого участника.
 //
@@ -59,7 +58,14 @@ export const personaCases: SectionRenderer<'personaCases'> = (b, { key: k }) => 
                 htmlFor={`${k}-r${i}`}
                 className="pc-tab flex cursor-pointer items-center gap-3 rounded-full border py-2 pr-5 pl-2 transition-all"
               >
-                <PersonaAvatar face={p.face} />
+                {/* 🔒 ПОРТРЕТ — ФАЙЛ ИЗ `public/personas/`, И ЭТО РЕШЕНИЕ, А НЕ МЕЛОЧЬ.
+                    Заменить лицо фотографией или сгенерированным портретом можно, положив
+                    другой файл: код и тип об этом не знают. Значок, нарисованный в секции,
+                    такой замены не допускал — владелец назвал его отвратительным, и был прав.
+                    Картинка ДЕКОРАТИВНА (`alt=""`): имя и роль стоят рядом словами, и читалка
+                    экрана не должна произносить их дважды. Обычный `<img>`, а не оптимизатор:
+                    это SVG, и оптимизировать в нём нечего. */}
+                <img alt="" className="size-11 shrink-0 rounded-full border border-border bg-muted object-cover" height={44} src={p.avatar} width={44} />
                 <span className="flex flex-col">
                   <H4 variant="ui" className="leading-tight">{p.name}</H4>
                   <Small className="text-muted-foreground">{p.role}</Small>
