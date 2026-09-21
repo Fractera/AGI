@@ -573,17 +573,17 @@ async function architectPagesGate(request: NextRequest): Promise<NextResponse | 
   // роли»), наступил в 259-8/260 и не был закрыт: вход на `auth.<зона>` работал, а
   // ворота по-прежнему отвечали 404 всем. ✗ увидено владельцем: «Начать строить» на
   // главной → страница ошибки браузера на `throughsongs.com/ru/architect/...`.
-  // Не вошёл или вошёл без роли → на вход с возвратом сюда: служба входа сама
-  // говорит «нужна роль architect», а пустой 404 не говорил ничего.
+  //
+  // 🔒 ОТКАЗ ГОВОРИТ ОКНО ЗАМКА, А НЕ ПРОКСИ. Слово владельца 2026-09-21: «как это было
+  // реализовано на образцовой странице… всплывало модальное окно, которое говорило, какая
+  // роль потребуется… отсутствие страницы или отсутствие защиты страницы не должно
+  // приводить никаким подобным ошибкам». Поэтому на домене со входом страница проходит к
+  // `AccessGate` (`(architectLayer)/layout.tsx`): он спрашивает `/api/me` и сам показывает
+  // «Эта страница вам недоступна. Требуется роль architect» с кнопкой входа и возвратом.
+  // 🛑 Цена названа: каркас страницы (статический, без данных) виден и не вошедшему; данные
+  // остаются за дверями `/api/*`, которые требуют сессию — ворота выше не тронуты.
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  const domainAuth = publicAuthBaseFor(host);
-  if (domainAuth) {
-    const session = await getSession(request);
-    if (session?.roles?.includes("architect")) return null;
-    const back = `https://${host}${request.nextUrl.pathname}${request.nextUrl.search}`;
-    const qs = new URLSearchParams({ callbackUrl: back, requireRole: "architect" });
-    return NextResponse.redirect(`${domainAuth}/login?${qs}`);
-  }
+  if (publicAuthBaseFor(host)) return null;
 
   // Чужой на постоянном адресе без подключённого входа: страницы для него не существует.
   return new NextResponse(null, { status: 404 });
