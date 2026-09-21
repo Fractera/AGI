@@ -7,10 +7,11 @@
 Имя маршрута — то, чем его находят: 6–12 слов, глагол первым. Правило проверяется `npm run check:api`,
 который стоит в `prebuild` — маршрут без имени роняет сборку.
 
-Всего маршрутов: **19**
+Всего маршрутов: **20**
 
 | Адрес | Методы | Что делает | Продукт |
 |---|---|---|---|
+| `/api/auth/providers/google` | GET, POST, DELETE | read and set the Google sign-in keys of this node's auth service | — |
 | `/api/config-image/[slot]` | GET | serve a settings image slot at one stable address | — |
 | `/api/domain/activate` | POST | create the named tunnel and the DNS record, then remember what happened | — |
 | `/api/domain/check` | POST | check publicly whether the domain already points at Cloudflare nameservers | — |

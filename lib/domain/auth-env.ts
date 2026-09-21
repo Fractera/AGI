@@ -56,3 +56,71 @@ export function applyDomainToAuth(): AuthEnvResult {
   for (const f of files) patch(f, overrides)
   return { files: files.length, restarted: restartService("fractera-svc-auth") }
 }
+
+// ── ПРОВАЙДЕР GOOGLE У СЛУЖБЫ ВХОДА (265-1) ──────────────────────────────────
+//
+// 🔒 ТОТ ЖЕ МЕХАНИЗМ, ЧТО У ДОМЕНА, И В ЭТОМ ВЕСЬ СМЫСЛ. Способ писать в
+// окружение службы уже построен и оплачен шагом 259-8: два файла, замена или
+// дописывание строки, перезапуск. Второй способ рядом разошёлся бы с первым в
+// первый же день правки — например, забыл бы про копию внутри standalone.
+//
+// 🔒 ПОЧЕМУ `restart`, А НЕ `delete` + `start`. Закон проекта «pm2 хранит
+// окружение процесса» касается переменных, которые задаёт САМ pm2. Эти живут в
+// файле, который Next читает при старте процесса, поэтому обычного перезапуска
+// достаточно — и это не рассуждение, а наблюдение: ровно так домен перевёл
+// службу на `auth.<зона>`, и вход на домене работает.
+//
+// 🛑 ПУСТОЕ ЗНАЧЕНИЕ — ЭТО ВЫКЛЮЧАТЕЛЬ, А НЕ ПОТЕРЯ. Служба поднимает провайдера
+// только когда оба ключа непусты (`auth.config.ts`), поэтому «выключить Google»
+// и «стереть пару» — одно и то же действие, и отдельного флага заводить нельзя:
+// два источника правды о включённости разошлись бы молча.
+
+const GOOGLE_ID = "GOOGLE_CLIENT_ID"
+const GOOGLE_SECRET = "GOOGLE_CLIENT_SECRET"
+
+function envValueOf(file: string, name: string): string {
+  const m = readFileSync(file, "utf8").match(new RegExp(`^${name}=(.*)$`, "m"))
+  return m ? m[1].trim() : ""
+}
+
+export type AuthGoogleState = {
+  /** служба вообще установлена на этом узле */
+  installed: boolean
+  /** ключ задан и непуст — САМО ЗНАЧЕНИЕ НАРУЖУ НЕ ВЫХОДИТ НИКОГДА */
+  clientId: boolean
+  clientSecret: boolean
+  /**
+   * Адрес, который человек обязан вписать в Google Cloud Console.
+   * 🔒 ВЫВОДИТСЯ ИЗ `NEXTAUTH_URL` СЛУЖБЫ, А НЕ ПИШЕТСЯ: адрес, записанный в
+   * текст, врёт в день смены домена, и человек будет искать ошибку у Google.
+   * `null` — служба ещё не знает своего публичного адреса, и это честный ответ,
+   * а не пустая строка.
+   */
+  redirectUri: string | null
+}
+
+/** Что сейчас знает служба о провайдере Google. Секретов не отдаёт. */
+export function authGoogleState(): AuthGoogleState {
+  const files = authFiles()
+  if (files.length === 0) return { installed: false, clientId: false, clientSecret: false, redirectUri: null }
+  const f = files[0]
+  const base = envValueOf(f, "NEXTAUTH_URL").replace(/\/+$/, "")
+  return {
+    installed: true,
+    clientId: envValueOf(f, GOOGLE_ID) !== "",
+    clientSecret: envValueOf(f, GOOGLE_SECRET) !== "",
+    // Путь колбэка задаёт NextAuth, а не мы: `/api/auth/callback/<провайдер>`.
+    redirectUri: base ? `${base}/api/auth/callback/google` : null,
+  }
+}
+
+/**
+ * Записать пару ключей Google в службу и перезапустить её.
+ * Пустые значения выключают провайдера — см. закон о выключателе выше.
+ */
+export function setAuthGoogleKeys(clientId: string, clientSecret: string): AuthEnvResult {
+  const files = authFiles()
+  if (files.length === 0) return { files: 0, restarted: false, reason: "auth-not-installed" }
+  for (const f of files) patch(f, { [GOOGLE_ID]: clientId, [GOOGLE_SECRET]: clientSecret })
+  return { files: files.length, restarted: restartService("fractera-svc-auth") }
+}
