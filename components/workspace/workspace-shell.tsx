@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { ChevronDown, Menu, X } from 'lucide-react'
 import { H3, H4, P, Small } from '@/components/ui/typography'
+import { TabsScroll } from '@/components/workspace/tabs-scroll.client'
 
 // РАСКЛАДКА РАБОЧЕГО ЭКРАНА — ОДНА НА БЛОК И НА СТРАНИЦЫ (шаг 49, 2026-08-30).
 //
@@ -375,6 +376,12 @@ export function WorkspaceShell({
             ))}
           </nav>
         )}
+
+        {/* 🔒 ПЛАВНАЯ ПРОКРУТКА РЯДА — ОСТРОВОК, И ОН РИСУЕТСЯ ТОЛЬКО ВМЕСТЕ С
+            РЯДОМ. Нет ряда — нет и подписки: страница без вкладок не платит за
+            способность, которой не пользуется. Что именно он чинит и почему это
+            обход, а не лечение корня, — в самом файле. */}
+        {tabs && tabs.length > 0 && <TabsScroll />}
 
         {children && <div data-workspace-body className="flex flex-col">{children}</div>}
       </div>
