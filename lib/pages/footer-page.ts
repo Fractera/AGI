@@ -2,7 +2,7 @@ import { resolveFields, resolveLocalizedBody } from '@/lib/content/resolve'
 import { adminUrlFromSite } from '@/lib/site-urls'
 import { getAppConfig } from '@/config/app-config'
 import type { ContentPageContent } from '@/lib/content/create-content-page'
-import type { Block } from '@/lib/content/blocks/types'
+import type { Block, FaqPair } from '@/lib/content/blocks/types'
 
 // Общая часть трёх страниц подвала — чтобы они были ПАТТЕРНОМ, а не тремя копиями.
 //
@@ -50,6 +50,8 @@ export type FooterPageCell = {
   eyebrow?: string
   /** Абзацы заглушки: их владелец заменит своим текстом. */
   blocks: Block[]
+  /** Вопросы и ответы — тот же механизм, что у главной: рисуются последней секцией и уходят в `FAQPage`. */
+  faq?: FaqPair[]
 }
 
 /**
@@ -76,5 +78,6 @@ export function footerPage(data: FooterPageData, lang: string): ContentPageConte
   const override = data.overrides?.[lang]
   const fields = resolveFields(data.en, override ?? {}, ['title', 'description', 'keywords'] as const)
   const body = resolveLocalizedBody({ blocks: data.en.blocks }, override ? { blocks: override.blocks } : undefined)
-  return { ...fields, blocks: body.blocks }
+  const faq = override?.faq ?? data.en.faq
+  return { ...fields, blocks: body.blocks, ...(faq ? { faq } : {}) }
 }
