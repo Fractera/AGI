@@ -1,6 +1,7 @@
 import type { Block } from '@/lib/content/blocks/types'
 import { domainLadderWords } from '@/components/domain/domain-ladder.i18n'
 import { servicePortWords } from '@/components/services/service-port.i18n'
+import { googleSetupWords } from '@/components/auth/google-setup.i18n'
 
 // ОБРАЗЦЫ ВСЕХ ВИДОВ СЕКЦИЙ — по одному на каждый вид каталога.
 //
@@ -1230,6 +1231,17 @@ export const SPECIMEN: SpecimenSection[] = [
         kind: 'servicePort',
         serviceId: 'auth',
         words: servicePortWords('en'),
+      },
+    ],
+  },
+  {
+    kind: 'authGoogleSetup',
+    when: "A three-step screen for switching on a sign-in provider whose first steps happen in somebody else console. Step one hands the person the value they must carry there; step two takes back what that console gave them; step three states plainly whether the thing is on. Take it wherever setup depends on a third party: the shape is the same for Resend, for a payment provider, for any key a stranger issues. Secrets go in and never come back out — the door answers set or not set, and the fields clear in every outcome.",
+    whenRu: "Экран из трёх ступеней для включения провайдера входа, первые шаги которого человек делает в чужой панели. Первая ступень выдаёт ему значение, которое надо туда отнести; вторая принимает обратно то, что та панель выдала; третья прямо говорит, включено или нет. Берут везде, где настройка зависит от третьей стороны: у Resend, у платёжного провайдера, у любого ключа, который выдаёт кто-то чужой. Секреты уходят внутрь и наружу не возвращаются — дверь отвечает «установлен / не установлен», а поля очищаются в любом исходе.",
+    blocks: [
+      {
+        kind: 'authGoogleSetup',
+        words: googleSetupWords('en'),
       },
     ],
   },

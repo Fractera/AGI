@@ -1496,6 +1496,20 @@
       "description": null,
       "hasCard": false,
       "usedOn": []
+    },
+    {
+      "id": null,
+      "codes": [
+        "authGoogleSetup01"
+      ],
+      "kind": "authGoogleSetup",
+      "type": "page-material",
+      "shape": "text",
+      "fields": "words: import('@/components/auth/google-setup.i18n').GoogleSetupWords",
+      "title": null,
+      "description": null,
+      "hasCard": false,
+      "usedOn": []
     }
   ]
 }

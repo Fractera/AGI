@@ -116,6 +116,8 @@ export type LeafBlock =
   | { kind: 'domainLadder'; lang: string; words: import('@/components/domain/domain-ladder.i18n').DomainLadderWords }
   // Порт сменного блока, спрошенный у узла в браузере, а не запечённый в сборку.
   // `serviceId` — вечное имя блока в `MICROSERVICES.json` (`auth`, `data`, …).
+  // Экран включения входа через Google: адрес возврата, пара ключей, состояние.
+  | { kind: 'authGoogleSetup'; words: import('@/components/auth/google-setup.i18n').GoogleSetupWords }
   | { kind: 'servicePort'; serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords }
   | { kind: 'note'; text: string }
   // Founder pull-quote in the homepage testimonial design (gradient-violet text +
