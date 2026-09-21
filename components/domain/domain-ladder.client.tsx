@@ -1,6 +1,6 @@
 "use client"
 
-import { Check, ExternalLink, TriangleAlert } from "lucide-react"
+import { Check, CircleAlert, ExternalLink, TriangleAlert } from "lucide-react"
 import { type ReactNode, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { H3, Small } from "@/components/ui/typography"
@@ -26,6 +26,32 @@ import type { DomainLadderWords } from "@/components/domain/domain-ladder.i18n"
 // экрана, и оно не выдаётся за сделанное.
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
+
+// 🔒 ПОДСКАЗКА ПЕРВОЙ СТУПЕНИ — ИМЕНА И АДРЕСА, И БОЛЬШЕ НИЧЕГО (слово владельца
+// 2026-09-21: «дадим подсказку пользователю по регистрации домена, покажем
+// несколько популярных ссылок»).
+//
+// 🛑 ЦЕН И СРАВНЕНИЙ ЗДЕСЬ НЕТ НАМЕРЕННО. Цена домена зависит от зоны и меняется
+// у каждого регистратора; вписанная в код, она устаревает молча и врёт человеку
+// ровно в тот момент, когда он собрался платить. Имя и адрес не устаревают.
+//
+// 🔒 CLOUDFLARE СТОИТ ОТДЕЛЬНО, И ЭТО НЕ РЕКЛАМА, А КОРОТКИЙ ПУТЬ. Домен, купленный
+// у них, сразу на их серверах имён (проверено по их документации 2026-09-21) —
+// значит ступени 2 и 3 отпадают целиком. Человеку это стоит сказать ДО того, как
+// он купит домен в другом месте и пойдёт менять серверы имён руками.
+const REGISTRARS = [
+  { name: "Porkbun", href: "https://porkbun.com" },
+  { name: "Namecheap", href: "https://www.namecheap.com" },
+  { name: "GoDaddy", href: "https://www.godaddy.com" },
+  { name: "one.com", href: "https://www.one.com" },
+  { name: "Gandi", href: "https://www.gandi.net" },
+] as const
+
+const CLOUDFLARE_REGISTRAR = "https://www.cloudflare.com/products/registrar/"
+
+// 🔒 Панель Cloudflare — один адрес на две ступени: вторая заводит там зону,
+// четвёртая создаёт там же токен. Второй копии адреса не заводим.
+const CLOUDFLARE_DASH = "https://dash.cloudflare.com/"
 
 type State = {
   keyConfigured: boolean
@@ -74,6 +100,10 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
   const [host, setHost] = useState("")
   const [busy5, setBusy5] = useState(false)
   const [answer5, setAnswer5] = useState<{ ok: boolean; text: string } | null>(null)
+  // 🔒 ОГРАНИЧЕНИЯ СВЁРНУТЫ, НО НЕ СПРЯТАНЫ. Развёрнутые, они забивают первую
+  // ступень пятью абзацами и человек перестаёт видеть, что вообще надо сделать.
+  // Спрятанные совсем — мы бы посоветовали короткий путь, умолчав о его цене.
+  const [cfLimits, setCfLimits] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -177,6 +207,58 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
       {manual.map((s) => (
         <Step key={s.n} n={s.n} title={s.title} done={outside >= s.n}>
           <p className="text-muted-foreground text-sm">{s.text}</p>
+          {s.n === 1 && outside < 1 ? (
+            <div className="mt-3 rounded-md border border-border bg-muted/40 p-3" data-registrars>
+              <Small className="font-semibold text-foreground">{words.registrarsTitle}</Small>
+              <p className="mt-1 text-muted-foreground text-sm">
+                <a className="underline" href={CLOUDFLARE_REGISTRAR} rel="noreferrer noopener" target="_blank">Cloudflare Registrar</a>
+                {" — "}{words.registrarCloudflare}
+              </p>
+              <p className="mt-1 text-foreground text-sm">{words.registrarShortcut}</p>
+              <button
+                aria-expanded={cfLimits}
+                className="mt-2 inline-flex items-center gap-1.5 text-left text-foreground text-sm underline"
+                onClick={() => setCfLimits((v) => !v)}
+                type="button"
+              >
+                <CircleAlert className="size-4 shrink-0 text-primary" aria-hidden />
+                {words.cfLimitsToggle}
+              </button>
+              {cfLimits ? (
+                <div className="mt-2 rounded-md border border-border bg-muted/40 p-3" data-cf-limits>
+                  <p className="text-foreground text-sm">{words.cfLimitsLead}</p>
+                  <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-muted-foreground text-sm">
+                    <li>{words.cfLimit1}</li>
+                    <li>{words.cfLimit2}</li>
+                    <li>{words.cfLimit3}</li>
+                    <li>{words.cfLimit4}</li>
+                    <li>{words.cfLimit5}</li>
+                  </ul>
+                  <Small className="mt-2 block text-muted-foreground">{words.cfLimitsSource}</Small>
+                </div>
+              ) : null}
+              <p className="mt-2 text-muted-foreground text-sm">{words.registrarOthers}</p>
+              <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                {REGISTRARS.map((r) => (
+                  <li key={r.name}>
+                    <a className="inline-flex items-center gap-1 text-sm underline" href={r.href} rel="noreferrer noopener" target="_blank">
+                      {r.name}
+                      <ExternalLink className="size-3" aria-hidden />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              <Small className="mt-2 block text-muted-foreground">{words.registrarPriceNote}</Small>
+            </div>
+          ) : null}
+          {s.n === 2 ? (
+            <p className="mt-2">
+              <a className="inline-flex items-center gap-1 text-sm underline" href={CLOUDFLARE_DASH} rel="noreferrer noopener" target="_blank">
+                {words.dashOpen}
+                <ExternalLink className="size-3" aria-hidden />
+              </a>
+            </p>
+          ) : null}
           {outside < s.n && outside === s.n - 1 ? (
             <Button className="mt-3" size="sm" variant="outline" onClick={() => mark(s.n)}>
               {words.next}
@@ -191,6 +273,10 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
           {!state.keyConfigured ? (
             <div className="mt-3 flex flex-col gap-2" data-key-form>
               <Small className="text-muted-foreground">{words.keyHelp}</Small>
+              <a className="inline-flex w-fit items-center gap-1 text-sm underline" href={CLOUDFLARE_DASH} rel="noreferrer noopener" target="_blank">
+                {words.dashOpen}
+                <ExternalLink className="size-3" aria-hidden />
+              </a>
               <div className="flex flex-wrap gap-2">
                 <input
                   autoComplete="off"

@@ -53,6 +53,20 @@ export type DomainLadderWords = {
   reasonZoneInactive: string
   reasonBadHostname: string
   reasonNoKey: string
+  registrarsTitle: string
+  registrarCloudflare: string
+  registrarShortcut: string
+  registrarOthers: string
+  registrarPriceNote: string
+  cfLimitsToggle: string
+  cfLimitsLead: string
+  cfLimit1: string
+  cfLimit2: string
+  cfLimit3: string
+  cfLimit4: string
+  cfLimit5: string
+  cfLimitsSource: string
+  dashOpen: string
 }
 
 const W: Record<string, DomainLadderWords> = {
@@ -100,6 +114,20 @@ const W: Record<string, DomainLadderWords> = {
     reasonZoneInactive: "Cloudflare has the domain but it is not active yet — the nameservers at the registrar have not taken effect. This is step 3.",
     reasonBadHostname: "That does not look like a domain name.",
     reasonNoKey: "The node has no Cloudflare key — go back to step 4.",
+    registrarsTitle: "Where to register one",
+    registrarCloudflare: "Cloudflare itself sells domains — at cost, without a markup: you pay what the registry and ICANN charge.",
+    registrarShortcut: "Buy it there and steps 2 and 3 disappear: a domain registered with Cloudflare uses their nameservers from the start, so there is nothing to switch.",
+    registrarOthers: "Any other registrar works too — these are among the well known ones:",
+    registrarPriceNote: "We do not compare their prices: they change, and each zone (.com, .dev, .io) costs differently. Check at the registrar itself.",
+    cfLimitsToggle: "Buying at Cloudflare has limits — read them first",
+    cfLimitsLead: "Cheap and short is not the same as right for you. Five constraints, taken from Cloudflare’s own documentation:",
+    cfLimit1: "You cannot use another DNS provider. A domain registered there is locked to Cloudflare nameservers; to move DNS elsewhere you have to move the domain itself to another registrar.",
+    cfLimit2: "Not every zone is on sale. The list of supported TLDs is limited, and some require extra proof from the registrant.",
+    cfLimit3: "Domains with non-Latin letters are not supported at all — neither á, ü and the like, nor their xn-- form.",
+    cfLimit4: "Registration fees are not refundable: the money goes to the registry the moment the purchase completes.",
+    cfLimit5: "Moving away has waiting periods set by ICANN — 60 days after a change of registrar or of WHOIS data.",
+    cfLimitsSource: "Source: Cloudflare Registrar documentation, read 2026-09-21. Check the current terms before you pay — they are theirs to change, not ours.",
+    dashOpen: "Open the Cloudflare dashboard",
   },
   ru: {
     lead: "Пять шагов. Первые три происходят вне этого компьютера — их можете сделать только вы. Остальное узел делает сам.",
@@ -145,6 +173,20 @@ const W: Record<string, DomainLadderWords> = {
     reasonZoneInactive: "Домен у Cloudflare есть, но ещё не активен — серверы имён у регистратора не вступили в силу. Это шаг 3.",
     reasonBadHostname: "Это не похоже на доменное имя.",
     reasonNoKey: "У узла нет ключа Cloudflare — вернитесь к шагу 4.",
+    registrarsTitle: "Где его зарегистрировать",
+    registrarCloudflare: "Cloudflare продаёт домены сам — по себестоимости, без наценки: вы платите то, что берут реестр и ICANN.",
+    registrarShortcut: "Купите там — и шаги 2 и 3 отпадут: домен, зарегистрированный в Cloudflare, сразу на их серверах имён, переключать нечего.",
+    registrarOthers: "Любой другой регистратор тоже подойдёт — вот несколько известных:",
+    registrarPriceNote: "Их цены мы не сравниваем: они меняются, и каждая зона (.com, .dev, .io) стоит по-своему. Смотрите у самого регистратора.",
+    cfLimitsToggle: "У покупки в Cloudflare есть ограничения — прочтите сначала их",
+    cfLimitsLead: "Дёшево и коротко не значит «подходит вам». Пять ограничений, взятых из документации самого Cloudflare:",
+    cfLimit1: "Другого поставщика DNS использовать нельзя. Домен, зарегистрированный там, привязан к серверам имён Cloudflare; чтобы увести DNS, придётся уводить сам домен к другому регистратору.",
+    cfLimit2: "Продаются не все зоны. Список поддерживаемых доменов верхнего уровня ограничен, а часть из них требует дополнительных подтверждений от владельца.",
+    cfLimit3: "Домены с нелатинскими буквами не поддерживаются вовсе — ни á, ü и подобные, ни их запись через xn--.",
+    cfLimit4: "Плата за регистрацию не возвращается: деньги уходят реестру в момент покупки.",
+    cfLimit5: "У переезда есть сроки ожидания, заданные ICANN, — 60 дней после смены регистратора или данных WHOIS.",
+    cfLimitsSource: "Источник: документация Cloudflare Registrar, прочитана 2026-09-21. Проверьте действующие условия перед оплатой — менять их вправе они, а не мы.",
+    dashOpen: "Открыть панель Cloudflare",
   },
 }
 
