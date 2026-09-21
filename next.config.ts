@@ -29,6 +29,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/:lang/architecture", destination: "/:lang/m2m", permanent: true },
+      // 262: каталог секций переехал в слой архитектора по слову владельца.
+      { source: "/:lang/blocks", destination: "/:lang/architect/blocks/page-material", permanent: true },
       { source: "/:lang/architecture/index.md", destination: "/:lang/m2m/index.md", permanent: true },
     ];
   },

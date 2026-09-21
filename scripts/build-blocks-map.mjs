@@ -24,7 +24,7 @@ const BLOCKS = join(ROOT, "sections", "blocks")
 export const TARGET = join(ROOT, "sections", "BLOCKS.md")
 export const CATALOGUE = join(ROOT, "sections", "SECTIONS.json")
 const TAXONOMY = join(ROOT, "sections", "taxonomy.json")
-const SPECIMEN_FILE = join(ROOT, "app", "[lang]", "(protectedLayer)", "(admin)", "blocks", "_data", "specimen.ts")
+const SPECIMEN_FILE = join(ROOT, "app", "[lang]", "(architectLayer)", "architect", "blocks", "page-material", "_data", "specimen.ts")
 
 // ─────────────────────────────────────────────────────────────────────────────
 // КОД БЛОКА — ЯЗЫК МЕЖДУ ВЛАДЕЛЬЦЕМ И АГЕНТОМ (шаг 50, 2026-08-30).
@@ -218,7 +218,7 @@ export function render() {
     "🔒 **Код указывает на ОБРАЗЕЦ, а не на вид, и разница существенна.** У одного вида образцов бывает",
     "несколько: `workspace01` — рабочий экран без верхнего ряда разделов, `workspace02` — он же с рядом.",
     "Вид один, настройки разные, и номер различает именно настройку. Сами образцы лежат в",
-    "`app/[lang]/(protectedLayer)/(admin)/blocks/_data/specimen.ts` — открывать их нужно только тогда,",
+    "`app/[lang]/(architectLayer)/architect/blocks/page-material/_data/specimen.ts` — открывать их нужно только тогда,",
     "когда полей из этой таблицы не хватило.",
     "",
     "🔒 **Не путать с числовым `id`** (`0015`) из `SECTIONS.json`: это внутренний ключ панели, и языком",
