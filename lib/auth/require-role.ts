@@ -40,5 +40,5 @@ export async function requireRole(roles: string[]): Promise<void> {
   // into a page this app does not have. Build the absolute auth URL instead.
   const proto = h.get("x-forwarded-proto") ?? "https"
   const host = h.get("x-forwarded-host") ?? h.get("host")
-  redirect(`${authBaseFromHost(host, proto)}/register?requireRole=${roles[0]}`)
+  redirect(`${authBaseFromHost(host, proto)}/login?requireRole=${roles[0]}`)
 }

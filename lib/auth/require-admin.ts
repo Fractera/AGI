@@ -43,5 +43,5 @@ export async function requireAdmin(): Promise<void> {
   // absolute auth URL from the request host instead.
   const proto = h.get("x-forwarded-proto") ?? "https"
   const host = h.get("x-forwarded-host") ?? h.get("host")
-  redirect(`${authBaseFromHost(host, proto)}/register?requireRole=architect`)
+  redirect(`${authBaseFromHost(host, proto)}/login?requireRole=architect`)
 }

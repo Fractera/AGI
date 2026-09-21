@@ -26,7 +26,7 @@ import { Loader2, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AppDialog } from "@/components/dialog/app-dialog.client"
 import type { AppDialogUi } from "@/components/dialog/app-dialog.i18n"
-import { registerRedirectUrl } from "@/lib/runtime-urls"
+import { signInRedirectUrl } from "@/lib/runtime-urls"
 import { isTemporaryHostname } from "@/lib/auth/temporary-address"
 import { isLoopbackHostname } from "@/lib/auth/owner-at-machine"
 import { isShowcaseHostname } from "@/lib/showcase"
@@ -150,7 +150,7 @@ export function AccessGate(
             {/* Адрес возврата — ЭТА страница: после входа человек оказывается
                 там, куда шёл, а не на чужой стартовой. */}
             <Button
-              onClick={() => { window.location.href = registerRedirectUrl(window.location.href, "user") }}
+              onClick={() => { window.location.href = signInRedirectUrl(window.location.href, "user") }}
             >
               {t.signIn}
             </Button>

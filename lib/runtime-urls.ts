@@ -77,8 +77,14 @@ export function designBase(): string {
 // Build the auth redirect for an unauthorized click on a protected destination.
 // `requireRole` lets the auth form know whether the target needs architect (Start
 // Coding → admin panel) or just any authenticated user (Dashboard).
-export function registerRedirectUrl(callbackUrl: string, requireRole: "user" | "architect"): string {
-  const url = new URL(`${authBase()}/register`);
+//
+// 🔒 ВЕДЁТ НА ВХОД, А НЕ НА РЕГИСТРАЦИЮ (260-4). Слово владельца 2026-09-21: «почему
+// при первом входе меня кидают на регистрацию а не на логин?». Уже зарегистрированный
+// человек, попав на регистрацию, заводил вторую запись. Форма входа сама отправит на
+// регистрацию, когда пользователей ещё нет (первый станет архитектором), и сама
+// подскажет «впервые здесь?» устройству, с которого ещё не входили.
+export function signInRedirectUrl(callbackUrl: string, requireRole: "user" | "architect"): string {
+  const url = new URL(`${authBase()}/login`);
   url.searchParams.set("callbackUrl", callbackUrl);
   url.searchParams.set("requireRole", requireRole);
   return url.toString();
