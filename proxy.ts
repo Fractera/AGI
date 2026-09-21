@@ -463,7 +463,8 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     if ((pathname === "/login" || pathname === "/register") && host && publicAuthBaseFor(host) && !search.has("callbackUrl")) {
       const lang = search.get("lang") ?? request.cookies.get(LOCALE_COOKIE)?.value ?? DEFAULT_LANGUAGE;
       const backLang = SUPPORTED_LANGUAGES.includes(lang) ? lang : DEFAULT_LANGUAGE;
-      search.set("callbackUrl", `https://${host}/${backLang}`);
+      // `signed-in` — метка для плашки на сайте (260-3); островок убирает её сам.
+      search.set("callbackUrl", `https://${host}/${backLang}?signed-in=1`);
       if (!search.has("requireRole")) search.set("requireRole", "user");
     }
     const qs = search.toString();
