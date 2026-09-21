@@ -85,7 +85,11 @@ export function designBase(): string {
 // подскажет «впервые здесь?» устройству, с которого ещё не входили.
 export function signInRedirectUrl(callbackUrl: string, requireRole: "user" | "architect"): string {
   const url = new URL(`${authBase()}/login`);
-  url.searchParams.set("callbackUrl", callbackUrl);
+  // Метка `signed-in` — та же, что ставит прокси (260-3): вернувшись, человек увидит
+  // плашку «вы вошли» и на этом пути тоже.
+  let back = callbackUrl;
+  try { const u = new URL(callbackUrl); u.searchParams.set("signed-in", "1"); back = u.toString(); } catch { /* не адрес — отдаём как есть */ }
+  url.searchParams.set("callbackUrl", back);
   url.searchParams.set("requireRole", requireRole);
   return url.toString();
 }
