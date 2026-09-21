@@ -43,6 +43,16 @@ export type DomainLadderWords = {
   reasonNotOwner: string
   reasonNetwork: string
   reasonToken: string
+  hostPlaceholder: string
+  hostHelp: string
+  activate: string
+  activating: string
+  activated: string
+  activatedNext: string
+  reasonZoneNotFound: string
+  reasonZoneInactive: string
+  reasonBadHostname: string
+  reasonNoKey: string
 }
 
 const W: Record<string, DomainLadderWords> = {
@@ -80,6 +90,16 @@ const W: Record<string, DomainLadderWords> = {
     reasonNotOwner: "This can only be done on the computer where the node runs.",
     reasonNetwork: "Could not reach Cloudflare — check the connection. The key was not saved.",
     reasonToken: "Cloudflare says this token is not active.",
+    hostPlaceholder: "example.com or www.example.com",
+    hostHelp: "The address people will type. Enter the domain itself, or a subdomain of it.",
+    activate: "Point this address at the node",
+    activating: "Creating the tunnel and the DNS record…",
+    activated: "Done — the address now points at this computer.",
+    activatedNext: "It may take a few minutes to answer while the record spreads.",
+    reasonZoneNotFound: "This domain is not among the ones the key can see. Check the spelling, or add the domain to Cloudflare first.",
+    reasonZoneInactive: "Cloudflare has the domain but it is not active yet — the nameservers at the registrar have not taken effect. This is step 3.",
+    reasonBadHostname: "That does not look like a domain name.",
+    reasonNoKey: "The node has no Cloudflare key — go back to step 4.",
   },
   ru: {
     lead: "Пять шагов. Первые три происходят вне этого компьютера — их можете сделать только вы. Остальное узел делает сам.",
@@ -115,6 +135,16 @@ const W: Record<string, DomainLadderWords> = {
     reasonNotOwner: "Это можно сделать только на том компьютере, где работает узел.",
     reasonNetwork: "Не достучался до Cloudflare — проверьте связь. Ключ не сохранён.",
     reasonToken: "Cloudflare говорит, что этот токен не активен.",
+    hostPlaceholder: "example.com или www.example.com",
+    hostHelp: "Адрес, который будут набирать люди. Введите сам домен или его поддомен.",
+    activate: "Направить этот адрес на узел",
+    activating: "Создаю туннель и запись DNS…",
+    activated: "Готово — адрес направлен на этот компьютер.",
+    activatedNext: "Ответить он может через несколько минут, пока запись расходится.",
+    reasonZoneNotFound: "Этого домена нет среди тех, что видит ключ. Проверьте написание или сначала добавьте домен в Cloudflare.",
+    reasonZoneInactive: "Домен у Cloudflare есть, но ещё не активен — серверы имён у регистратора не вступили в силу. Это шаг 3.",
+    reasonBadHostname: "Это не похоже на доменное имя.",
+    reasonNoKey: "У узла нет ключа Cloudflare — вернитесь к шагу 4.",
   },
 }
 

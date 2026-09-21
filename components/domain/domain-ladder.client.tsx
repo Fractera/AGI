@@ -71,6 +71,9 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
   // успех неотличим от молчаливого отказа, и у успеха обязан быть назван
   // СЛЕДУЮЩИЙ шаг — иначе человек не знает, куда смотреть дальше.
   const [answer, setAnswer] = useState<{ ok: boolean; text: string; zones?: string[] } | null>(null)
+  const [host, setHost] = useState("")
+  const [busy5, setBusy5] = useState(false)
+  const [answer5, setAnswer5] = useState<{ ok: boolean; text: string } | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -123,6 +126,41 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
       setAnswer({ ok: false, text: words.reasonNetwork })
     } finally {
       setBusy(false)
+    }
+  }
+
+  const reason5 = (reason: string): string => {
+    if (reason === "zone-not-found") return words.reasonZoneNotFound
+    if (reason.startsWith("zone-")) return words.reasonZoneInactive
+    if (reason === "bad-hostname") return words.reasonBadHostname
+    if (reason === "no-key") return words.reasonNoKey
+    if (reason === "not-owner") return words.reasonNotOwner
+    if (reason.startsWith("network:")) return words.reasonNetwork
+    if (reason.startsWith("cloudflare:")) return reason.slice("cloudflare:".length)
+    return reason
+  }
+
+  async function activate() {
+    if (busy5) return
+    setBusy5(true)
+    setAnswer5(null)
+    try {
+      const res = await fetch(`${BASE}/api/domain/activate`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ hostname: host }),
+      })
+      const data = (await res.json()) as { ok?: boolean; reason?: string; hostname?: string }
+      if (data.ok) {
+        setAnswer5({ ok: true, text: `${words.activated} ${words.activatedNext}` })
+        setState((prev) => (prev ? { ...prev, hostname: data.hostname ?? host } : prev))
+      } else {
+        setAnswer5({ ok: false, text: reason5(data.reason ?? "") })
+      }
+    } catch {
+      setAnswer5({ ok: false, text: words.reasonNetwork })
+    } finally {
+      setBusy5(false)
     }
   }
 
@@ -186,7 +224,29 @@ export function DomainLadder({ words }: { words: DomainLadderWords }) {
       {state.keyConfigured ? (
         <Step n={5} title={words.step5Title} done={!!state.hostname}>
           <p className="text-muted-foreground text-sm">{state.hostname ?? words.step5Text}</p>
-          {!state.hostname ? <p className="mt-2 text-muted-foreground text-xs italic">{words.soon}</p> : null}
+          {!state.hostname ? (
+            <div className="mt-3 flex flex-col gap-2" data-host-form>
+              <Small className="text-muted-foreground">{words.hostHelp}</Small>
+              <div className="flex flex-wrap gap-2">
+                <input
+                  autoComplete="off"
+                  className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 font-mono text-sm"
+                  onChange={(e) => setHost(e.target.value)}
+                  placeholder={words.hostPlaceholder}
+                  type="text"
+                  value={host}
+                />
+                <Button disabled={busy5 || !host.trim()} onClick={activate} size="sm">
+                  {busy5 ? words.activating : words.activate}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+          {answer5 ? (
+            <p className={`mt-3 rounded-md border px-3 py-2 text-sm ${answer5.ok ? "border-primary/40 bg-primary/5 text-foreground" : "border-destructive/40 bg-destructive/5 text-foreground"}`} data-host-answer={answer5.ok ? "ok" : "fail"}>
+              {answer5.text}
+            </p>
+          ) : null}
         </Step>
       ) : (
         <Locked n={5} text={words.locked5} />
