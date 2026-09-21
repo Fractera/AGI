@@ -26,6 +26,8 @@ export type MenuGroup = {
   roles: string;
   children: MenuChild[];
   href?: string;
+  /** Кнопка без перехода: место зарезервировано, страницы ещё нет (261-6). */
+  inert?: boolean;
 };
 
 const LANG_ROOT = join(process.cwd(), "app", "[lang]");

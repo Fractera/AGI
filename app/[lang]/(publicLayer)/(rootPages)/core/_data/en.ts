@@ -1,3 +1,7 @@
+// КОПИЯ ТЕКСТА ГЛАВНОЙ (261-4) — слово владельца 2026-09-21: «Верхнем меню сделаем страницу: стартер,
+// и в эту страницу перенесём то что сейчас на главной»; главная остаётся прежней до нового лендинга.
+// Копия, а не ссылка: у каждой страницы свои языковые ячейки (check:content), и удаление одной не
+// ломает другую. Страница помечена noindex, пока текст совпадает с главной.
 import type { HomeCell } from './index'
 
 export const en: HomeCell = {
@@ -6,6 +10,7 @@ export const en: HomeCell = {
   description: 'Your own server, your own code: authorization, database, storage and vector search already wired together. Build a landing page or a SaaS in 82 languages.',
   keywords: '',
   blocks: [
+    { kind: 'p', text: 'Back to [%SITE%](/en).' },
   {
     kind: 'heroSplit',
     pill: 'Agentic engineering infrastructure',
@@ -139,7 +144,7 @@ export const en: HomeCell = {
     ],
     title: 'You pay nobody',
     text: 'You depend on nobody. The project is yours, end to end.',
-    cta: { page: 'm2m' },
+    // 261-4: кнопка на M2M снята в копии — ссылка на соседнюю страницу оставила бы хвост при её удалении.
   },
   {
     kind: 'problemSolution',

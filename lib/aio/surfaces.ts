@@ -5,7 +5,7 @@ import { footerPage } from '@/lib/pages/footer-page'
 import { data as privacyData } from '@/app/[lang]/(publicLayer)/(footerPages)/privacy/_data'
 import { data as termsData } from '@/app/[lang]/(publicLayer)/(footerPages)/terms/_data'
 import { data as cookiesData } from '@/app/[lang]/(publicLayer)/(footerPages)/cookies/_data'
-import { data as architectureData } from '@/app/[lang]/(publicLayer)/(rootPages)/architecture/_data'
+import { data as architectureData } from '@/app/[lang]/(publicLayer)/(rootPages)/m2m/_data'
 import { homePage as agiItemPage, homeLead as agiItemLead } from '@/app/[lang]/(publicLayer)/(rootPages)/agi-item/_data'
 import { data as accessibilityData } from '@/app/[lang]/(publicLayer)/(footerPages)/accessibility/_data'
 
@@ -106,14 +106,14 @@ export function publicSurfaces(lang: string): Surface[] {
     // страницы, поэтому идёт тем же циклом. Раздел карты у неё, однако, 'main':
     // это описание продукта, а не документ, и в списке правовых читатель искал бы
     // его последним.
-    [architectureData, '/architecture'],
+    [architectureData, '/m2m'],
   ] as const) {
     const page = footerPage(data as never, lang)
     surfaces.push({
       subPath: sub,
       title: page.title,
       description: page.description,
-      section: sub === '/architecture' ? 'main' : 'legal',
+      section: sub === '/m2m' ? 'main' : 'legal',
       body: () =>
         [`# ${page.title}`, '', `> ${page.description}`, '', blocksToMarkdown(page.blocks, home.siteName)].join('\n').trim(),
     })

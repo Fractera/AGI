@@ -24,6 +24,15 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   serverExternalPackages: ["better-sqlite3"],
 
+  // 🔒 261: страница «Архитектура» стала страницей M2M. Старый адрес живёт в
+  // чужих закладках и ссылках — он отвечает постоянной переадресацией, а не 404.
+  async redirects() {
+    return [
+      { source: "/:lang/architecture", destination: "/:lang/m2m", permanent: true },
+      { source: "/:lang/architecture/index.md", destination: "/:lang/m2m/index.md", permanent: true },
+    ];
+  },
+
   // 🔒 МОМЕНТ СБОРКИ ВЫЧИСЛЯЕТСЯ ОДИН РАЗ — ЗДЕСЬ, А НЕ НА ЗАПРОС.
   // `next.config.ts` читается сборкой, и всё, что объявлено в `env`, Next
   // подставляет в бандл literal-ом. Поэтому `/api/health` отдаёт МОМЕНТ

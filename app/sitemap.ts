@@ -6,7 +6,7 @@ import { ARCHITECT_PAGES } from "@/app/[lang]/(architectLayer)/_lib/architect-me
 import { translatedLanguages } from "@/lib/seo/translation-state"
 import { data as homeData } from "@/app/[lang]/(publicLayer)/_data"
 import { data as agiItemData } from "@/app/[lang]/(publicLayer)/(rootPages)/agi-item/_data"
-import { data as architectureData } from "@/app/[lang]/(publicLayer)/(rootPages)/architecture/_data"
+import { data as architectureData } from "@/app/[lang]/(publicLayer)/(rootPages)/m2m/_data"
 import { data as privacyData } from "@/app/[lang]/(publicLayer)/(footerPages)/privacy/_data"
 import { data as termsData } from "@/app/[lang]/(publicLayer)/(footerPages)/terms/_data"
 import { data as cookiesData } from "@/app/[lang]/(publicLayer)/(footerPages)/cookies/_data"
@@ -45,7 +45,7 @@ import { architectSitemapPaths } from "@/app/[lang]/(architectLayer)/_lib/collec
 // включённый язык подряд, обещая поисковику страницы, помеченные `noindex`.
 const ROOT_PAGES = [
   { sub: "/agi-item", data: agiItemData },
-  { sub: "/architecture", data: architectureData },
+  { sub: "/m2m", data: architectureData },
 ] as const
 
 const FOOTER_PAGES = [

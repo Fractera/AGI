@@ -19,7 +19,7 @@ import {
 export type MenuChildLink = { slug: string; title: string; href?: string };
 
 export function MenuDropdown({
-  lang, slug, label, items, asDropdown, href,
+  lang, slug, label, items, asDropdown, href, inert,
 }: {
   lang: string;
   slug: string;
@@ -28,9 +28,19 @@ export function MenuDropdown({
   asDropdown: boolean;
   /** Адрес из настроек панели. Нет — значит пункт с диска, `/<язык>/<slug>`. */
   href?: string;
+  /** Кнопка без перехода (261-6): видна, но никуда не ведёт. */
+  inert?: boolean;
 }) {
   const groupHref = href ? `/${lang}${href}` : `/${lang}/${slug}`;
   const childHref = (c: MenuChildLink) => (c.href ? `/${lang}${c.href}` : `${groupHref}/${c.slug}`);
+
+  if (inert) {
+    return (
+      <span aria-disabled="true" className={buttonVariants({ variant: "ghost", size: "sm", className: "cursor-default opacity-60 hover:bg-transparent" })}>
+        {label}
+      </span>
+    );
+  }
 
   if (!asDropdown || items.length === 0) {
     // Button is Base UI (no asChild); a link styled as a button uses buttonVariants().

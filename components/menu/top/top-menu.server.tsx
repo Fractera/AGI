@@ -41,10 +41,23 @@ export async function TopMenu({ lang }: { lang: string }) {
   // в `nav-config.ts`; без него каждый существующий проект потерял бы меню.
   const menuOn = featureOn("topMenu");
   const fromConfig = menuOn ? navGroupsFromConfig("top", lang) : null;
-  const groups = menuOn ? (fromConfig ?? getMenuGroups("top", lang)) : [];
+  const baseGroups = menuOn ? (fromConfig ?? getMenuGroups("top", lang)) : [];
 
   // Полоса шапки нужна, когда её кто-то населяет: само меню (даже пустое — это
   // состояние, а не ошибка) или ящик сбоку, которому нужен переключатель.
+  // 🔒 ЗАРЕЗЕРВИРОВАННЫЕ КНОПКИ (261-6) — слово владельца 2026-09-21: «Nostr - blog. Два
+  // последних названия будут просто кнопки про которые пока никуда не будут везти».
+  // Nostr — будущий визуальный поиск микросервисов сети. Кнопка без адреса, а не
+  // ссылка на пустую страницу: пустая страница в выдаче хуже отсутствующей.
+  // Новый массив, а не push: список групп может быть закэширован, и каждое
+  // обновление страницы дописывало бы кнопки ещё раз.
+  const ui0 = topMenuUi(lang);
+  const groups = menuOn ? [
+    ...baseGroups,
+    { slug: "nostr", label: ui0.nostr, order: 50, childrenAsDropdown: false, roles: "public", children: [], inert: true },
+    { slug: "blog", label: ui0.blog, order: 60, childrenAsDropdown: false, roles: "public", children: [], inert: true },
+  ] : baseGroups;
+
   const barNeeded = menuOn || leftHas || rightHas;
 
   // 🔒 КНОПКА АККАУНТА И КОРЗИНА ВСЕГДА СПРАВА (владелец, 2026-08-12).

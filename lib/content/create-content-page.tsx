@@ -68,6 +68,15 @@ export type ContentPageConfig<C extends ContentPageContent> = {
    */
   data: TranslatedPage
   /**
+   * Страница-копия чужого текста — не индексируется ни на одном языке (261).
+   *
+   * 🔒 ЗАЧЕМ: владелец 2026-09-21 поставил в меню страницы, которые пока
+   * показывают чужое содержимое (Core — главную, WEB3 — AGI), «пока у нас нет
+   * контента». Два адреса с одним текстом поисковик читает как дубль и понижает
+   * оба. Свой текст появился — признак снимается, и страница входит в выдачу.
+   */
+  noindex?: boolean
+  /**
    * Крошки и ссылка «назад». НЕОБЯЗАТЕЛЬНЫ (шаг 508).
    *
    * 🔒 ПОЧЕМУ ЭТО ВАЖНЕЕ, ЧЕМ ВЫГЛЯДИТ. Ровно эта обязательность была
@@ -161,7 +170,7 @@ export function createContentPage<C extends ContentPageContent>(config: ContentP
       // английский текст; невидима она только для поисковика. Правило о том, что
       // ПОКАЗЫВАТЬ, и правило о том, что ОБЕЩАТЬ машине, — разные, и смешение их
       // дало бы 404 там, где нужен просто честный сигнал.
-      ...(isTranslated(lang, config.data) ? {} : { robots: { index: false, follow: true } }),
+      ...(!config.noindex && isTranslated(lang, config.data) ? {} : { robots: { index: false, follow: true } }),
       openGraph: {
         type: 'article',
         url: `${SITE}/${lang}${meta.subPath}`,
