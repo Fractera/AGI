@@ -1,37 +1,106 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Check, Copy, TriangleAlert } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useEffect, useState, type ReactNode } from "react"
+import { Check, Copy, ExternalLink, Lock, TriangleAlert } from "lucide-react"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { H3, Small } from "@/components/ui/typography"
-import type { GoogleSetupWords } from "@/components/auth/google-setup.i18n"
+import { GOOGLE_CONSOLE_URL, type GoogleSetupWords } from "@/components/auth/google-setup.i18n"
 
-// ЭКРАН ВКЛЮЧЕНИЯ ВХОДА ЧЕРЕЗ GOOGLE (265-2).
+// ЭКРАН ВКЛЮЧЕНИЯ ВХОДА ЧЕРЕЗ GOOGLE (265-2, переписан 265-4).
 //
-// Решение владельца 2026-09-21: «Вход через Google первый, экран пишет ключи сам».
+// ✗ ПЕРВАЯ РЕДАКЦИЯ ПРОВАЛИЛАСЬ НА ЖИВОМ ЧЕЛОВЕКЕ, и это главное, что о ней надо
+// знать. Владелец 2026-09-21: «представь что человек никогда в жизни не
+// занимался получением этого ключа… из твоего описания я сделать это не могу».
+// Экран начинался с адреса возврата — то есть с ПОСЛЕДНЕГО действия, — а путь к
+// нему через чужую консоль был свёрнут в одну строку.
 //
-// 🎯 УСТРОЙСТВО ВЗЯТО У ЛЕСТНИЦЫ ДОМЕНА, И ЭТО НЕ КОПИРОВАНИЕ РАДИ СХОДСТВА.
-// Обе задачи одной природы: первые шаги человек делает В ЧУЖОЙ ПАНЕЛИ, и вернуться
-// ему надо с добытым значением. Отсюда три закона лестницы, каждый оплачен:
-//   1. ступени видны все, закрытая названа строкой, а не спрятана;
-//   2. ответ виден всегда, и у успеха он называет следующий шаг;
-//   3. отказ переводится в человеческие слова — голый код беды тот же тупик.
+// 🔒 ОТСЮДА УСТРОЙСТВО: ЛЕСТНИЦА НАЧИНАЕТСЯ ТАМ, ГДЕ ЧЕЛОВЕК СТОИТ, А НЕ ТАМ, ГДЕ
+// НАМ УДОБНО ПРИНЯТЬ ДАННЫЕ. Три ступени ведут его по консоли Google (проект →
+// что увидят люди → кто может входить), четвёртая отдаёт адреса, пятая принимает
+// пару, шестая говорит состояние. Порядок ступеней — это порядок ДЕЙСТВИЙ
+// человека, и поле ввода стоит последним не случайно.
+//
+// 🛑 ЗАМОК ВМЕСТО ФОРМЫ, ПОКА НЕТ СВОЕГО ДОМЕНА — слово владельца того же дня.
+// Google возвращает человека по публичному адресу; без домена настройка
+// закончилась бы кнопкой, которая выглядит рабочей и не работает. Плашка НЕ
+// прячет раздел и называет, куда идти: запрет без двери жесток, и его обходят.
 //
 // 🛑 СЕКРЕТ ЖИВЁТ В ПОЛЕ РОВНО ДО ОТПРАВКИ. Поля очищаются в ЛЮБОМ исходе:
-// значение, оставшееся на экране, видно каждому, кто подойдёт к компьютеру, и
-// попадает в снимок экрана. Обратно с сервера секрет не приходит никогда — дверь
-// отдаёт только «установлен / не установлен».
+// значение, оставшееся на экране, видно каждому, кто подойдёт к компьютеру.
+// Обратно с сервера секрет не приходит никогда.
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 const DOOR = `${BASE}/api/auth/providers/google`
 
 type State = {
   installed: boolean
+  onOwnDomain: boolean
   clientId: boolean
   clientSecret: boolean
   redirectUri: string | null
+  javascriptOrigin: string | null
+}
+
+/** Ступень лестницы: номер, заголовок и содержимое. */
+function Step({ n, title, children }: { n: number; title: string; children: ReactNode }) {
+  return (
+    <section className="rounded-lg border border-border bg-card p-4" data-step={n}>
+      <H3 className="mb-2 flex items-center gap-2" variant="ui">
+        <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground text-xs">
+          {n}
+        </span>
+        {title}
+      </H3>
+      {children}
+    </section>
+  )
+}
+
+/** Строка-значение с кнопкой «скопировать». */
+function CopyRow({
+  id,
+  label,
+  value,
+  note,
+  copy,
+  copied,
+}: {
+  id: string
+  label: string
+  value: string
+  note: string
+  copy: string
+  copied: string
+}) {
+  const [done, setDone] = useState(false)
+  return (
+    <div className="mt-3 flex flex-col gap-1">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="flex gap-2">
+        <Input id={id} readOnly value={value} className="font-mono text-xs" />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(value)
+              setDone(true)
+              window.setTimeout(() => setDone(false), 2000)
+            } catch {
+              // Копирование запрещено политикой страницы — строка видна и
+              // выделяется руками. Молча ничего не происходит, и это законно.
+            }
+          }}
+        >
+          {done ? <Check className="size-4" aria-hidden /> : <Copy className="size-4" aria-hidden />}
+          <span className="ml-2">{done ? copied : copy}</span>
+        </Button>
+      </div>
+      <Small className="text-muted-foreground">{note}</Small>
+    </div>
+  )
 }
 
 export function GoogleSetup({ words }: { words: GoogleSetupWords }) {
@@ -39,7 +108,6 @@ export function GoogleSetup({ words }: { words: GoogleSetupWords }) {
   const [id, setId] = useState("")
   const [secret, setSecret] = useState("")
   const [busy, setBusy] = useState(false)
-  const [copied, setCopied] = useState(false)
   const [answer, setAnswer] = useState<{ ok: boolean; text: string } | null>(null)
 
   useEffect(() => {
@@ -47,7 +115,6 @@ export function GoogleSetup({ words }: { words: GoogleSetupWords }) {
     fetch(DOOR, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((d: State) => alive && setState(d))
-      // Дверь закрыта или не ответила — это «не знаю», а не «службы нет».
       .catch(() => alive && setState(null))
     return () => {
       alive = false
@@ -75,20 +142,12 @@ export function GoogleSetup({ words }: { words: GoogleSetupWords }) {
         headers: method === "POST" ? { "content-type": "application/json" } : undefined,
         body: method === "POST" ? JSON.stringify({ clientId: id.trim(), clientSecret: secret.trim() }) : undefined,
       })
-      const data = (await res.json().catch(() => ({}))) as {
-        ok?: boolean
-        reason?: string
-      } & Partial<State>
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; reason?: string } & Partial<State>
       // 🛑 ПОЛЯ ЧИСТЯТСЯ В ЛЮБОМ ИСХОДЕ — см. закон в шапке.
       setId("")
       setSecret("")
       if (data.ok) {
-        setState({
-          installed: data.installed ?? true,
-          clientId: data.clientId ?? false,
-          clientSecret: data.clientSecret ?? false,
-          redirectUri: data.redirectUri ?? state?.redirectUri ?? null,
-        })
+        setState((prev) => ({ ...(prev as State), ...(data as Partial<State>) }))
         setAnswer({ ok: true, text: method === "POST" ? words.savedOn : words.savedOff })
       } else {
         setAnswer({ ok: false, text: reasonText(data.reason ?? "", res.status) })
@@ -97,18 +156,6 @@ export function GoogleSetup({ words }: { words: GoogleSetupWords }) {
       setAnswer({ ok: false, text: words.errNetwork })
     } finally {
       setBusy(false)
-    }
-  }
-
-  async function copyRedirect() {
-    if (!state?.redirectUri) return
-    try {
-      await navigator.clipboard.writeText(state.redirectUri)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Копирование запрещено политикой страницы — строка всё равно видна и
-      // выделяется руками. Молча ничего не происходит, и это законно.
     }
   }
 
@@ -123,37 +170,97 @@ export function GoogleSetup({ words }: { words: GoogleSetupWords }) {
     )
   }
 
+  // ЗАМОК: узел ещё не на своём домене.
+  if (!state.onOwnDomain) {
+    return (
+      <div className="my-6 rounded-lg border border-border border-dashed bg-card p-4" data-google-locked>
+        <H3 className="mb-2 flex items-center gap-2" variant="ui">
+          <Lock className="size-4 shrink-0" aria-hidden />
+          {words.lockedTitle}
+        </H3>
+        <p className="text-muted-foreground text-sm">{words.lockedText}</p>
+        <Small className="mt-2 block text-muted-foreground">{words.lockedWhere}</Small>
+      </div>
+    )
+  }
+
   const on = state.clientId && state.clientSecret
 
   return (
     <div className="my-6 flex flex-col gap-3" data-google-setup data-on={on ? "1" : "0"}>
-      {/* ── Ступень 1: адрес возврата ─────────────────────────────────────── */}
-      <section className="rounded-lg border border-border bg-card p-4" data-step={1}>
-        <H3 className="mb-2" variant="ui">{words.step1Title}</H3>
+      <p className="text-muted-foreground text-sm">{words.intro}</p>
+
+      <Step n={1} title={words.step1Title}>
         <p className="text-muted-foreground text-sm">{words.step1Text}</p>
+        {/* 🛑 ССЫЛКА, А НЕ КНОПКА-ОБЁРТКА: `Button` этого проекта не умеет `asChild`,
+            и подменять её `<button onClick={location.href=…}>` нельзя — такая
+            «кнопка» не открывается в новой вкладке, не копируется правой кнопкой и
+            не существует для читателя с экранным диктором. Вид даёт
+            `buttonVariants`, поведение остаётся ссылочным. */}
+        <div className="mt-3">
+          <a
+            href={GOOGLE_CONSOLE_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            className={buttonVariants({ variant: "outline" })}
+          >
+            {words.openConsole}
+            <ExternalLink className="ml-2 size-4" aria-hidden />
+          </a>
+        </div>
+      </Step>
+
+      <Step n={2} title={words.step2Title}>
+        <p className="text-muted-foreground text-sm">{words.step2Text}</p>
+        <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-foreground text-sm">
+          {words.step2Points.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
+        </ul>
+      </Step>
+
+      <Step n={3} title={words.step3Title}>
+        <p className="text-muted-foreground text-sm">{words.step3Text}</p>
+        <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-foreground text-sm">
+          {words.step3Points.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
+        </ul>
+      </Step>
+
+      <Step n={4} title={words.step4Title}>
+        <p className="text-muted-foreground text-sm">{words.step4Text}</p>
         {state.redirectUri ? (
-          <div className="mt-3 flex flex-col gap-2">
-            <Label htmlFor="google-redirect">{words.redirectLabel}</Label>
-            <div className="flex gap-2">
-              <Input id="google-redirect" readOnly value={state.redirectUri} className="font-mono text-xs" />
-              <Button type="button" variant="outline" onClick={copyRedirect} aria-label={words.copy}>
-                {copied ? <Check className="size-4" aria-hidden /> : <Copy className="size-4" aria-hidden />}
-                <span className="ml-2">{copied ? words.copied : words.copy}</span>
-              </Button>
-            </div>
-          </div>
+          <>
+            <CopyRow
+              id="google-redirect"
+              label={words.redirectLabel}
+              value={state.redirectUri}
+              note={words.redirectRequired}
+              copy={words.copy}
+              copied={words.copied}
+            />
+            {state.javascriptOrigin && (
+              <CopyRow
+                id="google-origin"
+                label={words.originLabel}
+                value={state.javascriptOrigin}
+                note={words.originOptional}
+                copy={words.copy}
+                copied={words.copied}
+              />
+            )}
+          </>
         ) : (
           <p className="mt-3 flex items-center gap-2 text-muted-foreground text-sm">
             <TriangleAlert className="size-4 shrink-0" aria-hidden />
             {words.noRedirect}
           </p>
         )}
-      </section>
+      </Step>
 
-      {/* ── Ступень 2: пара ключей ────────────────────────────────────────── */}
-      <section className="rounded-lg border border-border bg-card p-4" data-step={2}>
-        <H3 className="mb-2" variant="ui">{words.step2Title}</H3>
-        <p className="text-muted-foreground text-sm">{words.step2Text}</p>
+      <Step n={5} title={words.step5Title}>
+        <p className="text-muted-foreground text-sm">{words.step5Text}</p>
         <div className="mt-3 flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <Label htmlFor="google-id">{words.idLabel}</Label>
@@ -189,11 +296,9 @@ export function GoogleSetup({ words }: { words: GoogleSetupWords }) {
           </div>
           <Small className="text-muted-foreground">{words.caveat}</Small>
         </div>
-      </section>
+      </Step>
 
-      {/* ── Ступень 3: состояние ──────────────────────────────────────────── */}
-      <section className="rounded-lg border border-border bg-card p-4" data-step={3}>
-        <H3 className="mb-2" variant="ui">{words.step3Title}</H3>
+      <Step n={6} title={words.step6Title}>
         <p className="text-foreground text-sm" data-google-state={on ? "on" : "off"}>
           {on ? words.onText : words.offText}
         </p>
@@ -204,7 +309,7 @@ export function GoogleSetup({ words }: { words: GoogleSetupWords }) {
             </Button>
           </div>
         )}
-      </section>
+      </Step>
 
       {answer && (
         <p
