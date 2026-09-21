@@ -273,6 +273,30 @@ stdout or stderr (node’s own restriction after CVE-2024-27980). Any code calli
 
 ---
 
+## Own domain and sign-in (steps 259–260, 2026-09-21)
+
+| What | Where |
+|---|---|
+| one button connects a domain | `app/api/domain/activate/route.ts` — tunnel reused, ingress **list**: site + `auth.<zone>`, CNAME for both, auth env, resident started + `pm2 save` |
+| the one formula for the public auth address | `lib/domain/public-auth.cjs` — read by the button, `scripts/services-install.mjs` and `proxy.ts` |
+| auth database | `data/services/auth/auth.db` (absolute `DATABASE_URL`, written by the installer) |
+| "you're signed in" toast on the site | `components/auth/sign-in-notice.client.tsx`, mark `?signed-in=1` in the return address |
+| roles in the account drawer | badges above the email, one scrolling line |
+
+🔒 **The resident that must survive a reboot is started together with `pm2 save`.** `pm2 resurrect` brings
+back exactly the saved snapshot; ✗ 2026-09-21 a domain connected at night answered 1033 after a reboot.
+🔒 **Sign-in lives on `auth.<zone>`, never on a loopback address for a visitor** — `127.0.0.1` in a visitor's
+browser is the visitor's own machine. The auth service needs `COOKIE_DOMAIN=.<zone>`, `COOKIE_SECURE=true`,
+`AUTH_TRUST_HOST=true` (without it Auth.js answers 500 `UntrustedHost` behind the tunnel).
+🛑 **A standalone Next service `chdir`s into `.next/standalone/…`: a relative database path lands INSIDE the
+build and dies on the next rebuild.** Data paths of services are absolute and live under `data/`.
+🛑 **On Windows a running service locks its native files** (`better_sqlite3.node`, `vec0.dll`); the installer
+stops the service before `npm ci` and starts it again afterwards, also after a failure.
+🔒 **Sign-in, not registration, is the default.** The login form itself sends to registration when there are
+no users yet (the first one becomes the architect) and shows "First time here?" to a device that never signed in.
+
+---
+
 ## How you answer me
 
 The shape of your answer to ANY request of the owner, without exception. Your own words, this meaning,
