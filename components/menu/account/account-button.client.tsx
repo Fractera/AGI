@@ -66,7 +66,7 @@ export function AccountButton({ lang, side, labels, links, currency, dialogUi }:
     // `/api/me`, что и у ящика: два островка спрашивали бы одно и то же дважды.
     return (
       <>
-        <AccountDrawer lang={lang} side={side} labels={labels} email={me.email} links={links} />
+        <AccountDrawer lang={lang} side={side} labels={labels} email={me.email} roles={me.roles} links={links} />
       </>
     );
   }
