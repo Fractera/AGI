@@ -20,6 +20,8 @@ export type TemporaryAddressStrings = {
   why: string
   what: string
   back: string
+  /** Кнопка на вкладку архитектора, где объяснено подключение своего домена. */
+  howTo: string
 }
 
 const T: Record<string, TemporaryAddressStrings> = {
@@ -29,6 +31,7 @@ const T: Record<string, TemporaryAddressStrings> = {
     why: "A temporary address is issued for a few hours and changes on every restart. Sessions are bound to a name, so an account created here would stop being recognised the moment the address changes.",
     what: "Open the site on the computer where it runs, or connect your own domain — after that everything on this page works.",
     back: "Back to the site",
+    howTo: "How to connect your own domain",
   },
   ru: {
     title: "Это действие требует постоянного адреса",
@@ -36,6 +39,7 @@ const T: Record<string, TemporaryAddressStrings> = {
     why: "Временный адрес выдаётся на несколько часов и меняется при каждом перезапуске. Сессия привязана к имени, поэтому учётная запись, созданная здесь, перестала бы узнаваться в тот момент, когда адрес сменится.",
     what: "Откройте сайт на том компьютере, где он работает, или подключите собственный домен — после этого всё описанное заработает.",
     back: "Вернуться на сайт",
+    howTo: "Как подключить свой домен",
   },
 }
 

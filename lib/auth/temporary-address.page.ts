@@ -14,6 +14,12 @@ import { temporaryAddressStrings } from "./temporary-address.i18n"
 const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
 
+// 🔒 АДРЕС ВКЛАДКИ СОБИРАЕТСЯ ЗДЕСЬ ОДИН РАЗ. Отказ без адреса есть тупик: мы
+// говорим «нужен постоянный домен» — значит обязаны сказать, где написано, как
+// его подключить. Вкладка живёт в слое архитектора и на временном адресе открыта
+// (решение 241/242 о снятом замке), то есть ссылка ведёт в работающее место.
+const HOW_TO_PATH = "/architect/hosting/domain"
+
 export function temporaryAddressPage(lang: string, backHref: string): string {
   const s = temporaryAddressStrings(lang)
   return `<!doctype html>
@@ -41,6 +47,9 @@ export function temporaryAddressPage(lang: string, backHref: string): string {
   p.lead { color:var(--ink); }
   a.back { display:inline-block; margin-top:8px; padding:10px 16px; border-radius:10px;
     background:var(--accent); color:#fff; text-decoration:none; font-weight:600; }
+  a.how { display:inline-block; margin:8px 0 0 12px; padding:10px 16px; border-radius:10px;
+    border:1px solid var(--line); color:var(--ink); text-decoration:none; font-weight:600; }
+  @media (max-width:420px) { a.back, a.how { display:block; margin-left:0; text-align:center; } }
 </style>
 </head>
 <body>
@@ -51,6 +60,7 @@ export function temporaryAddressPage(lang: string, backHref: string): string {
     <p>${esc(s.why)}</p>
     <p>${esc(s.what)}</p>
     <a class="back" href="${esc(backHref)}">${esc(s.back)}</a>
+    <a class="how" href="${esc(`/${lang}${HOW_TO_PATH}`)}">${esc(s.howTo)} →</a>
   </main>
 </body>
 </html>`
