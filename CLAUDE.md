@@ -868,7 +868,15 @@ total** — this one plus the three below, all of them on the same shell
 |---|---|
 | `/{lang}/architect/dev-mode` | the development mode: classic · steps · cases · migration |
 | `/{lang}/architect/design` | **the look of this project** — seven sections: fonts · type scale · shape · colours · blocks · **dialogs** · **tools** |
-| `/{lang}/architect/auth` | **how people sign in** — description · sign-in visibility · Google · Resend |
+| `/{lang}/architect/auth` | **how people sign in** — its own description plus five sections: Google · Resend · Claude Code subscription · terminal · Telegram bot (step 264) |
+
+🛑 **THIS TABLE IS OLDER THAN THE FOLDER-DRIVEN MENU AND IS NO LONGER THE LIST — IT IS AN EXAMPLE.**
+Since step 254 the layer's groups come from `_list.generated.ts`, which the build folds out of the
+folders themselves, and there are far more than four. The law right below this table is exactly the one
+this table broke: a hand-written list diverges silently. **Never count groups from here — count them
+from `app/[lang]/(architectLayer)/architect/` or from `npm run read:menu`.** Rewriting this section to
+match the folders is a step of its own; until then read the rows as illustrations of what a group
+holds, not as an inventory.
 
 🪦 **THE FIFTH ROW WAS `/{lang}/architect/telegram`, AND IT LEFT THIS PROJECT ON 2026-09-05** (step
 137). The route still exists and answers a **permanent redirect** to `chat.<domain>/{lang}/settings` —
@@ -1853,6 +1861,54 @@ operation, before a build) you stop, write the state into `current-steps.md` and
 session**. 🔒 **The honest caveat:** you have no exact percentage — only a sense of the limit and the
 volume you have read. The rule therefore rests on events, not on a number; "three quarters" is the
 owner's landmark, not an instrument reading, and pretending otherwise is forbidden.
+
+## A number about this machine never goes into a prerendered page (step 264)
+
+🔒 **A PORT, A VERSION, A COUNT OF INSTALLED BLOCKS — ASK THE NODE IN THE BROWSER, NEVER READ THEM IN A
+SERVER COMPONENT.** The pages of the architect layer are prerendered: a value read while building
+freezes into the HTML and stays there. On the day the installer hands a block a different port, the
+page keeps printing the old one — confidently, and with nothing to warn anybody. That is the project's
+own law about an instrument that prints a remembered value.
+
+**The machinery is built, and there is nothing to invent:**
+
+| Piece | Where | What it does |
+|---|---|---|
+| door | `app/api/services/route.ts` — `GET /api/services` | the node's composition out of `MICROSERVICES.json`, read on every request |
+| island | `components/services/service-port.client.tsx` | asks that door and prints the port |
+| its words | `components/services/service-port.i18n.ts` | `en` + `ru`, picked on the server, passed in as props |
+| block kind | `servicePort` — renderer `sections/blocks/service-port.server.tsx` | how a page puts the island on itself |
+
+A page takes it in one line: `{ kind: 'servicePort', serviceId: 'auth', words: servicePortWords(lang) }`.
+
+🔒 **THE DOOR IS CLOSED BY THE GATE ON PURPOSE.** Its name is **not** in `PUBLIC_API_PREFIXES`
+(`proxy.ts`): the composition of a node is a fact about a person's machine, and the law of replaceable
+blocks says nothing of ours goes outward. From the machine it answers `200`; from the internet without
+a session, `401`. Do not "fix" that.
+
+🔒 **THE ISLAND HAS FOUR STATES AND GUESSES IN NONE OF THEM** — asking · a port · in the registry but
+not installed · the door did not answer. A refusal is *unknown*, never *absent*: a confident default is
+dearer than a missing value, because a person reads a plausible number as a checked fact.
+
+## A shell ADDS its sources of content, it never chooses between them (step 264)
+
+🔒 **`content.length > 0 ? content : topics` IS A SILENT LOSS, NOT A SENSIBLE DEFAULT.** A page that
+has both loses one of them whole — no error, no warning, no trace in the build. ✗ paid for twice in one
+step: `CollectionPage` swallowed every topic of «Активация домена» (measured: the phrase «Что меняет
+постоянный адрес» appeared **0** times in the served HTML), and `CollectionIndex` did not render a
+group's `topics` at all, which would have eaten the eight topics of `/architect/auth` the moment that
+page became an index.
+
+Both now concatenate: **the working part first, then the topics**, and for a group the list of sections
+after them. A page that needs another order assembles everything itself in its own `_components/`.
+
+🛑 **THE TELL-TALE, AND IT IS WORTH REMEMBERING:** the row of tabs is built from `topics` **always**,
+independently of that branch — so the page printed `href="#why"` to an anchor that was not in the
+markup. **A tab row whose anchors do not exist means the content was dropped upstream.**
+
+🛑 **ASK BEFORE TOUCHING EITHER SHELL: "what happens to what is already written when I switch this
+entry?"** One minute. Both defects above would otherwise have shipped and looked like "the text
+disappeared by itself".
 
 ## Static pages and three ways to kill them
 
