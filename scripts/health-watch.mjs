@@ -23,6 +23,8 @@ const root = path.join(here, '..')
 const runtimeFile = path.join(root, 'logs', 'runtime.json')
 
 const APP_NAME = process.env.FRACTERA_APP_NAME || 'fractera-agi'
+// Пусто — сторожим сам узел; имя блока — сторожим этот блок.
+const WATCH_SERVICE = process.env.FRACTERA_WATCH_SERVICE || ''
 const INTERVAL_MS = Number(process.env.FRACTERA_HEALTH_INTERVAL_MS) || 30000
 const TIMEOUT_MS = Number(process.env.FRACTERA_HEALTH_TIMEOUT_MS) || 15000
 const FAILURES_BEFORE_RESTART = Number(process.env.FRACTERA_HEALTH_FAILURES) || 3
@@ -49,6 +51,34 @@ function log(message) {
 // стучаться в пустоту и перезапускать совершенно здоровый сервер — это хуже, чем
 // не сторожить вовсе.
 function target() {
+  // ── РЕЖИМ СЛУЖБЫ (257-5). Тот же сторож, другой предмет.
+  //
+  // 🔒 ОДИН ФАЙЛ НА ОБА СЛУЧАЯ — НАМЕРЕННО. Копия сторожа рядом разошлась бы с
+  // оригиналом молча, и разошлась бы в терпении: именно оно здесь оплачено
+  // опытом. Различаются они не логикой, а ответом на два вопроса: КОГО
+  // спрашивать и ЧТО перезапускать.
+  //
+  // 🛑 ДВЕРЬ ЗДОРОВЬЯ НАЗЫВАЕТ САМА СЛУЖБА, А НЕ МЫ. У слоя данных это /health —
+  // единственная дверь без ключа; у авторизации /api/auth/methods. Угадай мы
+  // «/health» для обеих — сторож авторизации получал бы 404 навсегда и
+  // перезапускал бы совершенно здоровую службу каждые полторы минуты. Имя двери
+  // приезжает из паспорта в отметку установки, а порт — из реестра.
+  if (WATCH_SERVICE) {
+    try {
+      const registry = JSON.parse(readFileSync(path.join(root, 'MICROSERVICES.json'), 'utf8'))
+      const entry = (registry.services || []).find((s) => s.id === WATCH_SERVICE)
+      const stamp = JSON.parse(
+        readFileSync(path.join(root, 'microservices', WATCH_SERVICE, '.install-stamp.json'), 'utf8'),
+      )
+      if (entry?.port && stamp?.health) {
+        return { url: `http://127.0.0.1:${entry.port}${stamp.health}`, known: true }
+      }
+    } catch {
+      // Реестра или отметки нет — служба не установлена. Сторожить нечего.
+    }
+    return { url: null, known: false }
+  }
+
   try {
     const runtime = JSON.parse(readFileSync(runtimeFile, 'utf8'))
     if (runtime?.port) {
@@ -95,6 +125,7 @@ async function tick() {
   if (Date.now() < nextCheckAfter) return
 
   const { url, known } = target()
+  if (!url) return // блок объявлен, но не установлен — сторожить нечего
   const { ok, status } = await probe(url)
 
   if (ok) {
@@ -117,7 +148,8 @@ async function tick() {
 }
 
 log(
-  `сторож пущен: каждые ${INTERVAL_MS / 1000} с, терпение ${FAILURES_BEFORE_RESTART} неудачи подряд, ` +
+  `сторож пущен для ${WATCH_SERVICE ? 'блока «' + WATCH_SERVICE + '»' : 'узла'}: ` +
+    `каждые ${INTERVAL_MS / 1000} с, терпение ${FAILURES_BEFORE_RESTART} неудачи подряд, ` +
     `таймаут ответа ${TIMEOUT_MS / 1000} с, пауза после перезапуска ${COOLDOWN_MS / 1000} с`,
 )
 

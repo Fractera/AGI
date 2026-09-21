@@ -5,8 +5,11 @@ import { footerPage } from '@/lib/pages/footer-page'
 import { data as privacyData } from '@/app/[lang]/(publicLayer)/(footerPages)/privacy/_data'
 import { data as termsData } from '@/app/[lang]/(publicLayer)/(footerPages)/terms/_data'
 import { data as cookiesData } from '@/app/[lang]/(publicLayer)/(footerPages)/cookies/_data'
-import { data as architectureData } from '@/app/[lang]/(publicLayer)/(rootPages)/architecture/_data'
+import { data as architectureData } from '@/app/[lang]/(publicLayer)/(rootPages)/m2m/_data'
+import { data as hostData } from '@/app/[lang]/(publicLayer)/(rootPages)/host/_data'
 import { homePage as agiItemPage, homeLead as agiItemLead } from '@/app/[lang]/(publicLayer)/(rootPages)/agi-item/_data'
+import { homePage as corePage, homeLead as coreLead } from '@/app/[lang]/(publicLayer)/(rootPages)/core/_data'
+import { homePage as web3Page, homeLead as web3Lead } from '@/app/[lang]/(publicLayer)/(rootPages)/web3/_data'
 import { data as accessibilityData } from '@/app/[lang]/(publicLayer)/(footerPages)/accessibility/_data'
 
 // ПЕРЕЧЕНЬ ПУБЛИЧНЫХ ПОВЕРХНОСТЕЙ — ОДИН НА ВЕСЬ AIO (шаг 505).
@@ -88,6 +91,23 @@ export function publicSurfaces(lang: string): Surface[] {
     })
   }
 
+  // Core и WEB3 (261) — страницы-копии главной и AGI до собственного текста. Та же
+  // форма, что у AGI ITEM: ячейки вида главной, лид перед блоками.
+  for (const [sub, resolve, lead] of [
+    ['/core', corePage, coreLead],
+    ['/web3', web3Page, web3Lead],
+  ] as const) {
+    const cell = resolve(lang)
+    surfaces.push({
+      subPath: sub,
+      title: cell.title,
+      description: cell.description,
+      section: 'main',
+      body: () =>
+        [`# ${cell.title}`, '', `> ${cell.description}`, '', blocksToMarkdown([...lead(lang), ...cell.blocks], home.siteName)].join('\n').trim(),
+    })
+  }
+
   // 🪦 РАЗДЕЛ /blog И ЕГО ПОСТЫ УДАЛЕНЫ (229-2, 2026-09-18).
 
   for (const [data, sub] of [
@@ -106,14 +126,16 @@ export function publicSurfaces(lang: string): Surface[] {
     // страницы, поэтому идёт тем же циклом. Раздел карты у неё, однако, 'main':
     // это описание продукта, а не документ, и в списке правовых читатель искал бы
     // его последним.
-    [architectureData, '/architecture'],
+    [architectureData, '/m2m'],
+    // Host (261-7) — лендинг развёртывания, собран теми же ячейками, раздел 'main'.
+    [hostData, '/host'],
   ] as const) {
     const page = footerPage(data as never, lang)
     surfaces.push({
       subPath: sub,
       title: page.title,
       description: page.description,
-      section: sub === '/architecture' ? 'main' : 'legal',
+      section: sub === '/m2m' || sub === '/host' ? 'main' : 'legal',
       body: () =>
         [`# ${page.title}`, '', `> ${page.description}`, '', blocksToMarkdown(page.blocks, home.siteName)].join('\n').trim(),
     })

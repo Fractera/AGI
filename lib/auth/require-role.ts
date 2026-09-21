@@ -1,3 +1,4 @@
+import { authUrl as nodeAuthUrl, serviceMissing } from "@/lib/microservices/urls"
 import { cookies, headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { shouldBypassAuth } from "@/lib/auth/auth-bypass"
@@ -17,10 +18,8 @@ export async function requireRole(roles: string[]): Promise<void> {
   const h = await headers()
   if (h.get("x-agent-identity")) return
 
-  const authUrl =
-    process.env.AUTH_SERVICE_URL ??
-    process.env.NEXT_PUBLIC_AUTH_URL ??
-    "http://localhost:3001"
+  const authUrl = nodeAuthUrl()
+  if (!authUrl) throw new Error(serviceMissing("auth"))
   const cookie = (await cookies()).toString()
 
   try {
@@ -41,5 +40,5 @@ export async function requireRole(roles: string[]): Promise<void> {
   // into a page this app does not have. Build the absolute auth URL instead.
   const proto = h.get("x-forwarded-proto") ?? "https"
   const host = h.get("x-forwarded-host") ?? h.get("host")
-  redirect(`${authBaseFromHost(host, proto)}/register?requireRole=${roles[0]}`)
+  redirect(`${authBaseFromHost(host, proto)}/login?requireRole=${roles[0]}`)
 }

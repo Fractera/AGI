@@ -18,7 +18,13 @@ import { isIpHost, apexFrom } from "./site-urls";
 
 // Public base URL of the Auth service as the BROWSER must reach it.
 export function authBase(): string {
-  if (typeof window === "undefined") return "http://localhost:3001";
+  // 🔒 СЕРВЕРНАЯ ВЕТКА КЛИЕНТСКОГО МОДУЛЯ (257-6). Реестр `MICROSERVICES.json`
+  // здесь не читается намеренно: файл с "use client" уезжает в браузер, а с ним
+  // уехал бы и `node:fs`. Адрес приходит переменной, которую пишет установщик,
+  // взяв её из того же реестра — производное, а не вторая копия.
+  // 🛑 Пусто лучше неверного: умолчание `localhost:3001` — порт серверной линии,
+  // и на узле оно означало бы стук в пустоту, который человек читает как ответ.
+  if (typeof window === "undefined") return process.env.NEXT_PUBLIC_AUTH_URL ?? "";
   const { protocol, hostname } = window.location;
   if (isIpHost(hostname)) return `${protocol}//${hostname}:3001`;
   return `${protocol}//auth.${apexFrom(hostname)}`;
@@ -71,9 +77,19 @@ export function designBase(): string {
 // Build the auth redirect for an unauthorized click on a protected destination.
 // `requireRole` lets the auth form know whether the target needs architect (Start
 // Coding → admin panel) or just any authenticated user (Dashboard).
-export function registerRedirectUrl(callbackUrl: string, requireRole: "user" | "architect"): string {
-  const url = new URL(`${authBase()}/register`);
-  url.searchParams.set("callbackUrl", callbackUrl);
+//
+// 🔒 ВЕДЁТ НА ВХОД, А НЕ НА РЕГИСТРАЦИЮ (260-4). Слово владельца 2026-09-21: «почему
+// при первом входе меня кидают на регистрацию а не на логин?». Уже зарегистрированный
+// человек, попав на регистрацию, заводил вторую запись. Форма входа сама отправит на
+// регистрацию, когда пользователей ещё нет (первый станет архитектором), и сама
+// подскажет «впервые здесь?» устройству, с которого ещё не входили.
+export function signInRedirectUrl(callbackUrl: string, requireRole: "user" | "architect"): string {
+  const url = new URL(`${authBase()}/login`);
+  // Метка `signed-in` — та же, что ставит прокси (260-3): вернувшись, человек увидит
+  // плашку «вы вошли» и на этом пути тоже.
+  let back = callbackUrl;
+  try { const u = new URL(callbackUrl); u.searchParams.set("signed-in", "1"); back = u.toString(); } catch { /* не адрес — отдаём как есть */ }
+  url.searchParams.set("callbackUrl", back);
   url.searchParams.set("requireRole", requireRole);
   return url.toString();
 }

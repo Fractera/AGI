@@ -24,14 +24,47 @@ function apexFrom(hostname: string): string {
   return KNOWN_PREFIXES.includes(labels[0]) ? labels.slice(1).join(".") : hostname;
 }
 
+// Адрес входа на подключённом домене — для запроса, пришедшего на имя в его зоне.
+// Любое другое имя (петля, временный адрес туннеля) получает `null`, и решение
+// принимают прежние ветки. Формула одна — `lib/domain/public-auth.cjs`.
+export function publicAuthBaseFor(host: string | null): string | null {
+  if (!host) return null;
+  const p = publicAuth(process.cwd());
+  if (!p) return null;
+  const hostname = host.split(":")[0].toLowerCase();
+  if (hostname !== p.zone && !hostname.endsWith(`.${p.zone}`)) return null;
+  return `https://${p.authHost}`;
+}
+
+/** Адрес входа на подключённом домене, независимо от того, откуда пришёл запрос. */
+export function connectedDomainAuthBase(): string | null {
+  const p = publicAuth(process.cwd());
+  return p ? `https://${p.authHost}` : null;
+}
+
 // Build the Auth service base URL as the BROWSER must reach it, from a request's
 // host header and protocol. `host` is the Host / X-Forwarded-Host value (may carry
 // a :port in IP mode); `proto` is http or https (X-Forwarded-Proto). Falls back to
-// localhost:3001 when host is missing (e.g. an internal request without a host).
+// the address from MICROSERVICES.json when host is missing (e.g. an internal
+// request without a host) — no port is remembered here any more (step 257-6).
 export function authBaseFromHost(host: string | null, proto: string): string {
-  if (!host) return "http://localhost:3001";
+  // 🔒 259-8: СВОЙ ДОМЕН ИМЕЕТ ПРИОРИТЕТ НАД РЕЕСТРОМ — для запроса С ЭТОГО ДОМЕНА.
+  // Реестр знает адрес службы изнутри машины (`127.0.0.1:<порт>`); посетителю из
+  // интернета этот адрес означает ЕГО СОБСТВЕННЫЙ компьютер. ✗ оплачено
+  // 2026-09-21: «Войти» на `throughsongs.com` вела на `127.0.0.1:24681/register`.
+  const publicBase = publicAuthBaseFor(host);
+  if (publicBase) return publicBase;
+  // 🔒 257-6: РЕЕСТР ИМЕЕТ ПРИОРИТЕТ НАД ИМЕНЕМ ХОСТА. На узле служба стоит на
+  // назначенном порту из блока 24680-24699, и собрать её адрес из имени хоста
+  // нельзя в принципе — получится `<host>:3001`, порт серверной линии, то есть
+  // стук в пустоту. Реестра нет только на линии `aifa.dev`, и там работает
+  // прежняя ветка ниже.
+  const assigned = nodeAuthUrl();
+  if (assigned) return assigned;
+  if (!host) return "";
   const hostname = host.split(":")[0];
   const scheme = proto === "https" ? "https" : "http";
+  // SERVER-LINE-ADDRESS: линия aifa.dev, реестра там нет, порт 3001 законен.
   if (isIpHost(hostname)) return `${scheme}://${hostname}:3001`;
   return `${scheme}://auth.${apexFrom(hostname)}`;
 }
@@ -47,4 +80,7 @@ export function projectsBaseFromHost(host: string | null, proto: string): string
   const scheme = proto === "https" ? "https" : "http";
   if (isIpHost(hostname)) return `${scheme}://${hostname}:3003`;
   return `${scheme}://projects.${apexFrom(hostname)}`;
-}
+}import { authUrl as nodeAuthUrl } from "@/lib/microservices/urls";
+
+
+import { publicAuth } from "@/lib/domain/public-auth.cjs";

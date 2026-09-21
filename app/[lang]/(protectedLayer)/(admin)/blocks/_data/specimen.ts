@@ -1,4 +1,5 @@
 import type { Block } from '@/lib/content/blocks/types'
+import { domainLadderWords } from '@/components/domain/domain-ladder.i18n'
 
 // ОБРАЗЦЫ ВСЕХ ВИДОВ СЕКЦИЙ — по одному на каждый вид каталога.
 //
@@ -700,9 +701,9 @@ export const SPECIMEN: SpecimenSection[] = [
         title: 'What the server brings',
         note: 'Three capabilities that arrive together, not one after another.',
         items: [
-          { title: 'Orchestration', text: 'Several agent platforms share one context, so a task started in one continues in another.', href: '/en/architecture', linkLabel: 'Read more' },
-          { title: 'Persistent memory', text: 'What the project already knows stays in context between sessions instead of being re-read every time.', href: '/en/architecture', linkLabel: 'Read more' },
-          { title: 'One machine', text: 'Everything runs on the server you own. No cloud accounts to open, no per-token bill to watch.', href: '/en/architecture', linkLabel: 'Read more' },
+          { title: 'Orchestration', text: 'Several agent platforms share one context, so a task started in one continues in another.', href: '/en/m2m', linkLabel: 'Read more' },
+          { title: 'Persistent memory', text: 'What the project already knows stays in context between sessions instead of being re-read every time.', href: '/en/m2m', linkLabel: 'Read more' },
+          { title: 'One machine', text: 'Everything runs on the server you own. No cloud accounts to open, no per-token bill to watch.', href: '/en/m2m', linkLabel: 'Read more' },
         ],
       },
     ],
@@ -769,7 +770,7 @@ export const SPECIMEN: SpecimenSection[] = [
             monthlyPrice: '$0',
             yearlyPrice: '$0',
             features: ['Up to 5 components', 'Community support', 'Weekly updates', '100MB storage', 'Basic analytics'],
-            cta: { href: '/en/architecture', label: 'Start for free' },
+            cta: { href: '/en/m2m', label: 'Start for free' },
           },
           {
             name: 'Standard',
@@ -779,7 +780,7 @@ export const SPECIMEN: SpecimenSection[] = [
             yearlyPeriod: 'Per year',
             highlighted: true,
             features: ['Unlimited components', 'Priority support', 'Daily updates', '10GB storage', 'Advanced analytics'],
-            cta: { href: '/en/architecture', label: 'Get started' },
+            cta: { href: '/en/m2m', label: 'Get started' },
           },
           {
             name: 'Premium',
@@ -788,7 +789,7 @@ export const SPECIMEN: SpecimenSection[] = [
             monthlyPeriod: 'Per month',
             yearlyPeriod: 'Per year',
             features: ['Unlimited components', 'Dedicated support', 'Real-time updates', 'Unlimited storage', 'Custom integrations'],
-            cta: { href: '/en/architecture', label: 'Buy now' },
+            cta: { href: '/en/m2m', label: 'Buy now' },
           },
         ],
       },
@@ -877,7 +878,7 @@ export const SPECIMEN: SpecimenSection[] = [
               'Your name listed on the Sponsors page, here and on GitHub',
               'A direct line to submit feature requests',
             ],
-            cta: { href: '/en/architecture', label: 'Sponsor · $1/mo →' },
+            cta: { href: '/en/m2m', label: 'Sponsor · $1/mo →' },
           },
           {
             amount: '$5',
@@ -888,7 +889,7 @@ export const SPECIMEN: SpecimenSection[] = [
               'Access to the private sponsors-only group',
               'Instructions to remove the white-label badge',
             ],
-            cta: { href: '/en/architecture', label: 'Sponsor · $5/mo →' },
+            cta: { href: '/en/m2m', label: 'Sponsor · $5/mo →' },
           },
           {
             amount: '$20',
@@ -898,14 +899,14 @@ export const SPECIMEN: SpecimenSection[] = [
               'Personal one-on-one access to the founder',
               'Access to all VIP features and skills',
             ],
-            cta: { href: '/en/architecture', label: 'Sponsor · $20/mo →' },
+            cta: { href: '/en/m2m', label: 'Sponsor · $20/mo →' },
           },
         ],
         note: 'Sign in first to become a sponsor.',
         link: {
           label: 'Our sponsors',
           text: 'See everyone who supports the project →',
-          href: '/en/architecture',
+          href: '/en/m2m',
         },
       },
     ],
@@ -1140,6 +1141,18 @@ export const SPECIMEN: SpecimenSection[] = [
             text: 'Forwarded messages keep the line above the text — who wrote it, when, and where it came from.',
           },
         ],
+      },
+    ],
+  },
+  {
+    kind: 'domainLadder',
+    when: 'The ladder that walks a person through connecting their own domain: five steps, the closed ones named by a grey line instead of hidden. Take it wherever setup depends on actions outside this machine — the first steps happen at a registrar and in another dashboard, and only the node can confirm the rest. It asks the node for its state instead of remembering its own.',
+    whenRu: 'Лестница, проводящая человека через подключение собственного домена: пять ступеней, закрытые названы серой строкой, а не спрятаны. Берут там, где настройка зависит от действий вне этой машины — первые шаги проходят у регистратора и в чужой панели, а подтвердить остальное может только узел. Состояние она спрашивает у узла, а не помнит своё.',
+    blocks: [
+      {
+        kind: 'domainLadder',
+        lang: 'en',
+        words: domainLadderWords('en'),
       },
     ],
   },

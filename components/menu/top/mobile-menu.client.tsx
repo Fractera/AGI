@@ -76,6 +76,9 @@ export function MobileMenu({ lang, groups, label }: { lang: string; groups: Menu
             <div className="flex flex-col px-6 py-2">
               {visible.map((g) => (
                 <div key={g.slug} className="flex flex-col">
+                  {g.inert ? (
+                    <span aria-disabled="true" className="py-2.5 text-sm font-semibold text-muted-foreground cursor-default">{g.label}</span>
+                  ) : (
                   <Link
                     href={g.href ? `/${lang}${g.href}` : `/${lang}/${g.slug}`}
                     onClick={() => setOpen(false)}
@@ -83,6 +86,7 @@ export function MobileMenu({ lang, groups, label }: { lang: string; groups: Menu
                   >
                     {g.label}
                   </Link>
+                  )}
                   {g.childrenAsDropdown && g.children.map((c) => (
                     <Link
                       key={c.slug}

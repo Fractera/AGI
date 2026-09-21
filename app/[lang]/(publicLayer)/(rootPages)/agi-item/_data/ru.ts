@@ -2,7 +2,7 @@ import type { HomeCell } from './index'
 
 export const ru: HomeCell = {
 
-  eyebrow: 'AGI ядро',
+  eyebrow: 'AGI',
 
   title: 'Fractera AGI — Web3-инфраструктура для ваших агентов',
 

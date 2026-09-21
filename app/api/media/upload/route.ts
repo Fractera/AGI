@@ -1,7 +1,8 @@
+import { dataUrl as nodeDataUrl, isRemoteData } from "@/lib/microservices/urls"
 // @api upload a file into the platform media store
 import { NextRequest, NextResponse } from "next/server"
 
-const DATA_URL    = process.env.REMOTE_DATA_URL ?? "http://localhost:3300"
+const DATA_URL    = nodeDataUrl() ?? ""
 // 🔒 ИМЯ КЛЮЧА — DATA_SECRET (найдено на живом сайте 2026-08-13). Здесь стояло
 // DATA_API_KEY: такой переменной в окружении сервера нет, ключ получался пустым,
 // и прокси пересылал в слой данных COOKIE ПОСЕТИТЕЛЯ. У анонимного гостя сессии
@@ -10,7 +11,7 @@ const DATA_URL    = process.env.REMOTE_DATA_URL ?? "http://localhost:3300"
 // потому, что показывали статические файлы из public/.
 // Оба имени приняты: старое могло попасть в чьё-то окружение.
 const DATA_SECRET = process.env.DATA_SECRET || process.env.DATA_API_KEY || ""
-const IS_REMOTE   = !!process.env.REMOTE_DATA_URL
+const IS_REMOTE   = isRemoteData()
 
 export async function POST(req: NextRequest) {
   try {

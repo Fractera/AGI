@@ -1,5 +1,5 @@
 // Непереводимые поля страницы. Slug — часть адреса и один на все языки.
 export const meta = {
-  slug: 'architecture',
+  slug: 'host',
   ogImage: '/og-default.png',
 } as const

@@ -129,9 +129,95 @@ async function status() {
     )
   }
 
+  await reportServices(apps)
   await reportInternet(apps, localCommit)
+  await reportDomain(apps, localCommit)
 }
 
+// 🔒 СОСТАВ УЗЛА ПЕЧАТАЕТСЯ ИЗМЕРЕНИЕМ, А НЕ ПЕРЕСКАЗОМ РЕЕСТРА (257-5).
+//
+// ✗ Оплачено дважды в этом проекте: прибор, печатающий запомненное значение,
+// врёт именно тогда, когда на него полагаются. Реестр говорит, КАК ЗАДУМАНО;
+// сеть говорит, КАК ЕСТЬ, и расхождение между ними и есть отказ. Поэтому у
+// каждого блока спрашивается его собственная дверь здоровья — та, которую он
+// назвал в паспорте, — и ответ печатается рядом с состоянием процесса.
+async function reportServices(apps) {
+  let registry
+  try {
+    registry = JSON.parse(readFileSync(path.join(root, 'MICROSERVICES.json'), 'utf8'))
+  } catch {
+    return // реестра нет — узлу нечего докладывать
+  }
+  const services = registry.services || []
+  if (services.length === 0) return
+
+  console.log('')
+  console.log('сменные блоки узла:')
+
+  for (const s of services) {
+    const proc = apps.find((a) => a.name === `fractera-svc-${s.id}`)
+    const watch = apps.find((a) => a.name === `fractera-svc-${s.id}-watch`)
+
+    let stamp = null
+    try {
+      stamp = JSON.parse(readFileSync(path.join(root, 'microservices', s.id, '.install-stamp.json'), 'utf8'))
+    } catch { /* не установлен */ }
+
+    if (!stamp) {
+      console.log(`  ${s.id} — ${s.version} — ОБЪЯВЛЕН, НО НЕ УСТАНОВЛЕН. Поставить: npm run services:install`)
+      continue
+    }
+
+    const parts = [`${s.id} — ${s.version} — порт ${s.port ?? 'не назначен'}`]
+    parts.push(`процесс: ${proc ? proc.pm2_env.status : 'не запущен'}`)
+    parts.push(`сторож: ${watch ? watch.pm2_env.status : 'не запущен'}`)
+
+    if (s.port && stamp.health) {
+      const r = await ask(`http://127.0.0.1:${s.port}${stamp.health}`)
+      parts.push(r.ok
+        ? `дверь ${stamp.health} отвечает локально: 200`
+        : `⚠ дверь ${stamp.health} НЕ отвечает (${r.status})`)
+    } else {
+      parts.push('дверь здоровья не объявлена — проверить нечем')
+    }
+
+    console.log('  ' + parts.join(' · '))
+  }
+}
+
+
+// ПОСТОЯННЫЙ АДРЕС ЧЕЛОВЕКА — ОТДЕЛЬНОЙ СТРОКОЙ, И ТОЖЕ ИЗМЕРЯЕТСЯ (259-4).
+//
+// 🔒 У КАЖДОЙ СТРОКИ НАЗВАН АДРЕСАТ. Двусмысленная правда работает как ложь: ✗
+// оплачено 2026-09-19, когда «сайт отвечает: 200» о localhost читалось как ответ
+// на вопрос «виден ли сайт снаружи». Поэтому здесь сказано «свой домен», и
+// проверяется он запросом ПО ЭТОМУ ИМЕНИ через интернет, а не чтением файла.
+async function reportDomain(apps, localCommit) {
+  let domain = null
+  try { domain = JSON.parse(readFileSync(path.join(root, "logs", "domain.json"), "utf8")) } catch { /* домен не подключали */ }
+  if (!domain?.hostname) {
+    console.log("свой домен: не подключён (вкладка «Активация домена» в слое архитектора)")
+    return
+  }
+
+  const app = apps.find((a) => a.name === "fractera-agi-domain")
+  const alive = app && app.pm2_env.status === "online"
+  const probe = await ask(`https://${domain.hostname}/api/health`)
+
+  if (probe.ok) {
+    console.log(`свой домен: https://${domain.hostname} — отвечает, сборка ${probe.body?.commit ?? "неизвестна"}`)
+    if (localCommit && probe.body?.commit && probe.body.commit !== localCommit) {
+      console.log(`⚠ по домену отвечает ДРУГАЯ сборка (${probe.body.commit}), локально — ${localCommit}`)
+    }
+    return
+  }
+
+  // 🛑 «ПРОЦЕСС ЖИВ» И «АДРЕС ОТВЕЧАЕТ» — РАЗНЫЕ ФАКТЫ, И РАСХОЖДЕНИЕ НАЗЫВАЕТСЯ.
+  // Именно оно и есть отказ: cloudflared переживает смерть своего туннеля.
+  console.log(`⚠ свой домен: https://${domain.hostname} — НЕ ОТВЕЧАЕТ (${probe.status})`)
+  console.log(`⚠ житель туннеля: ${alive ? "online — процесс жив, а адрес молчит" : "не запущен"}`)
+  if (!alive) console.log("⚠ поднять: npx pm2 start ecosystem.config.cjs --only fractera-agi-domain")
+}
 // 🔒 «РАБОТАЕТ ЛОКАЛЬНО» И «ВИДЕН ИЗ ИНТЕРНЕТА» — РАЗНЫЕ ВОПРОСЫ, И ВТОРОЙ
 // ИЗМЕРЯЕТСЯ, А НЕ ВСПОМИНАЕТСЯ. Файл `logs/tunnel.json` говорит, как было
 // ЗАДУМАНО; сеть говорит, как ЕСТЬ. ✗ оплачено 2026-09-19: команда печатала

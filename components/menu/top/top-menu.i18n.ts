@@ -18,11 +18,14 @@ export type TopMenuUi = {
   closeLeft: string
   openRight: string
   closeRight: string
+  /** Зарезервированные кнопки верхнего меню без перехода (261-6). */
+  nostr: string
+  blog: string
 }
 
 const UI: Record<string, TopMenuUi> = {
-  en: { menu: 'Menu', openLeft: 'Open left menu', closeLeft: 'Close left menu', openRight: 'Open right menu', closeRight: 'Close right menu' },
-  ru: { menu: 'Меню', openLeft: 'Открыть левое меню', closeLeft: 'Закрыть левое меню', openRight: 'Открыть правое меню', closeRight: 'Закрыть правое меню' },
+  en: { menu: 'Menu', nostr: 'Nostr', blog: 'Blog', openLeft: 'Open left menu', closeLeft: 'Close left menu', openRight: 'Open right menu', closeRight: 'Close right menu' },
+  ru: { menu: 'Меню', nostr: 'Nostr', blog: 'Блог', openLeft: 'Открыть левое меню', closeLeft: 'Закрыть левое меню', openRight: 'Открыть правое меню', closeRight: 'Закрыть правое меню' },
 }
 
 export function topMenuUi(lang: string): TopMenuUi {

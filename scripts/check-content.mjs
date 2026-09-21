@@ -15,6 +15,7 @@
 // Scope: any folder under app/[lang]/<section>/<slug>/_data. Adding a section
 // (news, docs) needs no change here — the walk finds it.
 
+import { isForeign } from './microservices-boundary.mjs'
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs"
 import { join, relative, sep, basename } from "node:path"
 
@@ -576,38 +577,27 @@ const ALL_LANG_CODES = new Set([...catalogSrc.matchAll(/^ {2}([a-z]{2}): \{/gm)]
 /** Ячейка языка в `_data`: файл `<код>.ts` рядом с `index.ts`. */
 function checkDataCells(dir) {
   for (const name of readdirSync(dir)) {
+    // Граница чужого продукта — scripts/microservices-boundary.mjs.
+    if (isForeign(name)) continue
     const p = join(dir, name)
     if (statSync(p).isDirectory()) { checkDataCells(p); continue }
     if (basename(dir) !== "_data" || !/\.tsx?$/.test(name)) continue
     const code = name.replace(/\.tsx?$/, "")
+    // 🪦 `lang-extra-cell` отменено тем же решением: ячейка выключенного языка
+    // не порождает адреса и никуда не уезжает — это лежачий исходник, а не дефект.
     if (!ALL_LANG_CODES.has(code) || ENABLED.has(code)) continue
-    fail(p, "lang-extra-cell", `язык «${code}» не включён (${[...ENABLED].join(",")}) — ячейка не обслуживает ни одного адреса`)
   }
 }
 
-/** Словарь языков в любом файле: объект, все ключи которого — коды языков. */
-function checkLangDicts(dir) {
-  for (const name of readdirSync(dir)) {
-    if (name === "node_modules" || name === ".next" || name === ".git") continue
-    const p = join(dir, name)
-    if (statSync(p).isDirectory()) { checkLangDicts(p); continue }
-    if (!/\.(tsx?|json)$/.test(name)) continue
-    if (relative(ROOT, p).split(sep).join("/") === LANG_CATALOG) continue
-
-    const src = readFileSync(p, "utf8")
-    const starts = []
-    if (name.endsWith(".json")) { const k = src.indexOf("{"); if (k >= 0) starts.push(k + 1) }
-    for (const m of src.matchAll(/=\s*\{/g)) starts.push(m.index + m[0].length)
-
-    for (const start of starts) {
-      const keys = objectKeys(src, start)
-      if (!keys || keys.length < 3) continue
-      if (!keys.every(k => ALL_LANG_CODES.has(k))) continue
-      const extra = keys.filter(k => !ENABLED.has(k))
-      if (extra.length) fail(p, "lang-extra-dict", `языки вне включённого набора: ${extra.join(",")}`)
-    }
-  }
-}
+// 🪦 ПРАВИЛО `lang-extra-dict` ОТМЕНЕНО 2026-09-21 ПО СЛОВУ ВЛАДЕЛЬЦА.
+// Оно объявляло нарушением язык, лежащий в словаре и не включённый в сборке.
+// Это несуществующая проблема: при правильной генерации страниц посетитель
+// получает ровно один язык независимо от того, сколько их лежит в исходнике.
+// Слова владельца: «это не проблема лишнего языка, это проблема неправильной
+// архитектуры, и только это надо проверять».
+// Правило ввёл я в шаге 255, ошибочно обобщив другую задачу: тогда в шести
+// языках стоял английский текст — то есть переводов НЕ БЫЛО, и убрать надо было
+// подделки, а не языки. Настоящую опасность проверяет scripts/check-lang-delivery.mjs.
 
 /** Ключи объекта верхнего уровня; null, если это не объектный литерал. */
 function objectKeys(src, i) {
@@ -644,10 +634,6 @@ function objectKeys(src, i) {
 }
 
 checkDataCells(APP)
-for (const root of ["app", "lib", "components", "sections", "config", "_tools"]) {
-  const d = join(ROOT, root)
-  if (existsSync(d)) checkLangDicts(d)
-}
 
 
 for (const w of warnings) {

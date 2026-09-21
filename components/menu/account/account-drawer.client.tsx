@@ -6,6 +6,7 @@ import { User, LogOut } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { AuthShellSide } from "@/components/menu/account/account-config";
 import type { AccountLabels } from "@/components/menu/account/account-menu.i18n";
@@ -41,11 +42,13 @@ export type DrawerLink = {
 };
 
 
-export function AccountDrawer({ lang, side, labels, email, links }: {
+export function AccountDrawer({ lang, side, labels, email, roles = [], links }: {
   lang: string;
   side: AuthShellSide;
   labels: AccountLabels;
   email?: string;
+  /** Роли вошедшего — бейджами над почтой (260-5). */
+  roles?: string[];
   /** Пункты рабочих разделов — их состав задаёт приложение. */
   links?: DrawerLink[];
 }) {
@@ -115,10 +118,20 @@ export function AccountDrawer({ lang, side, labels, email, links }: {
 
           {/* Bottom — fixed: identity row on top, sign out below; both left-aligned. */}
           <div className="mt-auto border-t border-border p-3 flex flex-col gap-3">
-            {/* 🪦 ЗНАЧОК С ПЕРЕЧНЕМ СВОИХ РОЛЕЙ УБРАН ОТСЮДА (230-1, 2026-09-18,
-                то же слово владельца — «и без ролей»). Осталась почта: она
-                отвечает на вопрос «кто я вошёл», а роли человеку в этом ящике
-                больше не показываются нигде. */}
+            {/* 🪦 «БЕЗ РОЛЕЙ» (230-1, 2026-09-18) ОТМЕНЕНО ДЛЯ НИЖНЕЙ СТРОКИ 2026-09-21
+                новым словом владельца: «выдвижной ящик … больше не показывает роль …
+                фиксированный контейнер над e-mail … как бейджи … в одну линию с
+                горизонтальным скролом без скроллбара». Середина ящика остаётся
+                плоским списком ссылок без слоёв — то решение не тронуто.
+                🔒 Бейджи — ответ на вопрос «кто я здесь», не замок: права по-прежнему
+                проверяют страница и маршруты данных. */}
+            {roles.length > 0 && (
+              <div className="hide-scrollbar flex gap-1.5 overflow-x-auto">
+                {roles.map((r) => (
+                  <Badge key={r} variant="secondary" className="shrink-0">{r}</Badge>
+                ))}
+              </div>
+            )}
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-sm text-foreground truncate">{email}</span>
             </div>

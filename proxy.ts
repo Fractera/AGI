@@ -5,7 +5,9 @@ import { isOwnerAtMachine } from "@/lib/auth/owner-at-machine";
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address";
 import { isShowcaseRequest } from "@/lib/showcase";
 import { getSession } from "@/lib/auth/get-session";
-import { authBaseFromHost, projectsBaseFromHost } from "@/lib/auth-base-server";
+import { authBaseFromHost, connectedDomainAuthBase, projectsBaseFromHost, publicAuthBaseFor } from "@/lib/auth-base-server";
+import { authUrl as nodeAuthUrl } from "@/lib/microservices/urls";
+import { temporaryAddressPage } from "@/lib/auth/temporary-address.page";
 import {
   SUPPORTED_LANGUAGES,
   DEFAULT_LANGUAGE,
@@ -385,12 +387,64 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     // слоя встречают чужого, и он честнее переадресации на мёртвое имя.
     // Признак хозяина берётся готовым (`isOwnerAtMachine`), а не переписывается
     // списком петлевых имён: третья копия того же знания разошлась бы молча.
-    if (isTemporaryPublicAddress(request) || isOwnerAtMachine(request)) {
+    const proto = request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol.replace(":", "");
+    const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+    // 🔒 ВРЕМЕННЫЙ ПУБЛИЧНЫЙ АДРЕС — ВХОДА НЕТ, НО ОТКАЗ ТЕПЕРЬ ГОВОРЯЩИЙ (257-8).
+    //
+    // Решение 256-11 (вход только на настоящем домене) остаётся в силе. Менялся
+    // не запрет, а его ФОРМА: слово владельца 2026-09-21 — «need warning
+    // notification for .trycloudflare.com for all actions».
+    //
+    // 🛑 ЧЕМ БЫЛ ПЛОХ ПУСТОЙ 404. Человек нажимал «Выйти» и получал страницу
+    // ошибки браузера без единого слова. Это читается как «сайт сломан», хотя
+    // сайт цел, — то есть отказ врал о причине. Отказ обязан называть причину и
+    // следующий шаг; отказ без адреса есть тупик.
+    //
+    // Код ответа остался 404: на этом адресе такой страницы действительно нет.
+    if (isTemporaryPublicAddress(request)) {
+      const warnLangRaw = new URLSearchParams(request.nextUrl.search).get("lang")
+        ?? request.cookies.get(LOCALE_COOKIE)?.value
+        ?? DEFAULT_LANGUAGE;
+      const warnLang = SUPPORTED_LANGUAGES.includes(warnLangRaw) ? warnLangRaw : DEFAULT_LANGUAGE;
+      return new NextResponse(temporaryAddressPage(warnLang, `/${warnLang}`), {
+        status: 404,
+        headers: { "content-type": "text/html; charset=utf-8" },
+      });
+    }
+
+    // 🔒 ХОЗЯИН ЗА КЛАВИАТУРОЙ ПОЛУЧАЕТ НАСТОЯЩУЮ ДВЕРЬ, А НЕ 404 (257-8).
+    //
+    // Решение владельца 2026-09-20 изменило посылку: авторизация больше не чужая
+    // служба на субдомене, а ЧАСТЬ УЗЛА, приезжающая вместе с ним. Реестр знает
+    // её порт, значит дверь существует — и отвечать «страницы нет» о живой
+    // странице было бы ложью. Прежний 404 писался тогда, когда вести было некуда.
+    //
+    // 🛑 ИМЯ ХОСТА БЕРЁТСЯ ИЗ ЗАПРОСА, А ПОРТ ИЗ РЕЕСТРА, И ЭТО НЕ ПРИДИРКА.
+    // Cookie не различает порты, но различает ИМЯ: сессия, выданная на
+    // `127.0.0.1`, не придёт на `localhost`. Уведи мы человека с его же имени —
+    // он зарегистрируется, вернётся и окажется неузнанным.
+    // 🔒 259-8: ДОМЕН ПОДКЛЮЧЁН — ВХОД ЖИВЁТ ТОЛЬКО НА НЁМ, И ДЛЯ ХОЗЯИНА ТОЖЕ.
+    // Служба входа ставит cookie на `.<зона>` с флагом Secure; на `localhost` браузер
+    // такой cookie не примет, и вход на петле «прошёл бы», оставив человека
+    // неузнанным. Хозяину за клавиатурой вход не нужен (его узнаёт правило
+    // хозяина), но если он пошёл входить — ведём туда, где вход работает.
+    const domainAuth = connectedDomainAuthBase();
+    if (domainAuth && isOwnerAtMachine(request)) {
+      return NextResponse.redirect(`${domainAuth}${pathname}${request.nextUrl.search}`);
+    }
+
+    const assignedAuth = nodeAuthUrl();
+    if (assignedAuth && isOwnerAtMachine(request)) {
+      const authPort = new URL(assignedAuth).port;
+      const ownHost = (host ?? "localhost").split(":")[0];
+      const qsOwn = request.nextUrl.search;
+      return NextResponse.redirect(`${proto}://${ownHost}:${authPort}${pathname}${qsOwn}`);
+    }
+
+    if (isOwnerAtMachine(request)) {
       return new NextResponse(null, { status: 404 });
     }
 
-    const proto = request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol.replace(":", "");
-    const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
     const search = new URLSearchParams(request.nextUrl.search);
     // /logout (step 169): the auth service clears the cookie and then must land the visitor
     // BACK on this site — but it cannot derive this origin (IP mode: different port; secure
@@ -401,6 +455,17 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
         ?? DEFAULT_LANGUAGE;
       const backLang = SUPPORTED_LANGUAGES.includes(lang) ? lang : DEFAULT_LANGUAGE;
       search.set("redirectUrl", `${proto === "https" ? "https" : "http"}://${host}/${backLang}`);
+    }
+    // 🔒 259-8: НА СВОЁМ ДОМЕНЕ ВХОД ВОЗВРАЩАЕТ ЧЕЛОВЕКА НА САЙТ. Служба входа живёт
+    // на `auth.<зона>` и без адреса возврата оставляет вошедшего у себя. Роль
+    // `user`: по умолчанию служба ждёт архитектора и показала бы обычному
+    // посетителю «доступ запрещён» сразу после успешной регистрации.
+    if ((pathname === "/login" || pathname === "/register") && host && publicAuthBaseFor(host) && !search.has("callbackUrl")) {
+      const lang = search.get("lang") ?? request.cookies.get(LOCALE_COOKIE)?.value ?? DEFAULT_LANGUAGE;
+      const backLang = SUPPORTED_LANGUAGES.includes(lang) ? lang : DEFAULT_LANGUAGE;
+      // `signed-in` — метка для плашки на сайте (260-3); островок убирает её сам.
+      search.set("callbackUrl", `https://${host}/${backLang}?signed-in=1`);
+      if (!search.has("requireRole")) search.set("requireRole", "user");
     }
     const qs = search.toString();
     const target = `${authBaseFromHost(host, proto)}${pathname}${qs ? `?${qs}` : ""}`;

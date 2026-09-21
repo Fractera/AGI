@@ -1,3 +1,4 @@
+import { isRemoteData } from "@/lib/microservices/urls"
 import type Database from "better-sqlite3"
 import { isShowcaseBuild } from "@/lib/showcase.server"
 import { slugify } from "@/lib/ids"
@@ -724,7 +725,7 @@ function awaitingSchema(ready: Promise<unknown>): typeof remoteDb {
 // сервер работал с локальным SQLite вместо слоя данных, ни разу об этом не
 // сказав: обе ветки исправны, отличается только адресат записи.
 //
-// Адрес по-прежнему обязателен явно. `dataService()` подставляет `localhost:3300`
+// Адрес по-прежнему обязателен явно. `dataService()` спрашивает его у реестра
 // по умолчанию, и полагаться на это умолчание здесь нельзя: на машине
 // разработчика без `REMOTE_DATA_URL` приложение начало бы стучаться в
 // несуществующую службу вместо того, чтобы честно открыть локальный файл.
@@ -773,7 +774,9 @@ function readOnlyOnShowcase<T extends { prepare: (sql: string) => unknown; exec:
 }
 
 export const db = readOnlyOnShowcase(
-  (process.env.REMOTE_DATA_URL && dataService().key)
+  // 🔒 257-6: признак РЕЖИМА, а не адрес. Смысл прежний — «слой данных стоит не
+  // на этой машине»; изменилось только то, что переменную читает одна дверь.
+  (isRemoteData() && dataService().key)
     ? awaitingSchema(initRemoteSchema().catch(err => {
         // Слой данных недоступен или отказал — приложение продолжает работать и
         // отвечает заглушкой (см. `lib/catalogue.ts`). Молчать здесь нельзя:

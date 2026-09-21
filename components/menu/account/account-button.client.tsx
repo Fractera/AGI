@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { LogIn } from "lucide-react";
+import { isTemporaryHostname } from "@/lib/auth/temporary-address";
 import { buttonVariants } from "@/components/ui/button";
 import { AccountDrawer, type DrawerLink } from "@/components/menu/account/account-drawer.client";
 import type { AppDialogUi } from "@/components/dialog/app-dialog.i18n";
@@ -29,6 +30,26 @@ export function AccountButton({ lang, side, labels, links, currency, dialogUi }:
 }) {
   const [me, setMe] = useState<Me>(undefined as unknown as Me);
 
+  // 🔒 НА ВРЕМЕННОМ ПУБЛИЧНОМ АДРЕСЕ КНОПКИ ВХОДА НЕТ (257-8, следствие 256-11).
+  //
+  // Прокси на таком адресе отвечает на `/login` и `/register` честным 404:
+  // настоящего домена там нет, а служба входа наружу не выставлена. Кнопка,
+  // ведущая в гарантированный 404, — сломанная ссылка на публичном лице сайта.
+  //
+  // 🛑 ПОЧЕМУ ПРОВЕРКА ЗДЕСЬ, А НЕ НА СЕРВЕРЕ: страницы публичного слоя
+  // предрендерены и отдаются одинаковыми всем. Спросить имя хоста на сервере
+  // значит сделать их динамическими — цену статики мы не платим. Признак взят
+  // готовым (`isTemporaryHostname`), а не переписан списком имён: вторая копия
+  // того же знания разошлась бы молча.
+  //
+  // 🛑 ЦЕНА НАЗВАНА: до гидратации кнопка видна, поэтому на туннеле она мигает,
+  // а посетитель без JavaScript увидит её и получит 404. Полное лечение — либо
+  // свой домен, либо вывод службы входа наружу; и то и другое решает владелец.
+  const [temporaryHost, setTemporaryHost] = useState(false);
+  useEffect(() => {
+    setTemporaryHost(isTemporaryHostname(window.location.hostname));
+  }, []);
+
   useEffect(() => {
     let alive = true;
     fetch("/api/me", { cache: "no-store" })
@@ -38,12 +59,14 @@ export function AccountButton({ lang, side, labels, links, currency, dialogUi }:
     return () => { alive = false; };
   }, []);
 
+  // Временный публичный адрес: двери нет, значит и приглашения войти нет.
+  if (temporaryHost && !(me && me.userId)) return null;
   if (me && me.userId) {
     // Корзина — СЛЕВА от кнопки аккаунта и только у вошедшего. Тот же запрос
     // `/api/me`, что и у ящика: два островка спрашивали бы одно и то же дважды.
     return (
       <>
-        <AccountDrawer lang={lang} side={side} labels={labels} email={me.email} links={links} />
+        <AccountDrawer lang={lang} side={side} labels={labels} email={me.email} roles={me.roles} links={links} />
       </>
     );
   }

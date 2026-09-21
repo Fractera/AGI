@@ -1,3 +1,4 @@
+import { dataUrl as nodeDataUrl, isRemoteData } from "@/lib/microservices/urls"
 // @api proxy media files the browser cannot reach directly
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/get-session";
@@ -10,7 +11,7 @@ import { getSession } from "@/lib/auth/get-session";
 export const runtime = "nodejs";
 
 const ROLES = ["architect", "manager", "agent"];
-const DATA_URL = (process.env.REMOTE_DATA_URL ?? "http://localhost:3300").replace(/\/+$/, "");
+const DATA_URL = (nodeDataUrl() ?? "").replace(/\/+$/, "");
 // Only media paths pass through — this is a media proxy, not an open relay.
 const SAFE = /^[a-zA-Z0-9\-_.\/]+$/;
 

@@ -15,6 +15,7 @@
 // Проверка намеренно узкая. Сторож, кричащий на законный код, отключают целиком
 // в тот же день, и тогда он не ловит вообще ничего.
 
+import { FOREIGN_DIRS } from './microservices-boundary.mjs'
 import fs from "fs"
 import path from "path"
 
@@ -22,7 +23,8 @@ const ROOT = process.cwd()
 // Платформенная шапка — единственное законное место такой разметки.
 const ALLOWED = ["components/menu/"]
 const SCAN = ["app", "components"]
-const SKIP = new Set(["node_modules", ".next", ".git", ".swc"])
+// 🔒 ГРАНИЦА `microservices/` — причина целиком в scripts/microservices-boundary.mjs.
+const SKIP = new Set(["node_modules", ".next", ".git", ".swc", ...FOREIGN_DIRS])
 
 const files = []
 function walk(dir) {

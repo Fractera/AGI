@@ -26,6 +26,8 @@ import { StarterBanner } from "./(publicLayer)/_components/starter-banner.client
 import { starterBannerStrings } from "./(publicLayer)/_components/starter-banner.i18n";
 import { installUi } from "@/components/pwa/install-prompt.i18n";
 import { IosSplash } from "@/components/pwa/ios-splash";
+import { SignInNotice, SIGN_IN_TOASTER } from "@/components/auth/sign-in-notice.client";
+import { signInNoticeStrings } from "@/components/auth/sign-in-notice.i18n";
 
 // Root layout for the localized public surface (step 131). This zone OWNS <html>/
 // <body> — the language comes from the [lang] route param (known at build), NOT from
@@ -194,6 +196,9 @@ export default async function LangLayout({
                 панели не значил ничего. */}
             {bannerOn && <CookieBanner lang={lang} strings={bannerStrings} />}
             <Toaster position="bottom-right" richColors closeButton />
+            {/* 260-3: плашка «вы вошли» — сверху, своим контейнером, как просил владелец. */}
+            <Toaster id={SIGN_IN_TOASTER} position="top-center" richColors closeButton />
+            <SignInNotice strings={signInNoticeStrings(lang)} />
             {/* Сервис-воркер: офлайн для уже виденных страниц и мгновенное
                 повторное открытие. Стратегия — сеть первой для страниц, поэтому
                 устаревшая страница невозможна (см. public/sw.js). */}

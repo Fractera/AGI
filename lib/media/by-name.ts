@@ -1,3 +1,4 @@
+import { dataUrl as nodeDataUrl, isRemoteData } from "@/lib/microservices/urls"
 // Поиск картинки в хранилище ПО ИМЕНИ (шаг 506.3, требование владельца 2026-08-13).
 //
 // 🔒 ЗАЧЕМ ИМЯ, А НЕ ИДЕНТИФИКАТОР. Идентификатор записи рождается в момент
@@ -15,7 +16,7 @@
 
 import { unstable_cache } from "next/cache"
 
-const DATA_URL = process.env.REMOTE_DATA_URL ?? "http://localhost:3300"
+const DATA_URL = nodeDataUrl() ?? ""
 const DATA_SECRET = process.env.DATA_SECRET || process.env.DATA_API_KEY || ""
 
 export type MediaRow = {
