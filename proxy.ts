@@ -7,6 +7,7 @@ import { isShowcaseRequest } from "@/lib/showcase";
 import { getSession } from "@/lib/auth/get-session";
 import { authBaseFromHost, projectsBaseFromHost } from "@/lib/auth-base-server";
 import { authUrl as nodeAuthUrl } from "@/lib/microservices/urls";
+import { temporaryAddressPage } from "@/lib/auth/temporary-address.page";
 import {
   SUPPORTED_LANGUAGES,
   DEFAULT_LANGUAGE,
@@ -388,9 +389,27 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     // списком петлевых имён: третья копия того же знания разошлась бы молча.
     const proto = request.headers.get("x-forwarded-proto") ?? request.nextUrl.protocol.replace(":", "");
     const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-    // 🔒 ВРЕМЕННЫЙ ПУБЛИЧНЫЙ АДРЕС — ПО-ПРЕЖНЕМУ 404 (решение владельца 256-11).
+    // 🔒 ВРЕМЕННЫЙ ПУБЛИЧНЫЙ АДРЕС — ВХОДА НЕТ, НО ОТКАЗ ТЕПЕРЬ ГОВОРЯЩИЙ (257-8).
+    //
+    // Решение 256-11 (вход только на настоящем домене) остаётся в силе. Менялся
+    // не запрет, а его ФОРМА: слово владельца 2026-09-21 — «need warning
+    // notification for .trycloudflare.com for all actions».
+    //
+    // 🛑 ЧЕМ БЫЛ ПЛОХ ПУСТОЙ 404. Человек нажимал «Выйти» и получал страницу
+    // ошибки браузера без единого слова. Это читается как «сайт сломан», хотя
+    // сайт цел, — то есть отказ врал о причине. Отказ обязан называть причину и
+    // следующий шаг; отказ без адреса есть тупик.
+    //
+    // Код ответа остался 404: на этом адресе такой страницы действительно нет.
     if (isTemporaryPublicAddress(request)) {
-      return new NextResponse(null, { status: 404 });
+      const warnLangRaw = new URLSearchParams(request.nextUrl.search).get("lang")
+        ?? request.cookies.get(LOCALE_COOKIE)?.value
+        ?? DEFAULT_LANGUAGE;
+      const warnLang = SUPPORTED_LANGUAGES.includes(warnLangRaw) ? warnLangRaw : DEFAULT_LANGUAGE;
+      return new NextResponse(temporaryAddressPage(warnLang, `/${warnLang}`), {
+        status: 404,
+        headers: { "content-type": "text/html; charset=utf-8" },
+      });
     }
 
     // 🔒 ХОЗЯИН ЗА КЛАВИАТУРОЙ ПОЛУЧАЕТ НАСТОЯЩУЮ ДВЕРЬ, А НЕ 404 (257-8).
