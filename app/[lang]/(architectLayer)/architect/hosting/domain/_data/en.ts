@@ -45,6 +45,19 @@ export const en: WorkspacePageWords = {
       ],
     },
     {
+      anchor: 'no-domain',
+      tab: 'No domain yet',
+      title: 'If you do not want to buy a domain',
+      text:
+        'A domain is not the only way to get a permanent address, and the shortest free path is Tailscale Funnel. It gives a hostname that does not change — `device.tailnet.ts.net` — with HTTPS, needs no open ports and no public IP, and Tailscale states it is available on all plans including the free one. On this machine it is one command: `tailscale funnel 24680`, where the number is the node port shown on this page. The command prints the public address and proxies it to the node.',
+      points: [
+        'What it costs you: the name belongs to Tailscale, not to you. It is stable, so sign-in works — but you cannot take that name elsewhere. A domain of your own you can move to any provider.',
+        'Known limits, named by Tailscale: only ports 443, 8443 and 10000, non-configurable bandwidth limits, and the feature is in beta.',
+        'A free domain of your own does exist: eu.org registers subdomains at no charge. Whether they let you delegate nameservers to Cloudflare we could not confirm from their site — check before you rely on it.',
+        'GitHub does not help here, and this is worth saying plainly: GitHub Pages serves static files only, and the `<owner>.github.io` name belongs to GitHub. You bring your own domain to Pages, not the other way round — it cannot point at a node running on your machine.',
+      ],
+    },
+    {
       anchor: 'cost',
       tab: 'Cost',
       title: 'What it costs, honestly',
