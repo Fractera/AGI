@@ -1,7 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
-import { Check, ExternalLink, Lock, Play, Send, Square, TerminalSquare, TriangleAlert } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
+import { Check, ExternalLink, Lock, Send, TerminalSquare, TriangleAlert } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,7 +18,10 @@ import { CopyRow, Step, StepPoints } from "@/components/auth/setup-ladder.client
 // ожидание начиналось сразу, а запуск канала был ещё одной ступенью. Владелец: «здесь был процесс который
 // вызывал Telegram прямо в браузере и перебрасывал меня туда… почему ты проигнорировал».
 // 🔒 КАК В ПАМЯТИ: ссылка с меткой берётся у узла, как только ступень открылась; большая кнопка — это ссылка,
-// она перебрасывает в Telegram; после нажатия START узел впускает человека, здоровается и запускает канал сам.
+// она перебрасывает в Telegram; после нажатия START узел впускает человека и присылает сообщение о состоянии.
+// 🔒 РЕШЕНИЕ ВЛАДЕЛЬЦА 2026-09-22: бот работает в сессии терминала, запуск и остановка — только во вкладке
+// «Терминал». Ступень 4 лишь показывает состояние карточкой: жёлтая — терминал неактивен, зелёная — всё, что
+// человек пишет в Telegram, видно в терминале. Кнопок «Запустить/Остановить канал» здесь нет.
 // 🔒 Ступени — общий модуль узла (`setup-ladder.client.tsx`), как у экранов Google и Resend.
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
@@ -31,8 +34,8 @@ type State = {
   tail: string | null
   botUsername: string | null
   allowed: number
-  trusted: boolean
   running: boolean
+  terminalWithoutChannel: boolean
   suggestion: { name: string; username: string }
 }
 
@@ -53,7 +56,6 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
   const [activationUrl, setActivationUrl] = useState("")
   const [clicked, setClicked] = useState(false)
   const [justActivated, setJustActivated] = useState(false)
-  const stopPoll = useRef(false)
 
   const load = useCallback(async () => {
     try {
@@ -111,49 +113,32 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
 
   // Адреса разделов — от адреса, на котором открыта страница: на своём домене это публичная ссылка, которую
   // человек откроет с телефона.
-  const greetingText = useCallback(() => {
-    const base = `${window.location.origin}${BASE}/${lang}/architect/auth`
-    return words.greeting.replace("{subscription}", `${base}/claude-code`).replace("{terminal}", `${base}/terminal`)
-  }, [lang, words.greeting])
-
-  // Пока человек не нажал START — каждые 3 с спрашиваем «нажал ли». Нажал — впускаем и запускаем канал.
+  // Узел хранит тексты системного сообщения: он отвечает боту и тогда, когда эта страница закрыта.
   useEffect(() => {
-    if (!activationUrl || activated) return
-    stopPoll.current = false
-    const t = setInterval(async () => {
-      if (stopPoll.current) return
-      try {
-        const res = await fetch(DOOR, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ action: "check-activation", greeting: greetingText() }),
-        })
-        const d = (await res.json()) as { ok?: boolean; activated?: boolean; error?: string }
-        if (d.ok && d.activated) {
-          stopPoll.current = true
-          setJustActivated(true)
-          // Канал запускается сам — как в памяти. Не доверяет папке — запуск откажет словами, и
-          // ступень 4 покажет, что сделать.
-          await fetch(DOOR, {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ action: "start" }),
-          }).catch(() => null)
-          load()
-        } else if (!d.ok && d.error === "token-rejected") {
-          // Токен отозвали после сохранения — ждать нечего, молчать нельзя (урок памяти).
-          stopPoll.current = true
-          setError(words.errors["token-rejected"])
-        }
-      } catch {
-        /* следующая попытка через 3 с */
-      }
-    }, POLL_MS)
-    return () => {
-      stopPoll.current = true
-      clearInterval(t)
-    }
-  }, [activationUrl, activated, greetingText, words.errors, load])
+    if (!configured) return
+    const base = `${window.location.origin}${BASE}/${lang}/architect/auth`
+    const fill = (t: string) => t.replace("{subscription}", `${base}/claude-code`).replace("{terminal}", `${base}/terminal`)
+    void fetch(DOOR, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        action: "messages",
+        messages: { active: fill(words.msgActive), inactive: fill(words.msgInactive), noSubscription: fill(words.msgNoSubscription) },
+      }),
+    }).catch(() => null)
+  }, [configured, lang, words.msgActive, words.msgInactive, words.msgNoSubscription])
+
+  // Допуск делает узел сам; страница каждые 3 с спрашивает состояние — и нажатие START, и запуск или
+  // остановку терминала человек видит здесь без перезагрузки.
+  const wasActivated = activated
+  useEffect(() => {
+    if (!configured) return
+    const t = setInterval(() => void load(), POLL_MS)
+    return () => clearInterval(t)
+  }, [configured, load])
+  useEffect(() => {
+    if (clicked && wasActivated) setJustActivated(true)
+  }, [clicked, wasActivated])
 
   // Открывшаяся ступень прокручивается в поле зрения — иначе «ничего не происходит» (урок памяти).
   const stage = activated ? 4 : configured ? 3 : 0
@@ -167,12 +152,6 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
     // 🛑 Секрет живёт в поле ровно до отправки — в любом исходе.
     setToken("")
     if (r.ok) load()
-  }
-
-  const act = async (action: "start" | "stop") => {
-    const r = await post(action)
-    if ("running" in r) setState((prev) => (prev && prev !== "forbidden" ? { ...prev, ...(r as Partial<State>) } : prev))
-    else load()
   }
 
   if (state === "forbidden") return <p className="my-6 text-muted-foreground text-sm">{words.forbidden}</p>
@@ -275,49 +254,40 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
           <div className="flex flex-col gap-3">
             <p className="text-muted-foreground text-sm">{words.step4Text}</p>
 
-            {/* 🔒 БОТ — ИНСТРУМЕНТ CLAUDE CODE, А НЕ ОТДЕЛЬНАЯ СУЩНОСТЬ (слово владельца 2026-09-22), и путь к
-                агенту — одной кнопкой. */}
-            <div className="flex flex-col gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm" data-tg-tool-note>
-              <p>{words.toolNote}</p>
-              <div>
-                <a href={terminalHref} className={buttonVariants({ size: "sm", variant: "outline" })}>
-                  <TerminalSquare className="size-4" aria-hidden />
-                  {words.openTerminal}
-                </a>
+            {/* 🔒 СОСТОЯНИЕ — ОДНОЙ КАРТОЧКОЙ, КНОПКА ВЕДЁТ В ТЕРМИНАЛ (решение владельца 2026-09-22). */}
+            <div
+              className={
+                state.running
+                  ? "flex gap-2 rounded-md border border-tone-data/50 bg-tone-data/10 px-3 py-2 text-sm"
+                  : "flex gap-2 rounded-md border border-warning/50 bg-warning/10 px-3 py-2 text-sm"
+              }
+              data-tg-state={state.running ? "active" : "inactive"}
+              role="status"
+            >
+              {state.running ? (
+                <Check className="mt-0.5 size-4 shrink-0 text-tone-data" aria-hidden />
+              ) : (
+                <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
+              )}
+              <div className="flex flex-col gap-2">
+                <p>{state.running ? words.cardActive : state.terminalWithoutChannel ? words.cardWithoutChannel : words.cardInactive}</p>
+                <div>
+                  <a href={terminalHref} className={buttonVariants({ size: "sm", variant: "outline" })} data-open-terminal>
+                    <TerminalSquare className="size-4" aria-hidden />
+                    {words.openTerminal}
+                  </a>
+                </div>
               </div>
             </div>
 
-            {!state.trusted && (
-              <div className="flex gap-2 rounded-md border border-warning/50 bg-warning/10 px-3 py-2 text-sm" data-tg-untrusted>
-                <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
-                <span>{words.notTrusted}</span>
-              </div>
-            )}
-
-            <p className="flex items-center gap-2 text-sm" data-tg-state={state.running ? "running" : "stopped"}>
-              {state.running ? <Check className="size-4 text-primary" aria-hidden /> : <TriangleAlert className="size-4 text-muted-foreground" aria-hidden />}
-              {state.running ? words.running : words.sleeping}
-            </p>
-
-            <div className="flex flex-wrap gap-2">
-              {state.botUsername && (
+            {state.botUsername && (
+              <div>
                 <a href={`https://t.me/${state.botUsername}`} target="_blank" rel="noreferrer" className={buttonVariants({})} data-open-bot>
                   <Send className="size-4" aria-hidden />
                   {words.openChat} @{state.botUsername}
                 </a>
-              )}
-              {state.running ? (
-                <Button type="button" variant="outline" onClick={() => act("stop")} disabled={busy !== null}>
-                  {busy === "stop" ? <Spinner className="size-4" /> : <Square className="size-4" aria-hidden />}
-                  {words.stop}
-                </Button>
-              ) : (
-                <Button type="button" onClick={() => act("start")} disabled={busy !== null || !state.trusted}>
-                  {busy === "start" ? <Spinner className="size-4" /> : <Play className="size-4" aria-hidden />}
-                  {busy === "start" ? words.starting : words.start}
-                </Button>
-              )}
-            </div>
+              </div>
+            )}
 
             <Small className="text-muted-foreground" data-allowed>
               {words.allowedCount.replace("{n}", String(state.allowed))}

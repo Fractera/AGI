@@ -1,15 +1,18 @@
-// @api set up and run the Telegram channel to the node agent
+// @api set up the node agent Telegram bot and read its state
 import { NextRequest, NextResponse } from "next/server"
 
 import { requireRoles } from "@/lib/auth/require-roles"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
-import { activationLink, channelState, checkActivation, saveToken, start, stop } from "@/lib/channel/telegram.cjs"
+import { activationLink, channelState, saveMessages, saveToken } from "@/lib/channel/telegram.cjs"
 
-// КАНАЛ TELEGRAM АГЕНТА УЗЛА (267-3).
+// БОТ TELEGRAM АГЕНТА УЗЛА (267-3).
 //
 // 🔒 ТОКЕН НАРУЖУ НЕ ВОЗВРАЩАЕТСЯ НИКОГДА — только четыре последних знака, по ним человек узнаёт свой.
-// 🛑 ТЕ ЖЕ ЗАМКИ, ЧТО У ТЕРМИНАЛА: роль архитектора и отказ на временном адресе — это запуск агента на
-// машине человека, управляемого с телефона.
+// 🛑 ТЕ ЖЕ ЗАМКИ, ЧТО У ТЕРМИНАЛА: роль архитектора и отказ на временном адресе — это агент на машине
+// человека, управляемый с телефона.
+// 🔒 ЗАПУСКА И ОСТАНОВКИ ЗДЕСЬ НЕТ (решение владельца 2026-09-22): бот работает в сессии терминала, и её
+// запускают и останавливают только во вкладке «Терминал». Допуск по ссылке делает узел сам
+// (`startIdlePoller`), страница только спрашивает состояние.
 export const dynamic = "force-dynamic"
 
 const ROLES = ["architect", "admin"] as const
@@ -29,18 +32,14 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const denied = await guard(req)
   if (denied) return denied
-  const body = (await req.json().catch(() => null)) as { action?: string; token?: string; greeting?: string } | null
+  const body = (await req.json().catch(() => null)) as { action?: string; token?: string; messages?: unknown } | null
   switch (body?.action) {
     case "token":
       return NextResponse.json(await saveToken(body.token), noStore)
     case "activation-link":
       return NextResponse.json(activationLink(), noStore)
-    case "check-activation":
-      return NextResponse.json(await checkActivation(body.greeting), noStore)
-    case "start":
-      return NextResponse.json({ ...start(), ...channelState() }, noStore)
-    case "stop":
-      return NextResponse.json({ ...stop(), ...channelState() }, noStore)
+    case "messages":
+      return NextResponse.json(saveMessages(body.messages), noStore)
     default:
       return NextResponse.json({ ok: false, error: "unknown-action" }, { status: 400 })
   }

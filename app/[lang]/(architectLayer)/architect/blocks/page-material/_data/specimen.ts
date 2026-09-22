@@ -1284,8 +1284,8 @@ export const SPECIMEN: SpecimenSection[] = [
   },
   {
     kind: 'telegramChannel',
-    when: "A five-step ladder that connects a person's own Telegram bot to an agent on their own machine: create the bot, bring its token, allow yourself by a link, start the channel, talk. Everything belongs to the person — the bot, its token and its allow list — and nothing passes through a third party. Take it wherever an agent on this node must be reachable from a phone.",
-    whenRu: "Лестница из пяти ступеней, соединяющая собственного Telegram-бота человека с агентом на его собственной машине: создать бота, принести токен, допустить себя ссылкой, запустить канал, говорить. Всё принадлежит человеку — бот, токен и список допущенных, — и ничего не проходит через третьих лиц. Берут везде, где агент этого узла должен быть доступен с телефона.",
+    when: "A four-step ladder that connects a person's own Telegram bot to the Claude Code session of the node terminal: create the bot, bring its token, allow yourself by a link, then see whether the terminal is active — everything written in Telegram shows in that terminal. Everything belongs to the person — the bot, its token and its allow list — and nothing passes through a third party. Take it wherever an agent on this node must be reachable from a phone.",
+    whenRu: "Лестница из четырёх ступеней, соединяющая собственного Telegram-бота человека с сессией Claude Code терминала узла: создать бота, принести токен, допустить себя ссылкой и увидеть, активен ли терминал, — всё написанное в Telegram видно в этом терминале. Всё принадлежит человеку — бот, токен и список допущенных, — и ничего не проходит через третьих лиц. Берут везде, где агент этого узла должен быть доступен с телефона.",
     blocks: [
       {
         kind: 'telegramChannel',
