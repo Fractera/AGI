@@ -21,6 +21,22 @@ export type GithubWords = {
   connectHint: string
 
   bindingTitle: string
+  /** Заголовок второй записи: репозиторий, подключённый мастером (274-5). */
+  connectedTitle: string
+  /** Что означает эта запись и чем она отличается от первой. */
+  connectedLead: string
+  /** Мастер не проходили — записи нет. Законное состояние, а не отказ. */
+  connectedEmpty: string
+  /** Связь с GitHub проверена. */
+  connectedVerified: string
+  /** Связь ещё не проверена. */
+  connectedUnverified: string
+  /** Проект отправлен в этот репозиторий. */
+  connectedPushed: string
+  /** Отправки ещё не было. */
+  connectedNotPushed: string
+  /** Эта запись и запись выше называют РАЗНЫЕ адреса — сказать это прямо. */
+  connectedDiffers: string
   repoLabel: string
   branchLabel: string
   commitLabel: string
@@ -71,6 +87,15 @@ const DICT: Record<string, GithubWords> = {
     connectHint: "Four steps: the repository, the key, the check, the first push.",
 
     bindingTitle: "The repository of this node",
+    connectedTitle: "The repository you connected",
+    connectedLead:
+      "This one you entered yourself, in the four steps above. The card above measures git; this card remembers what you asked for. They may name different addresses, and that is worth knowing before you publish.",
+    connectedEmpty: "You have not connected a repository yet. The button above starts the four steps.",
+    connectedVerified: "GitHub answered: the repository and the key work.",
+    connectedUnverified: "Not checked yet.",
+    connectedPushed: "The project has been pushed here.",
+    connectedNotPushed: "Nothing has been pushed here yet.",
+    connectedDiffers: "This is not the address the node works with right now — the card above names another one.",
     repoLabel: "Repository",
     branchLabel: "Branch",
     commitLabel: "Last commit",
@@ -136,6 +161,15 @@ const DICT: Record<string, GithubWords> = {
     connectHint: "Четыре шага: репозиторий, ключ, проверка, первая отправка.",
 
     bindingTitle: "Репозиторий этого узла",
+    connectedTitle: "Репозиторий, который подключили вы",
+    connectedLead:
+      "Этот адрес вы ввели сами, в четырёх шагах выше. Карточка сверху измеряет git, эта — помнит, о чём вы попросили. Адреса могут не совпадать, и знать об этом стоит до публикации.",
+    connectedEmpty: "Репозиторий пока не подключён. Кнопка выше открывает четыре шага.",
+    connectedVerified: "GitHub ответил: репозиторий и ключ работают.",
+    connectedUnverified: "Связь ещё не проверяли.",
+    connectedPushed: "Проект сюда отправлен.",
+    connectedNotPushed: "Отправки сюда ещё не было.",
+    connectedDiffers: "Это не тот адрес, с которым узел работает сейчас, — сверху назван другой.",
     repoLabel: "Репозиторий",
     branchLabel: "Ветка",
     commitLabel: "Последний коммит",

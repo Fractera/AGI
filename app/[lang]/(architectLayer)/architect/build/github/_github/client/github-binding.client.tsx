@@ -42,7 +42,19 @@ type Access = {
   visibility?: string | null
 }
 
-type State = { binding: Binding; token: { configured: boolean; tail: string | null } }
+/**
+ * Репозиторий, подключённый мастером. `null` — мастер не проходили (274-5).
+ *
+ * 🔒 ОТДЕЛЬНО ОТ `binding`, ПОТОМУ ЧТО ЭТО ДРУГОЙ ФАКТ. `binding` измеряется у git и отвечает «с чем
+ * узел работает сейчас»; `connected` помнит, о чём попросил человек. Совпадают они не всегда.
+ */
+type Connected = { url: string; verified: boolean; pushed: boolean }
+
+type State = {
+  binding: Binding
+  token: { configured: boolean; tail: string | null }
+  connected: Connected | null
+}
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -66,7 +78,7 @@ export function GithubBinding({ lang, words }: { lang: string; words: GithubWord
       const res = await fetch(`${api}/state`, { cache: "no-store" })
       if (res.status === 401 || res.status === 403) return setState("forbidden")
       const body = (await res.json()) as { ok?: boolean } & State
-      setState({ binding: body.binding, token: body.token })
+      setState({ binding: body.binding, token: body.token, connected: body.connected ?? null })
     } catch {
       setError(words.errors.network)
     }
@@ -144,6 +156,44 @@ export function GithubBinding({ lang, words }: { lang: string; words: GithubWord
           )}
           <span>{stateWord}</span>
         </div>
+      </section>
+
+      {/* ── репозиторий, подключённый мастером ─────────────────────────────── */}
+      {/* 🔒 ВТОРАЯ ЗАПИСЬ СТОИТ РЯДОМ С ПЕРВОЙ, А НЕ ВМЕСТО НЕЁ (274-5): «с чем узел работает» и
+          «что подключил человек» — разные факты, и расхождение между ними человек обязан видеть. */}
+      <section
+        className="flex flex-col gap-2 rounded-lg border border-border px-4 py-3"
+        data-connected-repo={state.connected ? "yes" : "no"}
+      >
+        <H3 variant="ui">{words.connectedTitle}</H3>
+        <p className="text-muted-foreground text-sm">{words.connectedLead}</p>
+        {state.connected ? (
+          <>
+            <Row
+              label={words.repoLabel}
+              value={<span className="font-mono text-xs">{state.connected.url}</span>}
+            />
+            <Row
+              label={words.check}
+              value={state.connected.verified ? words.connectedVerified : words.connectedUnverified}
+            />
+            <Row
+              label={words.bindingTitle}
+              value={state.connected.pushed ? words.connectedPushed : words.connectedNotPushed}
+            />
+            {b.url && state.connected.url !== b.url && (
+              <div
+                className="mt-1 flex gap-2 rounded-md border border-warning/50 bg-warning/10 px-3 py-2 text-sm"
+                role="status"
+              >
+                <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
+                <span>{words.connectedDiffers}</span>
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="text-muted-foreground text-sm">{words.connectedEmpty}</p>
+        )}
       </section>
 
       {/* ── ключ ───────────────────────────────────────────────────────────── */}
