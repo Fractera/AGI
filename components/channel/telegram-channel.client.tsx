@@ -160,7 +160,12 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
       <p className="text-muted-foreground text-sm">{words.intro}</p>
 
       <Step n={1} title={words.step1Title}>
-        <p className="text-muted-foreground text-sm">{words.step1Text}</p>
+        <p className="text-muted-foreground text-sm">
+          {/* Команду человек набирает в Telegram дословно — поэтому она выделена фоном, как код (слово владельца: «/newbot need select with bg»). */}
+          {words.step1Text.split("{cmd}")[0]}
+          <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground text-xs">/newbot</code>
+          {words.step1Text.split("{cmd}")[1]}
+        </p>
         <StepPoints items={words.step1Points} />
         <CopyRow id="tg-name" label={words.nameLabel} value={state.suggestion.name} copy={words.copy} copied={words.copied} />
         <CopyRow id="tg-username" label={words.usernameLabel} value={state.suggestion.username} copy={words.copy} copied={words.copied} />

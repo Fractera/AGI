@@ -9,6 +9,7 @@ export type TelegramChannelWords = {
   intro: string
 
   step1Title: string
+  /** `{cmd}` — место команды /newbot: её рисует островок с фоном, как команду (267-3, правка владельца) */
   step1Text: string
   step1Points: string[]
   openBotFather: string
@@ -63,7 +64,7 @@ const DICT: Record<string, TelegramChannelWords> = {
       "You write to your own bot in Telegram, and Claude Code answers from the folder of your sign-in service on this computer. The bot, its token and its list of allowed people are yours — nothing passes through Fractera.",
 
     step1Title: "Create a bot at @BotFather",
-    step1Text: "BotFather is Telegram's own bot for making bots. Open it, send /newbot and answer its two questions.",
+    step1Text: "BotFather is Telegram's own bot for making bots. Open it, send {cmd} and answer its two questions.",
     step1Points: [
       "First it asks for a name — what people see in the chat header.",
       "Then a username — the address of the bot; it must end with «bot».",
@@ -139,7 +140,7 @@ const DICT: Record<string, TelegramChannelWords> = {
       "Вы пишете своему боту в Telegram, а отвечает Claude Code из папки вашей службы входа на этом компьютере. Бот, его токен и список допущенных — ваши; через Fractera не проходит ничего.",
 
     step1Title: "Создайте бота у @BotFather",
-    step1Text: "BotFather — собственный бот Telegram для создания ботов. Откройте его, отправьте /newbot и ответьте на два вопроса.",
+    step1Text: "BotFather — собственный бот Telegram для создания ботов. Откройте его, отправьте {cmd} и ответьте на два вопроса.",
     step1Points: [
       "Сначала он спросит имя — его видят в заголовке чата.",
       "Затем имя пользователя — адрес бота; оно обязано оканчиваться на «bot».",
