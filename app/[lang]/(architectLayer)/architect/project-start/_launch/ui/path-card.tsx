@@ -77,7 +77,7 @@ export function PathCard({
           {bullets.map((b) => (
             <li key={b} className="flex gap-2.5">
               <span aria-hidden className={`mt-2 h-1.5 w-1.5 shrink-0 rounded-full ${accent} bg-current`} />
-              <Small className="text-foreground/80">{b}</Small>
+              <Small className="text-muted-foreground">{b}</Small>
             </li>
           ))}
         </ul>
