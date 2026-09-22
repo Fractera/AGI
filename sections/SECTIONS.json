@@ -1524,6 +1524,20 @@
       "description": null,
       "hasCard": false,
       "usedOn": []
+    },
+    {
+      "id": null,
+      "codes": [
+        "agentTerminal01"
+      ],
+      "kind": "agentTerminal",
+      "type": "page-material",
+      "shape": "text",
+      "fields": "words: import('@/components/terminal/agent-terminal.i18n').AgentTerminalWords",
+      "title": null,
+      "description": null,
+      "hasCard": false,
+      "usedOn": []
     }
   ]
 }

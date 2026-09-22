@@ -120,6 +120,8 @@ export type LeafBlock =
   | { kind: 'authGoogleSetup'; words: import('@/components/auth/google-setup.i18n').GoogleSetupWords }
   // Экран включения входа письмом (Resend): аккаунт, домен, ключ, отправитель, состояние.
   | { kind: 'authResendSetup'; words: import('@/components/auth/resend-setup.i18n').ResendSetupWords }
+  // Терминал агента узла (267-1): спит до запуска, живёт при уходе, папку агента спрашивает у узла.
+  | { kind: 'agentTerminal'; words: import('@/components/terminal/agent-terminal.i18n').AgentTerminalWords }
   | { kind: 'servicePort'; serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords }
   | { kind: 'note'; text: string }
   // Founder pull-quote in the homepage testimonial design (gradient-violet text +

@@ -11,6 +11,7 @@ const { createServer } = require('node:http')
 const { execFileSync } = require('node:child_process')
 const next = require('next')
 const { pickPort, writeRuntime } = require('./lib/server-port.cjs')
+const { attachTerminal } = require('./lib/terminal/bridge.cjs')
 
 // ── Хэш коммита. Он нужен не для красоты: без него нельзя отличить «сайт
 // работает» от «работает ИМЕННО та сборка, которую я только что поставил».
@@ -58,9 +59,15 @@ async function main() {
 
   await app.prepare()
 
-  createServer((req, res) => {
+  const server = createServer((req, res) => {
     handle(req, res)
-  }).listen(port, hostname, () => {
+  })
+
+  // Мост терминала (267-1): сокет `/pty` принимается здесь, до Next. Устройство и
+  // оплаченные ловушки — в самом модуле.
+  attachTerminal(server, app)
+
+  server.listen(port, hostname, () => {
     // Номер порта уходит в файл — его читают сторож здоровья и команда
     // «статус». Они обязаны спрашивать сервер, а не повторять предположение.
     writeRuntime({

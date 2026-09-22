@@ -3,6 +3,7 @@ import { domainLadderWords } from '@/components/domain/domain-ladder.i18n'
 import { servicePortWords } from '@/components/services/service-port.i18n'
 import { googleSetupWords } from '@/components/auth/google-setup.i18n'
 import { resendSetupWords } from '@/components/auth/resend-setup.i18n'
+import { agentTerminalWords } from '@/components/terminal/agent-terminal.i18n'
 
 // ОБРАЗЦЫ ВСЕХ ВИДОВ СЕКЦИЙ — по одному на каждый вид каталога.
 //
@@ -1254,6 +1255,17 @@ export const SPECIMEN: SpecimenSection[] = [
       {
         kind: 'authResendSetup',
         words: resendSetupWords('en'),
+      },
+    ],
+  },
+  {
+    kind: 'agentTerminal',
+    when: "A live command line on the owner's own machine with an agent already started in a named folder. It sleeps until the button, survives leaving the page and stops on its own button. Take it wherever a person must talk to an agent that works on this node: the folder is the agent's identity, so the screen names it before anything starts.",
+    whenRu: "Живая командная строка на машине хозяина с агентом, запущенным в названной папке. Спит до кнопки, переживает уход со страницы и останавливается своей кнопкой. Берут везде, где человеку надо говорить с агентом, работающим на этом узле: папка — личность агента, поэтому экран называет её до запуска.",
+    blocks: [
+      {
+        kind: 'agentTerminal',
+        words: agentTerminalWords('en'),
       },
     ],
   },
