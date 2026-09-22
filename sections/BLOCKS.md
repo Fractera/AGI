@@ -88,9 +88,9 @@
 | `servicePort01` | `servicePort` | Page material | — | serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords | — |
 | `authGoogleSetup01` | `authGoogleSetup` | Page material | — | words: import('@/components/auth/google-setup.i18n').GoogleSetupWords | — |
 | `authResendSetup01` | `authResendSetup` | Page material | — | words: import('@/components/auth/resend-setup.i18n').ResendSetupWords | — |
-| `agentTerminal01` | `agentTerminal` | Page material | — | words: import('@/components/terminal/agent-terminal.i18n').AgentTerminalWords | — |
+| `agentTerminal01` | `agentTerminal` | Page material | — | service: string; words: import('@/components/terminal/agent-terminal.i18n').AgentTerminalWords | — |
 | `claudeSubscription01` | `claudeSubscription` | Page material | — | words: import('@/components/terminal/claude-subscription.i18n').ClaudeSubscriptionWords | — |
-| `telegramChannel01` | `telegramChannel` | Page material | — | lang: string; words: import('@/components/channel/telegram-channel.i18n').TelegramChannelWords | — |
+| `telegramChannel01` | `telegramChannel` | Page material | — | service: string; lang: string; words: import('@/components/channel/telegram-channel.i18n').TelegramChannelWords | — |
 
 ## Чего в этой таблице нет
 
