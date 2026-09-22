@@ -1267,6 +1267,7 @@ export const SPECIMEN: SpecimenSection[] = [
     blocks: [
       {
         kind: 'agentTerminal',
+        service: 'auth',
         words: agentTerminalWords('en'),
       },
     ],
@@ -1289,6 +1290,7 @@ export const SPECIMEN: SpecimenSection[] = [
     blocks: [
       {
         kind: 'telegramChannel',
+        service: 'auth',
         lang: 'en',
         words: telegramChannelWords('en'),
       },

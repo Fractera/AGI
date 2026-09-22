@@ -1,10 +1,8 @@
 import type { Block } from '@/lib/content/blocks/types'
-import { telegramChannelWords } from '@/components/channel/telegram-channel.i18n'
+import { agentKitContent } from '@/lib/agent-kit/content'
 
-// СОДЕРЖИМОЕ СТРАНИЦЫ «Telegram bot» (267-3).
-//
-// 🔒 ЗДЕСЬ ЖИВЁТ РАБОТАЮЩАЯ ЧАСТЬ, А В `_data` — СЛОВА. Язык выбирается здесь, на
-// сервере, и в блок уходит один набор строк — иначе словарь уехал бы в браузер целиком.
+// СОДЕРЖИМОЕ СТРАНИЦЫ — ИЗ КОМПЛЕКТА АГЕНТА СЛУЖБЫ (269, `lib/agent-kit/content.ts`).
+// Здесь только имя страницы и имя службы; всё остальное — в комплекте, одно на все службы.
 export function content(lang: string): Block[] {
-  return [{ kind: 'telegramChannel', lang, words: telegramChannelWords(lang) }]
+  return agentKitContent('telegram', 'auth', lang)
 }

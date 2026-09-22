@@ -65,7 +65,7 @@ const DICT: Record<string, TelegramChannelWords> = {
     loading: "Asking the node…",
     forbidden: "Only the architect can set up the bot, and only from this computer or your own domain.",
     intro:
-      "You write to your own bot in Telegram, and Claude Code answers from the folder of your sign-in service on this computer. The bot, its token and its list of allowed people are yours — nothing passes through Fractera.",
+      "You write to your own bot in Telegram, and Claude Code answers from the folder of this service on this computer. The bot, its token and its list of allowed people are yours — nothing passes through Fractera.",
 
     step1Title: "Create a bot at @BotFather",
     step1Text: "BotFather is Telegram's own bot for making bots. Open it, send {cmd} and answer its two questions.",
@@ -135,7 +135,7 @@ const DICT: Record<string, TelegramChannelWords> = {
     loading: "Спрашиваю узел…",
     forbidden: "Настраивать бота может только архитектор и только с этого компьютера или со своего домена.",
     intro:
-      "Вы пишете своему боту в Telegram, а отвечает Claude Code из папки вашей службы входа на этом компьютере. Бот, его токен и список допущенных — ваши; через Fractera не проходит ничего.",
+      "Вы пишете своему боту в Telegram, а отвечает Claude Code из папки этой службы на этом компьютере. Бот, его токен и список допущенных — ваши; через Fractera не проходит ничего.",
 
     step1Title: "Создайте бота у @BotFather",
     step1Text: "BotFather — собственный бот Telegram для создания ботов. Откройте его, отправьте {cmd} и ответьте на два вопроса.",

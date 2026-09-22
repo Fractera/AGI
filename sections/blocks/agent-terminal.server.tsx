@@ -9,5 +9,5 @@ import { AgentTerminal } from '@/components/terminal/agent-terminal.client'
 //
 // 🔒 СЛОВА ПРИХОДЯТ В БЛОКЕ: рисовальщик серверный, словарь остаётся на сервере.
 export const agentTerminal: SectionRenderer<'agentTerminal'> = (b, { key: k }) => (
-  <AgentTerminal key={k} words={b.words} />
+  <AgentTerminal key={k} service={b.service} words={b.words} />
 )

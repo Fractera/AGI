@@ -58,7 +58,8 @@
     "check:microservices": "node scripts/check-microservices.mjs",
     "services:install": "node scripts/services-install.mjs",
     "check:lang-delivery": "node scripts/check-lang-delivery.mjs",
-    "check:case": "node scripts/check-case.mjs"
+    "check:case": "node scripts/check-case.mjs",
+    "agent-kit:add": "node scripts/agent-kit-add.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.55",

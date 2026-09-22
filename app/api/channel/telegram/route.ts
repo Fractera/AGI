@@ -1,9 +1,9 @@
-// @api set up the node agent Telegram bot and read its state
+// @api set up one service agent Telegram bot and read its state
 import { NextRequest, NextResponse } from "next/server"
 
 import { requireRoles } from "@/lib/auth/require-roles"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
-import { activationLink, channelState, saveMessages, saveToken } from "@/lib/channel/telegram.cjs"
+import { activationLink, channelState, isService, saveMessages, saveToken } from "@/lib/channel/telegram.cjs"
 
 // БОТ TELEGRAM АГЕНТА УЗЛА (267-3).
 //
@@ -13,6 +13,7 @@ import { activationLink, channelState, saveMessages, saveToken } from "@/lib/cha
 // 🔒 ЗАПУСКА И ОСТАНОВКИ ЗДЕСЬ НЕТ (решение владельца 2026-09-22): бот работает в сессии терминала, и её
 // запускают и останавливают только во вкладке «Терминал». Допуск по ссылке делает узел сам
 // (`startIdlePoller`), страница только спрашивает состояние.
+// 🔒 СЛУЖБА — `?service=<id>` (269): у каждой службы свой бот; имени нет в реестре или на диске — 404.
 export const dynamic = "force-dynamic"
 
 const ROLES = ["architect", "admin"] as const
@@ -23,23 +24,29 @@ async function guard(req: NextRequest) {
   return requireRoles(req, ROLES)
 }
 
+const unknown = () => NextResponse.json({ ok: false, error: "unknown-service" }, { status: 404 })
+
 export async function GET(req: NextRequest) {
   const denied = await guard(req)
   if (denied) return denied
-  return NextResponse.json({ ok: true, ...channelState() }, noStore)
+  const service = req.nextUrl.searchParams.get("service") ?? ""
+  if (!isService(service)) return unknown()
+  return NextResponse.json({ ok: true, ...channelState(service) }, noStore)
 }
 
 export async function POST(req: NextRequest) {
   const denied = await guard(req)
   if (denied) return denied
+  const service = req.nextUrl.searchParams.get("service") ?? ""
+  if (!isService(service)) return unknown()
   const body = (await req.json().catch(() => null)) as { action?: string; token?: string; messages?: unknown } | null
   switch (body?.action) {
     case "token":
-      return NextResponse.json(await saveToken(body.token), noStore)
+      return NextResponse.json(await saveToken(service, body.token), noStore)
     case "activation-link":
-      return NextResponse.json(activationLink(), noStore)
+      return NextResponse.json(activationLink(service), noStore)
     case "messages":
-      return NextResponse.json(saveMessages(body.messages), noStore)
+      return NextResponse.json(saveMessages(service, body.messages), noStore)
     default:
       return NextResponse.json({ ok: false, error: "unknown-action" }, { status: 400 })
   }

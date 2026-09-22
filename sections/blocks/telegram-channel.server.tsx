@@ -6,5 +6,5 @@ import { TelegramChannel } from '@/components/channel/telegram-channel.client'
 // 🔒 ВИД БЛОКА, А НЕ ПРАВКА СТРАНИЦЫ — как `agentTerminal`. Язык едет в блоке: островок
 // строит ссылку на раздел «Терминал» того же языка.
 export const telegramChannel: SectionRenderer<'telegramChannel'> = (b, { key: k }) => (
-  <TelegramChannel key={k} lang={b.lang} words={b.words} />
+  <TelegramChannel key={k} service={b.service} lang={b.lang} words={b.words} />
 )

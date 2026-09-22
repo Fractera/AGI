@@ -48,7 +48,8 @@ function Locked({ text }: { text: string }) {
   )
 }
 
-export function TelegramChannel({ lang, words }: { lang: string; words: TelegramChannelWords }) {
+export function TelegramChannel({ service, lang, words }: { service: string; lang: string; words: TelegramChannelWords }) {
+  const door = `${DOOR}?service=${encodeURIComponent(service)}`
   const [state, setState] = useState<State | null | "forbidden">(null)
   const [token, setToken] = useState("")
   const [busy, setBusy] = useState<string | null>(null)
@@ -59,7 +60,7 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(DOOR, { cache: "no-store" })
+      const res = await fetch(door, { cache: "no-store" })
       if (res.status === 401 || res.status === 403) return setState("forbidden")
       setState((await res.json()) as State)
     } catch {
@@ -76,7 +77,7 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
       setBusy(action)
       setError(null)
       try {
-        const res = await fetch(DOOR, {
+        const res = await fetch(door, {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ action, ...extra }),
@@ -101,7 +102,7 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
   useEffect(() => {
     if (!configured || activated || activationUrl) return
     void (async () => {
-      const r = await fetch(DOOR, {
+      const r = await fetch(door, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ action: "activation-link" }),
@@ -116,9 +117,9 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
   // Узел хранит тексты системного сообщения: он отвечает боту и тогда, когда эта страница закрыта.
   useEffect(() => {
     if (!configured) return
-    const base = `${window.location.origin}${BASE}/${lang}/architect/auth`
+    const base = `${window.location.origin}${BASE}/${lang}/architect/${service}`
     const fill = (t: string) => t.replace("{subscription}", `${base}/claude-code`).replace("{terminal}", `${base}/terminal`)
-    void fetch(DOOR, {
+    void fetch(door, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -126,7 +127,7 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
         messages: { active: fill(words.msgActive), inactive: fill(words.msgInactive), noSubscription: fill(words.msgNoSubscription) },
       }),
     }).catch(() => null)
-  }, [configured, lang, words.msgActive, words.msgInactive, words.msgNoSubscription])
+  }, [configured, door, service, lang, words.msgActive, words.msgInactive, words.msgNoSubscription])
 
   // Допуск делает узел сам; страница каждые 3 с спрашивает состояние — и нажатие START, и запуск или
   // остановку терминала человек видит здесь без перезагрузки.
@@ -157,7 +158,7 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
   if (state === "forbidden") return <p className="my-6 text-muted-foreground text-sm">{words.forbidden}</p>
   if (state === null) return <p className="my-6 text-muted-foreground text-sm">{words.loading}</p>
 
-  const terminalHref = `/${lang}/architect/auth/terminal`
+  const terminalHref = `/${lang}/architect/${service}/terminal`
 
   return (
     <div className="my-6 flex flex-col gap-3" data-telegram-channel data-running={state.running ? "1" : "0"}>

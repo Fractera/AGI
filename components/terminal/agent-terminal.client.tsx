@@ -21,7 +21,8 @@ const SESSION = `${BASE}/api/terminal/session`
 
 type State = "checking" | "sleeping" | "connecting" | "running" | "stopped" | "offline" | "forbidden"
 
-export function AgentTerminal({ words }: { words: AgentTerminalWords }) {
+export function AgentTerminal({ service, words }: { service: string; words: AgentTerminalWords }) {
+  const sessionUrl = `${SESSION}?service=${encodeURIComponent(service)}`
   const [state, setState] = useState<State>("checking")
   const [note, setNote] = useState("")
   const [folder, setFolder] = useState<string | null | undefined>(undefined)
@@ -61,7 +62,7 @@ export function AgentTerminal({ words }: { words: AgentTerminalWords }) {
       ws.onopen = () => {
         // 🛑 `init` ПЕРВЫМ ДЕЙСТВИЕМ: любое исключение до него съело бы его целиком, и мост закрыл бы
         // молчащее соединение — человек увидел бы чёрный экран (оплачено у чата, 157-3).
-        ws.send(JSON.stringify({ mode: "agent", start: wantStart, ticket, type: "init" }))
+        ws.send(JSON.stringify({ mode: "agent", service, start: wantStart, ticket, type: "init" }))
         ws.send(JSON.stringify({ type: "resize", ...sizeRef.current }))
         mouseRef.current = createMouseFilter()
         setState("running")
@@ -90,14 +91,14 @@ export function AgentTerminal({ words }: { words: AgentTerminalWords }) {
         }
       }
     },
-    [words.exited, words.noFolder, words.offline, words.stopped],
+    [service, words.exited, words.noFolder, words.offline, words.stopped],
   )
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       try {
-        const res = await fetch(SESSION, { cache: "no-store" })
+        const res = await fetch(sessionUrl, { cache: "no-store" })
         if (cancelled) return
         if (res.status === 401 || res.status === 403) {
           setState("forbidden")
@@ -118,12 +119,12 @@ export function AgentTerminal({ words }: { words: AgentTerminalWords }) {
       quietCloseRef.current = true
       wsRef.current?.close()
     }
-  }, [connect])
+  }, [connect, sessionUrl])
 
   const handleStop = useCallback(async () => {
     quietCloseRef.current = true
     try {
-      await fetch(SESSION, {
+      await fetch(sessionUrl, {
         body: JSON.stringify({ action: "stop" }),
         headers: { "Content-Type": "application/json" },
         method: "POST",

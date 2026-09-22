@@ -121,11 +121,11 @@ export type LeafBlock =
   // Экран включения входа письмом (Resend): аккаунт, домен, ключ, отправитель, состояние.
   | { kind: 'authResendSetup'; words: import('@/components/auth/resend-setup.i18n').ResendSetupWords }
   // Терминал агента узла (267-1): спит до запуска, живёт при уходе, папку агента спрашивает у узла.
-  | { kind: 'agentTerminal'; words: import('@/components/terminal/agent-terminal.i18n').AgentTerminalWords }
+  | { kind: 'agentTerminal'; service: string; words: import('@/components/terminal/agent-terminal.i18n').AgentTerminalWords }
   // Подписка Claude Code (267-2): состояние входа у самого `claude`, вход ссылкой и кодом.
   | { kind: 'claudeSubscription'; words: import('@/components/terminal/claude-subscription.i18n').ClaudeSubscriptionWords }
-  // Канал Telegram → Claude Code (267-3): бот, токен, допуск ссылкой, житель pm2.
-  | { kind: 'telegramChannel'; lang: string; words: import('@/components/channel/telegram-channel.i18n').TelegramChannelWords }
+  // Канал Telegram → Claude Code (267-3): бот службы работает в сессии её терминала; служба — параметр (269).
+  | { kind: 'telegramChannel'; service: string; lang: string; words: import('@/components/channel/telegram-channel.i18n').TelegramChannelWords }
   | { kind: 'servicePort'; serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords }
   | { kind: 'note'; text: string }
   // Founder pull-quote in the homepage testimonial design (gradient-violet text +

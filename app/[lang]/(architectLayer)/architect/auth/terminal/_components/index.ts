@@ -1,11 +1,8 @@
 import type { Block } from '@/lib/content/blocks/types'
-import { agentTerminalWords } from '@/components/terminal/agent-terminal.i18n'
+import { agentKitContent } from '@/lib/agent-kit/content'
 
-// СОДЕРЖИМОЕ СТРАНИЦЫ «Terminal» (267-1).
-//
-// 🔒 ЗДЕСЬ ЖИВЁТ РАБОТАЮЩАЯ ЧАСТЬ, А В `_data` — СЛОВА. Терминал — переиспользуемая
-// часть со своим словарём рядом с собой; язык выбирается здесь, на сервере, и в блок
-// уходит один набор строк — иначе словарь уехал бы в браузер целиком.
+// СОДЕРЖИМОЕ СТРАНИЦЫ — ИЗ КОМПЛЕКТА АГЕНТА СЛУЖБЫ (269, `lib/agent-kit/content.ts`).
+// Здесь только имя страницы и имя службы; всё остальное — в комплекте, одно на все службы.
 export function content(lang: string): Block[] {
-  return [{ kind: 'agentTerminal', words: agentTerminalWords(lang) }]
+  return agentKitContent('terminal', 'auth', lang)
 }

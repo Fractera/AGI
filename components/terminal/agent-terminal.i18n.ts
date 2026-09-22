@@ -29,11 +29,11 @@ export type AgentTerminalWords = {
 const DICT: Record<string, AgentTerminalWords> = {
   en: {
     folderLabel: "The agent starts in:",
-    noFolder: "The sign-in service is not installed on this node, so the agent has no folder to live in.",
+    noFolder: "This service is not installed on this node, so the agent has no folder to live in.",
     firstRun: "First start: Claude Code asks whether you trust this folder, and «No, exit» is selected by default. Press ↓ to choose «Yes, I trust this folder», then Enter.",
     warnTitle: "This is a real command line of this computer",
     warnBody:
-      "Claude Code here works inside the folder of your sign-in service and can change its files. A broken sign-in locks everyone out — including you on the public address.",
+      "Claude Code here works inside the folder of this service and can change its files. A service broken here stays broken for everyone who uses it — including you on the public address.",
     warnPoints: [
       "Your way back: run the node in development mode on this computer — sign-in is lifted there — and return to the last working state.",
       "Rebuilding or restarting the node ends this session; the agent starts again from the button.",
@@ -54,11 +54,11 @@ const DICT: Record<string, AgentTerminalWords> = {
   },
   ru: {
     folderLabel: "Агент запускается в папке:",
-    noFolder: "На этом узле нет службы входа, и агенту негде жить.",
+    noFolder: "На этом узле нет этой службы, и агенту негде жить.",
     firstRun: "Первый запуск: Claude Code спросит, доверяете ли вы этой папке, и по умолчанию выбрано «No, exit». Нажмите ↓, чтобы выбрать «Yes, I trust this folder», затем Enter.",
     warnTitle: "Это настоящая командная строка этого компьютера",
     warnBody:
-      "Claude Code здесь работает в папке вашей службы входа и может менять её файлы. Сломанный вход закрывает дверь всем — и вам на публичном адресе тоже.",
+      "Claude Code здесь работает в папке этой службы и может менять её файлы. Сломанная здесь служба сломана для всех, кто ею пользуется, — и для вас на публичном адресе тоже.",
     warnPoints: [
       "Путь назад: запустите узел в режиме разработки на этом компьютере — там вход снят — и вернитесь к последнему рабочему состоянию.",
       "Пересборка или перезапуск узла завершает эту сессию; агент запускается заново кнопкой.",
