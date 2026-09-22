@@ -171,6 +171,8 @@ export function AgentTerminal({ words }: { words: AgentTerminalWords }) {
         )}
       </p>
 
+      <p className="text-muted-foreground text-xs" data-agent-first-run>{words.firstRun}</p>
+
       {/* 🛑 ПРЕДУПРЕЖДЕНИЕ — ДО ТЕРМИНАЛА И СВЁРНУТЫМ, как в мастерской памяти: заголовок виден всегда,
           текст по раскрытию. `<details>` браузера — без лишнего островка. */}
       <details className="group rounded-lg border border-destructive/50 bg-destructive/5" data-agent-warning>

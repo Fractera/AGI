@@ -7,6 +7,8 @@
 export type AgentTerminalWords = {
   folderLabel: string
   noFolder: string
+  /** подсказка первого запуска: выбор по умолчанию в вопросе о доверии — «No, exit» (владелец нажал Enter и вышел) */
+  firstRun: string
   warnTitle: string
   warnBody: string
   warnPoints: string[]
@@ -28,6 +30,7 @@ const DICT: Record<string, AgentTerminalWords> = {
   en: {
     folderLabel: "The agent starts in:",
     noFolder: "The sign-in service is not installed on this node, so the agent has no folder to live in.",
+    firstRun: "First start: Claude Code asks whether you trust this folder, and «No, exit» is selected by default. Press ↓ to choose «Yes, I trust this folder», then Enter.",
     warnTitle: "This is a real command line of this computer",
     warnBody:
       "Claude Code here works inside the folder of your sign-in service and can change its files. A broken sign-in locks everyone out — including you on the public address.",
@@ -52,6 +55,7 @@ const DICT: Record<string, AgentTerminalWords> = {
   ru: {
     folderLabel: "Агент запускается в папке:",
     noFolder: "На этом узле нет службы входа, и агенту негде жить.",
+    firstRun: "Первый запуск: Claude Code спросит, доверяете ли вы этой папке, и по умолчанию выбрано «No, exit». Нажмите ↓, чтобы выбрать «Yes, I trust this folder», затем Enter.",
     warnTitle: "Это настоящая командная строка этого компьютера",
     warnBody:
       "Claude Code здесь работает в папке вашей службы входа и может менять её файлы. Сломанный вход закрывает дверь всем — и вам на публичном адресе тоже.",

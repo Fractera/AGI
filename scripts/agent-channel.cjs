@@ -15,14 +15,13 @@
 // пишет `online` (закон проекта). Диагностика этого класса — по экрану, поэтому он виден всегда:
 // `logs/<житель>.screen.txt`.
 
-const { existsSync, mkdirSync, writeFileSync } = require('node:fs')
-const os = require('node:os')
+const { mkdirSync, writeFileSync } = require('node:fs')
 const path = require('node:path')
 const pty = require('node-pty')
 const { agentDir } = require('../lib/terminal/workspace.cjs')
 const { PLUGIN, residentName, stateDir, storedToken, cleanEnv, folderTrusted } = require('../lib/channel/telegram.cjs')
+const { extraBins, resolveBin } = require('../lib/terminal/claude-cli.cjs')
 
-const isWindows = process.platform === 'win32'
 const SCREEN_BYTES = 64 * 1024
 const START =
   'This session is reached from Telegram. Answer the person in their language, briefly. ' +
@@ -34,23 +33,8 @@ function fail(why) {
   process.exit(1)
 }
 
-/**
- * Найти исполняемый файл в PATH без оболочки. На Windows — с расширениями из PATHEXT; `claude` из
- * установщика Anthropic лежит в `~/.local/bin`, `bun` — в `~/.bun/bin`, и обе папки добавляются явно:
- * pm2 живёт с окружением, снятым до установки, и нового PATH не видит.
- */
-function extraBins() {
-  return [path.join(os.homedir(), '.local', 'bin'), path.join(os.homedir(), '.bun', 'bin')]
-}
-function which(name, dirs) {
-  const exts = isWindows ? (process.env.PATHEXT || '.EXE;.CMD').split(';').map((e) => e.toLowerCase()) : ['']
-  for (const d of dirs) for (const e of exts) {
-    const p = path.join(d, name + e)
-    if (existsSync(p)) return p
-  }
-  return null
-}
-
+// Поиск `claude` и `bun` без оболочки — общий с терминалом (`lib/terminal/claude-cli.cjs`): две копии
+// одного знания разошлись бы молча.
 const cwd = agentDir()
 if (!cwd) fail('папки агента нет: службы входа нет в реестре узла или на диске')
 if (!storedToken()) fail(`токена нет (${path.join(stateDir(), '.env')}) — сохраните его на странице`)
@@ -63,8 +47,8 @@ env[pathKey] = dirs.join(path.delimiter)
 env.TELEGRAM_STATE_DIR = stateDir()
 env.TERM = 'xterm-256color'
 
-if (!which('bun', dirs)) fail('bun не найден — сервер плагина Telegram запускается им (`.mcp.json` плагина)')
-const claude = which('claude', dirs)
+if (!resolveBin('bun', env[pathKey])) fail('bun не найден — сервер плагина Telegram запускается им (`.mcp.json` плагина)')
+const claude = resolveBin('claude', env[pathKey])
 if (!claude) fail('claude не найден в PATH и в ~/.local/bin')
 
 const screenFile = path.join(process.cwd(), 'logs', `${residentName()}.screen.txt`)
