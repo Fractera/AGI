@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Check, CircleAlert, Copy, ExternalLink, KeyRound, RotateCw, X } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { AppDialog } from "@/components/dialog/app-dialog.client"
 import { Input } from "@/components/ui/input"
 import type { ClaudeSubscriptionWords } from "@/components/terminal/claude-subscription.i18n"
 import { createMouseFilter, MOUSE_OFF } from "@/components/terminal/mouse-filter.mjs"
@@ -233,16 +233,34 @@ function AuthModal({
     setTimeout(onClose, 1200)
   }
 
+  // 🔒 ОКНО ПРОДУКТА ОДНО — `AppDialog` (сторож `check:dialogs`): у примитива нет предела высоты и
+  // прокручиваемого тела, и длинная ссылка вытолкнула бы поле кода за край экрана.
   return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="flex max-h-[80vh] flex-col sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-left">
-            <KeyRound className="size-4 shrink-0" aria-hidden />
-            {words.modalTitle}
-          </DialogTitle>
-          <DialogDescription className="text-left">{words.modalText}</DialogDescription>
-        </DialogHeader>
+    <AppDialog
+      open
+      onOpenChange={(o) => !o && onClose()}
+      size="md"
+      ui={{ close: words.close }}
+      titleClassName="flex items-center gap-2"
+      title={<><KeyRound className="size-4 shrink-0" aria-hidden /> {words.modalTitle}</>}
+      description={words.modalText}
+      footer={
+        <div className="flex w-full flex-col gap-2">
+          <Input
+            autoComplete="off"
+            disabled={sent}
+            value={code}
+            placeholder={words.codePlaceholder}
+            onChange={(e) => setCode(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && submit()}
+          />
+          <Button type="button" className="w-full" disabled={sent || !code.trim()} onClick={submit}>
+            {sent ? words.codeSent : words.sendCode}
+          </Button>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-3">
         <div className="max-h-[110px] select-text overflow-y-auto break-all rounded-lg border border-border bg-muted/50 px-3 py-2 font-mono text-xs">
           {url}
         </div>
@@ -270,20 +288,7 @@ function AuthModal({
             {words.openLink}
           </a>
         </div>
-        <DialogFooter className="flex-col gap-2 sm:flex-col">
-          <Input
-            autoComplete="off"
-            disabled={sent}
-            value={code}
-            placeholder={words.codePlaceholder}
-            onChange={(e) => setCode(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-          />
-          <Button type="button" className="w-full" disabled={sent || !code.trim()} onClick={submit}>
-            {sent ? words.codeSent : words.sendCode}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </AppDialog>
   )
 }
