@@ -27,29 +27,30 @@ export type TelegramChannelWords = {
   /** «Бот @{username} сохранён · токен …{tail}» */
   tokenSaved: string
 
+  // Ступень 3 — активация одним нажатием, слова памяти (`build.i18n.ts`: stepActivateLead, activateBtn…).
   step3Title: string
   step3Text: string
-  getLink: string
-  openLink: string
-  waiting: string
-  /** «Допущено: {n}» */
-  allowedCount: string
+  activateBtn: string
+  activateHint: string
+  activateWaiting: string
   activated: string
   greeting: string
 
+  // Ступень 4 — соединение работает.
   step4Title: string
   step4Text: string
-  notTrusted: string
+  /** что бот — инструмент Claude Code, а не отдельная сущность (слово владельца 2026-09-22) */
+  toolNote: string
   openTerminal: string
+  notTrusted: string
   start: string
   starting: string
   stop: string
   running: string
   sleeping: string
-
-  step5Title: string
-  step5Text: string
   openChat: string
+  /** «Допущено: {n}» */
+  allowedCount: string
   notes: string[]
 
   locked: string
@@ -84,31 +85,30 @@ const DICT: Record<string, TelegramChannelWords> = {
     saving: "Checking with Telegram…",
     tokenSaved: "Bot @{username} saved · token …{tail}",
 
-    step3Title: "Allow yourself",
+    step3Title: "Activate the connection",
     step3Text:
-      "The bot answers only people on its list, and strangers get silence. Open the link below in the Telegram where you want to talk to the agent and press Start — the node will notice and add you.",
-    getLink: "Get my link",
-    openLink: "Open the bot and press Start",
-    waiting: "Waiting for you to press Start in Telegram…",
-    allowedCount: "Allowed: {n}",
-    activated: "You are allowed. The bot greeted you in Telegram.",
-    greeting: "Hello! You are on the list. Start the channel on the node page — then I will answer here.",
+      "One press. The button opens your bot in Telegram; press START (or «Send») there — and the connection is active. You do not need to type anything or copy any codes.",
+    activateBtn: "Activate the connection in Telegram",
+    activateHint: "Telegram will open the chat with your bot. Press the big button at the bottom of that chat.",
+    activateWaiting: "Waiting for the press… as soon as it happens, the bot greets you there and the channel starts by itself.",
+    activated: "Connected. The bot greeted you in Telegram.",
+    greeting: "Hello! The connection is active. Write here — Claude Code on your computer will answer.",
 
-    step4Title: "Start the channel",
+    step4Title: "Write to the bot",
     step4Text:
-      "The channel is Claude Code running on this computer and reading your bot. It keeps working after you close this page and after a restart of the computer — until you stop it here.",
+      "Everything is ready. It keeps working after you close this page and after a restart of the computer — until you stop it here.",
+    toolNote:
+      "The bot is not a separate being — it is a tool of Claude Code. It is Claude Code on this computer, working in the folder of the sign-in service, that answers you. If that Claude Code session is not running, no answer will come.",
+    openTerminal: "Open the agent terminal",
     notTrusted:
-      "Claude Code has not yet been told it may work in the sign-in service folder. Open the Terminal section, start the agent once and answer «Yes» to the trust question — the bot cannot answer that question for you.",
-    openTerminal: "Open the Terminal section",
+      "Claude Code has not yet been told it may work in the sign-in service folder. Open the terminal, start the agent once and answer «Yes» to the trust question — the bot cannot answer that question for you.",
     start: "Start the channel",
     starting: "Starting…",
     stop: "Stop the channel",
-    running: "The channel is running.",
-    sleeping: "The channel is stopped. The bot does not answer.",
-
-    step5Title: "Talk",
-    step5Text: "Write to the bot. The first answer may take a little longer — the agent is waking up.",
+    running: "The channel is running — the bot answers.",
+    sleeping: "The channel is stopped — the bot does not answer.",
     openChat: "Open the chat",
+    allowedCount: "Allowed: {n}",
     notes: [
       "The bot answers while this computer is on and the channel is running.",
       "It spends your Claude subscription — the same limit as the terminal and your own work.",
@@ -160,31 +160,30 @@ const DICT: Record<string, TelegramChannelWords> = {
     saving: "Проверяю у Telegram…",
     tokenSaved: "Бот @{username} сохранён · токен …{tail}",
 
-    step3Title: "Допустите себя",
+    step3Title: "Активируйте соединение",
     step3Text:
-      "Бот отвечает только тем, кто в его списке, чужим — молчание. Откройте ссылку ниже в том Telegram, где хотите говорить с агентом, и нажмите «Start» — узел заметит это и внесёт вас в список.",
-    getLink: "Получить мою ссылку",
-    openLink: "Открыть бота и нажать Start",
-    waiting: "Жду, пока вы нажмёте Start в Telegram…",
-    allowedCount: "Допущено: {n}",
-    activated: "Вы допущены. Бот поздоровался с вами в Telegram.",
-    greeting: "Здравствуйте! Вы в списке. Запустите канал на странице узла — и я начну отвечать здесь.",
+      "Одно нажатие. Кнопка откроет вашего бота в Telegram — нажмите там START (или «Отправить»), и соединение активно. Ничего печатать и никакие коды копировать не нужно.",
+    activateBtn: "Активировать соединение в Telegram",
+    activateHint: "Telegram откроет чат с вашим ботом. Нажмите большую кнопку внизу этого чата.",
+    activateWaiting: "Жду нажатия… как только оно случится, бот поздоровается с вами, а канал запустится сам.",
+    activated: "Соединение активно. Бот поздоровался с вами в Telegram.",
+    greeting: "Здравствуйте! Соединение активно. Пишите сюда — ответит Claude Code на вашем компьютере.",
 
-    step4Title: "Запустите канал",
+    step4Title: "Пишите боту",
     step4Text:
-      "Канал — это Claude Code, работающий на этом компьютере и читающий вашего бота. Он работает и после закрытия страницы, и после перезагрузки компьютера — пока вы не остановите его здесь.",
+      "Всё готово. Бот работает и после закрытия страницы, и после перезагрузки компьютера — пока вы не остановите его здесь.",
+    toolNote:
+      "Бот — не самостоятельная сущность, а инструмент Claude Code. Отвечает вам Claude Code на этом компьютере, работающий в папке службы входа. Если эта сессия Claude Code не запущена, ответ не придёт.",
+    openTerminal: "Открыть терминал агента",
     notTrusted:
-      "Claude Code ещё не разрешили работать в папке службы входа. Откройте раздел «Терминал», запустите агента один раз и ответьте «Yes» на вопрос о доверии — бот не может ответить на этот вопрос за вас.",
-    openTerminal: "Открыть раздел «Терминал»",
+      "Claude Code ещё не разрешили работать в папке службы входа. Откройте терминал, запустите агента один раз и ответьте «Yes» на вопрос о доверии — бот не может ответить на этот вопрос за вас.",
     start: "Запустить канал",
     starting: "Запускаю…",
     stop: "Остановить канал",
-    running: "Канал работает.",
-    sleeping: "Канал остановлен. Бот не отвечает.",
-
-    step5Title: "Говорите",
-    step5Text: "Пишите боту. Первый ответ может прийти чуть дольше — агент просыпается.",
+    running: "Канал работает — бот отвечает.",
+    sleeping: "Канал остановлен — бот не отвечает.",
     openChat: "Открыть чат",
+    allowedCount: "Допущено: {n}",
     notes: [
       "Бот отвечает, пока этот компьютер включён и канал запущен.",
       "Он тратит вашу подписку Claude — тот же лимит, что у терминала и вашей работы.",

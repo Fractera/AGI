@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { ExternalLink, Lock, Play, Square, TriangleAlert } from "lucide-react"
+import { Check, ExternalLink, Lock, Play, Send, Square, TerminalSquare, TriangleAlert } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,22 +10,21 @@ import { Spinner } from "@/components/ui/spinner"
 import type { TelegramChannelWords } from "@/components/channel/telegram-channel.i18n"
 import { CopyRow, Step, StepPoints } from "@/components/auth/setup-ladder.client"
 
-// КАНАЛ TELEGRAM → CLAUDE CODE: ПЯТЬ СТУПЕНЕЙ (267-3).
+// КАНАЛ TELEGRAM → CLAUDE CODE: ЧЕТЫРЕ СТУПЕНИ, КАК В ПАМЯТИ (267-3).
 //
-// Перенос смысла `fractera-memory-starter/app/[lang]/build/_components/build-channel.client.tsx` на общие
-// ступени узла (`setup-ladder.client.tsx`) — те же, что у экранов Google и Resend: собранные врозь,
-// лестницы разошлись бы молча.
-//
-// 🔒 СОСТОЯНИЕ СПРАШИВАЕТСЯ У УЗЛА, А НЕ ПОМНИТСЯ: жив ли канал, знает pm2; доверяет ли `claude` папке,
-// знает `~/.claude.json`. Страница — только окно в это.
-// 🛑 ОДНО НАЖАТИЕ — ОДНО ДЕЙСТВИЕ (урок 267-2: «открывается много вкладок»): каждая кнопка блокируется
-// на время своего запроса.
+// 🔒 ПОРЯДОК И ПОВЕДЕНИЕ — ОДИН В ОДИН С `fractera-memory-starter/app/[lang]/build/_components/build-channel.client.tsx`
+// (слово владельца 2026-09-22: «сделай ровно точно также»): BotFather → токен → активация одним нажатием →
+// работа. ✗ Первая редакция разошлась с ним на ступени 3: ссылку надо было «получить» отдельной кнопкой,
+// ожидание начиналось сразу, а запуск канала был ещё одной ступенью. Владелец: «здесь был процесс который
+// вызывал Telegram прямо в браузере и перебрасывал меня туда… почему ты проигнорировал».
+// 🔒 КАК В ПАМЯТИ: ссылка с меткой берётся у узла, как только ступень открылась; большая кнопка — это ссылка,
+// она перебрасывает в Telegram; после нажатия START узел впускает человека, здоровается и запускает канал сам.
+// 🔒 Ступени — общий модуль узла (`setup-ladder.client.tsx`), как у экранов Google и Resend.
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 const DOOR = `${BASE}/api/channel/telegram`
 const BOTFATHER = "https://t.me/BotFather"
 const POLL_MS = 3000
-const POLL_LIMIT = 100 // пять минут ожидания нажатия Start
 
 type State = {
   configured: boolean
@@ -35,15 +34,6 @@ type State = {
   trusted: boolean
   running: boolean
   suggestion: { name: string; username: string }
-}
-
-function OutLink({ href, children, primary }: { href: string; children: string; primary?: boolean }) {
-  return (
-    <a href={href} target="_blank" rel="noreferrer noopener" className={buttonVariants({ variant: primary ? "default" : "outline" })}>
-      {children}
-      <ExternalLink className="ml-2 size-4" aria-hidden />
-    </a>
-  )
 }
 
 function Locked({ text }: { text: string }) {
@@ -60,10 +50,10 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
   const [token, setToken] = useState("")
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [link, setLink] = useState<string | null>(null)
-  const [waiting, setWaiting] = useState(false)
-  const [activated, setActivated] = useState(false)
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [activationUrl, setActivationUrl] = useState("")
+  const [clicked, setClicked] = useState(false)
+  const [justActivated, setJustActivated] = useState(false)
+  const stopPoll = useRef(false)
 
   const load = useCallback(async () => {
     try {
@@ -77,9 +67,6 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
 
   useEffect(() => {
     load()
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current)
-    }
   }, [load])
 
   const post = useCallback(
@@ -97,7 +84,7 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
         return data
       } catch {
         setError(words.errors.network)
-        return { ok: false }
+        return { ok: false } as { ok: boolean } & Record<string, unknown>
       } finally {
         setBusy(null)
       }
@@ -105,22 +92,29 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
     [words.errors],
   )
 
-  const saveToken = async () => {
-    const r = await post("token", { token: token.trim() })
-    // 🛑 Секрет живёт в поле ровно до отправки — в любом исходе.
-    setToken("")
-    if (r.ok) load()
-  }
+  const configured = state !== null && state !== "forbidden" && state.configured && !!state.botUsername
+  const activated = state !== null && state !== "forbidden" && state.allowed > 0
 
-  const getLink = async () => {
-    const r = await post("activation-link")
-    if (!r.ok || typeof r.url !== "string") return
-    setLink(r.url)
-    setWaiting(true)
-    let tries = 0
-    if (pollRef.current) clearInterval(pollRef.current)
-    pollRef.current = setInterval(async () => {
-      tries += 1
+  // ── АКТИВАЦИЯ: ссылка берётся сама, как только ступень открылась (как в памяти) ──
+  useEffect(() => {
+    if (!configured || activated || activationUrl) return
+    void (async () => {
+      const r = await fetch(DOOR, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "activation-link" }),
+      }).catch(() => null)
+      const j = (await r?.json().catch(() => null)) as { ok?: boolean; url?: string } | null
+      if (j?.ok && j.url) setActivationUrl(j.url)
+    })()
+  }, [configured, activated, activationUrl])
+
+  // Пока человек не нажал START — каждые 3 с спрашиваем «нажал ли». Нажал — впускаем и запускаем канал.
+  useEffect(() => {
+    if (!activationUrl || activated) return
+    stopPoll.current = false
+    const t = setInterval(async () => {
+      if (stopPoll.current) return
       try {
         const res = await fetch(DOOR, {
           method: "POST",
@@ -128,19 +122,44 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
           body: JSON.stringify({ action: "check-activation", greeting: words.greeting }),
         })
         const d = (await res.json()) as { ok?: boolean; activated?: boolean; error?: string }
-        if (d.activated || !d.ok || tries >= POLL_LIMIT) {
-          if (pollRef.current) clearInterval(pollRef.current)
-          setWaiting(false)
-          if (d.activated) {
-            setActivated(true)
-            setLink(null)
-            load()
-          } else if (!d.ok) setError(words.errors[d.error ?? ""] ?? words.errors.network)
+        if (d.ok && d.activated) {
+          stopPoll.current = true
+          setJustActivated(true)
+          // Канал запускается сам — как в памяти. Не доверяет папке — запуск откажет словами, и
+          // ступень 4 покажет, что сделать.
+          await fetch(DOOR, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ action: "start" }),
+          }).catch(() => null)
+          load()
+        } else if (!d.ok && d.error === "token-rejected") {
+          // Токен отозвали после сохранения — ждать нечего, молчать нельзя (урок памяти).
+          stopPoll.current = true
+          setError(words.errors["token-rejected"])
         }
       } catch {
-        /* следующий опрос */
+        /* следующая попытка через 3 с */
       }
     }, POLL_MS)
+    return () => {
+      stopPoll.current = true
+      clearInterval(t)
+    }
+  }, [activationUrl, activated, words.greeting, words.errors, load])
+
+  // Открывшаяся ступень прокручивается в поле зрения — иначе «ничего не происходит» (урок памяти).
+  const stage = activated ? 4 : configured ? 3 : 0
+  useEffect(() => {
+    if (!stage) return
+    document.querySelector(`[data-telegram-channel] [data-step="${stage}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" })
+  }, [stage])
+
+  const saveToken = async () => {
+    const r = await post("token", { token: token.trim() })
+    // 🛑 Секрет живёт в поле ровно до отправки — в любом исходе.
+    setToken("")
+    if (r.ok) load()
   }
 
   const act = async (action: "start" | "stop") => {
@@ -152,8 +171,7 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
   if (state === "forbidden") return <p className="my-6 text-muted-foreground text-sm">{words.forbidden}</p>
   if (state === null) return <p className="my-6 text-muted-foreground text-sm">{words.loading}</p>
 
-  const hasBot = state.configured && !!state.botUsername
-  const hasPeople = state.allowed > 0
+  const terminalHref = `/${lang}/architect/auth/terminal`
 
   return (
     <div className="my-6 flex flex-col gap-3" data-telegram-channel data-running={state.running ? "1" : "0"}>
@@ -161,7 +179,7 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
 
       <Step n={1} title={words.step1Title}>
         <p className="text-muted-foreground text-sm">
-          {/* Команду человек набирает в Telegram дословно — поэтому она выделена фоном, как код (слово владельца: «/newbot need select with bg»). */}
+          {/* Команду человек набирает в Telegram дословно — поэтому она выделена фоном (слово владельца: «/newbot need select with bg»). */}
           {words.step1Text.split("{cmd}")[0]}
           <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground text-xs">/newbot</code>
           {words.step1Text.split("{cmd}")[1]}
@@ -170,13 +188,16 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
         <CopyRow id="tg-name" label={words.nameLabel} value={state.suggestion.name} copy={words.copy} copied={words.copied} />
         <CopyRow id="tg-username" label={words.usernameLabel} value={state.suggestion.username} copy={words.copy} copied={words.copied} />
         <div className="mt-3">
-          <OutLink href={BOTFATHER}>{words.openBotFather}</OutLink>
+          <a href={BOTFATHER} target="_blank" rel="noreferrer noopener" className={buttonVariants({ variant: "outline" })}>
+            {words.openBotFather}
+            <ExternalLink className="ml-2 size-4" aria-hidden />
+          </a>
         </div>
       </Step>
 
       <Step n={2} title={words.step2Title}>
         <p className="text-muted-foreground text-sm">{words.step2Text}</p>
-        {hasBot && (
+        {configured && (
           <p className="mt-2 text-foreground text-sm" data-tg-bot>
             {words.tokenSaved.replace("{username}", state.botUsername ?? "").replace("{tail}", state.tail ?? "")}
           </p>
@@ -204,57 +225,82 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
 
       <Step n={3} title={words.step3Title}>
         <p className="text-muted-foreground text-sm">{words.step3Text}</p>
-        {!hasBot ? (
+        {!configured ? (
           <Locked text={words.locked} />
+        ) : activated ? (
+          <p className="mt-2 flex items-center gap-2 text-foreground text-sm" role="status">
+            <Check className="size-4 shrink-0" aria-hidden />
+            {justActivated ? words.activated : words.allowedCount.replace("{n}", String(state.allowed))}
+          </p>
         ) : (
           <div className="mt-3 flex flex-col gap-2">
-            {hasPeople && <p className="text-foreground text-sm">{words.allowedCount.replace("{n}", String(state.allowed))}</p>}
-            {activated && <p className="text-foreground text-sm" role="status">{words.activated}</p>}
-            {link ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <OutLink href={link} primary>{words.openLink}</OutLink>
-                {waiting && (
-                  <span className="flex items-center gap-2 text-muted-foreground text-sm">
-                    <Spinner className="size-4" />
-                    {words.waiting}
-                  </span>
-                )}
-              </div>
+            {activationUrl ? (
+              // 🔒 БОЛЬШАЯ КНОПКА — ЭТО ССЫЛКА: она перебрасывает прямо в Telegram, как в памяти.
+              <a
+                href={activationUrl}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => setClicked(true)}
+                className={`${buttonVariants({ size: "lg" })} w-full`}
+                data-activate
+              >
+                <Send className="size-5" aria-hidden />
+                {words.activateBtn}
+              </a>
             ) : (
-              <div>
-                <Button type="button" variant={hasPeople ? "outline" : "default"} onClick={getLink} disabled={busy !== null || state.running}>
-                  {busy === "activation-link" && <Spinner className="size-4" />}
-                  {words.getLink}
-                </Button>
-              </div>
+              <p className="flex items-center gap-2 text-muted-foreground text-sm">
+                <Spinner className="size-4" />
+                {words.loading}
+              </p>
             )}
+            <p className="flex items-center gap-2 text-muted-foreground text-sm" data-activate-wait>
+              {clicked && <Spinner className="size-4" />}
+              {clicked ? words.activateWaiting : words.activateHint}
+            </p>
           </div>
         )}
       </Step>
 
       <Step n={4} title={words.step4Title}>
-        <p className="text-muted-foreground text-sm">{words.step4Text}</p>
-        {!hasBot || !hasPeople ? (
+        {!activated ? (
           <Locked text={words.locked} />
         ) : (
-          <div className="mt-3 flex flex-col gap-3">
+          <div className="flex flex-col gap-3">
+            <p className="text-muted-foreground text-sm">{words.step4Text}</p>
+
+            {/* 🔒 БОТ — ИНСТРУМЕНТ CLAUDE CODE, А НЕ ОТДЕЛЬНАЯ СУЩНОСТЬ (слово владельца 2026-09-22), и путь к
+                агенту — одной кнопкой. */}
+            <div className="flex flex-col gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm" data-tg-tool-note>
+              <p>{words.toolNote}</p>
+              <div>
+                <a href={terminalHref} className={buttonVariants({ size: "sm", variant: "outline" })}>
+                  <TerminalSquare className="size-4" aria-hidden />
+                  {words.openTerminal}
+                </a>
+              </div>
+            </div>
+
             {!state.trusted && (
               <div className="flex gap-2 rounded-md border border-warning/50 bg-warning/10 px-3 py-2 text-sm" data-tg-untrusted>
                 <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
-                <span>
-                  {words.notTrusted}{" "}
-                  <a className="underline underline-offset-2" href={`/${lang}/architect/auth/terminal`}>
-                    {words.openTerminal}
-                  </a>
-                </span>
+                <span>{words.notTrusted}</span>
               </div>
             )}
-            <p className="text-foreground text-sm" data-tg-state={state.running ? "running" : "stopped"}>
+
+            <p className="flex items-center gap-2 text-sm" data-tg-state={state.running ? "running" : "stopped"}>
+              {state.running ? <Check className="size-4 text-primary" aria-hidden /> : <TriangleAlert className="size-4 text-muted-foreground" aria-hidden />}
               {state.running ? words.running : words.sleeping}
             </p>
-            <div>
+
+            <div className="flex flex-wrap gap-2">
+              {state.botUsername && (
+                <a href={`https://t.me/${state.botUsername}`} target="_blank" rel="noreferrer" className={buttonVariants({})} data-open-bot>
+                  <Send className="size-4" aria-hidden />
+                  {words.openChat} @{state.botUsername}
+                </a>
+              )}
               {state.running ? (
-                <Button type="button" variant="destructive" onClick={() => act("stop")} disabled={busy !== null}>
+                <Button type="button" variant="outline" onClick={() => act("stop")} disabled={busy !== null}>
                   {busy === "stop" ? <Spinner className="size-4" /> : <Square className="size-4" aria-hidden />}
                   {words.stop}
                 </Button>
@@ -265,20 +311,13 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
                 </Button>
               )}
             </div>
-          </div>
-        )}
-      </Step>
 
-      <Step n={5} title={words.step5Title}>
-        <p className="text-muted-foreground text-sm">{words.step5Text}</p>
-        {state.running && state.botUsername ? (
-          <div className="mt-3">
-            <OutLink href={`https://t.me/${state.botUsername}`} primary>{words.openChat}</OutLink>
+            <Small className="text-muted-foreground" data-allowed>
+              {words.allowedCount.replace("{n}", String(state.allowed))}
+            </Small>
+            <StepPoints items={words.notes} />
           </div>
-        ) : (
-          <Locked text={words.locked} />
         )}
-        <StepPoints items={words.notes} />
       </Step>
 
       {error && (
