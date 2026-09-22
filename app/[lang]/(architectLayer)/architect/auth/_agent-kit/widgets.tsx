@@ -2,9 +2,9 @@ import type { ReactNode } from 'react'
 import { AgentTerminal } from './client/agent-terminal.client'
 import { ClaudeSubscription } from './client/claude-subscription.client'
 import { TelegramChannel } from './client/telegram-channel.client'
-import { agentTerminalWords } from './i18n/agent-terminal.i18n'
-import { claudeSubscriptionWords } from './i18n/claude-subscription.i18n'
-import { telegramChannelWords } from './i18n/telegram-channel.i18n'
+import { agentTerminalWords } from './words/agent-terminal.i18n'
+import { claudeSubscriptionWords } from './words/claude-subscription.i18n'
+import { telegramChannelWords } from './words/telegram-channel.i18n'
 
 // ВХОД СТРАНИЦ СЛУЖБЫ В КОПИЮ КОМПЛЕКТА АГЕНТА (271).
 //

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { AlertTriangle, ChevronDown, Eraser, Moon, Play, Square } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { AgentTerminalWords } from "../i18n/agent-terminal.i18n"
+import type { AgentTerminalWords } from "../words/agent-terminal.i18n"
 import { createMouseFilter, MOUSE_OFF } from "./mouse-filter.mjs"
 import { type XtermHandle, XtermTerminal } from "./xterm-terminal.client"
 

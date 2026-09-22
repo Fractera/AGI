@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Small } from "@/components/ui/typography"
 import { Spinner } from "@/components/ui/spinner"
-import type { TelegramChannelWords } from "../i18n/telegram-channel.i18n"
+import type { TelegramChannelWords } from "../words/telegram-channel.i18n"
 import { CopyRow, Step, StepPoints } from "@/components/auth/setup-ladder.client"
 
 // КАНАЛ TELEGRAM → CLAUDE CODE: ЧЕТЫРЕ СТУПЕНИ, КАК В ПАМЯТИ (267-3).

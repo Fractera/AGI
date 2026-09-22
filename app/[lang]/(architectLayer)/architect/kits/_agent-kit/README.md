@@ -24,7 +24,7 @@ architect/kits/_agent-kit/           MASTER — never edit a service copy by han
   core/                              everything that is copied into a service as _agent-kit/
     server/  bridge.cjs session.cjs ticket.cjs workspace.cjs claude-cli.cjs telegram.cjs entry.cjs
     client/  the three islands + xterm, mouse filter, auth-link extraction
-    i18n/    words of the three screens (en, ru)
+    words/   words of the three screens (en, ru) — not `i18n/`: the lang-delivery guard reads that folder name as a dictionary shipped to the browser
     widgets.tsx   agentKitWidget(page, service, lang) — the one entry for pages
   pages/     claude-code/ terminal/ telegram/   templates (*.tpl, __SERVICE__)
   api/       session/ ticket/ claude-auth/ channel/   door templates (route.ts.tpl)
