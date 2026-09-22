@@ -21,7 +21,7 @@
 и только карточка говорит, что он выдержит** — сколько элементов, что ломается за пределом, когда
 его не брать. Есть карточка — прочти её перед использованием.
 
-Видов: **65** · рендереров: **64** · карточек: **36**
+Видов: **66** · рендереров: **65** · карточек: **36**
 
 | Код | Вид | Семейство | Что это | Поля | Правила владельца |
 |---|---|---|---|---|---|
@@ -90,6 +90,7 @@
 | `authResendSetup01` | `authResendSetup` | Page material | — | words: import('@/components/auth/resend-setup.i18n').ResendSetupWords | — |
 | `agentTerminal01` | `agentTerminal` | Page material | — | words: import('@/components/terminal/agent-terminal.i18n').AgentTerminalWords | — |
 | `claudeSubscription01` | `claudeSubscription` | Page material | — | words: import('@/components/terminal/claude-subscription.i18n').ClaudeSubscriptionWords | — |
+| `telegramChannel01` | `telegramChannel` | Page material | — | lang: string; words: import('@/components/channel/telegram-channel.i18n').TelegramChannelWords | — |
 
 ## Чего в этой таблице нет
 

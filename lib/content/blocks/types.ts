@@ -124,6 +124,8 @@ export type LeafBlock =
   | { kind: 'agentTerminal'; words: import('@/components/terminal/agent-terminal.i18n').AgentTerminalWords }
   // Подписка Claude Code (267-2): состояние входа у самого `claude`, вход ссылкой и кодом.
   | { kind: 'claudeSubscription'; words: import('@/components/terminal/claude-subscription.i18n').ClaudeSubscriptionWords }
+  // Канал Telegram → Claude Code (267-3): бот, токен, допуск ссылкой, житель pm2.
+  | { kind: 'telegramChannel'; lang: string; words: import('@/components/channel/telegram-channel.i18n').TelegramChannelWords }
   | { kind: 'servicePort'; serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords }
   | { kind: 'note'; text: string }
   // Founder pull-quote in the homepage testimonial design (gradient-violet text +

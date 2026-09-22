@@ -5,6 +5,7 @@ import { googleSetupWords } from '@/components/auth/google-setup.i18n'
 import { resendSetupWords } from '@/components/auth/resend-setup.i18n'
 import { agentTerminalWords } from '@/components/terminal/agent-terminal.i18n'
 import { claudeSubscriptionWords } from '@/components/terminal/claude-subscription.i18n'
+import { telegramChannelWords } from '@/components/channel/telegram-channel.i18n'
 
 // ОБРАЗЦЫ ВСЕХ ВИДОВ СЕКЦИЙ — по одному на каждый вид каталога.
 //
@@ -1278,6 +1279,18 @@ export const SPECIMEN: SpecimenSection[] = [
       {
         kind: 'claudeSubscription',
         words: claudeSubscriptionWords('en'),
+      },
+    ],
+  },
+  {
+    kind: 'telegramChannel',
+    when: "A five-step ladder that connects a person's own Telegram bot to an agent on their own machine: create the bot, bring its token, allow yourself by a link, start the channel, talk. Everything belongs to the person — the bot, its token and its allow list — and nothing passes through a third party. Take it wherever an agent on this node must be reachable from a phone.",
+    whenRu: "Лестница из пяти ступеней, соединяющая собственного Telegram-бота человека с агентом на его собственной машине: создать бота, принести токен, допустить себя ссылкой, запустить канал, говорить. Всё принадлежит человеку — бот, токен и список допущенных, — и ничего не проходит через третьих лиц. Берут везде, где агент этого узла должен быть доступен с телефона.",
+    blocks: [
+      {
+        kind: 'telegramChannel',
+        lang: 'en',
+        words: telegramChannelWords('en'),
       },
     ],
   },
