@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { Block, WorkspaceItem } from '@/lib/content/blocks/types'
 import { type WorkspacePageData, pagesInOrder, wordsOf } from '@/lib/collection/types'
 import { ArchitectPage } from './architect-page'
@@ -27,6 +28,7 @@ export function CollectionIndex({
   page,
   pages,
   content,
+  widget,
 }: {
   lang: string
   /** Адрес этой папки без языка, например `/architect/tools`. */
@@ -43,6 +45,8 @@ export function CollectionIndex({
    * Поэтому заглушки «скоро будет построено» здесь нет и быть не должно.
    */
   content?: Block[]
+  /** Собственный островок маршрута (271) — рисуется в рабочем экране над списком разделов. */
+  widget?: ReactNode
 }) {
   const ui = architectLayerUi(lang)
   const words = wordsOf(page, lang)
@@ -120,6 +124,7 @@ export function CollectionIndex({
       title={words.title}
       tabs={tabs}
       children={blocks}
+      widget={widget}
     />
   )
 }

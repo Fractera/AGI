@@ -27,7 +27,7 @@
 // у другого, и мастер поздравлял человека с тем, чего он не делал. Здесь у
 // каждого шага свой ключ, и заимствований нет вовсе.
 
-import { getValue, setValue, clearPrefix } from "@/lib/dev-tools-marks";
+import { getValue, setValue, clearPrefix } from "./dev-tools-marks";
 
 /** Префикс всех ключей нового пути. По нему же идёт сброс. */
 export const FLOW_PREFIX = "USER_FLOW_";

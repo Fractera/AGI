@@ -15,9 +15,10 @@ import { data as p9 } from './layouts/_data'
 import { data as p10 } from './marketplace/_data'
 import { data as p11 } from './passport/_data'
 import { data as p12 } from './platform-config/_data'
-import { data as p13 } from './testing/_data'
-import { data as p14 } from './tools/_data'
-import { data as p15 } from './tools-app/_data'
+import { data as p13 } from './project-start/_data'
+import { data as p14 } from './testing/_data'
+import { data as p15 } from './tools/_data'
+import { data as p16 } from './tools-app/_data'
 import { PAGES as c0 } from './app-config/_list.generated'
 import { PAGES as c1 } from './auth/_list.generated'
 import { PAGES as c2 } from './blocks/_list.generated'
@@ -30,11 +31,12 @@ import { PAGES as c9 } from './layouts/_list.generated'
 import { PAGES as c10 } from './marketplace/_list.generated'
 import { PAGES as c11 } from './passport/_list.generated'
 import { PAGES as c12 } from './platform-config/_list.generated'
-import { PAGES as c13 } from './testing/_list.generated'
-import { PAGES as c14 } from './tools/_list.generated'
-import { PAGES as c15 } from './tools-app/_list.generated'
+import { PAGES as c13 } from './project-start/_list.generated'
+import { PAGES as c14 } from './testing/_list.generated'
+import { PAGES as c15 } from './tools/_list.generated'
+import { PAGES as c16 } from './tools-app/_list.generated'
 
-export const PAGES: WorkspacePageData[] = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15]
+export const PAGES: WorkspacePageData[] = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16]
 
 /** Each child together with its own children — see the law in the generator. */
 export const TREE: CollectionBranch[] = [
@@ -54,4 +56,5 @@ export const TREE: CollectionBranch[] = [
   { page: p13, children: c13 },
   { page: p14, children: c14 },
   { page: p15, children: c15 },
+  { page: p16, children: c16 },
 ]

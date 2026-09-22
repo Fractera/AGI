@@ -1,6 +1,6 @@
 "use client";
 
-import type { FlowStep } from "@/lib/launch-flow";
+import type { FlowStep } from "../server/launch-flow";
 
 // ДЕЙСТВИЕ РЕАЛЬНОГО ШАГА МАСТЕРА (шаг 28-9, 2026-08-27).
 //
