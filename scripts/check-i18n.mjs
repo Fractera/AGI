@@ -65,6 +65,8 @@ const FILES = [
   // ЗАКОН, ОПЛАЧЕННЫЙ В 236-1: прибор со списком проверяемого МОЛЧИТ о том, чего
   // в списке нет.
   ["app/[lang]/(architectLayer)/_i18n/architect-home.i18n.ts", "ArchitectHomeUi", 2],
+  // Вкладка «GitHub» слоя архитектора (273) — внесена тем же коммитом, что и словарь.
+  ["app/[lang]/(architectLayer)/architect/build/github/_github/words/github.i18n.ts", "GithubWords", 2],
   // 🪦 ЗДЕСЬ СТОЯЛ `architect-build.i18n.ts` — словарь макета из трёх разделов,
   // удалён в 254 вместе с самим макетом.
   // 🪦 ДЕВЯТЬ ТОВАРНЫХ СЛОВАРЕЙ УДАЛЕНЫ ВМЕСТЕ С МАГАЗИНОМ (230-3, 2026-09-18).
