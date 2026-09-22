@@ -25,10 +25,18 @@ export type GoogleSetupWords = {
 
   /** общая подводка над лестницей */
   intro: string
+  /** карточка лимитов (265-5): цифры — у первоисточника, ссылка ведёт туда же */
+  limitsTitle: string
+  limitsText: string
+  limitsMore: string
 
   step1Title: string
   step1Text: string
   openConsole: string
+  /** маршрут по консоли точками — путь владельца, пройденный им 2026-09-22 (265-5) */
+  step1Route: { title: string; text: string }[]
+  routeHint: string
+  watchVideo: string
 
   step2Title: string
   step2Text: string
@@ -88,11 +96,32 @@ const DICT: Record<string, GoogleSetupWords> = {
 
     intro:
       "Five minutes in Google's console, once. Nothing here costs money, and you do not need to publish anything to start.",
+    limitsTitle: "Free, within limits.",
+    limitsText: "Every sign-in is load on Google, as with any provider, so free use is capped: in «Testing» up to 100 test users; once published, Google limits how fast new users can be added, and the pace depends on your app's history.",
+    limitsMore: "Details at Google →",
 
     step1Title: "Create a project in Google's console",
     step1Text:
       "A project is only a container for your keys — nobody but you sees its name. Open the console, use the project selector in the top bar and create a new one.",
     openConsole: "Open Google Cloud Console",
+    step1Route: [
+      { title: "View all APIs", text: "On the console's home page find the button «View all APIs»." },
+      { title: "Credentials", text: "In the menu on the left choose «Credentials»." },
+      { title: "Create a project", text: "Google asks for a project first. Create one and wait until the console takes you into it." },
+      { title: "+ Create credentials", text: "In the top bar press «+ Create credentials»." },
+      { title: "OAuth client ID", text: "Choose «OAuth client ID». Google may answer that the app has to be configured first — that is expected." },
+      { title: "App information", text: "Google sign-in needs your app to have a name and a support email. Enter both." },
+      { title: "Audience", text: "Choose «External» — any Google account can sign in, which is what a public site needs." },
+      { title: "Contact information", text: "Your email again — this one is for Google itself." },
+      { title: "Agree and create", text: "Accept the «Google API Services: User Data Policy» and press «Create». Sign-in can only be attached to an app that exists." },
+      { title: "OAuth client ID, again", text: "Now go back to «+ Create credentials» → «OAuth client ID» once more; this time it opens the form." },
+      { title: "Web application", text: "In the list «Application type» choose «Web application». Give it a name or keep the one Google suggests." },
+      { title: "Two addresses", text: "First «Authorized JavaScript origins», below it «Authorized redirect URIs». Both values are in step 4 of this screen, ready to copy." },
+      { title: "Copy the pair", text: "After «Create» a window opens with Client ID and Client secret, each with a copy button. Bring both to step 5 of this screen." },
+      { title: "Check the list", text: "After saving, the new client appears in your project under the name you gave it." },
+    ],
+    routeHint: "Hover a number to read the action, or tap it to keep the text below.",
+    watchVideo: "Watch it done on video (YouTube, in English)",
 
     step2Title: "Say what people will see while signing in",
     step2Text:
@@ -165,11 +194,32 @@ const DICT: Record<string, GoogleSetupWords> = {
 
     intro:
       "Пять минут в консоли Google, один раз. Ничего из этого не стоит денег, и публиковать что-либо, чтобы начать, не нужно.",
+    limitsTitle: "Бесплатно — в пределах лимитов.",
+    limitsText: "Каждый вход — нагрузка на Google, как у любого провайдера, поэтому бесплатное использование ограничено: в режиме «Testing» — до 100 тестовых пользователей; после публикации Google ограничивает скорость прироста новых пользователей, и темп зависит от истории приложения.",
+    limitsMore: "Подробнее у Google →",
 
     step1Title: "Создайте проект в консоли Google",
     step1Text:
       "Проект — это просто контейнер для ваших ключей, его имя не увидит никто, кроме вас. Откройте консоль, нажмите выбор проекта в верхней полосе и создайте новый.",
     openConsole: "Открыть Google Cloud Console",
+    step1Route: [
+      { title: "View all APIs", text: "На главной странице консоли найдите кнопку «View all APIs»." },
+      { title: "Credentials", text: "В меню слева выберите «Credentials»." },
+      { title: "Создайте проект", text: "Сначала Google попросит проект. Создайте его и дождитесь, пока консоль перебросит вас в его настройку." },
+      { title: "+ Create credentials", text: "В верхней полосе нажмите «+ Create credentials»." },
+      { title: "OAuth client ID", text: "Выберите «OAuth client ID». Google может ответить, что сначала нужно сконфигурировать приложение, — так и должно быть." },
+      { title: "Сведения о приложении", text: "Вход через Google требует, чтобы у приложения было название и почта техподдержки. Впишите оба." },
+      { title: "Аудитория", text: "Выберите «External» — внешняя аудитория: войти сможет любой аккаунт Google, это и нужно публичному сайту." },
+      { title: "Контактная информация", text: "Снова ваша почта — эта нужна самому Google." },
+      { title: "Согласие и создание", text: "Примите «Google API Services: User Data Policy» и нажмите «Create». Авторизацию можно добавить только к уже созданному приложению." },
+      { title: "OAuth client ID ещё раз", text: "Теперь снова «+ Create credentials» → «OAuth client ID»; на этот раз откроется форма." },
+      { title: "Web application", text: "В списке «Application type» выберите «Web application». Имя придумайте или оставьте то, что предложил Google." },
+      { title: "Два адреса", text: "Сначала «Authorized JavaScript origins», под ним «Authorized redirect URIs». Оба значения — на ступени 4 этого экрана, готовые к копированию." },
+      { title: "Скопируйте пару", text: "После «Create» откроется окно: вверху Client ID и Client secret, у каждого кнопка копирования. Принесите оба на ступень 5 этого экрана." },
+      { title: "Проверьте список", text: "После сохранения в вашем проекте появится новый клиент с именем, которое вы дали или оставили." },
+    ],
+    routeHint: "Наведите на номер, чтобы прочитать действие, или нажмите — текст останется под линией.",
+    watchVideo: "Посмотреть весь путь на видео (YouTube, на английском)",
 
     step2Title: "Скажите, что человек увидит при входе",
     step2Text:
@@ -236,6 +286,17 @@ const DICT: Record<string, GoogleSetupWords> = {
 
 /** Адрес консоли Google — один на все языки, поэтому вынесен из словаря. */
 export const GOOGLE_CONSOLE_URL = "https://console.cloud.google.com/"
+
+/**
+ * Видео, показывающее тот же путь глазами, — ВРЕМЕННО, до собственного ролика
+ * (слово владельца 2026-09-22). Существование проверено ответом YouTube oEmbed:
+ * «How to Get Google OAuth Client ID & Secret in 2026 (Step-by-Step for
+ * Beginners)», канал Stack Seekers. Содержание агент не смотрел.
+ */
+export const GOOGLE_VIDEO_URL = "https://www.youtube.com/watch?v=bVNFEMPaU64"
+
+/** Лимиты входа через Google — первоисточник (проверено 2026-09-22). */
+export const GOOGLE_LIMITS_URL = "https://support.google.com/cloud/answer/9028764"
 
 /** Слова экрана на выбранном языке; незнакомый язык честно деградирует до английского. */
 export function googleSetupWords(lang: string): GoogleSetupWords {

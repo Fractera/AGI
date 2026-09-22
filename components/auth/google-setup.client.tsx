@@ -6,8 +6,13 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { H3, Small } from "@/components/ui/typography"
-import { GOOGLE_CONSOLE_URL, type GoogleSetupWords } from "@/components/auth/google-setup.i18n"
-import { CopyRow, Step, StepPoints } from "@/components/auth/setup-ladder.client"
+import {
+  GOOGLE_CONSOLE_URL,
+  GOOGLE_LIMITS_URL,
+  GOOGLE_VIDEO_URL,
+  type GoogleSetupWords,
+} from "@/components/auth/google-setup.i18n"
+import { CopyRow, LimitsNote, RouteLine, Step, StepPoints } from "@/components/auth/setup-ladder.client"
 
 // ЭКРАН ВКЛЮЧЕНИЯ ВХОДА ЧЕРЕЗ GOOGLE (265-2, переписан 265-4).
 //
@@ -132,6 +137,7 @@ export function GoogleSetup({ words }: { words: GoogleSetupWords }) {
   return (
     <div className="my-6 flex flex-col gap-3" data-google-setup data-on={on ? "1" : "0"}>
       <p className="text-muted-foreground text-sm">{words.intro}</p>
+      <LimitsNote title={words.limitsTitle} text={words.limitsText} more={words.limitsMore} href={GOOGLE_LIMITS_URL} />
 
       <Step n={1} title={words.step1Title}>
         <p className="text-muted-foreground text-sm">{words.step1Text}</p>
@@ -140,7 +146,8 @@ export function GoogleSetup({ words }: { words: GoogleSetupWords }) {
             «кнопка» не открывается в новой вкладке, не копируется правой кнопкой и
             не существует для читателя с экранным диктором. Вид даёт
             `buttonVariants`, поведение остаётся ссылочным. */}
-        <div className="mt-3">
+        <RouteLine items={words.step1Route} hint={words.routeHint} />
+        <div className="mt-3 flex flex-wrap gap-2">
           <a
             href={GOOGLE_CONSOLE_URL}
             target="_blank"
@@ -148,6 +155,15 @@ export function GoogleSetup({ words }: { words: GoogleSetupWords }) {
             className={buttonVariants({ variant: "outline" })}
           >
             {words.openConsole}
+            <ExternalLink className="ml-2 size-4" aria-hidden />
+          </a>
+          <a
+            href={GOOGLE_VIDEO_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            className={buttonVariants({ variant: "ghost" })}
+          >
+            {words.watchVideo}
             <ExternalLink className="ml-2 size-4" aria-hidden />
           </a>
         </div>
@@ -167,14 +183,9 @@ export function GoogleSetup({ words }: { words: GoogleSetupWords }) {
         <p className="text-muted-foreground text-sm">{words.step4Text}</p>
         {state.redirectUri ? (
           <>
-            <CopyRow
-              id="google-redirect"
-              label={words.redirectLabel}
-              value={state.redirectUri}
-              note={words.redirectRequired}
-              copy={words.copy}
-              copied={words.copied}
-            />
+            {/* 🔒 ПОРЯДОК ПОЛЕЙ — ПОРЯДОК ФОРМЫ GOOGLE: сначала origins, под ним
+                redirect. Замечание владельца 2026-09-22, пройденное им вживую:
+                «у тебя поле для Redirect стоит сверху это неправильно». */}
             {state.javascriptOrigin && (
               <CopyRow
                 id="google-origin"
@@ -185,6 +196,14 @@ export function GoogleSetup({ words }: { words: GoogleSetupWords }) {
                 copied={words.copied}
               />
             )}
+            <CopyRow
+              id="google-redirect"
+              label={words.redirectLabel}
+              value={state.redirectUri}
+              note={words.redirectRequired}
+              copy={words.copy}
+              copied={words.copied}
+            />
           </>
         ) : (
           <p className="mt-3 flex items-center gap-2 text-muted-foreground text-sm">

@@ -22,6 +22,10 @@ export type ResendSetupWords = {
   lockedWhere: string
 
   intro: string
+  /** карточка лимитов (265-5): цифры — у первоисточника, ссылка ведёт туда же */
+  limitsTitle: string
+  limitsText: string
+  limitsMore: string
 
   step1Title: string
   step1Text: string
@@ -83,6 +87,9 @@ const DICT: Record<string, ResendSetupWords> = {
 
     intro:
       "About ten minutes of your time in Resend, and then a wait while the internet learns your new records. The free plan is enough to start.",
+    limitsTitle: "Free, within limits.",
+    limitsText: "Every letter is load on Resend, as with any provider, so the free plan is capped: 3,000 emails a month, no more than 100 a day, up to 3 domains. One sign-in is one letter.",
+    limitsMore: "Details at Resend →",
 
     step1Title: "Create a Resend account",
     step1Text: "Resend is the service that actually delivers the letter. Sign up with any email you read — the account is yours, not ours.",
@@ -152,6 +159,9 @@ const DICT: Record<string, ResendSetupWords> = {
 
     intro:
       "Минут десять вашего времени в Resend, а потом ожидание, пока интернет узнает ваши новые записи. Бесплатного тарифа для начала достаточно.",
+    limitsTitle: "Бесплатно — в пределах лимитов.",
+    limitsText: "Каждое письмо — нагрузка на Resend, как у любого провайдера, поэтому бесплатный тариф ограничен: 3 000 писем в месяц, не больше 100 в день, до 3 доменов. Один вход — одно письмо.",
+    limitsMore: "Подробнее у Resend →",
 
     step1Title: "Заведите аккаунт Resend",
     step1Text: "Resend — служба, которая на самом деле доставляет письмо. Зарегистрируйтесь с любой почтой, которую читаете; аккаунт ваш, а не наш.",
@@ -216,6 +226,8 @@ const DICT: Record<string, ResendSetupWords> = {
 /** Адреса панели Resend — одни на все языки, поэтому вынесены из словаря. */
 export const RESEND_URL = "https://resend.com/"
 export const RESEND_DOMAINS_URL = "https://resend.com/domains"
+/** Тариф Resend — первоисточник лимитов (проверено 2026-09-22). */
+export const RESEND_PRICING_URL = "https://resend.com/pricing"
 
 /** Слова экрана на выбранном языке; незнакомый язык честно деградирует до английского. */
 export function resendSetupWords(lang: string): ResendSetupWords {

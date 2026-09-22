@@ -6,8 +6,8 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { H3, Small } from "@/components/ui/typography"
-import { RESEND_DOMAINS_URL, RESEND_URL, type ResendSetupWords } from "@/components/auth/resend-setup.i18n"
-import { Step, StepPoints } from "@/components/auth/setup-ladder.client"
+import { RESEND_DOMAINS_URL, RESEND_PRICING_URL, RESEND_URL, type ResendSetupWords } from "@/components/auth/resend-setup.i18n"
+import { LimitsNote, Step, StepPoints } from "@/components/auth/setup-ladder.client"
 
 // ЭКРАН ВКЛЮЧЕНИЯ ВХОДА ПИСЬМОМ (RESEND) (266-2).
 //
@@ -138,6 +138,7 @@ export function ResendSetup({ words }: { words: ResendSetupWords }) {
   return (
     <div className="my-6 flex flex-col gap-3" data-resend-setup data-on={on ? "1" : "0"}>
       <p className="text-muted-foreground text-sm">{words.intro}</p>
+      <LimitsNote title={words.limitsTitle} text={words.limitsText} more={words.limitsMore} href={RESEND_PRICING_URL} />
 
       <Step n={1} title={words.step1Title}>
         <p className="text-muted-foreground text-sm">{words.step1Text}</p>
