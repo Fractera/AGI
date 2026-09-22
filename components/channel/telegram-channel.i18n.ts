@@ -34,6 +34,12 @@ export type TelegramChannelWords = {
   activateHint: string
   activateWaiting: string
   activated: string
+  /**
+   * Приветствие после START. 🛑 ЕГО ШЛЁТ УЗЕЛ НАПРЯМУЮ ЧЕРЕЗ BOT API, А НЕ CLAUDE CODE — и потому оно обязано
+   * так и сказать и дать ссылки на проверку (владелец 2026-09-22: «если ты отправляешь ответ мимо Claude Code то
+   * тогда в первом сообщении… проверьте что ваша подписка активна терминал активирован по ссылке»).
+   * `{subscription}` и `{terminal}` — адреса разделов, подставляет островок.
+   */
   greeting: string
 
   // Ступень 4 — соединение работает.
@@ -92,7 +98,8 @@ const DICT: Record<string, TelegramChannelWords> = {
     activateHint: "Telegram will open the chat with your bot. Press the big button at the bottom of that chat.",
     activateWaiting: "Waiting for the press… as soon as it happens, the bot greets you there and the channel starts by itself.",
     activated: "Connected. The bot greeted you in Telegram.",
-    greeting: "Hello! The connection is active. Write here — Claude Code on your computer will answer.",
+    greeting:
+      "The connection is active. This message was sent automatically by your node, not by Claude Code. For the bot to answer, check that your Claude subscription is connected ({subscription}) and that the agent may work in the service folder — start it once in the terminal and answer «Yes» ({terminal}).",
 
     step4Title: "Write to the bot",
     step4Text:
@@ -167,7 +174,8 @@ const DICT: Record<string, TelegramChannelWords> = {
     activateHint: "Telegram откроет чат с вашим ботом. Нажмите большую кнопку внизу этого чата.",
     activateWaiting: "Жду нажатия… как только оно случится, бот поздоровается с вами, а канал запустится сам.",
     activated: "Соединение активно. Бот поздоровался с вами в Telegram.",
-    greeting: "Здравствуйте! Соединение активно. Пишите сюда — ответит Claude Code на вашем компьютере.",
+    greeting:
+      "Соединение активно. Это сообщение отправил ваш узел автоматически, а не Claude Code. Чтобы бот отвечал, проверьте, что подписка Claude подключена ({subscription}), а агенту разрешено работать в папке службы — запустите его один раз в терминале и ответьте «Yes» ({terminal}).",
 
     step4Title: "Пишите боту",
     step4Text:

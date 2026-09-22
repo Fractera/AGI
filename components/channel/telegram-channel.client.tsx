@@ -109,6 +109,13 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
     })()
   }, [configured, activated, activationUrl])
 
+  // Адреса разделов — от адреса, на котором открыта страница: на своём домене это публичная ссылка, которую
+  // человек откроет с телефона.
+  const greetingText = useCallback(() => {
+    const base = `${window.location.origin}${BASE}/${lang}/architect/auth`
+    return words.greeting.replace("{subscription}", `${base}/claude-code`).replace("{terminal}", `${base}/terminal`)
+  }, [lang, words.greeting])
+
   // Пока человек не нажал START — каждые 3 с спрашиваем «нажал ли». Нажал — впускаем и запускаем канал.
   useEffect(() => {
     if (!activationUrl || activated) return
@@ -119,7 +126,7 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
         const res = await fetch(DOOR, {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ action: "check-activation", greeting: words.greeting }),
+          body: JSON.stringify({ action: "check-activation", greeting: greetingText() }),
         })
         const d = (await res.json()) as { ok?: boolean; activated?: boolean; error?: string }
         if (d.ok && d.activated) {
@@ -146,7 +153,7 @@ export function TelegramChannel({ lang, words }: { lang: string; words: Telegram
       stopPoll.current = true
       clearInterval(t)
     }
-  }, [activationUrl, activated, words.greeting, words.errors, load])
+  }, [activationUrl, activated, greetingText, words.errors, load])
 
   // Открывшаяся ступень прокручивается в поле зрения — иначе «ничего не происходит» (урок памяти).
   const stage = activated ? 4 : configured ? 3 : 0
