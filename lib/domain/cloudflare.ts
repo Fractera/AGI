@@ -175,3 +175,50 @@ export async function upsertTunnelRecord(token: string, zoneId: string, name: st
     type: "CNAME", name, content, proxied: true,
   })
 }
+
+// ── ЗАПИСИ DNS ДЛЯ ЧУЖОЙ СЛУЖБЫ ПОЧТЫ (266-4) ────────────────────────────────
+//
+// 🔒 НИЧЕГО ЧУЖОГО НЕ ПЕРЕЗАПИСЫВАЕТСЯ И НЕ УДАЛЯЕТСЯ. Зона — живые данные
+// человека: в ней может уже стоять его DMARC или запись другой почты. Поэтому
+// запись только ДОБАВЛЯЕТСЯ; совпадающая пропускается, а отличающаяся
+// называется конфликтом и остаётся как была — решает человек, не узел.
+//
+// 🛑 `proxied: false` У CNAME ОБЯЗАТЕЛЬНО, в отличие от записи туннеля выше.
+// Resend показывает «DNS Only»: проксированная запись отдаёт адрес Cloudflare
+// вместо своего значения, и проверка домена у Resend не проходит никогда.
+
+export type MailRecord = { type: "TXT" | "CNAME" | "MX"; name: string; content: string; priority?: number }
+export type MailRecordResult = { name: string; type: string; outcome: "created" | "exists" | "conflict" | "failed"; reason?: string }
+
+/** Имя записи в полной форме: Resend показывает его относительно зоны. */
+export function fullRecordName(name: string, zone: string): string {
+  const n = name.trim().replace(/\.$/, "").toLowerCase()
+  const z = zone.toLowerCase()
+  if (n === "@" || n === "" || n === z) return z
+  return n.endsWith(`.${z}`) ? n : `${n}.${z}`
+}
+
+/** Сравнение значений без кавычек и хвостовой точки — так их отдаёт Cloudflare. */
+function sameContent(a: string, b: string): boolean {
+  const norm = (s: string) => s.trim().replace(/^"|"$/g, "").replace(/\.$/, "").toLowerCase()
+  return norm(a) === norm(b)
+}
+
+export async function addMailRecord(token: string, zoneId: string, zone: string, rec: MailRecord): Promise<MailRecordResult> {
+  const name = fullRecordName(rec.name, zone)
+  const found = await send<Array<{ id: string; content: string }>>(
+    "GET", `/zones/${zoneId}/dns_records?name=${encodeURIComponent(name)}&type=${rec.type}`, token,
+  )
+  if (!found.ok) return { name, type: rec.type, outcome: "failed", reason: found.reason }
+  if (found.result.some((r) => sameContent(r.content, rec.content))) return { name, type: rec.type, outcome: "exists" }
+  // Второй TXT с тем же именем законен в DNS, но для DKIM и DMARC он ломает
+  // проверку; CNAME второй не бывает вовсе. Любая запись с тем же именем и типом
+  // — конфликт, который человек разбирает сам.
+  if (found.result.length > 0) return { name, type: rec.type, outcome: "conflict" }
+
+  const body: Record<string, unknown> = { type: rec.type, name, content: rec.content.trim(), ttl: 1 }
+  if (rec.type === "CNAME") body.proxied = false
+  if (rec.type === "MX") body.priority = rec.priority ?? 10
+  const made = await send<{ id: string }>("POST", `/zones/${zoneId}/dns_records`, token, body)
+  return made.ok ? { name, type: rec.type, outcome: "created" } : { name, type: rec.type, outcome: "failed", reason: made.reason }
+}

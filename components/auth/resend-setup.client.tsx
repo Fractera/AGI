@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { H3, Small } from "@/components/ui/typography"
 import { RESEND_DOMAINS_URL, RESEND_PRICING_URL, RESEND_URL, type ResendSetupWords } from "@/components/auth/resend-setup.i18n"
+import { ResendDns } from "@/components/auth/resend-dns.client"
 import { LimitsNote, Step, StepPoints } from "@/components/auth/setup-ladder.client"
 
 // ЭКРАН ВКЛЮЧЕНИЯ ВХОДА ПИСЬМОМ (RESEND) (266-2).
@@ -53,6 +54,7 @@ export function ResendSetup({ words }: { words: ResendSetupWords }) {
   const [state, setState] = useState<State | null>(null)
   const [key, setKey] = useState("")
   const [from, setFrom] = useState("")
+  const [name, setName] = useState("")
   const [busy, setBusy] = useState(false)
   const [answer, setAnswer] = useState<{ ok: boolean; text: string } | null>(null)
 
@@ -79,6 +81,18 @@ export function ResendSetup({ words }: { words: ResendSetupWords }) {
     return words.errUnknown
   }
 
+  /**
+   * Отправитель для службы. Человек вводит голый адрес и, если хочет, имя;
+   * запись «Имя <адрес>» собирает экран. Слово владельца 2026-09-22: «зачем там
+   * косые кавычки <> разве не лучше чтобы ты просто показал адрес». Кавычки и
+   * угловые скобки из имени убираются — они сломали бы саму запись.
+   */
+  function sender(): string {
+    const address = from.trim()
+    const label = name.replace(/[<>"]/g, "").trim()
+    return label ? `${label} <${address}>` : address
+  }
+
   async function send(method: "POST" | "DELETE") {
     if (busy) return
     setBusy(true)
@@ -87,7 +101,7 @@ export function ResendSetup({ words }: { words: ResendSetupWords }) {
       const res = await fetch(DOOR, {
         method,
         headers: method === "POST" ? { "content-type": "application/json" } : undefined,
-        body: method === "POST" ? JSON.stringify({ apiKey: key.trim(), from: from.trim() }) : undefined,
+        body: method === "POST" ? JSON.stringify({ apiKey: key.trim(), from: sender() }) : undefined,
       })
       const data = (await res.json().catch(() => ({}))) as { ok?: boolean; reason?: string } & Partial<State>
       // 🛑 КЛЮЧ ЧИСТИТСЯ В ЛЮБОМ ИСХОДЕ. Отправителя оставляем в поле при отказе:
@@ -95,6 +109,7 @@ export function ResendSetup({ words }: { words: ResendSetupWords }) {
       setKey("")
       if (data.ok) {
         setFrom("")
+        setName("")
         setState((prev) => ({ ...(prev as State), ...(data as Partial<State>) }))
         setAnswer({ ok: true, text: method === "POST" ? words.savedOn : words.savedOff })
       } else {
@@ -150,6 +165,7 @@ export function ResendSetup({ words }: { words: ResendSetupWords }) {
         {state.zone && <p className="mt-2 text-foreground text-sm">{words.zoneHint.replaceAll("{zone}", zone)}</p>}
         <StepPoints items={words.step2Points} />
         <OutLink href={RESEND_DOMAINS_URL}>{words.openDomains}</OutLink>
+        <ResendDns words={words.dns} />
       </Step>
 
       <Step n={3} title={words.step3Title}>
@@ -182,11 +198,26 @@ export function ResendSetup({ words }: { words: ResendSetupWords }) {
               value={from}
               onChange={(e) => setFrom(e.target.value)}
               placeholder={words.fromExample.replaceAll("{zone}", zone)}
+              type="email"
               autoComplete="off"
               spellCheck={false}
               className="font-mono text-xs"
             />
             <Small className="text-muted-foreground">{words.fromHint}</Small>
+            <Small className="text-muted-foreground" data-from-examples>
+              {words.fromExamples.replaceAll("{zone}", zone)}
+            </Small>
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="resend-name">{words.nameLabel}</Label>
+            <Input
+              id="resend-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={words.nameExample}
+              autoComplete="off"
+            />
+            <Small className="text-muted-foreground">{words.nameHint}</Small>
           </div>
           <div>
             <Button type="button" onClick={() => send("POST")} disabled={busy || !key.trim() || !from.trim()}>
