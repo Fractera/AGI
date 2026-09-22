@@ -51,6 +51,29 @@ if (!resolveBin('bun', env[pathKey])) fail('bun не найден — серве
 const claude = resolveBin('claude', env[pathKey])
 if (!claude) fail('claude не найден в PATH и в ~/.local/bin')
 
+// 🛑 ЗАВИСИМОСТИ ПЛАГИНА СТАВЯТСЯ ДО ЗАПУСКА `claude`. ✗ Оплачено живым прогоном владельца 2026-09-22: сервер
+// плагина при ПЕРВОМ старте сам делает `bun install` (`package.json` плагина: «bun install && bun server.ts»),
+// а `claude` ждёт подключения сервера 30 с (журнал `--debug mcp`: «Starting connection with timeout of
+// 30000ms»). Первая установка в них не укладывалась — сервер не поднимался, бот молчал при `online` в pm2,
+// у Telegram копились непрочитанные. После ручной установки тот же запуск подключился за 1079 мс и ответил.
+// Путь плагина — из `~/.claude/plugins/installed_plugins.json`, а не выдуман: у каждой машины он свой.
+function preparePlugin() {
+  let installPath = ''
+  try {
+    const reg = JSON.parse(require('node:fs').readFileSync(path.join(require('node:os').homedir(), '.claude', 'plugins', 'installed_plugins.json'), 'utf8'))
+    installPath = reg.plugins?.[PLUGIN]?.[0]?.installPath ?? ''
+  } catch { /* реестра нет — плагин не установлен */ }
+  if (!installPath) fail(`плагин ${PLUGIN} не установлен: claude plugin install ${PLUGIN}`)
+  if (require('node:fs').existsSync(path.join(installPath, 'node_modules'))) return
+  const bun = resolveBin('bun', env[pathKey])
+  const r = require('node:child_process').spawnSync(bun, ['install', '--no-summary'], {
+    cwd: installPath, env, encoding: 'utf8', windowsHide: true, timeout: 300_000,
+  })
+  if (r.status !== 0) fail(`bun install в ${installPath} не удался: ${(r.stderr || r.stdout || '').slice(-300)}`)
+  console.log(`[канал] зависимости плагина поставлены в ${installPath}`)
+}
+preparePlugin()
+
 const screenFile = path.join(process.cwd(), 'logs', `${residentName()}.screen.txt`)
 mkdirSync(path.dirname(screenFile), { recursive: true })
 
