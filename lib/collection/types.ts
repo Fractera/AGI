@@ -38,6 +38,18 @@ export type WorkspacePageMeta = {
    * — and renaming a folder would silently reshuffle a menu.
    */
   order: number
+  /**
+   * The page exists and is reachable, but no menu lists it.
+   *
+   * 🔒 ADDED FOR STEPS OF A PROCESS (274-4). A wizard step is a screen, so it needs an address of its
+   * own — otherwise it cannot be prerendered, linked, or returned to. But it is not a place: people
+   * enter it from a button and leave when the process ends. Listing four such steps in the left menu
+   * would present them as four independent sections, which misdescribes the product.
+   *
+   * 🛑 THIS IS NOT A LOCK. Hiding a page from the menu hides it from the eye, never from the network:
+   * whatever a page must not show belongs behind `requireRoles`, not behind this flag.
+   */
+  hidden?: boolean
 }
 
 /** One theme of a page: a heading with its own anchor, its text, and its label in the top row. */
@@ -104,7 +116,13 @@ export function wordsOf(page: WorkspacePageData, lang: string): WorkspacePageWor
  *
  * Sorted by `order`, ties broken by `slug` so the result never depends on the
  * order in which the filesystem happened to hand over the folders.
+ *
+ * 🔒 `meta.hidden` PAGES ARE LEFT OUT HERE, IN THE ONE PLACE THAT ORDERS PAGES (274-4). Every menu and
+ * index builds its rows from this function, so one filter covers them all; a second list of "and also
+ * skip these" would drift from the first the day somebody adds a step.
  */
 export function pagesInOrder(pages: readonly WorkspacePageData[]): WorkspacePageData[] {
-  return [...pages].sort((a, b) => a.meta.order - b.meta.order || a.meta.slug.localeCompare(b.meta.slug))
+  return [...pages]
+    .filter((p) => !p.meta.hidden)
+    .sort((a, b) => a.meta.order - b.meta.order || a.meta.slug.localeCompare(b.meta.slug))
 }

@@ -10,6 +10,16 @@ export type GithubWords = {
   forbidden: string
   intro: string
 
+  /**
+   * Подпись кнопки, открывающей мастер подключения репозитория (274-4).
+   *
+   * 🔒 КНОПКА ГОРИТ ВСЕГДА, А НЕ ТОЛЬКО КОГДА РЕПОЗИТОРИЯ НЕТ — решение владельца 2026-09-22: «будет
+   * гореть кнопка, если пользователь вновь захочет подключить другой репозиторий».
+   */
+  connectCta: string
+  /** Одна строка под кнопкой: зачем её нажимают. */
+  connectHint: string
+
   bindingTitle: string
   repoLabel: string
   branchLabel: string
@@ -56,6 +66,9 @@ const DICT: Record<string, GithubWords> = {
     forbidden: "Only the architect can see this, and only from this computer or your own domain.",
     intro:
       "This page answers one question: which repository this node works with right now. It asks git itself, so a renamed or replaced repository shows up here instead of surprising you on the day you publish.",
+
+    connectCta: "Add a new repository",
+    connectHint: "Four steps: the repository, the key, the check, the first push.",
 
     bindingTitle: "The repository of this node",
     repoLabel: "Repository",
@@ -118,6 +131,9 @@ const DICT: Record<string, GithubWords> = {
     forbidden: "Эту страницу видит только архитектор и только с этого компьютера или со своего домена.",
     intro:
       "Страница отвечает на один вопрос: с каким репозиторием работает этот узел прямо сейчас. Она спрашивает сам git, поэтому подменённый или переименованный репозиторий виден здесь, а не в день публикации.",
+
+    connectCta: "Добавить новый репозиторий",
+    connectHint: "Четыре шага: репозиторий, ключ, проверка, первая отправка.",
 
     bindingTitle: "Репозиторий этого узла",
     repoLabel: "Репозиторий",
