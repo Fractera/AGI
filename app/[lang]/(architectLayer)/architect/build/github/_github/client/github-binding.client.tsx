@@ -5,7 +5,7 @@ import { Check, ExternalLink, KeyRound, TriangleAlert, X } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Small } from "@/components/ui/typography"
+import { H3, Small } from "@/components/ui/typography"
 import { Spinner } from "@/components/ui/spinner"
 import type { GithubWords } from "../words/github.i18n"
 
@@ -122,7 +122,7 @@ export function GithubBinding({ lang, words }: { lang: string; words: GithubWord
 
       {/* ── с каким репозиторием работает узел ─────────────────────────────── */}
       <section className="flex flex-col gap-2 rounded-lg border border-border px-4 py-3">
-        <h3 className="font-medium text-base">{words.bindingTitle}</h3>
+        <H3 variant="ui">{words.bindingTitle}</H3>
         {b.url && <Row label={words.repoLabel} value={<span className="font-mono text-xs">{b.url}</span>} />}
         {b.branch && <Row label={words.branchLabel} value={<span className="font-mono text-xs">{b.branch}</span>} />}
         {b.commit && (
@@ -148,7 +148,7 @@ export function GithubBinding({ lang, words }: { lang: string; words: GithubWord
 
       {/* ── ключ ───────────────────────────────────────────────────────────── */}
       <section className="flex flex-col gap-3 rounded-lg border border-border px-4 py-3">
-        <h3 className="font-medium text-base">{words.keyTitle}</h3>
+        <H3 variant="ui">{words.keyTitle}</H3>
         <p className="text-muted-foreground text-sm">{words.keyLead}</p>
         <ol className="ml-5 list-decimal text-muted-foreground text-sm [&>li]:mt-1">
           {words.keySteps.map((s) => (
@@ -214,7 +214,7 @@ export function GithubBinding({ lang, words }: { lang: string; words: GithubWord
 
       {/* ── что умеет ключ ─────────────────────────────────────────────────── */}
       <section className="flex flex-col gap-2 rounded-lg border border-border px-4 py-3" data-access>
-        <h3 className="font-medium text-base">{words.accessTitle}</h3>
+        <H3 variant="ui">{words.accessTitle}</H3>
         {!access ? (
           <p className="text-muted-foreground text-sm">{words.notChecked}</p>
         ) : (
