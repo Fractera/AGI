@@ -5,6 +5,7 @@ import { Check, CircleAlert, Copy, ExternalLink, KeyRound, RotateCw, X } from "l
 import { Button, buttonVariants } from "@/components/ui/button"
 import { AppDialog } from "@/components/dialog/app-dialog.client"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import type { ClaudeSubscriptionWords } from "@/components/terminal/claude-subscription.i18n"
 import { createMouseFilter, MOUSE_OFF } from "@/components/terminal/mouse-filter.mjs"
 import { extractAuthUrl } from "@/components/terminal/terminal-auth.mjs"
@@ -80,16 +81,35 @@ export function ClaudeSubscription({ words }: { words: ClaudeSubscriptionWords }
     setAuthUrl(null)
     modalRef.current = false
     bufRef.current = ""
+    startingRef.current = false
+    setStarting(false)
     check()
   }, [check])
 
+  // 🛑 ОДНО НАЖАТИЕ — ОДИН ВХОД. ✗ Оплачено владельцем 2026-09-22: «нажимаю на кнопку ничего не меняется я
+  // ещё раз нажимаю… а потом сразу открывается много вкладок на авторизацию». Кнопка оставалась живой,
+  // пока шёл запрос билета, и каждое нажатие рождало свой `claude auth login` — а тот на этой машине сам
+  // открывает вкладку в браузере. Отсюда два замка: ref отсекает повтор мгновенно (состояние React
+  // обновится только к следующей отрисовке), а `starting` показывает, что нажатие принято.
+  const startingRef = useRef(false)
+  const [starting, setStarting] = useState(false)
+
   const startLogin = useCallback(async () => {
+    if (startingRef.current || wsRef.current) return
+    startingRef.current = true
+    setStarting(true)
     let ticket = ""
     try {
       const res = await fetch(TICKET, { method: "POST" })
-      if (res.status === 401 || res.status === 403) return setAuth("forbidden")
+      if (res.status === 401 || res.status === 403) {
+        startingRef.current = false
+        setStarting(false)
+        return setAuth("forbidden")
+      }
       ticket = ((await res.json()) as { ticket?: string }).ticket ?? ""
     } catch {
+      startingRef.current = false
+      setStarting(false)
       return
     }
     setOpen(true)
@@ -113,6 +133,12 @@ export function ClaudeSubscription({ words }: { words: ClaudeSubscriptionWords }
       bufRef.current = (bufRef.current + chunk).slice(-BUFFER_LIMIT)
       if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = setTimeout(scan, DETECT_DELAY_MS)
+    }
+    // Отказ моста (вход уже идёт в другой вкладке и т. п.) называется в самом терминале, а не оставляет
+    // пустой чёрный прямоугольник.
+    ws.onclose = (event) => {
+      if (wsRef.current === ws) wsRef.current = null
+      if (event.reason) termRef.current?.write(`\r\n[${event.reason}]\r\n`)
     }
   }, [scan])
 
@@ -159,9 +185,9 @@ export function ClaudeSubscription({ words }: { words: ClaudeSubscriptionWords }
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {!open && (
-                <Button type="button" onClick={startLogin} variant={on ? "outline" : "default"} data-claude-login>
-                  <KeyRound className="size-4" aria-hidden />
-                  {on ? words.relogin : words.login}
+                <Button type="button" onClick={startLogin} disabled={starting} aria-busy={starting} variant={on ? "outline" : "default"} data-claude-login>
+                  {starting ? <Spinner className="size-4" /> : <KeyRound className="size-4" aria-hidden />}
+                  {starting ? words.starting : on ? words.relogin : words.login}
                 </Button>
               )}
               <Button type="button" variant="ghost" onClick={check}>

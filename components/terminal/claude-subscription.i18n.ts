@@ -14,6 +14,7 @@ export type ClaudeSubscriptionWords = {
   unknownText: string
   login: string
   relogin: string
+  starting: string
   recheck: string
   terminalNote: string
   close: string
@@ -40,6 +41,7 @@ const DICT: Record<string, ClaudeSubscriptionWords> = {
     unknownText: "The command-line tool may not be installed on this computer, or it did not respond in time.",
     login: "Sign in with Claude subscription",
     relogin: "Sign in again",
+    starting: "Starting sign-in…",
     recheck: "Check again",
     terminalNote: "This is the real sign-in of Claude Code. When a link appears, a window opens with it; paste the code Anthropic gives you.",
     close: "Close",
@@ -64,6 +66,7 @@ const DICT: Record<string, ClaudeSubscriptionWords> = {
     unknownText: "Возможно, программа не установлена на этом компьютере или не успела ответить.",
     login: "Войти по подписке Claude",
     relogin: "Войти заново",
+    starting: "Запускаю вход…",
     recheck: "Проверить снова",
     terminalNote: "Это настоящий вход Claude Code. Когда появится ссылка, откроется окно с ней; вставьте код, который выдаст Anthropic.",
     close: "Закрыть",
