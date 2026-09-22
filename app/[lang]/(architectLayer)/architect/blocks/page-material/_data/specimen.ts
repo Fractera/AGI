@@ -4,6 +4,7 @@ import { servicePortWords } from '@/components/services/service-port.i18n'
 import { googleSetupWords } from '@/components/auth/google-setup.i18n'
 import { resendSetupWords } from '@/components/auth/resend-setup.i18n'
 import { agentTerminalWords } from '@/components/terminal/agent-terminal.i18n'
+import { claudeSubscriptionWords } from '@/components/terminal/claude-subscription.i18n'
 
 // ОБРАЗЦЫ ВСЕХ ВИДОВ СЕКЦИЙ — по одному на каждый вид каталога.
 //
@@ -1266,6 +1267,17 @@ export const SPECIMEN: SpecimenSection[] = [
       {
         kind: 'agentTerminal',
         words: agentTerminalWords('en'),
+      },
+    ],
+  },
+  {
+    kind: 'claudeSubscription',
+    when: "The state of a sign-in that belongs to a command-line tool on the owner's machine, asked of the tool itself, plus the sign-in in place. It spends nothing until the button: the state comes from one door, and the short terminal with the tool's own sign-in is born only on demand. Take it for any tool whose account lives on the machine rather than in the site.",
+    whenRu: "Состояние входа, принадлежащего программе командной строки на машине хозяина, спрошенное у самой программы, и тут же сам вход. До кнопки не тратит ничего: состояние отдаёт одна дверь, а короткий терминал с собственным входом программы рождается только по требованию. Берут для любой программы, чья учётная запись живёт на машине, а не на сайте.",
+    blocks: [
+      {
+        kind: 'claudeSubscription',
+        words: claudeSubscriptionWords('en'),
       },
     ],
   },

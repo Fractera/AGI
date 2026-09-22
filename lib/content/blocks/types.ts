@@ -122,6 +122,8 @@ export type LeafBlock =
   | { kind: 'authResendSetup'; words: import('@/components/auth/resend-setup.i18n').ResendSetupWords }
   // Терминал агента узла (267-1): спит до запуска, живёт при уходе, папку агента спрашивает у узла.
   | { kind: 'agentTerminal'; words: import('@/components/terminal/agent-terminal.i18n').AgentTerminalWords }
+  // Подписка Claude Code (267-2): состояние входа у самого `claude`, вход ссылкой и кодом.
+  | { kind: 'claudeSubscription'; words: import('@/components/terminal/claude-subscription.i18n').ClaudeSubscriptionWords }
   | { kind: 'servicePort'; serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords }
   | { kind: 'note'; text: string }
   // Founder pull-quote in the homepage testimonial design (gradient-violet text +

@@ -1538,6 +1538,20 @@
       "description": null,
       "hasCard": false,
       "usedOn": []
+    },
+    {
+      "id": null,
+      "codes": [
+        "claudeSubscription01"
+      ],
+      "kind": "claudeSubscription",
+      "type": "page-material",
+      "shape": "text",
+      "fields": "words: import('@/components/terminal/claude-subscription.i18n').ClaudeSubscriptionWords",
+      "title": null,
+      "description": null,
+      "hasCard": false,
+      "usedOn": []
     }
   ]
 }
