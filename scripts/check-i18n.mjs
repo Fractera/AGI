@@ -56,6 +56,8 @@ const FILES = [
   ["lib/i18n/architecture-link.i18n.ts", "ArchitectureLinkUi", 2],
   // Каталог секций.
   ["app/[lang]/(architectLayer)/architect/blocks/page-material/_data/ui.i18n.ts", "BlocksCatalogueUi", 2],
+  // Вкладка «Готовые решения» (270) — внесена тем же коммитом, что и словарь.
+  ["app/[lang]/(architectLayer)/architect/kits/_data/ui.i18n.ts", "KitsUi", 2],
   // Слова СЛОЯ АРХИТЕКТОРА (236-1). ✗ До того шага сторож их не проверял вовсе:
   // словарь существовал с 230-4 и в списке отсутствовал, поэтому прибор оставался
   // зелёным, когда из словаря НАМЕРЕННО убрали русский ключ. Зелёный цвет означал

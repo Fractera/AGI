@@ -2,6 +2,7 @@ import type { SectionRenderer } from '@/sections/contract'
 import { H2 } from '@/components/ui/typography'
 import { inline } from '@/lib/content/blocks/inline'
 import { AccordionSection, type AccordionPanel } from '@/components/accordion/accordion-section.client'
+import { appDialogUi } from '@/components/dialog/app-dialog.i18n'
 
 // РАСКРЫВАЮЩИЕСЯ ПОЛОСЫ — вид каталога (244-1).
 //
@@ -34,7 +35,12 @@ export const accordion: SectionRenderer<'accordion'> = (b, ctx) => {
       id: `${ctx.key}-${index}`,
       summary: item.summary,
       content: ctx.renderBlocks(item.children, ctx.lang, ctx.ui, `${ctx.key}-${index}`),
+      // Подробности рисуются тем же каталогом и едут в островок готовым деревом — окно о видах не знает.
+      details: item.details
+        ? { title: item.details.title, content: ctx.renderBlocks(item.details.children, ctx.lang, ctx.ui, `${ctx.key}-${index}-d`) }
+        : undefined,
     }))
+  const hasDetails = panels.some(panel => panel.details)
 
   // Полоса, открытая при загрузке, — не более одной: берём первую помеченную.
   const openIndex = b.children.findIndex(
@@ -50,6 +56,8 @@ export const accordion: SectionRenderer<'accordion'> = (b, ctx) => {
       <AccordionSection
         panels={panels}
         defaultOpen={openIndex >= 0 ? `${ctx.key}-${openIndex}` : undefined}
+        capped={b.capped === true}
+        dialogUi={hasDetails ? appDialogUi(ctx.lang) : undefined}
       />
     </section>
   )
