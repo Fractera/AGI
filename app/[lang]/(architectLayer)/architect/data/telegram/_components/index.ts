@@ -1,8 +1,13 @@
+import type { ReactNode } from 'react'
 import type { Block } from '@/lib/content/blocks/types'
-import { agentKitContent } from '@/lib/agent-kit/content'
+import { agentKitWidget } from '../../_agent-kit/widgets'
 
-// СОДЕРЖИМОЕ СТРАНИЦЫ — ИЗ КОМПЛЕКТА АГЕНТА СЛУЖБЫ (269, `lib/agent-kit/content.ts`).
-// Здесь только имя страницы и имя службы; всё остальное — в комплекте, одно на все службы.
-export function content(lang: string): Block[] {
-  return agentKitContent('telegram', 'data', lang)
+// СОДЕРЖИМОЕ СТРАНИЦЫ — ИЗ КОПИИ КОМПЛЕКТА АГЕНТА ЭТОЙ СЛУЖБЫ (271, `../../_agent-kit/`).
+// Шаблон `kits/_agent-kit/pages/telegram/`; установщик подставил имя службы вместо `data`.
+export function content(_lang: string): Block[] {
+  return []
+}
+
+export function widget(lang: string): ReactNode {
+  return agentKitWidget('telegram', 'data', lang)
 }

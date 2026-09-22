@@ -21,7 +21,7 @@
 и только карточка говорит, что он выдержит** — сколько элементов, что ломается за пределом, когда
 его не брать. Есть карточка — прочти её перед использованием.
 
-Видов: **66** · рендереров: **65** · карточек: **36**
+Видов: **63** · рендереров: **62** · карточек: **36**
 
 | Код | Вид | Семейство | Что это | Поля | Правила владельца |
 |---|---|---|---|---|---|
@@ -61,7 +61,7 @@
 | `languageMarquee01` | `languageMarquee` | Trust and logos | the language ribbon, closing the page | title: string; note?: string | [карточка](blocks/languageMarquee.md) |
 | `projectTypeMarquee01` | `projectTypeMarquee` | Trust and logos | the ribbon of directions | title?: string; note?: string | [карточка](blocks/projectTypeMarquee.md) |
 | `voiceField01` | `voiceField` | Page material | a text field that can be dictated | variant?: 'line' \| 'area'; title: string; hint?: string; comment?: string; placeholder?: string | [карточка](blocks/voiceField.md) |
-| `workspace01` `workspace02` | `workspace` | Workspace | рабочий экран | menuTitle?: string; menu: WorkspaceItem[]; title: string; lead?: string; notes?: WorkspaceNote[]; tabs?: WorkspaceItem[]; children: Block[] | [карточка](blocks/workspace.md) |
+| `workspace01` `workspace02` | `workspace` | Workspace | рабочий экран | menuTitle?: string; menu: WorkspaceItem[]; title: string; lead?: string; notes?: WorkspaceNote[]; tabs?: WorkspaceItem[]; children: Block[]; widget?: import('react').ReactNode | [карточка](blocks/workspace.md) |
 | `accordion01` | `accordion` | Page material | раскрывающиеся полосы | title?: string; lead?: string; capped?: boolean; children: Block[] | [карточка](blocks/accordion.md) |
 | `accordionItem01` | `accordionItem` | Page material | — | summary: string; open?: boolean; details?: { title: string; children: Block[] }; children: Block[] | — |
 | `benefitCards01` | `benefitCards` | Benefits and value | карточки возможностей со ссылкой | title?: string; note?: string; cols?: 2 \| 3; items: { title: string; text: string; href?: string; linkLabel?: string }[] | [карточка](blocks/benefitCards.md) |
@@ -88,9 +88,6 @@
 | `servicePort01` | `servicePort` | Page material | — | serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords | — |
 | `authGoogleSetup01` | `authGoogleSetup` | Page material | — | words: import('@/components/auth/google-setup.i18n').GoogleSetupWords | — |
 | `authResendSetup01` | `authResendSetup` | Page material | — | words: import('@/components/auth/resend-setup.i18n').ResendSetupWords | — |
-| `agentTerminal01` | `agentTerminal` | Page material | — | service: string; words: import('@/components/terminal/agent-terminal.i18n').AgentTerminalWords | — |
-| `claudeSubscription01` | `claudeSubscription` | Page material | — | words: import('@/components/terminal/claude-subscription.i18n').ClaudeSubscriptionWords | — |
-| `telegramChannel01` | `telegramChannel` | Page material | — | service: string; lang: string; words: import('@/components/channel/telegram-channel.i18n').TelegramChannelWords | — |
 
 ## Чего в этой таблице нет
 

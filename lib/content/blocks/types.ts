@@ -120,12 +120,9 @@ export type LeafBlock =
   | { kind: 'authGoogleSetup'; words: import('@/components/auth/google-setup.i18n').GoogleSetupWords }
   // Экран включения входа письмом (Resend): аккаунт, домен, ключ, отправитель, состояние.
   | { kind: 'authResendSetup'; words: import('@/components/auth/resend-setup.i18n').ResendSetupWords }
-  // Терминал агента узла (267-1): спит до запуска, живёт при уходе, папку агента спрашивает у узла.
-  | { kind: 'agentTerminal'; service: string; words: import('@/components/terminal/agent-terminal.i18n').AgentTerminalWords }
-  // Подписка Claude Code (267-2): состояние входа у самого `claude`, вход ссылкой и кодом.
-  | { kind: 'claudeSubscription'; words: import('@/components/terminal/claude-subscription.i18n').ClaudeSubscriptionWords }
-  // Канал Telegram → Claude Code (267-3): бот службы работает в сессии её терминала; служба — параметр (269).
-  | { kind: 'telegramChannel'; service: string; lang: string; words: import('@/components/channel/telegram-channel.i18n').TelegramChannelWords }
+  // 🪦 `agentTerminal`, `claudeSubscription`, `telegramChannel` (267–269) УШЛИ ИЗ КАТАЛОГА В 271: это комплект
+  // агента службы, он живёт в папке маршрута службы (`architect/<служба>/_agent-kit/`) и встаёт на страницу
+  // полем `widget` вида `workspace`. Мастер — `architect/kits/_agent-kit/`.
   | { kind: 'servicePort'; serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords }
   | { kind: 'note'; text: string }
   // Founder pull-quote in the homepage testimonial design (gradient-violet text +
@@ -965,6 +962,11 @@ export type ContainerBlock =
       tabs?: WorkspaceItem[]
       /** Содержимое, которое достраивают под задачу проекта. */
       children: Block[]
+      /**
+       * СОБСТВЕННЫЙ ОСТРОВОК МАРШРУТА — над блоками (271). Для вещи, которая живёт в папке своего маршрута и в
+       * общий каталог видов не входит: удалили маршрут — ушла и она. Не задан — экрана это не касается.
+       */
+      widget?: import('react').ReactNode
     }
 
 export type Block = LeafBlock | ContainerBlock

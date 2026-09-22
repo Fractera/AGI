@@ -38,6 +38,7 @@ export const workspace: SectionRenderer<'workspace'> = (b, { key: k, renderBlock
     renderItem={(item, i) => inline(item.label, `${k}-m-${i}`)}
     renderTab={(item, i) => inline(item.label, `${k}-tab-${i}`)}
   >
+    {b.widget ?? null}
     {b.children.length > 0 ? renderBlocks(b.children, lang, ui, `${k}-c`) : null}
   </WorkspaceShell>
 )

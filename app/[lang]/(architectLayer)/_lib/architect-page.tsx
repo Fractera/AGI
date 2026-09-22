@@ -2,6 +2,7 @@ import { PostBody } from '@/components/content-page/post-body'
 import { PageHeader } from '@/components/content-page/page-header.server'
 import { PageShell } from '@/components/content-page/page-shell'
 import { Breadcrumbs } from '@/components/nav/breadcrumbs.server'
+import type { ReactNode } from 'react'
 import type { Block, WorkspaceItem } from '@/lib/content/blocks/types'
 import { architectLayerUi } from '../_i18n/architect-layer.i18n'
 import { architectMenu, ARCHITECT_HOME } from './architect-menu'
@@ -33,6 +34,7 @@ export function ArchitectPage({
   pageTitle,
   pageLead,
   tabs,
+  widget,
 }: {
   lang: string
   /** Адрес БЕЗ языка, ровно как в источнике меню: по нему отмечается активный пункт. */
@@ -64,6 +66,8 @@ export function ArchitectPage({
    * отменено вместе с `architectTabs`.
    */
   tabs?: WorkspaceItem[]
+  /** Собственный островок маршрута (271) — рисуется в рабочем экране над блоками. */
+  widget?: ReactNode
 }) {
   const ui = architectLayerUi(lang)
 
@@ -78,8 +82,9 @@ export function ArchitectPage({
       // ✗ найдено глазами 2026-09-19: у входа в слой содержимое уже есть, а эта
       // строка всё равно стояла под заголовком и обещала, что страницы ещё нет.
       // Уверенное умолчание дороже отсутствующего: человек читает его как факт.
-      lead: lead ?? (children.length > 0 ? undefined : ui.emptyLead),
+      lead: lead ?? (children.length > 0 || widget ? undefined : ui.emptyLead),
       children,
+      widget,
     },
   ]
 

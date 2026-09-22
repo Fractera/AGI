@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import type { Block, WorkspaceItem } from '@/lib/content/blocks/types'
 import { type WorkspacePageData, wordsOf } from '@/lib/collection/types'
 import { ArchitectPage } from './architect-page'
@@ -23,6 +24,7 @@ export function CollectionPage({
   dir,
   page,
   content,
+  widget,
 }: {
   lang: string
   /** Адрес папки-родителя без языка, например `/architect/tools`. */
@@ -40,6 +42,11 @@ export function CollectionPage({
    * открывается, называет себя и честно говорит о своём состоянии.
    */
   content?: Block[]
+  /**
+   * Собственный островок маршрута (271): вещь, которая живёт в папке маршрута, а не в каталоге видов
+   * (комплект агента службы). Есть островок — третье состояние «скоро будет построено» не наступает.
+   */
+  widget?: ReactNode
 }) {
   const ui = architectLayerUi(lang)
   const words = wordsOf(page, lang)
@@ -85,7 +92,7 @@ export function CollectionPage({
   // обратный порядок — страница собирает всё сама в своём `_components/`, и эта
   // ветка ей не мешает.
   const built: Block[] = [...(content ?? []), ...fromTopics]
-  const children: Block[] = built.length > 0 ? built : [{ kind: 'note', text: ui.soon }]
+  const children: Block[] = built.length > 0 || widget ? built : [{ kind: 'note', text: ui.soon }]
 
   // Верхний ряд — навигация ПО ЭТОЙ странице. Тем нет — ряда нет вовсе, и это
   // законное состояние раздела, у которого ещё нет содержимого.
@@ -100,6 +107,7 @@ export function CollectionPage({
       lead={words.lead}
       tabs={tabs}
       children={children}
+      widget={widget}
     />
   )
 }

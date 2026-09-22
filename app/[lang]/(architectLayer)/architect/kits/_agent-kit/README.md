@@ -1,0 +1,133 @@
+# Agent kit — Claude Code, terminal and Telegram bot for one microservice
+
+Read this whole file before installing, updating or removing the kit. It is written for an agent.
+This folder is the **master**: the only source of the kit. Services get full copies of it.
+
+## What the kit gives a service
+
+| Page | Address | What it does |
+|---|---|---|
+| Claude Code subscription | `/{lang}/architect/<service>/claude-code` | sign-in state of `claude` on this machine and sign-in in place. **One per computer**: every service shows the same state |
+| Terminal | `/{lang}/architect/<service>/terminal` | a live Claude Code in `microservices/<service>/`. **The only place where the session is started and stopped** |
+| Telegram bot | `/{lang}/architect/<service>/telegram` | BotFather → token → admission by link → a state card. No start or stop buttons here |
+
+**One service = one Claude Code session = one Telegram bot.** When the service bot is connected, the
+terminal starts `claude --channels plugin:telegram@claude-plugins-official`, so everything written in
+Telegram shows in the terminal, and the person can continue in the terminal without Telegram.
+While the terminal is off, the node itself reads the bot and answers with a status message and links
+(no subscription → sign in first; terminal inactive → open the terminal).
+
+## Where it lives
+
+```
+architect/kits/_agent-kit/           MASTER — never edit a service copy by hand; edit here, then update
+  core/                              everything that is copied into a service as _agent-kit/
+    server/  bridge.cjs session.cjs ticket.cjs workspace.cjs claude-cli.cjs telegram.cjs entry.cjs
+    client/  the three islands + xterm, mouse filter, auth-link extraction
+    i18n/    words of the three screens (en, ru)
+    widgets.tsx   agentKitWidget(page, service, lang) — the one entry for pages
+  pages/     claude-code/ terminal/ telegram/   templates (*.tpl, __SERVICE__)
+  api/       session/ ticket/ claude-auth/ channel/   door templates (route.ts.tpl)
+  kit.json   the card: the «Ready-made kits» tab is built from these cards
+  install.mjs · README.md
+
+architect/<service>/                 A COPY, owned by the service
+  _agent-kit/                        copy of core/ + VERSION (fingerprint of the master)
+  claude-code/ terminal/ telegram/   the three pages; each passes its island as `widget`
+  agent-api/{session,ticket,claude-auth,channel}/route.ts   doors: /{lang}/architect/<service>/agent-api/*
+
+lib/agent-kit/mount.cjs              node level: finds architect/*/_agent-kit/server/entry.cjs by walking
+                                     the folders AT START; serves the socket /pty/<service>, starts the pollers
+lib/agent-kit/check.mjs              guard `npm run check:agent-kits` (in prebuild)
+server.js                            one line: mountAgentKits(server, app)
+data/services/<service>/channel/telegram/   runtime data: token (.env), access.json, bot.json — outside git
+```
+
+**Delete test — the reason for this layout:** delete `architect/<service>/`, rebuild and restart — the
+build is green and nothing about that service remains in the code; the mount does not find it any more.
+Delete the master — installed services keep working; only the showcase and the installer are gone.
+The data folder stays on purpose (it holds a secret); remove it by hand if the service is gone for good.
+
+Why two files live outside the routes: the HTTP `upgrade` event and the poll timers exist once per Node
+process, while there are as many kit copies as services. The mount knows no service by name.
+
+## Before installing — check all of these
+
+1. The service is in `MICROSERVICES.json` (`"id": "<service>"`) and the folder `microservices/<service>/`
+   exists. The agent is born in that folder — **the folder is the agent's identity** (`CLAUDE.md`,
+   settings and tools are read from there).
+2. The service has its own page group `architect/<service>/` (`_data/index.ts`). The installer puts the
+   kit INTO it and refuses to invent a group.
+3. On the machine: Claude Code (`claude` in PATH or `~/.local/bin`), Bun (`~/.bun/bin`), and the plugin
+   `telegram@claude-plugins-official` (`claude plugin install telegram@claude-plugins-official`). The
+   plugin's own dependencies are installed by the kit before the first start — do not rely on the
+   plugin doing it: its first `bun install` does not fit into Claude Code's 30-second MCP timeout.
+4. `node-pty` and `ws` are dependencies of the node (`package.json`); `node-pty` loads
+   (`npm rebuild node-pty` if not). On Linux it needs python3, make and g++.
+5. Shared node pieces the copy imports and does not own: `@/components/ui/*`, `AppDialog`,
+   `@/components/auth/setup-ladder.client`, `@/lib/auth/*` (roles, temporary-address lock).
+
+## Install, reinstall, update
+
+```
+npm run agent-kit:add -- <service>            install
+npm run agent-kit:add -- <service> --force    reinstall over an existing copy
+npm run agent-kit:update -- <service>         copy the current master into an installed service
+npm run serve:rebuild                         after any of them
+```
+
+The installer removes the previous copy whole first — a file deleted from the master must not survive
+an update. It refuses a service that is not registered, has no folder or no page group.
+
+`npm run check:agent-kits` has three verdicts: **ok** · **debt** (the copy lags behind the master —
+printed every run, does not fail the build) · **error** (a torn copy: pages or doors missing, doors
+without `_agent-kit/`, or the copy edited by hand so it no longer matches its own `VERSION`).
+
+## Verify — two planes, one negative control
+
+1. `/{lang}/architect/<service>/terminal` answers 200; `GET /{lang}/architect/<service>/agent-api/session`
+   answers `{ running: false }` for an architect.
+2. Press «Start the agent»: the door answers `running: true`; if the bot is connected, `channel: true`,
+   and a `bun` process exists (the plugin server). The terminal screen says
+   «messages from plugin:telegram… inject directly in this session». Stop → `running: false`, `bun` gone.
+3. Negative control: a second service started at the same time has its own `pid` and folder, and
+   stopping one does not touch the other.
+
+## First run in a new service
+
+Claude Code asks «Is this a project you trust?» and «No, exit» is the default. Answer **«Yes, I trust this
+folder»** in that service's terminal (↓ then Enter). Nobody can answer it from Telegram.
+
+## Laws — each one was paid for
+
+- **Start and stop only on the Terminal page.** The Telegram page shows state only.
+- **`--permission-mode auto` is required** with the channel: a permission prompt would go to the very
+  channel that is waiting for an answer, and the session would hang.
+- **`--add-dir <state folder>` is required**: without it Claude Code asks a path-policy question that the
+  channel plugin does not forward — a silent hang while everything says `online`.
+- **One poller per bot.** Telegram gives each update to one reader; each copy polls only its own bot, and
+  only while its terminal is off.
+- **Strip inherited Claude Code session markers** (`CLAUDECODE`, `CLAUDE_CODE_*`) from the child
+  environment: with them `claude` believes it is nested and does not start plugin servers.
+- **The service comes from the ADDRESS** (`/pty/<service>`, the door's own folder), never from a message
+  the browser sends.
+- **The token never leaves the machine**: doors return its last four characters only.
+- **Every child process from a background service gets `windowsHide: true`.**
+- **A node restart or rebuild ends the sessions** — the agent is started again by a person.
+- Telegram channels are an Anthropic research preview: flags may change.
+
+## When the bot is silent
+
+| Check | Meaning |
+|---|---|
+| `getWebhookInfo` → `pending_update_count` grows | nobody reads the bot: the node did not find the copy (restart it), or the plugin server did not start |
+| no `bun` process while the terminal says channel on | plugin dependencies missing or MCP timeout — see «Before installing» №3 |
+| the terminal screen shows a question | a modal prompt — answer it in the terminal |
+| the status message says «not signed in» | sign in on the Claude Code subscription page |
+| the node log says `копия службы «…» не загрузилась` | a broken copy — `npm run check:agent-kits`, then `agent-kit:update` |
+
+## Remove from a service
+
+Delete `architect/<service>/_agent-kit/`, `architect/<service>/agent-api/` and the three pages, then
+`npm run serve:rebuild`. The mount forgets the service by itself. Delete
+`data/services/<service>/channel/telegram/` by hand only if the bot must be forgotten too.

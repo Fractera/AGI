@@ -3,9 +3,6 @@ import { domainLadderWords } from '@/components/domain/domain-ladder.i18n'
 import { servicePortWords } from '@/components/services/service-port.i18n'
 import { googleSetupWords } from '@/components/auth/google-setup.i18n'
 import { resendSetupWords } from '@/components/auth/resend-setup.i18n'
-import { agentTerminalWords } from '@/components/terminal/agent-terminal.i18n'
-import { claudeSubscriptionWords } from '@/components/terminal/claude-subscription.i18n'
-import { telegramChannelWords } from '@/components/channel/telegram-channel.i18n'
 
 // ОБРАЗЦЫ ВСЕХ ВИДОВ СЕКЦИЙ — по одному на каждый вид каталога.
 //
@@ -1257,42 +1254,6 @@ export const SPECIMEN: SpecimenSection[] = [
       {
         kind: 'authResendSetup',
         words: resendSetupWords('en'),
-      },
-    ],
-  },
-  {
-    kind: 'agentTerminal',
-    when: "A live command line on the owner's own machine with an agent already started in a named folder. It sleeps until the button, survives leaving the page and stops on its own button. Take it wherever a person must talk to an agent that works on this node: the folder is the agent's identity, so the screen names it before anything starts.",
-    whenRu: "Живая командная строка на машине хозяина с агентом, запущенным в названной папке. Спит до кнопки, переживает уход со страницы и останавливается своей кнопкой. Берут везде, где человеку надо говорить с агентом, работающим на этом узле: папка — личность агента, поэтому экран называет её до запуска.",
-    blocks: [
-      {
-        kind: 'agentTerminal',
-        service: 'auth',
-        words: agentTerminalWords('en'),
-      },
-    ],
-  },
-  {
-    kind: 'claudeSubscription',
-    when: "The state of a sign-in that belongs to a command-line tool on the owner's machine, asked of the tool itself, plus the sign-in in place. It spends nothing until the button: the state comes from one door, and the short terminal with the tool's own sign-in is born only on demand. Take it for any tool whose account lives on the machine rather than in the site.",
-    whenRu: "Состояние входа, принадлежащего программе командной строки на машине хозяина, спрошенное у самой программы, и тут же сам вход. До кнопки не тратит ничего: состояние отдаёт одна дверь, а короткий терминал с собственным входом программы рождается только по требованию. Берут для любой программы, чья учётная запись живёт на машине, а не на сайте.",
-    blocks: [
-      {
-        kind: 'claudeSubscription',
-        words: claudeSubscriptionWords('en'),
-      },
-    ],
-  },
-  {
-    kind: 'telegramChannel',
-    when: "A four-step ladder that connects a person's own Telegram bot to the Claude Code session of the node terminal: create the bot, bring its token, allow yourself by a link, then see whether the terminal is active — everything written in Telegram shows in that terminal. Everything belongs to the person — the bot, its token and its allow list — and nothing passes through a third party. Take it wherever an agent on this node must be reachable from a phone.",
-    whenRu: "Лестница из четырёх ступеней, соединяющая собственного Telegram-бота человека с сессией Claude Code терминала узла: создать бота, принести токен, допустить себя ссылкой и увидеть, активен ли терминал, — всё написанное в Telegram видно в этом терминале. Всё принадлежит человеку — бот, токен и список допущенных, — и ничего не проходит через третьих лиц. Берут везде, где агент этого узла должен быть доступен с телефона.",
-    blocks: [
-      {
-        kind: 'telegramChannel',
-        service: 'auth',
-        lang: 'en',
-        words: telegramChannelWords('en'),
       },
     ],
   },

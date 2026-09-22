@@ -1,0 +1,171 @@
+{
+  "_": "Карточка готового решения (271). Из карточек kits/_*/kit.json строится вкладка «Готовые решения» — второго списка нет. Описание живёт рядом с кодом.",
+  "id": "agent-kit",
+  "order": 10,
+  "words": {
+    "en": {
+      "summary": "Service agent: Claude Code, terminal and Telegram bot",
+      "intro": "Gives a service its own Claude Code agent: a subscription page, a terminal where the agent is started and stopped, and a Telegram bot that works inside the same session — everything written in Telegram shows in the terminal.",
+      "embedLabel": "How to embed",
+      "command": "npm run agent-kit:add -- <service>\nnpm run serve:rebuild",
+      "paramsHeaders": ["Parameter", "What it is"],
+      "params": [
+        ["<service>", "the service id from MICROSERVICES.json; it needs the folder microservices/<service> and its own page group architect/<service>/"],
+        ["--force", "overwrite a kit that is already installed"]
+      ],
+      "sample": "Live sample: [Sign-in → Telegram bot](/en/architect/auth/telegram).",
+      "detailsTitle": "Service agent — in detail",
+      "details": [
+        {
+          "heading": "What the service gets",
+          "items": [
+            "**Claude Code subscription** — signing in to the subscription; one per computer, the same for every service.",
+            "**Terminal** — a live Claude Code in the service folder; it is started and stopped only here.",
+            "**Telegram bot** — the service bot; it works inside the terminal session."
+          ]
+        },
+        {
+          "heading": "Where it lives",
+          "items": [
+            "The master is architect/kits/_agent-kit/ — the only source; nobody edits a service copy by hand.",
+            "Each service owns a full copy: architect/<service>/_agent-kit/, its three pages and its doors architect/<service>/agent-api/.",
+            "**Delete the service folder and rebuild — nothing about the service remains in the code.** Only the bot data in data/services/<service>/channel/telegram/ stays, on purpose: it holds a secret.",
+            "Outside the routes there is one line in server.js: lib/agent-kit/mount.cjs finds the copies by walking the folders at start."
+          ]
+        },
+        {
+          "heading": "How it works",
+          "items": [
+            "One service — one Claude Code session and one bot.",
+            "When the bot is connected, the terminal starts Claude Code with the Telegram channel: everything from Telegram shows in the terminal, and without Telegram the work goes on there.",
+            "While the terminal is off, the node reads the bot itself and answers with a status message and links: the subscription is not connected, or the terminal is not active.",
+            "Step 4 of the bot page only shows the state — a yellow or green card with a button to the terminal; there are no start buttons there."
+          ]
+        },
+        {
+          "heading": "Parameters and doors",
+          "table": {
+            "headers": ["Where", "What for"],
+            "rows": [
+              ["agentKitWidget(page, service, lang) — _agent-kit/widgets.tsx", "the island of a page: claude-code · terminal · telegram"],
+              ["/{lang}/architect/<service>/agent-api/session", "terminal state and stop"],
+              ["/{lang}/architect/<service>/agent-api/channel", "token, admission link, message texts, bot state"],
+              ["/{lang}/architect/<service>/agent-api/ticket · claude-auth", "a one-minute socket ticket · subscription state"],
+              ["socket /pty/<service>", "start of the session and connection to it"],
+              ["data/services/<service>/channel/telegram", "token, allowed people, texts — outside git"]
+            ]
+          }
+        },
+        {
+          "heading": "Update and check",
+          "items": [
+            "npm run agent-kit:update -- <service> copies the master into the service again.",
+            "npm run check:agent-kits lists every copy that differs from the master."
+          ]
+        },
+        {
+          "heading": "What the service needs",
+          "items": [
+            "An entry in MICROSERVICES.json and the folder microservices/<service>.",
+            "Its own page group architect/<service>/ — the installer puts the kit into it.",
+            "On the computer: Claude Code, Bun and the telegram@claude-plugins-official plugin; the plugin dependencies are installed by themselves on the first start."
+          ]
+        },
+        {
+          "heading": "Good to know",
+          "items": [
+            "The first start in a new folder asks whether you trust it — answer «Yes» in the terminal of that service.",
+            "A restart or rebuild of the node ends the sessions — the agent is started again.",
+            "Telegram channels are an Anthropic research preview: their flags may change."
+          ]
+        },
+        {
+          "heading": "Where it is embedded",
+          "text": "[Sign-in](/en/architect/auth/terminal) and [Data](/en/architect/data/terminal)."
+        }
+      ]
+    },
+    "ru": {
+      "summary": "Агент службы: Claude Code, терминал и Telegram-бот",
+      "intro": "Даёт службе собственного агента Claude Code: страницу подписки, терминал, в котором агента запускают и останавливают, и Telegram-бота, работающего в той же сессии, — всё написанное в Telegram видно в терминале.",
+      "embedLabel": "Как встроить",
+      "command": "npm run agent-kit:add -- <служба>\nnpm run serve:rebuild",
+      "paramsHeaders": ["Параметр", "Что это"],
+      "params": [
+        ["<служба>", "имя службы из MICROSERVICES.json; у неё должны быть папка microservices/<служба> и своя группа страниц architect/<служба>/"],
+        ["--force", "переустановить уже установленный комплект"]
+      ],
+      "sample": "Живой образец: [Авторизация → Telegram-бот](/ru/architect/auth/telegram).",
+      "detailsTitle": "Агент службы — подробно",
+      "details": [
+        {
+          "heading": "Что появляется у службы",
+          "items": [
+            "**Подписка Claude Code** — вход в подписку; одна на весь компьютер, у всех служб одна и та же.",
+            "**Терминал** — живой Claude Code в папке службы; запускают и останавливают его только здесь.",
+            "**Telegram-бот** — бот службы; работает внутри сессии терминала."
+          ]
+        },
+        {
+          "heading": "Где живёт",
+          "items": [
+            "Мастер — architect/kits/_agent-kit/, единственный источник; копию службы руками не правят.",
+            "У каждой службы полная своя копия: architect/<служба>/_agent-kit/, три страницы и двери architect/<служба>/agent-api/.",
+            "**Удалили папку службы и пересобрали — в коде о службе не осталось ничего.** Остаются только данные бота в data/services/<служба>/channel/telegram/, намеренно: там секрет.",
+            "Вне маршрутов — одна строка в server.js: lib/agent-kit/mount.cjs находит копии обходом папок при старте."
+          ]
+        },
+        {
+          "heading": "Как это работает",
+          "items": [
+            "Одна служба — одна сессия Claude Code и один бот.",
+            "Бот подключён — терминал запускает Claude Code с каналом Telegram: всё из Telegram видно в терминале, а без Telegram работа продолжается там же.",
+            "Пока терминал выключен, бота читает сам узел и отвечает сообщением о состоянии со ссылками: подписка не подключена или терминал неактивен.",
+            "Шаг 4 страницы бота только показывает состояние — жёлтая или зелёная карточка с кнопкой в терминал; кнопок запуска там нет."
+          ]
+        },
+        {
+          "heading": "Параметры и двери",
+          "table": {
+            "headers": ["Где", "Зачем"],
+            "rows": [
+              ["agentKitWidget(страница, служба, язык) — _agent-kit/widgets.tsx", "островок страницы: claude-code · terminal · telegram"],
+              ["/{lang}/architect/<служба>/agent-api/session", "состояние и остановка терминала"],
+              ["/{lang}/architect/<служба>/agent-api/channel", "токен, ссылка допуска, тексты сообщений, состояние бота"],
+              ["/{lang}/architect/<служба>/agent-api/ticket · claude-auth", "билет на сокет на минуту · состояние подписки"],
+              ["сокет /pty/<служба>", "запуск сессии и подключение к ней"],
+              ["data/services/<служба>/channel/telegram", "токен, допущенные, тексты — вне git"]
+            ]
+          }
+        },
+        {
+          "heading": "Обновление и проверка",
+          "items": [
+            "npm run agent-kit:update -- <служба> заново копирует мастер в службу.",
+            "npm run check:agent-kits перечисляет копии, которые отличаются от мастера."
+          ]
+        },
+        {
+          "heading": "Что нужно службе",
+          "items": [
+            "Запись в MICROSERVICES.json и папка microservices/<служба>.",
+            "Своя группа страниц architect/<служба>/ — установщик кладёт комплект в неё.",
+            "На компьютере: Claude Code, Bun и плагин telegram@claude-plugins-official; зависимости плагина ставятся сами при первом запуске."
+          ]
+        },
+        {
+          "heading": "Что знать заранее",
+          "items": [
+            "Первый запуск в новой папке спрашивает, доверяете ли вы ей, — ответьте «Yes» в терминале этой службы.",
+            "Перезапуск или пересборка узла завершает сессии — агента запускают снова.",
+            "Каналы Telegram — исследовательская версия Anthropic: их флаги могут измениться."
+          ]
+        },
+        {
+          "heading": "Где встроено",
+          "text": "[Авторизация](/ru/architect/auth/terminal) и [Данные](/ru/architect/data/terminal)."
+        }
+      ]
+    }
+  }
+}

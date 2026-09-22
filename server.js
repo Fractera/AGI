@@ -11,8 +11,7 @@ const { createServer } = require('node:http')
 const { execFileSync } = require('node:child_process')
 const next = require('next')
 const { pickPort, writeRuntime } = require('./lib/server-port.cjs')
-const { attachTerminal } = require('./lib/terminal/bridge.cjs')
-const { startIdlePoller } = require('./lib/channel/telegram.cjs')
+const { mountAgentKits } = require('./lib/agent-kit/mount.cjs')
 
 // ── Хэш коммита. Он нужен не для красоты: без него нельзя отличить «сайт
 // работает» от «работает ИМЕННО та сборка, которую я только что поставил».
@@ -64,11 +63,9 @@ async function main() {
     handle(req, res)
   })
 
-  // Мост терминала (267-1): сокет `/pty` принимается здесь, до Next. Устройство и
-  // оплаченные ловушки — в самом модуле.
-  attachTerminal(server, app)
-  // Пока терминал выключен, бота Telegram читает узел и отвечает сообщением о состоянии (267-3).
-  startIdlePoller()
+  // Комплекты агента служб (271): сокет `/pty/<служба>` и опрос ботов. Список служб находится обходом
+  // папок `architect/<служба>/_agent-kit/` — здесь нет ни строки о конкретной службе.
+  mountAgentKits(server, app)
 
   server.listen(port, hostname, () => {
     // Номер порта уходит в файл — его читают сторож здоровья и команда
