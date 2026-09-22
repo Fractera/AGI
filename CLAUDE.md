@@ -335,6 +335,31 @@ no users yet (the first one becomes the architect) and shows "First time here?" 
 
 ---
 
+## The service agent kit — subscription, terminal, Telegram in any service (steps 267, 269, 2026-09-22)
+
+**One service = one Claude Code session, and its Telegram bot lives inside it** (owner's decision). The
+terminal starts `claude --channels plugin:telegram@… --add-dir <state> --permission-mode auto` when the
+service's bot is connected, so everything written in Telegram shows in the terminal and the work goes on
+there without Telegram. Start and stop happen **only** on the Terminal page; the Telegram page only shows
+the state (yellow card — terminal inactive, green — everything you type shows in the terminal). While a
+service's terminal is off, the node itself reads that bot (`startIdlePoller` in `server.js`) and answers
+with a status message: no subscription / terminal inactive / active, with links.
+
+**The service name is a parameter everywhere:** `serviceDir(service)` (`lib/terminal/workspace.cjs`,
+checked against `MICROSERVICES.json` and `microservices/<id>`), sessions keyed by service
+(`lib/terminal/session.cjs`), `service` in the socket `init`, doors `?service=<id>` (unknown → 404),
+bot state in `data/services/<id>/channel/telegram`. The one entry for pages is
+`agentKitContent(page, service, lang)` in `lib/agent-kit/content.ts`.
+
+**To embed the kit in a service:** `npm run agent-kit:add -- <service>` → copies the three pages of the
+`auth` sample into `architect/<service>/{claude-code,terminal,telegram}`, changing only the address and
+the service name; then `npm run serve:rebuild`. The service must be in `MICROSERVICES.json`, have its
+folder and its own page group. Refuses to overwrite without `--force`. Embedded today: `auth`, `data`.
+🛑 The first start in a new service folder asks Claude Code's trust question — answer «Yes» in its terminal.
+🛑 The subscription is one per machine: its page is the same for every service.
+
+---
+
 ## The top menu and the M2M document (step 261, 2026-09-21)
 
 The owner's menu, in his order: **Core · Host · AGI · WEB3 · M2M · Nostr · Blog** (the brand link on the left is the root).
