@@ -39,6 +39,11 @@ import type { AccountLabels } from "@/components/menu/account/account-menu.i18n"
 export type DrawerLink = {
   href: string;
   label: string;
+  /**
+   * Кому показывать пункт (268). Нет поля — всем вошедшим. Вежливость, а не
+   * защита: замок стоит на самой странице.
+   */
+  roles?: readonly string[];
 };
 
 
@@ -59,7 +64,8 @@ export function AccountDrawer({ lang, side, labels, email, roles = [], links }: 
   // разделы»). Раньше слой без страниц честно сообщал «здесь пока ничего не
   // построено»; в проекте, где рабочих разделов ещё нет вовсе, из этой честности
   // выходил ящик из четырёх заголовков и четырёх извинений.
-  const items = links ?? [];
+  // Пункт со списком ролей виден только тому, у кого есть хоть одна из них (268).
+  const items = (links ?? []).filter((l) => !l.roles || l.roles.some((r) => roles.includes(r)));
 
   return (
     <>

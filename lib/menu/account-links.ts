@@ -1,5 +1,8 @@
 import { administrationUsersUi } from "@/app/[lang]/(protectedLayer)/(admin)/administration/users/_data/ui.i18n"
 import type { DrawerLink } from "@/components/menu/account/account-drawer.client"
+import { ARCHITECT_HOME } from "@/app/[lang]/(architectLayer)/_lib/architect-menu"
+import { architectLayerUi } from "@/app/[lang]/(architectLayer)/_i18n/architect-layer.i18n"
+import { ARCHITECT_LAYER_ROLES } from "@/lib/roles"
 
 // РАБОЧИЕ РАЗДЕЛЫ, которые ящик аккаунта показывает вошедшему.
 //
@@ -30,6 +33,15 @@ import type { DrawerLink } from "@/components/menu/account/account-drawer.client
 // страницы, — не 82 впрок.
 export function accountLinks(lang: string): DrawerLink[] {
   return [
+    // 🔒 СЛОЙ АРХИТЕКТОРА — ПЕРВЫМ И ТОЛЬКО ЕГО РОЛЯМ (268, слово владельца 2026-09-22: «в правом
+    // выпадающем ящике Account сделать кнопку страницы архитектора чтобы я мог быстро на неё переходить»).
+    // Адрес, роли и подпись взяты у самого слоя — `ARCHITECT_HOME`, `ARCHITECT_LAYER_ROLES` и его словарь, —
+    // а не переписаны сюда: копия разошлась бы с дверью, которую открывает пункт.
+    {
+      href: `/${lang}${ARCHITECT_HOME}`,
+      label: architectLayerUi(lang).home.title,
+      roles: ARCHITECT_LAYER_ROLES,
+    },
     { href: `/${lang}/administration/users`, label: administrationUsersUi(lang).title },
   ]
 }
