@@ -71,7 +71,13 @@ const screenFile = path.join(process.cwd(), 'logs', `${residentName()}.screen.tx
 mkdirSync(path.dirname(screenFile), { recursive: true })
 
 let screen = ''
-const child = pty.spawn(claude, ['--channels', `plugin:${PLUGIN}`, '--permission-mode', 'auto', '--append-system-prompt', START], {
+// 🔒 ФЛАГИ — СТРОКА В СТРОКУ ИЗ `fractera-memory-starter/scripts/agent/channel.sh:79-84`, кроме
+// `--settings .claude/settings.build.json` (у папки службы входа такого файла нет).
+// 🛑 `--add-dir <папка состояния>` ОБЯЗАТЕЛЕН: папка бота лежит вне рабочей, и без него `claude` спрашивает
+// «разрешить чтение вне рабочих директорий?» — плагин каналов этот вопрос не пересылает, и бот молчит
+// часами при `online` в pm2 (закон проекта, оплачен 2026-09-05). Пропущен в первой редакции 267-3 и
+// найден сверкой с памятью по слову владельца «сделай ровно точно также».
+const child = pty.spawn(claude, ['--channels', `plugin:${PLUGIN}`, '--add-dir', stateDir(), '--permission-mode', 'auto', '--append-system-prompt', START], {
   name: 'xterm-256color', cols: 120, rows: 40, cwd, env,
 })
 console.log(`[канал] claude pid ${child.pid} в ${cwd}; состояние бота ${stateDir()}`)
