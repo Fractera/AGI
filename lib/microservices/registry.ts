@@ -25,8 +25,9 @@
 import { readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import type { Registry, RegistryEntry } from "./types"
+import paths from "@/lib/agi-items/paths.cjs"
 
-const REGISTRY_FILE = join(process.cwd(), "MICROSERVICES.json")
+const { REGISTRY_FILE } = paths
 
 const TTL_MS = 5_000
 let cached: Registry | null = null

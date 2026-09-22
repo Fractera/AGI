@@ -10,7 +10,7 @@
       "command": "npm run agent-kit:add -- <service>\nnpm run serve:rebuild",
       "paramsHeaders": ["Parameter", "What it is"],
       "params": [
-        ["<service>", "the service id from MICROSERVICES.json; it needs the folder microservices/<service> and its own page group architect/<service>/"],
+        ["<service>", "the service id from AGI-ITEMS-CONFIG/agi-items.json; it needs the folder AGI-ITEMS/<kind>/<service> and its own page group architect/<service>/"],
         ["--force", "overwrite a kit that is already installed"]
       ],
       "sample": "Live sample: [Sign-in → Telegram bot](/en/architect/auth/telegram).",
@@ -66,7 +66,7 @@
         {
           "heading": "What the service needs",
           "items": [
-            "An entry in MICROSERVICES.json and the folder microservices/<service>.",
+            "An entry in AGI-ITEMS-CONFIG/agi-items.json and the folder AGI-ITEMS/<kind>/<service>.",
             "Its own page group architect/<service>/ — the installer puts the kit into it.",
             "On the computer: Claude Code, Bun and the telegram@claude-plugins-official plugin; the plugin dependencies are installed by themselves on the first start."
           ]
@@ -92,7 +92,7 @@
       "command": "npm run agent-kit:add -- <служба>\nnpm run serve:rebuild",
       "paramsHeaders": ["Параметр", "Что это"],
       "params": [
-        ["<служба>", "имя службы из MICROSERVICES.json; у неё должны быть папка microservices/<служба> и своя группа страниц architect/<служба>/"],
+        ["<служба>", "имя службы из AGI-ITEMS-CONFIG/agi-items.json; у неё должны быть папка AGI-ITEMS/<kind>/<служба> и своя группа страниц architect/<служба>/"],
         ["--force", "переустановить уже установленный комплект"]
       ],
       "sample": "Живой образец: [Авторизация → Telegram-бот](/ru/architect/auth/telegram).",
@@ -148,7 +148,7 @@
         {
           "heading": "Что нужно службе",
           "items": [
-            "Запись в MICROSERVICES.json и папка microservices/<служба>.",
+            "Запись в AGI-ITEMS-CONFIG/agi-items.json и папка AGI-ITEMS/<kind>/<служба>.",
             "Своя группа страниц architect/<служба>/ — установщик кладёт комплект в неё.",
             "На компьютере: Claude Code, Bun и плагин telegram@claude-plugins-official; зависимости плагина ставятся сами при первом запуске."
           ]

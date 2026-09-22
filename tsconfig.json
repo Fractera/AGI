@@ -31,5 +31,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "microservices"]
+  "exclude": ["node_modules", "AGI-ITEMS"]
 }

@@ -17,6 +17,7 @@ import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import paths from '../lib/agi-items/paths.cjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(here, '..')
@@ -65,10 +66,10 @@ function target() {
   // приезжает из паспорта в отметку установки, а порт — из реестра.
   if (WATCH_SERVICE) {
     try {
-      const registry = JSON.parse(readFileSync(path.join(root, 'MICROSERVICES.json'), 'utf8'))
+      const registry = JSON.parse(readFileSync(paths.REGISTRY_FILE, 'utf8'))
       const entry = (registry.services || []).find((s) => s.id === WATCH_SERVICE)
       const stamp = JSON.parse(
-        readFileSync(path.join(root, 'microservices', WATCH_SERVICE, '.install-stamp.json'), 'utf8'),
+        readFileSync(path.join(paths.itemDir(WATCH_SERVICE, registry.services.find((s) => s.id === WATCH_SERVICE)?.kind), '.install-stamp.json'), 'utf8'),
       )
       if (entry?.port && stamp?.health) {
         return { url: `http://127.0.0.1:${entry.port}${stamp.health}`, known: true }

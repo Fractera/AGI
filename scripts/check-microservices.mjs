@@ -1,4 +1,4 @@
-// СТОРОЖ СОСТАВА УЗЛА: MICROSERVICES.json (257-3).
+// СТОРОЖ СОСТАВА УЗЛА: AGI-ITEMS-CONFIG/agi-items.json (257-3; имена — 272).
 //
 // 🔒 ЧТО ОН ОХРАНЯЕТ И ПОЧЕМУ ИМЕННО ЭТО. Реестр — единственное место, где узел
 // узнаёт адрес службы, и он лежит в git, то есть уезжает КАЖДОМУ гостю. Три вещи
@@ -21,9 +21,10 @@
 import { execFileSync } from 'node:child_process'
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
+import paths from '../lib/agi-items/paths.cjs'
 
 const ROOT = process.cwd()
-const FILE = join(ROOT, 'MICROSERVICES.json')
+const FILE = paths.REGISTRY_FILE
 
 const PORT_MIN = 24680
 const PORT_MAX = 24699
@@ -153,7 +154,7 @@ for (const [i, s] of reg.services.entries()) {
 
   for (const rel of tracked) {
     if (!CODE.test(rel)) continue
-    if (rel.startsWith('.claude/') || rel.startsWith('microservices/')) continue
+    if (rel.startsWith('.claude/') || rel.startsWith('AGI-ITEMS/')) continue
     if (ALLOWED.test(rel)) continue
     let text
     try { text = readFileSync(join(ROOT, rel), 'utf8') } catch { continue }
@@ -171,7 +172,7 @@ for (const [i, s] of reg.services.entries()) {
       if (ADDRESS.test(line)) {
         fail('no-remembered-address',
           `${rel}:${i + 1}: адрес службы записан в коде. Порт назначает установщик и пишет в ` +
-          'MICROSERVICES.json; спрашивать его надо у lib/microservices/urls.ts.')
+          'agi-items.json; спрашивать его надо у lib/microservices/urls.ts.')
       } else if (ENV_ADDRESS.test(line)) {
         fail('no-remembered-address',
           `${rel}:${i + 1}: адрес службы берётся из окружения напрямую. Единственная дверь — ` +

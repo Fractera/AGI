@@ -335,6 +335,27 @@ no users yet (the first one becomes the architect) and shows "First time here?" 
 
 ---
 
+## AGI items: the folder, the registry and the two kinds (step 272, 2026-09-22)
+
+🔒 **AN ITEM OF THIS NODE LIVES IN `AGI-ITEMS/<kind>/<id>/`, AND `kind` DECIDES THE PATH** (owner's word
+2026-09-22): `core` — installed by the node itself (`auth`, `data`), `user` — connected by the person.
+The registry is **`AGI-ITEMS-CONFIG/agi-items.json`** (repo + pinned tag + port + `kind`), and its README
+says out loud that this folder is **not** one of the four configs: no schema, no defaults, it is the state
+of one machine. 🪦 Until 272: `MICROSERVICES.json` in the root and `microservices/<id>`.
+
+🔒 **THE PATH IS BUILT IN ONE PLACE — `lib/agi-items/paths.cjs`** (`ITEMS_DIR`, `REGISTRY_FILE`,
+`itemDir(id, kind)`, `entryDir(entry)`), read by the build (`.ts`), the scripts (`.mjs`) and
+`ecosystem.config.cjs`. 🛑 The second copy of that knowledge is deliberate and named: the agent kit's
+`_agent-kit/server/workspace.cjs`, because a kit copy must stay self-contained; `check:agent-kits` catches
+a divergence. 🛑 `AGI-ITEMS/` is in `.gitignore` and in `tsconfig.exclude`, and the item code never enters
+this repository: each item is its own repository, cloned by `npm run services:install` at its pinned tag.
+
+🛑 **RENAMING THE FOLDER MOVES THREE THINGS THAT ARE NOT CODE:** `.install-stamp.json` of every item holds
+absolute paths (rerun `services:install`), pm2 keeps the old `cwd` (the installer does `delete + start`),
+and `tsconfig.exclude` — miss it and the build starts type-checking foreign repositories.
+
+---
+
 ## The service agent kit — subscription, terminal, Telegram in any service (steps 267, 269, 2026-09-22)
 
 **One service = one Claude Code session, and its Telegram bot lives inside it** (owner's decision). The
@@ -361,7 +382,7 @@ hand-edited copy). Measured in a clean clone: deleting `architect/data/` **and**
 build, no trace of the service in the code, and the mount finding only `auth`.
 
 **Commands:** `npm run agent-kit:add -- <service>` · `--force` · `npm run agent-kit:update -- <service>`,
-then `npm run serve:rebuild`. The service must be in `MICROSERVICES.json`, have `microservices/<id>` and its
+then `npm run serve:rebuild`. The service must be in `AGI-ITEMS-CONFIG/agi-items.json`, have `AGI-ITEMS/<kind>/<id>` and its
 own page group. Embedded today: `auth`, `data`.
 🛑 The first start in a new service folder asks Claude Code's trust question — answer «Yes» in its terminal.
 🛑 The subscription is one per machine: its page is the same for every service.
@@ -1909,7 +1930,7 @@ own law about an instrument that prints a remembered value.
 
 | Piece | Where | What it does |
 |---|---|---|
-| door | `app/api/services/route.ts` — `GET /api/services` | the node's composition out of `MICROSERVICES.json`, read on every request |
+| door | `app/api/services/route.ts` — `GET /api/services` | the node's composition out of `AGI-ITEMS-CONFIG/agi-items.json`, read on every request |
 | island | `components/services/service-port.client.tsx` | asks that door and prints the port |
 | its words | `components/services/service-port.i18n.ts` | `en` + `ru`, picked on the server, passed in as props |
 | block kind | `servicePort` — renderer `sections/blocks/service-port.server.tsx` | how a page puts the island on itself |

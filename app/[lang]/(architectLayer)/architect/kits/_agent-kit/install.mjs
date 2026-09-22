@@ -14,7 +14,7 @@
 //   claude-code/ terminal/ telegram/   ← из `pages/`, `.tpl` → без расширения, `__SERVICE__` → имя службы
 //   agent-api/<дверь>/route.ts  ← из `api/<дверь>/route.ts.tpl`
 //
-// 🛑 СЛУЖБА ОБЯЗАНА СУЩЕСТВОВАТЬ: в `MICROSERVICES.json` и папкой `microservices/<id>` — туда агент и
+// 🛑 СЛУЖБА ОБЯЗАНА СУЩЕСТВОВАТЬ: в `AGI-ITEMS-CONFIG/agi-items.json` и папкой `AGI-ITEMS/<kind>/<id>` — туда агент и
 // запустится. И у неё должна быть своя группа страниц `architect/<id>/`: комплект кладёт себя В неё, а не
 // придумывает группу молча.
 
@@ -73,9 +73,11 @@ function copyTemplate(from, to) {
 if (!service) fail('назовите службу: npm run agent-kit:add -- <служба>')
 if (!/^[a-z][a-z0-9-]{0,39}$/.test(service)) fail(`«${service}» — не имя службы (латиница, цифры, дефис)`)
 if (service === 'kits') fail('«kits» — витрина готовых решений, а не служба')
-const reg = JSON.parse(readFileSync(join(ROOT, 'MICROSERVICES.json'), 'utf8'))
-if (!reg.services?.some((s) => s?.id === service)) fail(`службы «${service}» нет в MICROSERVICES.json`)
-if (!existsSync(join(ROOT, 'microservices', service))) fail(`нет папки microservices/${service} — агенту негде жить`)
+const reg = JSON.parse(readFileSync(join(ROOT, 'AGI-ITEMS-CONFIG', 'agi-items.json'), 'utf8'))
+const entry = reg.services?.find((s) => s?.id === service)
+if (!entry) fail(`службы «${service}» нет в AGI-ITEMS-CONFIG/agi-items.json`)
+const itemDir = join(ROOT, 'AGI-ITEMS', entry.kind === 'user' ? 'user' : 'core', service)
+if (!existsSync(itemDir)) fail(`нет папки ${itemDir} — агенту негде жить`)
 const group = join(ARCHITECT, service)
 if (!existsSync(join(group, '_data', 'index.ts'))) fail(`нет группы страниц architect/${service}/ — сначала заведите её`)
 

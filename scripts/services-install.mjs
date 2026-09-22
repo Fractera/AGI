@@ -4,8 +4,8 @@
 // репозитория стартер AGI то есть чтобы приехали через одну команду».
 //
 // ── ЧТО ОН ДЕЛАЕТ, ПО ПОРЯДКУ
-//   1. читает MICROSERVICES.json — состав узла и закреплённые ТЕГИ;
-//   2. приводит каждый блок в microservices/<id>/ ровно той версии;
+//   1. читает AGI-ITEMS-CONFIG/agi-items.json — состав узла и закреплённые ТЕГИ;
+//   2. приводит каждый элемент в AGI-ITEMS/<kind>/<id>/ ровно той версии;
 //   3. читает паспорт блока (OWN-SERVICE-PROPS.json) — ТОЛЬКО читает;
 //   4. назначает порт: желаемый из паспорта, занят — следующий свободный из блока;
 //   5. ставит зависимости и, если блок того просит, собирает его;
@@ -39,14 +39,15 @@ import { join, dirname, relative } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { randomBytes, createHash } from 'node:crypto'
 import { createRequire } from 'node:module'
+import paths from '../lib/agi-items/paths.cjs'
 
 const require = createRequire(import.meta.url)
 const { isFree, PORT_BLOCK_START, PORT_BLOCK_END } = require('../lib/server-port.cjs')
 const { authEnvOverrides } = require('../lib/domain/public-auth.cjs')
 
 const ROOT = process.cwd()
-const REGISTRY = join(ROOT, 'MICROSERVICES.json')
-const SERVICES_DIR = join(ROOT, 'microservices')
+// 🔒 Пути элементов — из одного места узла (272): `lib/agi-items/paths.cjs`.
+const { ITEMS_DIR: SERVICES_DIR, REGISTRY_FILE: REGISTRY, entryDir } = paths
 const NODE_ENV_FILE = join(ROOT, '.env.local')
 
 const IS_WIN = process.platform === 'win32'
@@ -334,7 +335,7 @@ let failed = 0
 const summary = []
 
 for (const entry of registry.services) {
-  const dir = join(SERVICES_DIR, entry.id)
+  const dir = entryDir(entry)
   say(`\n── ${entry.id} — ${entry.version}`)
 
   // 1. Привести репозиторий к ЗАКРЕПЛЁННОЙ версии.
@@ -466,7 +467,7 @@ for (const entry of registry.services) {
     '# ПОРОЖДЁННЫЙ ФАЙЛ. Его пишет `npm run services:install` узла AGI.',
     '#',
     '# 🛑 ПРАВКА ЗДЕСЬ ЖИВЁТ ДО СЛЕДУЮЩЕЙ УСТАНОВКИ И ИСЧЕЗАЕТ МОЛЧА.',
-    '# Настройки меняются в составе узла (MICROSERVICES.json) и в паспорте блока,',
+    '# Настройки меняются в составе узла (AGI-ITEMS-CONFIG/agi-items.json) и в паспорте элемента,',
     '# а не здесь. Исключение — чужие ключи: их вписывают сюда, потому что',
     '# установщик их не выдумывает.',
     `#`,
@@ -536,7 +537,7 @@ for (const entry of registry.services) {
   // службе и одинаков у всех, кто её поставил; путь к собранному серверу зависит
   // от того, как Next вывел корень трассировки НА ЭТОЙ машине. Измерено: из-за
   // соседнего package-lock.json узла standalone-сервер авторизации уехал в
-  // `.next/standalone/microservices/auth/server.js`, а не в корень standalone.
+  // `.next/standalone/AGI-ITEMS/core/auth/server.js`, а не в корень standalone.
   //
   // 🛑 И ВТОРОЕ, ЧЕГО NEXT НЕ ДЕЛАЕТ САМ: статику в standalone он не копирует.
   // Без этого страницы рисуются, а КАЖДЫЙ стиль и скрипт отдают 404 — снаружи
@@ -576,11 +577,11 @@ if (Number.isInteger(dataPort)) newNodeVars.set('NEXT_PUBLIC_MEDIA_URL', `http:/
 if (newNodeVars.size > 0) {
   const existing = existsSync(NODE_ENV_FILE) ? readFileSync(NODE_ENV_FILE, 'utf8') : ''
   let text = existing
-  const header = '\n# ─── ПРОИЗВОДНОЕ ОТ MICROSERVICES.json — пишет npm run services:install ───\n' +
+  const header = '\n# ─── ПРОИЗВОДНОЕ ОТ agi-items.json — пишет npm run services:install ───\n' +
     '# Правка здесь держится до следующей установки. Источник — реестр состава.\n' +
     '# NEXT_PUBLIC_* стоят тут вынужденно: браузер реестра не читает, а эти\n' +
     '# значения запекаются в бандл на сборке — значит после установки нужна пересборка.\n'
-  if (!text.includes('ПРОИЗВОДНОЕ ОТ MICROSERVICES.json')) text += header
+  if (!text.includes('ПРОИЗВОДНОЕ ОТ agi-items.json')) text += header
   for (const [k, v] of newNodeVars) {
     const re = new RegExp(`^${k}=.*$`, 'm')
     if (re.test(text)) text = text.replace(re, `${k}=${v}`)

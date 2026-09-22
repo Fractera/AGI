@@ -17,6 +17,7 @@
 // проверка по HTTP, и она живёт отдельно (232-3, `scripts/health-watch.mjs`).
 
 const path = require('node:path')
+const paths = require('./lib/agi-items/paths.cjs')
 const fs = require('node:fs')
 
 const root = __dirname
@@ -39,14 +40,14 @@ const root = __dirname
 function serviceApps() {
   let registry
   try {
-    registry = JSON.parse(fs.readFileSync(path.join(root, 'MICROSERVICES.json'), 'utf8'))
+    registry = JSON.parse(fs.readFileSync(paths.REGISTRY_FILE, 'utf8'))
   } catch {
     return [] // реестра нет — узел без блоков, это законное состояние
   }
 
   const apps = []
   for (const s of registry.services || []) {
-    const dir = path.join(root, 'microservices', s.id)
+    const dir = paths.entryDir(s)
     const stampFile = path.join(dir, '.install-stamp.json')
     // Блок объявлен, но не установлен — его нечем запускать, и придумывать
     // команду нельзя: pm2 ушёл бы в вечный рестарт по несуществующему файлу.

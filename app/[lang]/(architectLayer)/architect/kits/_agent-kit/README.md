@@ -8,7 +8,7 @@ This folder is the **master**: the only source of the kit. Services get full cop
 | Page | Address | What it does |
 |---|---|---|
 | Claude Code subscription | `/{lang}/architect/<service>/claude-code` | sign-in state of `claude` on this machine and sign-in in place. **One per computer**: every service shows the same state |
-| Terminal | `/{lang}/architect/<service>/terminal` | a live Claude Code in `microservices/<service>/`. **The only place where the session is started and stopped** |
+| Terminal | `/{lang}/architect/<service>/terminal` | a live Claude Code in `AGI-ITEMS/<kind>/<service>/`. **The only place where the session is started and stopped** |
 | Telegram bot | `/{lang}/architect/<service>/telegram` | BotFather → token → admission by link → a state card. No start or stop buttons here |
 
 **One service = one Claude Code session = one Telegram bot.** When the service bot is connected, the
@@ -53,8 +53,8 @@ process, while there are as many kit copies as services. The mount knows no serv
 
 ## Before installing — check all of these
 
-1. The service is in `MICROSERVICES.json` (`"id": "<service>"`) and the folder `microservices/<service>/`
-   exists. The agent is born in that folder — **the folder is the agent's identity** (`CLAUDE.md`,
+1. The service is in `AGI-ITEMS-CONFIG/agi-items.json` (`"id": "<service>"`, `"kind": "core"|"user"`) and
+   the folder `AGI-ITEMS/<kind>/<service>/` exists. The agent is born in that folder — **the folder is the agent's identity** (`CLAUDE.md`,
    settings and tools are read from there).
 2. The service has its own page group `architect/<service>/` (`_data/index.ts`). The installer puts the
    kit INTO it and refuses to invent a group.

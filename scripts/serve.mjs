@@ -14,6 +14,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import os from 'node:os'
+import paths from '../lib/agi-items/paths.cjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(here, '..')
@@ -144,7 +145,7 @@ async function status() {
 async function reportServices(apps) {
   let registry
   try {
-    registry = JSON.parse(readFileSync(path.join(root, 'MICROSERVICES.json'), 'utf8'))
+    registry = JSON.parse(readFileSync(paths.REGISTRY_FILE, 'utf8'))
   } catch {
     return // реестра нет — узлу нечего докладывать
   }
@@ -160,7 +161,7 @@ async function reportServices(apps) {
 
     let stamp = null
     try {
-      stamp = JSON.parse(readFileSync(path.join(root, 'microservices', s.id, '.install-stamp.json'), 'utf8'))
+      stamp = JSON.parse(readFileSync(path.join(paths.entryDir(s), '.install-stamp.json'), 'utf8'))
     } catch { /* не установлен */ }
 
     if (!stamp) {

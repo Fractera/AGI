@@ -2,6 +2,8 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { authEnvOverrides, publicAuth } from "./public-auth.cjs"
 import { restartService } from "./resident"
+import { itemDir } from "@/lib/agi-items/paths.cjs"
+import { listServices } from "@/lib/microservices/registry"
 
 // ОКРУЖЕНИЕ СЛУЖБЫ ВХОДА ПЕРЕВОДИТСЯ НА ДОМЕН ТОЙ ЖЕ КНОПКОЙ (259-8).
 //
@@ -17,7 +19,7 @@ import { restartService } from "./resident"
 const ROOT = process.cwd()
 
 function authFiles(): string[] {
-  const dir = join(ROOT, "microservices", "auth")
+  const dir = itemDir("auth", listServices().find((s) => s.id === "auth")?.kind)
   const files = [join(dir, ".env.local")]
   try {
     const stamp = JSON.parse(readFileSync(join(dir, ".install-stamp.json"), "utf8")) as {
