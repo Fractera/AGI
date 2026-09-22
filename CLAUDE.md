@@ -345,18 +345,28 @@ the state (yellow card — terminal inactive, green — everything you type show
 service's terminal is off, the node itself reads that bot (`startIdlePoller` in `server.js`) and answers
 with a status message: no subscription / terminal inactive / active, with links.
 
-**The service name is a parameter everywhere:** `serviceDir(service)` (`lib/terminal/workspace.cjs`,
-checked against `MICROSERVICES.json` and `microservices/<id>`), sessions keyed by service
-(`lib/terminal/session.cjs`), `service` in the socket `init`, doors `?service=<id>` (unknown → 404),
-bot state in `data/services/<id>/channel/telegram`. The one entry for pages is
-`agentKitContent(page, service, lang)` in `lib/agent-kit/content.ts`.
+**EVERYTHING OF THE KIT LIVES INSIDE THE ROUTE (271, owner: «delete the route — all its guts go with it»).**
+The master is `architect/kits/_agent-kit/` (`core/` + page and door templates + `kit.json` + `README.md` +
+`install.mjs`) — read that README before touching the kit. A service owns a **full copy**:
+`architect/<service>/_agent-kit/` (+ `VERSION`), its three pages, and its doors
+`architect/<service>/agent-api/{session,ticket,claude-auth,channel}`. The page shows its island through the
+new optional `widget` field of the `workspace` block — the three catalogue kinds of 267–269 are gone from the
+catalogue (63 kinds now). The «Ready-made kits» tab is built from the `kits/_*/kit.json` cards; no second list.
 
-**To embed the kit in a service:** `npm run agent-kit:add -- <service>` → copies the three pages of the
-`auth` sample into `architect/<service>/{claude-code,terminal,telegram}`, changing only the address and
-the service name; then `npm run serve:rebuild`. The service must be in `MICROSERVICES.json`, have its
-folder and its own page group. Refuses to overwrite without `--force`. Embedded today: `auth`, `data`.
+**Outside the routes there are two files, and both know no service by name:** `lib/agent-kit/mount.cjs`
+(finds `architect/*/_agent-kit/server/entry.cjs` by walking the folders at start, serves `/pty/<service>`,
+starts one bot poller per service; `server.js` calls it in one line) and `lib/agent-kit/check.mjs`
+(`npm run check:agent-kits` in `prebuild`: ok · debt — a copy lagging behind the master · error — a torn or
+hand-edited copy). Measured in a clean clone: deleting `architect/data/` **and** the master leaves a green
+build, no trace of the service in the code, and the mount finding only `auth`.
+
+**Commands:** `npm run agent-kit:add -- <service>` · `--force` · `npm run agent-kit:update -- <service>`,
+then `npm run serve:rebuild`. The service must be in `MICROSERVICES.json`, have `microservices/<id>` and its
+own page group. Embedded today: `auth`, `data`.
 🛑 The first start in a new service folder asks Claude Code's trust question — answer «Yes» in its terminal.
 🛑 The subscription is one per machine: its page is the same for every service.
+🛑 Words of the kit live in `core/words/`, never a folder called `i18n/`: `check:lang-delivery` reads that
+folder name in an import path as a dictionary shipped to the browser, even for a type-only import.
 
 ---
 
