@@ -338,7 +338,8 @@ no users yet (the first one becomes the architect) and shows "First time here?" 
 ## AGI items: the folder, the registry and the two kinds (step 272, 2026-09-22)
 
 🔒 **AN ITEM OF THIS NODE LIVES IN `AGI-ITEMS/<kind>/<id>/`, AND `kind` DECIDES THE PATH** (owner's word
-2026-09-22): `core` — installed by the node itself (`auth`, `data`), `user` — connected by the person.
+2026-09-22): `core` — installed by the node itself (`auth`, `data`, `root` — see the next section), `user` —
+connected by the person.
 The registry is **`AGI-ITEMS-CONFIG/agi-items.json`** (repo + pinned tag + port + `kind`), and its README
 says out loud that this folder is **not** one of the four configs: no schema, no defaults, it is the state
 of one machine. 🪦 Until 272: `MICROSERVICES.json` in the root and `microservices/<id>`.
@@ -353,6 +354,46 @@ this repository: each item is its own repository, cloned by `npm run services:in
 🛑 **RENAMING THE FOLDER MOVES THREE THINGS THAT ARE NOT CODE:** `.install-stamp.json` of every item holds
 absolute paths (rerun `services:install`), pm2 keeps the old `cwd` (the installer does `delete + start`),
 and `tsconfig.exclude` — miss it and the build starts type-checking foreign repositories.
+
+---
+
+## The site at the root of the domain is an element, not part of the core (step 280, 2026-09-23)
+
+🔒 **THREE ELEMENTS ARE REQUIRED — `auth`, `data`, `root` — AND EACH CAN BE REPLACED BUT NOT REMOVED.**
+`root` is the site a visitor sees at the root of the domain; by default `fractera-root-starter`. The owner's
+reason, in his words: the agent must be able to «go to the marketplace, find a separate repository that is
+a barbershop site» and put it in. `check:microservices` goes red without any of the three
+(`required-present`). `npm run serve:start` installs the missing ones itself (`serve.mjs elements` only
+reports).
+
+🔒 **THIS CORE HOLDS THE ARCHITECT PAGES ONLY.** The public pages, the visitor cabinet and their configs
+moved into `root` (280-2). On an own domain: `<zone>` → the site, `architect.<zone>` → this core,
+`auth.<zone>` → sign-in (the activation door writes all three). Each side redirects the other's paths:
+the site sends `/<lang>/architect/*` here, this core sends any other `/<lang>/*` to the site.
+
+🔒 **THE DIRECTION OF THE DATA FLOW IS THE LAW** (owner's word 2026-09-23): «the site contains its own configs,
+which the core can read, update and write back … the site stays alive even if the core does not exist».
+Therefore: the installer gives an element only its NEIGHBOURS (addresses) and SECRETS; its own settings live
+in the element (`# kind: own` in its `.env.example`). 🛑 There is no kind that takes a value from the core.
+The core reaches the site's settings through the site's settings door (step 280-6), never by copying its own.
+
+🔒 **TWO AGENTS, TWO FOLDERS.** The agent of «Build» (the node root) maintains the core: the architect pages,
+the installer, the doors. The agent of «Root» (`AGI-ITEMS/core/root`, pages `/architect/root/*`) builds the
+site. The core agent does not edit the site's code; the site agent does not edit the core.
+
+🔒 **TO PUT ANOTHER SITE IN — ONE LINE, AND THE REPOSITORY MUST KEEP THE CONTRACT.** Change `repo` and
+`version` of the `root` line in `AGI-ITEMS-CONFIG/agi-items.json`, then `npm run services:install`. The
+contract is in the site's `OWN-SERVICE-PROPS.json` and README: port from `PORT`, `GET /api/health` without a
+session, sign-in only through `auth`, data only through `data`, static public pages, and — inside the node —
+the build root named in `next.config` (`outputFileTracingRoot`, `turbopack.root`), otherwise Next takes the
+node for the project and compiles the node's `proxy.ts`. A foreign repository is adapted first by the
+procedure of «Root → External GitHub» (step 280-8).
+
+🔒 **THE FIRST EDIT MAKES THE SITE THE PERSON'S OWN REPOSITORY.** `AGI-ITEMS/` is outside this repository's
+git, the person has no write access to the Fractera original, and a reinstall resets the folder to the
+pinned tag — work done there is lost. So before changing the site, its agent forks the starter (or creates
+a repository from it) on the person's account, points the `root` line at it, and from then on commits and
+tags there. `auth` and `data` are not changed by the person and are read from the Fractera originals.
 
 ---
 
