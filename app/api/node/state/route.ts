@@ -1,4 +1,4 @@
-// @api report how this node is reachable from outside, where it stands and whether it is walled off
+// @api report how this node is reachable and whether it is walled off
 import { NextResponse } from "next/server"
 
 import { measureNodeState } from "@/lib/node-state/measure"
