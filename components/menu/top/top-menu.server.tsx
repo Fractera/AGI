@@ -52,8 +52,21 @@ export async function TopMenu({ lang }: { lang: string }) {
   // Новый массив, а не push: список групп может быть закэширован, и каждое
   // обновление страницы дописывало бы кнопки ещё раз.
   const ui0 = topMenuUi(lang);
+  // 🔒 STORE И A2A (277) — слово владельца 2026-09-23: «После кнопки core need Store, a после AGI
+  // need A2A, заглушки то есть неактивные». Встают ВПЛОТНУЮ за своим соседом, а не по `order`:
+  // меню выводится в порядке массива. Соседа нет (владелец убрал пункт) — кнопка встаёт перед Nostr,
+  // а не пропадает молча.
+  const reserved = (slug: string, label: string) =>
+    ({ slug, label, order: 0, childrenAsDropdown: false, roles: "public", children: [], inert: true });
+  const after: Record<string, ReturnType<typeof reserved>> = {
+    core: reserved("store", ui0.store),
+    "agi-item": reserved("a2a", ui0.a2a),
+  };
+  const placed = baseGroups.flatMap((g) => (after[g.slug] ? [g, after[g.slug]] : [g]));
+  const orphans = Object.keys(after).filter((s) => !baseGroups.some((g) => g.slug === s)).map((s) => after[s]);
   const groups = menuOn ? [
-    ...baseGroups,
+    ...placed,
+    ...orphans,
     { slug: "nostr", label: ui0.nostr, order: 50, childrenAsDropdown: false, roles: "public", children: [], inert: true },
     { slug: "blog", label: ui0.blog, order: 60, childrenAsDropdown: false, roles: "public", children: [], inert: true },
   ] : baseGroups;
