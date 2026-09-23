@@ -1,22 +1,33 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
+import { StarIcon } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Spinner } from "@/components/ui/spinner"
 import { Small } from "@/components/ui/typography"
+import { cn } from "@/lib/utils"
 import type { NodeStateWords } from "@/components/node-state/node-state.i18n"
 
-// ОСТРОВОК СОСТОЯНИЯ УЗЛА (276-2).
+// ОСТРОВОК СОСТОЯНИЯ УЗЛА (276-2; карточки со звездой и «Проверить сейчас» — 276-5).
+//
+// 🎯 Слово владельца 2026-09-23: три записи — три карточки; справа звезда, заполненная, если это
+// правда, и пустая, если ложь; фон зелёный у правды и прозрачный у лжи; кнопка «Проверить сейчас»
+// прячет карточки, крутит загрузку и показывает новый замер.
 //
 // 🔒 ПОЧЕМУ ЭТО ОСТРОВОК, А НЕ СЕРВЕРНАЯ СТРОКА. Главная страница слоя предрендерена. Серверный
 // компонент измерил бы адрес НА СБОРКЕ, и утверждение «ваш сайт виден в интернете» застыло бы в HTML
-// навсегда — оно продолжало бы висеть в день, когда домен уехал или туннель умер. Тот же класс, что
-// и запечённый порт в 264, только дороже: там врало число, здесь врал бы вывод.
+// навсегда. Тот же класс, что и запечённый порт в 264, только дороже: там врало число, здесь вывод.
 //
-// 🔒 ТРИ СОСТОЯНИЯ ОСТРОВКА, И НИ ОДНО НЕ ПОДМЕНЯЕТСЯ УМОЛЧАНИЕМ: «спрашиваю» · «знаю» · «дверь не
-// ответила». Последнее значит «не знаю», а не «ничего не настроено»: ворота закрывают `/api/*` тому,
-// кто не вошёл, и 401 здесь — про права, а не про узел.
+// 🔒 ПРАВДА У КАЖДОЙ КАРТОЧКИ ОДНА И НАЗВАНА ЗДЕСЬ: «как добираются» — адрес отвечает ЭТИМ узлом;
+// «где стоит» — место сказано узлу (измерить его нечем, поэтому правда здесь — «известно»); «стена» —
+// узел в контейнере. Звезда и фон повторяют слова и никогда не несут смысла вместо них.
 //
-// 🛑 ИЗМЕРЕННОЕ И ОБЪЯВЛЕННОЕ ПОМЕЧЕНЫ ПО-РАЗНОМУ И ВЫГЛЯДЯТ ПО-РАЗНОМУ. Индикатор, показывающий
-// объявленное с той же уверенностью, что и измеренное, — прибор, который врёт видом.
+// 🔒 ЧЕТЫРЕ СОСТОЯНИЯ ОСТРОВКА: «спрашиваю» · «знаю» · «проверяю заново» · «дверь не ответила».
+// Последнее значит «не знаю», а не «ничего не настроено»: 401 здесь — про права, а не про узел.
+//
+// 🛑 «Проверить сейчас» спрашивает ту же дверь, что и первый замер: выбор места в «Хостинге»
+// (временный способ до автоматизации, слово владельца 2026-09-23) виден после нажатия без перезагрузки.
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
@@ -27,33 +38,47 @@ type Answer = {
   isolation?: { kind: string; detail: string }
 }
 
-type State = "asking" | "known" | "unknown"
+type State = "asking" | "known" | "checking" | "unknown"
 
-function Row({
+function Fact({
   title,
   text,
   mark,
-  tone,
+  truth,
   extra,
+  words,
 }: {
   title: string
   text: string
   mark: string
-  tone: "ok" | "warn" | "soft"
+  truth: boolean
   extra?: React.ReactNode
+  words: NodeStateWords
 }) {
-  // Цвет несёт тот же смысл, что и слова, и никогда не несёт смысла вместо них.
-  const bar =
-    tone === "ok" ? "border-l-primary" : tone === "warn" ? "border-l-destructive" : "border-l-border"
   return (
-    <div className={`border-l-2 pl-4 ${bar}`}>
-      <p className="text-foreground text-sm font-medium">{title}</p>
-      <p className="text-foreground text-sm">{text}</p>
-      <Small className="text-muted-foreground">
-        {mark}
-        {extra ? <> · {extra}</> : null}
-      </Small>
-    </div>
+    <Card
+      size="sm"
+      data-truth={String(truth)}
+      className={cn(truth ? "bg-primary/10 ring-primary/40" : "bg-transparent")}
+    >
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardAction>
+          <StarIcon
+            role="img"
+            aria-label={truth ? words.starTrue : words.starFalse}
+            className={cn("size-5", truth ? "fill-primary text-primary" : "text-muted-foreground")}
+          />
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-1">
+        <p className="text-foreground text-sm">{text}</p>
+        <Small className="text-muted-foreground">
+          {mark}
+          {extra ? <> · {extra}</> : null}
+        </Small>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -61,11 +86,16 @@ export function NodeStateIndicator({ lang, words }: { lang: string; words: NodeS
   const [state, setState] = useState<State>("asking")
   const [data, setData] = useState<Answer | null>(null)
 
+  const measure = useCallback(async () => {
+    // `no-store`: ответ о состоянии кэшировать нельзя по той же причине, по которой его нельзя запекать.
+    const r = await fetch(`${BASE}/api/node/state`, { cache: "no-store" })
+    if (!r.ok) throw new Error(String(r.status))
+    return (await r.json()) as Answer
+  }, [])
+
   useEffect(() => {
     let alive = true
-    // `no-store`: ответ о состоянии кэшировать нельзя по той же причине, по которой его нельзя запекать.
-    fetch(`${BASE}/api/node/state`, { cache: "no-store" })
-      .then((r) => (r.ok ? (r.json() as Promise<Answer>) : Promise.reject(new Error(String(r.status)))))
+    measure()
       .then((answer) => {
         if (!alive) return
         setData(answer)
@@ -75,44 +105,64 @@ export function NodeStateIndicator({ lang, words }: { lang: string; words: NodeS
     return () => {
       alive = false
     }
-  }, [])
+  }, [measure])
 
-  if (state === "asking") {
+  async function checkNow() {
+    setState("checking")
+    try {
+      setData(await measure())
+      setState("known")
+    } catch {
+      setState("unknown")
+    }
+  }
+
+  const button = (
+    <Button variant="outline" size="sm" onClick={checkNow} disabled={state === "asking" || state === "checking"}>
+      {words.checkNow}
+    </Button>
+  )
+
+  if (state === "asking" || state === "checking") {
     return (
-      <div className="my-6" data-node-state="asking">
-        <p className="text-muted-foreground text-sm">{words.loading}</p>
+      <div className="my-6 flex flex-col gap-4" data-node-state={state}>
+        <div className="flex items-center gap-2">
+          <Spinner />
+          <p className="text-muted-foreground text-sm">{state === "asking" ? words.loading : words.checking}</p>
+        </div>
       </div>
     )
   }
 
   if (state === "unknown" || !data?.reach) {
     return (
-      <div className="my-6" data-node-state="unknown">
+      <div className="my-6 flex flex-col items-start gap-4" data-node-state="unknown">
         <p className="text-foreground text-sm">{words.unknown}</p>
+        {button}
       </div>
     )
   }
 
   const reach = data.reach
   const host = reach.host ?? "—"
-  const reachLine =
+  const reachText =
     reach.kind === "own-domain"
       ? reach.ours === true
-        ? { text: words.reachOwnDomain.replace("{host}", host), tone: "ok" as const }
+        ? words.reachOwnDomain.replace("{host}", host)
         : reach.ours === false
-          ? { text: words.reachOwnDomainForeign.replace("{host}", host), tone: "warn" as const }
-          : { text: words.reachOwnDomainSilent.replace("{host}", host), tone: "warn" as const }
+          ? words.reachOwnDomainForeign.replace("{host}", host)
+          : words.reachOwnDomainSilent.replace("{host}", host)
       : reach.kind === "temporary"
         ? reach.ours === true
-          ? { text: words.reachTemporary.replace("{host}", host), tone: "soft" as const }
-          : { text: words.reachTemporaryBroken, tone: "warn" as const }
-        : { text: words.reachLocalOnly, tone: "soft" as const }
+          ? words.reachTemporary.replace("{host}", host)
+          : words.reachTemporaryBroken
+        : words.reachLocalOnly
 
   const place = data.place?.kind
-  const placeLine =
-    place === "home" ? words.placeHome : place === "server" ? words.placeServer : words.placeUnknown
+  const placeKnown = place === "home" || place === "server"
+  const placeText = place === "home" ? words.placeHome : place === "server" ? words.placeServer : words.placeUnknown
 
-  const isolation = data.isolation?.kind === "container" ? words.isolationContainer : words.isolationNone
+  const walled = data.isolation?.kind === "container"
 
   // Время замера показывается рядом с измеренным — чтобы «сейчас» имело адресата во времени.
   const at = (() => {
@@ -124,21 +174,37 @@ export function NodeStateIndicator({ lang, words }: { lang: string; words: NodeS
   })()
 
   return (
-    <div className="my-6 flex flex-col gap-4" data-node-state="known" data-reach={reach.kind} data-ours={String(reach.ours)}>
-      <Row title={words.reachTitle} text={reachLine.text} mark={`${words.measured}${at ? ` · ${at}` : ""}`} tone={reachLine.tone} />
-      <Row
+    <div className="my-6 flex flex-col gap-3" data-node-state="known" data-reach={reach.kind} data-ours={String(reach.ours)}>
+      <Fact
+        words={words}
+        title={words.reachTitle}
+        text={reachText}
+        mark={`${words.measured}${at ? ` · ${at}` : ""}`}
+        truth={reach.ours === true}
+      />
+      <Fact
+        words={words}
         title={words.placeTitle}
-        text={placeLine}
-        mark={place === "home" || place === "server" ? words.declared : words.notKnown}
-        tone={place === "home" || place === "server" ? "soft" : "warn"}
+        text={placeText}
+        mark={placeKnown ? words.declared : words.notKnown}
+        truth={placeKnown}
         extra={
           <a className="text-primary underline decoration-primary/40 underline-offset-2" href={`/${lang}/architect/hosting/hosting`}>
             {words.placeChange}
           </a>
         }
       />
-      <Row title={words.isolationTitle} text={isolation} mark={words.measured} tone={data.isolation?.kind === "container" ? "ok" : "soft"} />
-      <Small className="text-muted-foreground">{words.note}</Small>
+      <Fact
+        words={words}
+        title={words.isolationTitle}
+        text={walled ? words.isolationContainer : words.isolationNone}
+        mark={words.measured}
+        truth={walled}
+      />
+      <div className="flex flex-wrap items-center gap-3">
+        {button}
+        <Small className="text-muted-foreground">{words.note}</Small>
+      </div>
     </div>
   )
 }

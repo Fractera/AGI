@@ -1,0 +1,97 @@
+{
+  "_": "Карточка готового решения (276-5). Код решения живёт в components/node-state/ и lib/node-state/; эта папка — его витрина во вкладке «Готовые решения».",
+  "id": "node-state",
+  "order": 20,
+  "words": {
+    "en": {
+      "summary": "Node state: three cards with a star and a «Check now» button",
+      "intro": "Shows how people reach this node, where it stands and whether its items are walled off — as three cards. A filled star and a green background mean true; an empty star and a transparent background mean false. «Check now» hides the cards, shows a loader and measures again.",
+      "embedLabel": "How to embed",
+      "command": "import { nodeStateWidget } from '@/components/node-state/widgets'\n\n<WorkspacePage widget={nodeStateWidget(lang)} … />",
+      "paramsHeaders": ["Parameter", "What it is"],
+      "params": [
+        ["lang", "the page language; the island receives one set of words, not the whole dictionary"],
+        ["GET /api/node/state", "the door the island asks: measured over the network, closed to anyone who is not an architect or admin"],
+        ["POST /api/node/place", "a temporary way to tell the node where it stands (home computer or server) until this is measured automatically"]
+      ],
+      "sample": "Live sample: [Architect layer — home page](/en/architect). Tell the node where it stands: [Domain and hosting → Dedicated server](/en/architect/hosting/hosting).",
+      "detailsTitle": "Node state — in detail",
+      "details": [
+        {
+          "heading": "What is true in each card",
+          "items": [
+            "**How people reach the node** — true when the address answers with THIS node: the process id and start time match, not just a 200.",
+            "**Where the node stands** — true when the node has been told. Nothing can measure it, so the card is marked «from your own words».",
+            "**Walls around the items** — true when the node runs inside a container."
+          ]
+        },
+        {
+          "heading": "Why it asks in the browser",
+          "items": [
+            "Pages of the layer are prerendered. A state read at build time would stay in the HTML forever and keep saying «your site is online» after the domain has gone.",
+            "The door answers with no-store; a cached state is the same frozen lie one floor lower."
+          ]
+        },
+        {
+          "heading": "Where it lives",
+          "table": {
+            "headers": ["Path", "Role"],
+            "rows": [
+              ["components/node-state/widgets.tsx", "nodeStateWidget(lang) — the one entry for pages"],
+              ["components/node-state/node-state.client.tsx", "the island: cards, star, «Check now»"],
+              ["components/node-state/node-state.i18n.ts", "words, en + ru, server-side"],
+              ["lib/node-state/measure.ts · place.ts", "measuring reach and walls · reading and writing the stated place"],
+              ["app/api/node/state · app/api/node/place", "the two doors"],
+              ["data/node/place.json", "the stated place — outside git, a fact about this machine"]
+            ]
+          }
+        }
+      ]
+    },
+    "ru": {
+      "summary": "Состояние узла: три карточки со звездой и кнопкой «Проверить сейчас»",
+      "intro": "Показывает, как до узла добираются, где он стоит и есть ли стена вокруг элементов, — тремя карточками. Заполненная звезда и зелёный фон — правда; пустая звезда и прозрачный фон — ложь. «Проверить сейчас» прячет карточки, показывает загрузку и измеряет заново.",
+      "embedLabel": "Как встроить",
+      "command": "import { nodeStateWidget } from '@/components/node-state/widgets'\n\n<WorkspacePage widget={nodeStateWidget(lang)} … />",
+      "paramsHeaders": ["Параметр", "Что это"],
+      "params": [
+        ["lang", "язык страницы; в островок уходит один набор слов, а не весь словарь"],
+        ["GET /api/node/state", "дверь, которую спрашивает островок: измеряет по сети, закрыта для всех, кроме архитектора и администратора"],
+        ["POST /api/node/place", "временный способ сказать узлу, где он стоит (домашний компьютер или сервер), пока это не измеряется само"]
+      ],
+      "sample": "Живой образец: [главная страница слоя архитектора](/ru/architect). Сказать узлу, где он стоит: [Домен и хостинг → Выделенный сервер](/ru/architect/hosting/hosting).",
+      "detailsTitle": "Состояние узла — подробно",
+      "details": [
+        {
+          "heading": "Что считается правдой в каждой карточке",
+          "items": [
+            "**Как до узла добираются** — правда, когда по адресу отвечает ЭТОТ узел: совпали номер процесса и время запуска, а не просто код 200.",
+            "**Где стоит узел** — правда, когда узлу это сказали. Измерить это нечем, поэтому карточка помечена «с ваших слов».",
+            "**Стена вокруг элементов** — правда, когда узел работает внутри контейнера."
+          ]
+        },
+        {
+          "heading": "Почему состояние спрашивается в браузере",
+          "items": [
+            "Страницы слоя предрендерены. Состояние, прочитанное на сборке, осталось бы в HTML навсегда и продолжало бы говорить «сайт в интернете» после того, как домен уехал.",
+            "Дверь отвечает с no-store: закэшированное состояние — та же застывшая ложь, только этажом ниже."
+          ]
+        },
+        {
+          "heading": "Где живёт",
+          "table": {
+            "headers": ["Путь", "Роль"],
+            "rows": [
+              ["components/node-state/widgets.tsx", "nodeStateWidget(lang) — единственный вход для страниц"],
+              ["components/node-state/node-state.client.tsx", "островок: карточки, звезда, «Проверить сейчас»"],
+              ["components/node-state/node-state.i18n.ts", "слова, en + ru, серверный модуль"],
+              ["lib/node-state/measure.ts · place.ts", "измерение доступа и стены · чтение и запись сказанного места"],
+              ["app/api/node/state · app/api/node/place", "две двери"],
+              ["data/node/place.json", "сказанное место — вне git, факт об этой машине"]
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

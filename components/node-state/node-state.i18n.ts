@@ -37,6 +37,12 @@ export type NodeStateWords = {
   /** стена */
   isolationNone: string
   isolationContainer: string
+  /** кнопка нового замера и что видно во время него (276-5) */
+  checkNow: string
+  checking: string
+  /** подпись звезды для экранного чтеца: звезда повторяет слова, а не заменяет их */
+  starTrue: string
+  starFalse: string
   /** одна фраза о том, почему это спрашивается, а не написано */
   note: string
 }
@@ -63,7 +69,11 @@ const DICT: Record<string, NodeStateWords> = {
     placeChange: "Tell the node",
     isolationNone: "None. Items run as the same user as you and reach the same files.",
     isolationContainer: "The node runs inside a container.",
-    note: "The first line is measured over the network at the moment you open this page; the second is what you told the node.",
+    checkNow: "Check now",
+    checking: "Checking the node again…",
+    starTrue: "true",
+    starFalse: "false",
+    note: "A filled star means true. Reach and walls are measured when you check; where the node stands is what you told it.",
   },
   ru: {
     loading: "Спрашиваю узел…",
@@ -86,7 +96,11 @@ const DICT: Record<string, NodeStateWords> = {
     placeChange: "Сказать узлу",
     isolationNone: "Стены нет. Элементы работают тем же пользователем, что и вы, и дотягиваются до тех же файлов.",
     isolationContainer: "Узел работает внутри контейнера.",
-    note: "Первая строка измеряется по сети в момент, когда вы открываете страницу; вторая — это то, что вы сказали узлу сами.",
+    checkNow: "Проверить сейчас",
+    checking: "Проверяю узел заново…",
+    starTrue: "правда",
+    starFalse: "ложь",
+    note: "Заполненная звезда — правда. Доступ и стена измеряются при проверке; где стоит узел — то, что вы сказали ему сами.",
   },
 }
 

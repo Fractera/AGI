@@ -5,8 +5,7 @@ import { collectionMetadata } from '../_lib/collection-metadata'
 import { architectLayerUi, ARCHITECT_LAYER_LANGS } from '../_i18n/architect-layer.i18n'
 import { architectHomeUi } from '../_i18n/architect-home.i18n'
 import { ARCHITECT_HOME } from '../_lib/architect-menu'
-import { NodeStateIndicator } from '@/components/node-state/node-state.client'
-import { nodeStateWords } from '@/components/node-state/node-state.i18n'
+import { nodeStateWidget } from '@/components/node-state/widgets'
 
 // ✗ У ВХОДА В СЛОЙ НЕ БЫЛО МЕТАДАННЫХ ВОВСЕ — ИЗМЕРЕНО 2026-09-20 (256-7):
 //
@@ -106,7 +105,7 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
       // 🔒 СОСТОЯНИЕ УЗЛА — ОСТРОВОК, А НЕ БЛОК (276-2). Эта страница предрендерена: измеренное на
       // сборке утверждение «ваш сайт виден в интернете» застыло бы в HTML и продолжало бы висеть в
       // день, когда домен уехал. Слова выбираются здесь, на сервере, и уезжают одним набором.
-      widget={<NodeStateIndicator lang={lang} words={nodeStateWords(lang)} />}
+      widget={nodeStateWidget(lang)}
     />
   )
 }
