@@ -59,7 +59,52 @@ function ensurePm2() {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Обязательные элементы узла, которых на этой машине нет (280-7).
+ *
+ * 🔒 ЗАЧЕМ. Клон узла несёт только `AGI-ITEMS-CONFIG/agi-items.json`: сами элементы (вход, данные,
+ * сайт) приезжают установщиком из своих репозиториев по закреплённому тегу. README велит одну команду
+ * — `serve:start`, — и без этой проверки человек получал ядро без входа, данных и сайта.
+ * «Нет» — это нет отметки установки ИЛИ нет файла сервера, который она называет: сборка, прерванная
+ * на Windows, стирала сервер и оставляла отметку (265-6).
+ */
+function missingElements() {
+  let registry
+  try {
+    registry = JSON.parse(readFileSync(paths.REGISTRY_FILE, 'utf8'))
+  } catch {
+    return []
+  }
+  const out = []
+  for (const s of registry.services || []) {
+    if (s.required !== true) continue
+    let stamp = null
+    try {
+      stamp = JSON.parse(readFileSync(path.join(paths.entryDir(s), '.install-stamp.json'), 'utf8'))
+    } catch { /* не установлен */ }
+    const server = stamp?.start?.args?.[0]
+    const serverOk = !server || existsSync(path.join(stamp.start.cwd || paths.entryDir(s), server))
+    if (!stamp || !serverOk) out.push(s.id)
+  }
+  return out
+}
+
+function ensureElements() {
+  const missing = missingElements()
+  if (missing.length === 0) {
+    console.log('элементы узла на месте — установка не нужна')
+    return
+  }
+  console.log(`ставлю элементы узла, которых здесь нет: ${missing.join(', ')} (npm run services:install)`)
+  const r = spawnSync(process.execPath, [path.join(here, 'services-install.mjs')], { stdio: 'inherit', windowsHide: true })
+  if (r.status !== 0) {
+    // Узел поднимается и без них: ядро покажет, чего нет, а человек увидит причину выше.
+    console.error('установка элементов завершилась с ошибкой — узел запускается без них; причина напечатана выше')
+  }
+}
+
 function start() {
+  ensureElements()
   ensurePm2()
   const result = pm2run(['start', ecosystem])
   if (result.status !== 0) {
@@ -543,8 +588,13 @@ else if (command === 'autostart') autostart()
 else if (command === 'rebuild') rebuild()
 else if (command === 'publish') await publish()
 else if (command === 'unpublish') unpublish()
+// Только сказать, каких обязательных элементов нет, — ничего не ставя и не запуская (280-7).
+else if (command === 'elements') {
+  const missing = missingElements()
+  console.log(missing.length ? `нет элементов: ${missing.join(', ')}` : 'элементы узла на месте')
+}
 else {
-  console.log('Команды: start · stop · status · rebuild · publish · unpublish · autostart')
+  console.log('Команды: start · stop · status · rebuild · publish · unpublish · autostart · elements')
   console.log('Новый адрес в интернете вместо прежнего: publish -- --new')
   process.exit(1)
 }

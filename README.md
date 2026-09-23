@@ -5,12 +5,18 @@ This repository is a **starter template** that launches from **[fractera.ai](htt
 ## Run it on your own computer
 
 ```bash
-npm run serve:start      # start the site (installs pm2 the first time)
+npm run serve:start      # start the node (installs pm2 and the node's elements the first time)
 npm run serve:status     # is it alive, on which address, which build answers
 npm run serve:rebuild    # rebuild after you change the code (production serves a BUILD)
 npm run serve:stop       # stop it
 npm run serve:autostart  # bring it up automatically when the computer starts
 ```
+
+**The node's elements arrive on the first start.** This repository carries only their list,
+`AGI-ITEMS-CONFIG/agi-items.json`: sign-in (`auth`), data (`data`) and the site at the root of your
+domain (`root`). Each is its own repository, and `serve:start` clones any that are missing at the
+pinned tag into `AGI-ITEMS/core/<id>` (the same as `npm run services:install`). They come from the
+Fractera repositories on GitHub; a node that is already installed does not need GitHub to run.
 
 The site runs in **production** on **http://localhost:24680** — pages are pre-built and served in
 milliseconds, nothing is compiled while you browse. That is also why changing the code needs
