@@ -69,10 +69,11 @@ export function AccountDrawer({ lang, side, labels, email, roles = [], links }: 
 
   return (
     <>
-      {/* Mobile: avatar only (no "My account" text) — the label stays for ≥ sm and
-          as the accessible name at every width. */}
+      {/* md and narrower: avatar only — owner 2026-09-23: «если ширина экрана md или меньше то ты
+          показываешь только иконку» (278). The label shows from lg and stays the accessible name at
+          every width. */}
       <Button variant="ghost" size="sm" onClick={() => setOpen(true)} aria-label={labels.account} title={labels.account}>
-        <User /><span className="hidden sm:inline">{labels.account}</span>
+        <User /><span className="hidden lg:inline">{labels.account}</span>
       </Button>
 
       <Sheet open={open} onOpenChange={setOpen}>
