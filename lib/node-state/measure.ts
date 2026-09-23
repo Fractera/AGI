@@ -16,6 +16,7 @@
 
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
+import { readPlace, type Place } from '@/lib/node-state/place'
 
 const ROOT = process.cwd()
 const TIMEOUT_MS = 4000
@@ -42,12 +43,12 @@ export type Reach = {
   checkedAt: string
 }
 
-export type PlaceKind = 'home' | 'server' | 'unknown'
+
 export type IsolationKind = 'none' | 'container'
 
 export type NodeState = {
   reach: Reach
-  place: { kind: PlaceKind; source: 'declared' | 'unknown' }
+  place: Place
   isolation: { kind: IsolationKind; detail: string; source: Source }
   node: { port: number | null; commit: string | null; startedAt: string | null; pid: number; mode: string }
 }
@@ -124,13 +125,9 @@ function measureIsolation(): NodeState['isolation'] {
   }
 }
 
-/** Объявление человека о том, где стоит узел. Измерить это нечем — читается как есть. */
-function readPlace(): NodeState['place'] {
-  const declared = readJson<{ place?: string }>('data', 'node', 'place.json')
-  const kind = declared?.place
-  if (kind === 'home' || kind === 'server') return { kind, source: 'declared' }
-  return { kind: 'unknown', source: 'unknown' }
-}
+// 🔒 ОБЪЯВЛЕНИЕ ЧИТАЕТСЯ ОДНИМ МОДУЛЕМ — `lib/node-state/place.ts`, тем же, который его пишет. Второй
+// разбор того же файла разошёлся бы с первым молча, и индикатор однажды показал бы не то, что выбрал
+// человек на экране.
 
 export async function measureNodeState(): Promise<NodeState> {
   const checkedAt = new Date().toISOString()

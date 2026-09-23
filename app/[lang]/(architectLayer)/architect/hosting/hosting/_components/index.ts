@@ -1,4 +1,6 @@
+import type { ReactNode } from 'react'
 import type { Block } from '@/lib/content/blocks/types'
+import { nodePlaceWidget } from '@/components/node-state/widgets'
 
 // СОДЕРЖИМОЕ СТРАНИЦЫ «Hosting activation».
 //
@@ -15,4 +17,14 @@ import type { Block } from '@/lib/content/blocks/types'
 // параметром из `_data` — иначе она не переводится и её не видит сторож словарей.
 export function content(_lang: string): Block[] {
   return []
+}
+
+// 🔒 ОБЪЯВЛЕНИЕ «ГДЕ СТОИТ УЗЕЛ» ЖИВЁТ ИМЕННО ЗДЕСЬ (276-3), а не на главной странице слоя: главная
+// ПОКАЗЫВАЕТ состояние, эта страница им УПРАВЛЯЕТ. Индикатор на главной ссылается сюда, и второго
+// места, где это меняют, не существует.
+//
+// 🔒 ЭТО ОСТРОВОК, А НЕ БЛОК: страница предрендерена, и выбранное значение застыло бы в сборке.
+// Словарь остаётся на сервере — островок получает уже выбранный язык пропсами.
+export function widget(lang: string): ReactNode {
+  return nodePlaceWidget(lang)
 }
