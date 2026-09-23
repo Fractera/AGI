@@ -1,6 +1,6 @@
 import type { WorkspacePageWords } from '@/lib/collection/types'
 
 export const en: WorkspacePageWords = {
-  title: 'Subscription sign-in',
-  lead: 'Connect the Claude subscription the programmer agent will work under.',
+  title: 'Claude Code subscription',
+  lead: 'Connect the subscription your agent works under, and see what it is spent on.',
 }

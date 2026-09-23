@@ -1,4 +1,4 @@
-# `/architect/build/subscription` — a section page
+# `/architect/build/claude-code` — a section page
 
 One page of the architect layer. Everything about it lives in this folder; nothing
 about it is written anywhere else.

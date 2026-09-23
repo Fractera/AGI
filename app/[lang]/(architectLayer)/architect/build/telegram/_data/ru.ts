@@ -2,5 +2,5 @@ import type { WorkspacePageWords } from '@/lib/collection/types'
 
 export const ru: WorkspacePageWords = {
   title: 'Telegram-бот',
-  lead: 'Разговор с узлом с телефона — и его ответы там же.',
+  lead: 'Говорить с агентом с телефона: бот, его токен и кому позволено ему писать.',
 }

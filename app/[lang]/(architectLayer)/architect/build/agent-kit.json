@@ -1,0 +1,29 @@
+{
+  "_": "Параметры установки комплекта агента. Пишет npm run agent-kit:add, читают мост и сторож. Руками не править: правьте мастер и повторите npm run agent-kit:update.",
+  "service": "build",
+  "workspace": "node",
+  "version": "b50b5b5911992420",
+  "pages": [
+    {
+      "template": "claude-code",
+      "slug": "subscription",
+      "order": 10
+    },
+    {
+      "template": "terminal",
+      "slug": "terminal",
+      "order": 20
+    },
+    {
+      "template": "telegram",
+      "slug": "telegram",
+      "order": 30
+    }
+  ],
+  "doors": [
+    "session",
+    "ticket",
+    "claude-auth",
+    "channel"
+  ]
+}
