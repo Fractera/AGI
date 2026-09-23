@@ -62,7 +62,7 @@
 | `projectTypeMarquee01` | `projectTypeMarquee` | Trust and logos | the ribbon of directions | title?: string; note?: string | [карточка](blocks/projectTypeMarquee.md) |
 | `voiceField01` | `voiceField` | Page material | a text field that can be dictated | variant?: 'line' \| 'area'; title: string; hint?: string; comment?: string; placeholder?: string | [карточка](blocks/voiceField.md) |
 | `workspace01` `workspace02` | `workspace` | Workspace | рабочий экран | menuTitle?: string; menu: WorkspaceItem[]; title: string; lead?: string; notes?: WorkspaceNote[]; tabs?: WorkspaceItem[]; children: Block[]; widget?: import('react').ReactNode | [карточка](blocks/workspace.md) |
-| `accordion01` | `accordion` | Page material | раскрывающиеся полосы | title?: string; lead?: string; capped?: boolean; children: Block[] | [карточка](blocks/accordion.md) |
+| `accordion01` | `accordion` | Page material | раскрывающиеся полосы | title?: string; lead?: string; capped?: boolean; cards?: boolean; children: Block[] | [карточка](blocks/accordion.md) |
 | `accordionItem01` | `accordionItem` | Page material | — | summary: string; open?: boolean; details?: { title: string; children: Block[] }; children: Block[] | — |
 | `benefitCards01` | `benefitCards` | Benefits and value | карточки возможностей со ссылкой | title?: string; note?: string; cols?: 2 \| 3; items: { title: string; text: string; href?: string; linkLabel?: string }[] | [карточка](blocks/benefitCards.md) |
 | `splitPair01` | `splitPair` | Product in action | — | title?: string; note?: string; left: { image?: string; alt?: string; title: string; text: string }; right: { image?: string; alt?: string; title: string; text: string } | — |
