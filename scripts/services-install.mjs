@@ -186,10 +186,12 @@ function parseExample(text) {
   const vars = []
   let kind = null
   for (const line of splitLines(text)) {
-    // `node` (280-2a) — значение берётся из окружения ЯДРА: ядро хранит базовые настройки
-    // продукта (языки, тема, название), элемент их наследует. Слово владельца 2026-09-23:
-    // «ядро хранит в себе базовые настройки а проект … если умеет то забирает эти настройки».
-    const k = line.match(/^#\s*kind:\s*(derived|secret|foreign|node)\s*$/)
+    // 🛑 Рода «взять у ядра» НЕТ и не заводится (280-2a, решение владельца 2026-09-23): настройки
+    // элемента живут в самом элементе, и он обязан работать, даже если ядра не существует. Ядро
+    // дотягивается до них дверью элемента, а не раздаёт свои при установке.
+    // `own` — настройка самого элемента: значение по умолчанию он пишет в свой пример, и
+    // однажды изменённое (человеком или ядром через дверь элемента) переживает переустановку.
+    const k = line.match(/^#\s*kind:\s*(derived|secret|foreign|own)\s*$/)
     if (k) { kind = k[1]; continue }
     const v = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/)
     if (v) {
@@ -248,6 +250,10 @@ function derivedValue(name, ctx) {
     // не подходят под правило соседей ниже: «architect» — не элемент, а ядро; REMOTE_DATA_URL —
     // имя, которое код приложения читает как признак «данные через дверь, а не своим файлом».
     case 'ARCHITECT_URL': return nodeUrl
+    case 'NEXT_PUBLIC_AUTH_URL': {
+      const auth = registry.services.find((s) => s.id === 'auth')
+      return auth && Number.isInteger(auth.port) ? `http://127.0.0.1:${auth.port}` : ''
+    }
     case 'REMOTE_DATA_URL': {
       const data = registry.services.find((s) => s.id === 'data')
       return data && Number.isInteger(data.port) ? `http://127.0.0.1:${data.port}` : ''
@@ -490,10 +496,9 @@ for (const entry of registry.services) {
   for (const v of vars) {
     if (v.kind === 'secret') {
       lines.push(`${v.name}=${sharedSecret(v.name)}`)
-    } else if (v.kind === 'node') {
-      // Нет у ядра — значение из примера элемента: элемент, который умеет жить сам, живёт сам.
-      const inherited = nodeEnv.get(v.name)
-      lines.push(`${v.name}=${inherited && inherited.trim() !== '' ? inherited : v.example}`)
+    } else if (v.kind === 'own') {
+      const kept = readEnvFile(join(dir, envName)).get(v.name)
+      lines.push(`${v.name}=${kept !== undefined ? kept : v.example}`)
     } else if (v.kind === 'foreign') {
       const kept = readEnvFile(join(dir, envName)).get(v.name)
       if (kept && kept.trim() !== '') {
