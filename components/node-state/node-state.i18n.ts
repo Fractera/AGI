@@ -1,106 +1,126 @@
-// СЛОВА ИНДИКАТОРА СОСТОЯНИЯ УЗЛА — рядом с самим островком (276-2).
+// СЛОВА ИНДИКАТОРА СОСТОЯНИЯ ПРОЕКТА — рядом с самим островком (276-2; человеческим языком — 276-6).
 //
-// 🔒 ПОЧЕМУ СЛОВА ЗДЕСЬ, А НЕ В `_data` СТРАНИЦЫ. `_data` несёт слова СТРАНИЦЫ. Индикатор
-// переиспользуемый: тот же вопрос «где стоит узел и как до него добираются» встанет и на экранах
-// входа, когда замки поедут по режиму. Приём тот же, что у островка порта службы.
+// 🔒 ПОЧЕМУ СЛОВА ЗДЕСЬ, А НЕ В `_data` СТРАНИЦЫ. Индикатор переиспользуемый: тот же вопрос встанет и
+// на экранах входа, когда замки поедут по режиму.
+// 🔒 МОДУЛЬ СЕРВЕРНЫЙ. Островок получает уже выбранный язык пропсами; следит `check:lang-delivery`.
 //
-// 🔒 МОДУЛЬ СЕРВЕРНЫЙ. Островок получает уже выбранный язык пропсами — в браузер уезжает один набор
-// строк, а не словарь; за этим следит `check:lang-delivery`.
-//
-// 🛑 СЛОВА РАЗДЕЛЯЮТ ИЗМЕРЕННОЕ И ОБЪЯВЛЕННОЕ. «Измерено» и «с ваших слов» — разные пометки, потому
-// что человек, читающий объявленное как проверенное, перестаёт проверять.
+// 🛑 ЯЗЫК — ПРОФЕССИОНАЛЬНЫЙ И ЧЕЛОВЕЧЕСКИЙ (слово владельца 2026-09-23): «проект», «адрес»,
+// «размещён», «контейнер». ✗ Оплачено: «узел», «стена вокруг элементов» и «как до узла добираются»
+// владелец назвал бредом — это внутренний жаргон, а не слова, которыми с людьми говорят.
 
 export type NodeStateWords = {
   loading: string
+  checking: string
   /** дверь не ответила: честное «не знаю», а не «ничего нет» */
   unknown: string
-  /** заголовки трёх строк */
-  reachTitle: string
-  placeTitle: string
-  isolationTitle: string
-  /** пометки источника */
-  measured: string
-  declared: string
-  notKnown: string
-  /** как добираются */
-  reachOwnDomain: string
-  reachOwnDomainForeign: string
-  reachOwnDomainSilent: string
-  reachTemporary: string
-  reachTemporaryBroken: string
-  reachLocalOnly: string
-  /** где стоит */
-  placeHome: string
-  placeServer: string
-  placeUnknown: string
-  placeChange: string
-  /** стена */
-  isolationNone: string
-  isolationContainer: string
-  /** кнопка нового замера и что видно во время него (276-5) */
   checkNow: string
-  checking: string
-  /** подпись звезды для экранного чтеца: звезда повторяет слова, а не заменяет их */
   starTrue: string
   starFalse: string
-  /** одна фраза о том, почему это спрашивается, а не написано */
+  measuredAt: string
+  /** группа 1 — адрес проекта: четыре карточки, активна одна */
+  addressTitle: string
+  localhost: string
+  localhostText: string
+  tryDomain: string
+  tryDomainText: string
+  tryDomainActive: string
+  tryDomainBroken: string
+  ip: string
+  ipText: string
+  ownDomain: string
+  ownDomainText: string
+  ownDomainActive: string
+  ownDomainForeign: string
+  ownDomainSilent: string
+  /** группа 2 — где размещён проект: две карточки, активна сказанная */
+  placeTitle: string
+  placeLocal: string
+  placeLocalText: string
+  placeServer: string
+  placeServerText: string
+  placeFromYou: string
+  placeNotSet: string
+  placeChange: string
+  /** группа 3 — изоляция */
+  isolationTitle: string
+  container: string
+  containerYes: string
+  containerNo: string
   note: string
 }
 
 const DICT: Record<string, NodeStateWords> = {
   en: {
-    loading: "Asking the node…",
-    unknown: "The node did not answer. This means «I do not know», not «nothing is set up».",
-    reachTitle: "How people reach this node",
-    placeTitle: "Where this node stands",
-    isolationTitle: "Walls around the items",
-    measured: "measured just now",
-    declared: "from your own words",
-    notKnown: "not known",
-    reachOwnDomain: "Your own domain {host} — and it answers with this node.",
-    reachOwnDomainForeign: "The name {host} answers, but not with this node. Check where the DNS record points.",
-    reachOwnDomainSilent: "The name {host} is set up but silent right now, so from the internet this node is not there.",
-    reachTemporary: "A temporary address {host}. It changes every time the tunnel restarts, so a link you gave someone stops working.",
-    reachTemporaryBroken: "The temporary address is not answering, so from the internet this node is not there.",
-    reachLocalOnly: "Not published at all: the node is visible only on this computer.",
-    placeHome: "A home computer — you choose which items to install, and you answer for that choice.",
-    placeServer: "A dedicated server — the place to invite other developers to.",
-    placeUnknown: "Not stated yet. Nothing can measure this, so the node asks you.",
-    placeChange: "Tell the node",
-    isolationNone: "None. Items run as the same user as you and reach the same files.",
-    isolationContainer: "The node runs inside a container.",
+    loading: "Checking the project…",
+    checking: "Checking the project again…",
+    unknown: "The project did not answer. This means «unknown», not «nothing is set up».",
     checkNow: "Check now",
-    checking: "Checking the node again…",
-    starTrue: "true",
-    starFalse: "false",
-    note: "A filled star means true. Reach and walls are measured when you check; where the node stands is what you told it.",
+    starTrue: "active",
+    starFalse: "inactive",
+    measuredAt: "checked at {at}",
+    addressTitle: "Project address",
+    localhost: "Localhost",
+    localhostText: "Development mode: the project opens only on this computer.",
+    tryDomain: "Cloudflare trial domain",
+    tryDomainText: "A temporary *.trycloudflare.com address; it changes on every restart.",
+    tryDomainActive: "{host} — a temporary address; it changes on every restart.",
+    tryDomainBroken: "The temporary address is not answering.",
+    ip: "IP address",
+    ipText: "The project opens by the server's IP address, without a domain.",
+    ownDomain: "Own domain",
+    ownDomainText: "Your domain, connected through Cloudflare.",
+    ownDomainActive: "{host} — this project answers.",
+    ownDomainForeign: "{host} answers, but it is not this project. Check the DNS record.",
+    ownDomainSilent: "{host} is set up but not answering right now.",
+    placeTitle: "Where the project is hosted",
+    placeLocal: "Local computer",
+    placeLocalText: "You choose the apps yourself and answer for that choice.",
+    placeServer: "Dedicated server",
+    placeServerText: "The place to invite other developers to.",
+    placeFromYou: "as you stated",
+    placeNotSet: "not stated yet",
+    placeChange: "Change",
+    isolationTitle: "Isolation",
+    container: "Container",
+    containerYes: "The project runs in a container: an isolated environment with its own file system.",
+    containerNo: "No. Apps run under your user account and can read the same files as you.",
+    note: "Only one card per row is active. Address and isolation are measured on every check; hosting is what you stated.",
   },
   ru: {
-    loading: "Спрашиваю узел…",
-    unknown: "Узел не ответил. Это значит «не знаю», а не «ничего не настроено».",
-    reachTitle: "Как до узла добираются",
-    placeTitle: "Где стоит узел",
-    isolationTitle: "Стена вокруг элементов",
-    measured: "измерено только что",
-    declared: "с ваших слов",
-    notKnown: "не известно",
-    reachOwnDomain: "Свой домен {host} — и он отвечает этим узлом.",
-    reachOwnDomainForeign: "Имя {host} отвечает, но это не этот узел. Проверьте, куда ведёт запись DNS.",
-    reachOwnDomainSilent: "Имя {host} настроено, но сейчас молчит — значит из интернета узла нет.",
-    reachTemporary: "Временный адрес {host}. Он меняется при каждом перезапуске туннеля, и ссылка, которую вы кому-то дали, перестаёт работать.",
-    reachTemporaryBroken: "Временный адрес не отвечает — значит из интернета узла нет.",
-    reachLocalOnly: "Наружу не опубликован: узел виден только на этом компьютере.",
-    placeHome: "Домашний компьютер — элементы вы выбираете сами и за выбор отвечаете сами.",
-    placeServer: "Выделенный сервер — сюда можно приглашать чужих разработчиков.",
-    placeUnknown: "Пока не сказано. Измерить это нечем, поэтому узел спрашивает вас.",
-    placeChange: "Сказать узлу",
-    isolationNone: "Стены нет. Элементы работают тем же пользователем, что и вы, и дотягиваются до тех же файлов.",
-    isolationContainer: "Узел работает внутри контейнера.",
+    loading: "Проверяю проект…",
+    checking: "Проверяю проект заново…",
+    unknown: "Проект не ответил. Это значит «неизвестно», а не «ничего не настроено».",
     checkNow: "Проверить сейчас",
-    checking: "Проверяю узел заново…",
-    starTrue: "правда",
-    starFalse: "ложь",
-    note: "Заполненная звезда — правда. Доступ и стена измеряются при проверке; где стоит узел — то, что вы сказали ему сами.",
+    starTrue: "активно",
+    starFalse: "не активно",
+    measuredAt: "проверено в {at}",
+    addressTitle: "Адрес проекта",
+    localhost: "Localhost",
+    localhostText: "Режим разработки: проект открывается только на этом компьютере.",
+    tryDomain: "Пробный домен Cloudflare",
+    tryDomainText: "Временный адрес *.trycloudflare.com; меняется при каждом перезапуске.",
+    tryDomainActive: "{host} — временный адрес, меняется при каждом перезапуске.",
+    tryDomainBroken: "Временный адрес не отвечает.",
+    ip: "IP-адрес",
+    ipText: "Проект открывается по IP-адресу сервера, без домена.",
+    ownDomain: "Собственный домен",
+    ownDomainText: "Ваш домен, подключённый через Cloudflare.",
+    ownDomainActive: "{host} — отвечает этот проект.",
+    ownDomainForeign: "{host} отвечает, но это не этот проект. Проверьте запись DNS.",
+    ownDomainSilent: "{host} настроен, но сейчас не отвечает.",
+    placeTitle: "Где размещён проект",
+    placeLocal: "Локальный компьютер",
+    placeLocalText: "Приложения вы выбираете сами и за выбор отвечаете сами.",
+    placeServer: "Выделенный сервер",
+    placeServerText: "Сюда можно приглашать других разработчиков.",
+    placeFromYou: "с ваших слов",
+    placeNotSet: "пока не указано",
+    placeChange: "Изменить",
+    isolationTitle: "Изоляция",
+    container: "Контейнер",
+    containerYes: "Проект работает в контейнере: изолированное окружение со своей файловой системой.",
+    containerNo: "Нет. Приложения работают под вашей учётной записью и видят те же файлы, что и вы.",
+    note: "В каждой строке активна одна карточка. Адрес и изоляция измеряются при каждой проверке; размещение — с ваших слов.",
   },
 }
 

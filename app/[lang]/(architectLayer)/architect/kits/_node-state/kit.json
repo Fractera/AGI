@@ -1,35 +1,35 @@
 {
-  "_": "Карточка готового решения (276-5). Код решения живёт в components/node-state/ и lib/node-state/; эта папка — его витрина во вкладке «Готовые решения».",
+  "_": "Карточка готового решения (276-5; человеческим языком — 276-6). Код решения живёт в components/node-state/ и lib/node-state/; эта папка — его витрина во вкладке «Готовые решения».",
   "id": "node-state",
   "order": 20,
   "words": {
     "en": {
-      "summary": "Node state: three cards with a star and a «Check now» button",
-      "intro": "Shows how people reach this node, where it stands and whether its items are walled off — as three cards. A filled star and a green background mean true; an empty star and a transparent background mean false. «Check now» hides the cards, shows a loader and measures again.",
+      "summary": "Project status: address, hosting and isolation",
+      "intro": "Shows the project's current address (localhost, Cloudflare trial domain, IP address or own domain), where it is hosted (local computer or dedicated server) and whether it runs in a container. In each row one card is active: a filled star and a green background. «Check now» hides the cards, shows a loader and measures again.",
       "embedLabel": "How to embed",
       "command": "import { nodeStateWidget } from '@/components/node-state/widgets'\n\n<WorkspacePage widget={nodeStateWidget(lang)} … />",
       "paramsHeaders": ["Parameter", "What it is"],
       "params": [
         ["lang", "the page language; the island receives one set of words, not the whole dictionary"],
-        ["GET /api/node/state", "the door the island asks: measured over the network, closed to anyone who is not an architect or admin"],
-        ["POST /api/node/place", "a temporary way to tell the node where it stands (home computer or server) until this is measured automatically"]
+        ["GET /api/node/state", "the endpoint the island calls: measured over the network, available only to the architect and admin roles"],
+        ["POST /api/node/place", "a temporary way to state where the project is hosted (local computer or dedicated server) until this is detected automatically"]
       ],
-      "sample": "Live sample: [Architect layer — home page](/en/architect). Tell the node where it stands: [Domain and hosting → Dedicated server](/en/architect/hosting/hosting).",
-      "detailsTitle": "Node state — in detail",
+      "sample": "Live sample: [Architect layer — home page](/en/architect). State where the project is hosted: [Domain and hosting → Dedicated server](/en/architect/hosting/hosting).",
+      "detailsTitle": "Project status — in detail",
       "details": [
         {
-          "heading": "What is true in each card",
+          "heading": "Which card is active",
           "items": [
-            "**How people reach the node** — true when the address answers with THIS node: the process id and start time match, not just a 200.",
-            "**Where the node stands** — true when the node has been told. Nothing can measure it, so the card is marked «from your own words».",
-            "**Walls around the items** — true when the node runs inside a container."
+            "**Project address** — the card of the address where THIS project answers: the process id and start time match, not just a 200. If the domain is set up but something else answers, localhost is active and the domain card says what is wrong. The IP address card is never active until server deployment exists.",
+            "**Where the project is hosted** — the option you stated. It cannot be measured, so the card is marked «as you stated».",
+            "**Isolation** — active when the project runs in a container."
           ]
         },
         {
-          "heading": "Why it asks in the browser",
+          "heading": "Why it is measured in the browser",
           "items": [
-            "Pages of the layer are prerendered. A state read at build time would stay in the HTML forever and keep saying «your site is online» after the domain has gone.",
-            "The door answers with no-store; a cached state is the same frozen lie one floor lower."
+            "Pages are prerendered. A status read at build time would stay in the HTML forever and keep saying «your site is online» after the domain has gone.",
+            "The endpoint answers with no-store: a cached status is the same frozen lie one level lower."
           ]
         },
         {
@@ -40,41 +40,41 @@
               ["components/node-state/widgets.tsx", "nodeStateWidget(lang) — the one entry for pages"],
               ["components/node-state/node-state.client.tsx", "the island: cards, star, «Check now»"],
               ["components/node-state/node-state.i18n.ts", "words, en + ru, server-side"],
-              ["lib/node-state/measure.ts · place.ts", "measuring reach and walls · reading and writing the stated place"],
-              ["app/api/node/state · app/api/node/place", "the two doors"],
-              ["data/node/place.json", "the stated place — outside git, a fact about this machine"]
+              ["lib/node-state/measure.ts · place.ts", "measuring address and isolation · reading and writing the stated hosting"],
+              ["app/api/node/state · app/api/node/place", "the two endpoints"],
+              ["data/node/place.json", "the stated hosting — outside git, a fact about this machine"]
             ]
           }
         }
       ]
     },
     "ru": {
-      "summary": "Состояние узла: три карточки со звездой и кнопкой «Проверить сейчас»",
-      "intro": "Показывает, как до узла добираются, где он стоит и есть ли стена вокруг элементов, — тремя карточками. Заполненная звезда и зелёный фон — правда; пустая звезда и прозрачный фон — ложь. «Проверить сейчас» прячет карточки, показывает загрузку и измеряет заново.",
+      "summary": "Статус проекта: адрес, размещение и изоляция",
+      "intro": "Показывает текущий адрес проекта (localhost, пробный домен Cloudflare, IP-адрес или собственный домен), где он размещён (локальный компьютер или выделенный сервер) и работает ли он в контейнере. В каждой строке активна одна карточка: заполненная звезда и зелёный фон. «Проверить сейчас» прячет карточки, показывает загрузку и измеряет заново.",
       "embedLabel": "Как встроить",
       "command": "import { nodeStateWidget } from '@/components/node-state/widgets'\n\n<WorkspacePage widget={nodeStateWidget(lang)} … />",
       "paramsHeaders": ["Параметр", "Что это"],
       "params": [
         ["lang", "язык страницы; в островок уходит один набор слов, а не весь словарь"],
-        ["GET /api/node/state", "дверь, которую спрашивает островок: измеряет по сети, закрыта для всех, кроме архитектора и администратора"],
-        ["POST /api/node/place", "временный способ сказать узлу, где он стоит (домашний компьютер или сервер), пока это не измеряется само"]
+        ["GET /api/node/state", "адрес, который вызывает островок: измеряет по сети, доступен только ролям архитектора и администратора"],
+        ["POST /api/node/place", "временный способ указать, где размещён проект (локальный компьютер или выделенный сервер), пока это не определяется автоматически"]
       ],
-      "sample": "Живой образец: [главная страница слоя архитектора](/ru/architect). Сказать узлу, где он стоит: [Домен и хостинг → Выделенный сервер](/ru/architect/hosting/hosting).",
-      "detailsTitle": "Состояние узла — подробно",
+      "sample": "Живой образец: [главная страница слоя архитектора](/ru/architect). Указать, где размещён проект: [Домен и хостинг → Выделенный сервер](/ru/architect/hosting/hosting).",
+      "detailsTitle": "Статус проекта — подробно",
       "details": [
         {
-          "heading": "Что считается правдой в каждой карточке",
+          "heading": "Какая карточка активна",
           "items": [
-            "**Как до узла добираются** — правда, когда по адресу отвечает ЭТОТ узел: совпали номер процесса и время запуска, а не просто код 200.",
-            "**Где стоит узел** — правда, когда узлу это сказали. Измерить это нечем, поэтому карточка помечена «с ваших слов».",
-            "**Стена вокруг элементов** — правда, когда узел работает внутри контейнера."
+            "**Адрес проекта** — карточка того адреса, по которому отвечает ЭТОТ проект: совпали номер процесса и время запуска, а не просто код 200. Домен настроен, но отвечает не он — активен localhost, а карточка домена говорит, что не так. Карточка IP-адреса не активна, пока нет развёртывания на сервер.",
+            "**Где размещён проект** — вариант, который вы указали. Измерить это нельзя, поэтому карточка помечена «с ваших слов».",
+            "**Изоляция** — активна, когда проект работает в контейнере."
           ]
         },
         {
-          "heading": "Почему состояние спрашивается в браузере",
+          "heading": "Почему статус измеряется в браузере",
           "items": [
-            "Страницы слоя предрендерены. Состояние, прочитанное на сборке, осталось бы в HTML навсегда и продолжало бы говорить «сайт в интернете» после того, как домен уехал.",
-            "Дверь отвечает с no-store: закэшированное состояние — та же застывшая ложь, только этажом ниже."
+            "Страницы предрендерены. Статус, прочитанный на сборке, остался бы в HTML навсегда и продолжал бы говорить «сайт в интернете» после того, как домен уехал.",
+            "Адрес отвечает с no-store: закэшированный статус — та же застывшая ложь, только уровнем ниже."
           ]
         },
         {
@@ -85,9 +85,9 @@
               ["components/node-state/widgets.tsx", "nodeStateWidget(lang) — единственный вход для страниц"],
               ["components/node-state/node-state.client.tsx", "островок: карточки, звезда, «Проверить сейчас»"],
               ["components/node-state/node-state.i18n.ts", "слова, en + ru, серверный модуль"],
-              ["lib/node-state/measure.ts · place.ts", "измерение доступа и стены · чтение и запись сказанного места"],
-              ["app/api/node/state · app/api/node/place", "две двери"],
-              ["data/node/place.json", "сказанное место — вне git, факт об этой машине"]
+              ["lib/node-state/measure.ts · place.ts", "измерение адреса и изоляции · чтение и запись указанного размещения"],
+              ["app/api/node/state · app/api/node/place", "два адреса API"],
+              ["data/node/place.json", "указанное размещение — вне git, факт об этой машине"]
             ]
           }
         }

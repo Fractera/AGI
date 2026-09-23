@@ -9,25 +9,22 @@ import { Small } from "@/components/ui/typography"
 import { cn } from "@/lib/utils"
 import type { NodeStateWords } from "@/components/node-state/node-state.i18n"
 
-// ОСТРОВОК СОСТОЯНИЯ УЗЛА (276-2; карточки со звездой и «Проверить сейчас» — 276-5).
+// ОСТРОВОК СОСТОЯНИЯ ПРОЕКТА (276-2; карточки и «Проверить сейчас» — 276-5; четыре + две + одна — 276-6).
 //
-// 🎯 Слово владельца 2026-09-23: три записи — три карточки; справа звезда, заполненная, если это
-// правда, и пустая, если ложь; фон зелёный у правды и прозрачный у лжи; кнопка «Проверить сейчас»
-// прячет карточки, крутит загрузку и показывает новый замер.
+// 🎯 Слово владельца 2026-09-23: адрес — четыре карточки (localhost · пробный домен Cloudflare ·
+// IP-адрес · собственный домен), активна одна; размещение — две (локальный компьютер · выделенный
+// сервер), названия очень жирные; «изоляция», а не «стена». Активная карточка — заполненная звезда и
+// зелёный фон, остальные — пустая звезда и прозрачный фон.
 //
-// 🔒 ПОЧЕМУ ЭТО ОСТРОВОК, А НЕ СЕРВЕРНАЯ СТРОКА. Главная страница слоя предрендерена. Серверный
-// компонент измерил бы адрес НА СБОРКЕ, и утверждение «ваш сайт виден в интернете» застыло бы в HTML
-// навсегда. Тот же класс, что и запечённый порт в 264, только дороже: там врало число, здесь вывод.
+// 🔒 ПОЧЕМУ ЭТО ОСТРОВОК, А НЕ СЕРВЕРНАЯ СТРОКА. Страница предрендерена: адрес, измеренный на сборке,
+// застыл бы в HTML и продолжал бы говорить «сайт в интернете» после того, как домен уехал.
 //
-// 🔒 ПРАВДА У КАЖДОЙ КАРТОЧКИ ОДНА И НАЗВАНА ЗДЕСЬ: «как добираются» — адрес отвечает ЭТИМ узлом;
-// «где стоит» — место сказано узлу (измерить его нечем, поэтому правда здесь — «известно»); «стена» —
-// узел в контейнере. Звезда и фон повторяют слова и никогда не несут смысла вместо них.
+// 🔒 АКТИВНАЯ КАРТОЧКА АДРЕСА — ТА, ПО КОТОРОЙ ПРОЕКТ ОТВЕЧАЕТ САМ (сверка номера процесса и времени
+// запуска в `lib/node-state/measure.ts`). Домен настроен, но отвечает не он — активен localhost, а
+// карточка домена говорит, что с ним не так. IP-адрес сегодня не активен никогда: развёртывания на
+// сервер ещё нет, и выдумывать его наличие прибор не должен.
 //
-// 🔒 ЧЕТЫРЕ СОСТОЯНИЯ ОСТРОВКА: «спрашиваю» · «знаю» · «проверяю заново» · «дверь не ответила».
-// Последнее значит «не знаю», а не «ничего не настроено»: 401 здесь — про права, а не про узел.
-//
-// 🛑 «Проверить сейчас» спрашивает ту же дверь, что и первый замер: выбор места в «Хостинге»
-// (временный способ до автоматизации, слово владельца 2026-09-23) виден после нажатия без перезагрузки.
+// 🔒 ЧЕТЫРЕ СОСТОЯНИЯ ОСТРОВКА: «проверяю» · «знаю» · «проверяю заново» · «дверь не ответила».
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
@@ -40,45 +37,51 @@ type Answer = {
 
 type State = "asking" | "known" | "checking" | "unknown"
 
-function Fact({
+function Choice({
   title,
   text,
-  mark,
-  truth,
-  extra,
+  active,
+  heavy,
+  foot,
   words,
 }: {
   title: string
   text: string
-  mark: string
-  truth: boolean
-  extra?: React.ReactNode
+  active: boolean
+  heavy?: boolean
+  foot?: React.ReactNode
   words: NodeStateWords
 }) {
   return (
     <Card
       size="sm"
-      data-truth={String(truth)}
-      className={cn(truth ? "bg-primary/10 ring-primary/40" : "bg-transparent")}
+      data-active={String(active)}
+      className={cn(active ? "bg-primary/10 ring-primary/40" : "bg-transparent")}
     >
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle className={cn(heavy ? "text-base font-black" : "font-semibold")}>{title}</CardTitle>
         <CardAction>
           <StarIcon
             role="img"
-            aria-label={truth ? words.starTrue : words.starFalse}
-            className={cn("size-5", truth ? "fill-primary text-primary" : "text-muted-foreground")}
+            aria-label={active ? words.starTrue : words.starFalse}
+            className={cn("size-5", active ? "fill-primary text-primary" : "text-muted-foreground")}
           />
         </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
         <p className="text-foreground text-sm">{text}</p>
-        <Small className="text-muted-foreground">
-          {mark}
-          {extra ? <> · {extra}</> : null}
-        </Small>
+        {foot ? <Small className="text-muted-foreground">{foot}</Small> : null}
       </CardContent>
     </Card>
+  )
+}
+
+function Group({ title, cols, children }: { title: string; cols: string; children: React.ReactNode }) {
+  return (
+    <section className="flex flex-col gap-2">
+      <p className="text-foreground text-sm font-semibold">{title}</p>
+      <div className={cn("grid gap-3", cols)}>{children}</div>
+    </section>
   )
 }
 
@@ -125,11 +128,9 @@ export function NodeStateIndicator({ lang, words }: { lang: string; words: NodeS
 
   if (state === "asking" || state === "checking") {
     return (
-      <div className="my-6 flex flex-col gap-4" data-node-state={state}>
-        <div className="flex items-center gap-2">
-          <Spinner />
-          <p className="text-muted-foreground text-sm">{state === "asking" ? words.loading : words.checking}</p>
-        </div>
+      <div className="my-6 flex items-center gap-2" data-node-state={state}>
+        <Spinner />
+        <p className="text-muted-foreground text-sm">{state === "asking" ? words.loading : words.checking}</p>
       </div>
     )
   }
@@ -145,26 +146,45 @@ export function NodeStateIndicator({ lang, words }: { lang: string; words: NodeS
 
   const reach = data.reach
   const host = reach.host ?? "—"
-  const reachText =
-    reach.kind === "own-domain"
-      ? reach.ours === true
-        ? words.reachOwnDomain.replace("{host}", host)
+  const active =
+    reach.ours !== true
+      ? "localhost"
+      : reach.kind === "own-domain"
+        ? "own"
+        : reach.kind === "temporary"
+          ? "try"
+          : reach.kind === "bare-ip"
+            ? "ip"
+            : "localhost"
+
+  const ownText =
+    reach.kind !== "own-domain"
+      ? words.ownDomainText
+      : reach.ours === true
+        ? words.ownDomainActive.replace("{host}", host)
         : reach.ours === false
-          ? words.reachOwnDomainForeign.replace("{host}", host)
-          : words.reachOwnDomainSilent.replace("{host}", host)
-      : reach.kind === "temporary"
-        ? reach.ours === true
-          ? words.reachTemporary.replace("{host}", host)
-          : words.reachTemporaryBroken
-        : words.reachLocalOnly
+          ? words.ownDomainForeign.replace("{host}", host)
+          : words.ownDomainSilent.replace("{host}", host)
+  const tryText =
+    reach.kind !== "temporary"
+      ? words.tryDomainText
+      : reach.ours === true
+        ? words.tryDomainActive.replace("{host}", host)
+        : words.tryDomainBroken
 
   const place = data.place?.kind
-  const placeKnown = place === "home" || place === "server"
-  const placeText = place === "home" ? words.placeHome : place === "server" ? words.placeServer : words.placeUnknown
+  const placeFoot = (
+    <>
+      {place === "home" || place === "server" ? words.placeFromYou : words.placeNotSet} ·{" "}
+      <a className="text-primary underline decoration-primary/40 underline-offset-2" href={`/${lang}/architect/hosting/hosting`}>
+        {words.placeChange}
+      </a>
+    </>
+  )
 
   const walled = data.isolation?.kind === "container"
 
-  // Время замера показывается рядом с измеренным — чтобы «сейчас» имело адресата во времени.
+  // Время замера — чтобы «сейчас» имело адресата во времени.
   const at = (() => {
     try {
       return new Date(reach.checkedAt).toLocaleTimeString(lang === "ru" ? "ru-RU" : "en-GB")
@@ -174,36 +194,26 @@ export function NodeStateIndicator({ lang, words }: { lang: string; words: NodeS
   })()
 
   return (
-    <div className="my-6 flex flex-col gap-3" data-node-state="known" data-reach={reach.kind} data-ours={String(reach.ours)}>
-      <Fact
-        words={words}
-        title={words.reachTitle}
-        text={reachText}
-        mark={`${words.measured}${at ? ` · ${at}` : ""}`}
-        truth={reach.ours === true}
-      />
-      <Fact
-        words={words}
-        title={words.placeTitle}
-        text={placeText}
-        mark={placeKnown ? words.declared : words.notKnown}
-        truth={placeKnown}
-        extra={
-          <a className="text-primary underline decoration-primary/40 underline-offset-2" href={`/${lang}/architect/hosting/hosting`}>
-            {words.placeChange}
-          </a>
-        }
-      />
-      <Fact
-        words={words}
-        title={words.isolationTitle}
-        text={walled ? words.isolationContainer : words.isolationNone}
-        mark={words.measured}
-        truth={walled}
-      />
+    <div className="my-6 flex flex-col gap-5" data-node-state="known" data-reach={reach.kind} data-ours={String(reach.ours)}>
+      <Group title={words.addressTitle} cols="sm:grid-cols-2 xl:grid-cols-4">
+        <Choice words={words} title={words.localhost} text={words.localhostText} active={active === "localhost"} />
+        <Choice words={words} title={words.tryDomain} text={tryText} active={active === "try"} />
+        <Choice words={words} title={words.ip} text={words.ipText} active={active === "ip"} />
+        <Choice words={words} title={words.ownDomain} text={ownText} active={active === "own"} />
+      </Group>
+      <Group title={words.placeTitle} cols="sm:grid-cols-2">
+        <Choice words={words} heavy title={words.placeLocal} text={words.placeLocalText} active={place === "home"} foot={placeFoot} />
+        <Choice words={words} heavy title={words.placeServer} text={words.placeServerText} active={place === "server"} foot={placeFoot} />
+      </Group>
+      <Group title={words.isolationTitle} cols="sm:grid-cols-2">
+        <Choice words={words} title={words.container} text={walled ? words.containerYes : words.containerNo} active={walled} />
+      </Group>
       <div className="flex flex-wrap items-center gap-3">
         {button}
-        <Small className="text-muted-foreground">{words.note}</Small>
+        <Small className="text-muted-foreground">
+          {at ? `${words.measuredAt.replace("{at}", at)} · ` : ""}
+          {words.note}
+        </Small>
       </div>
     </div>
   )
