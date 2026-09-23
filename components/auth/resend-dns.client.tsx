@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Lock, Plus, X } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
@@ -16,11 +16,10 @@ import { StepPoints } from "@/components/auth/setup-ladder.client"
 // режима». Оба закрыты, пока нет своего домена: этот случай запирает весь экран
 // выше, и сюда человек не попадает вовсе.
 //
-// 🔒 КАКОЙ ОТКРЫТ — РЕШАЕТ ИЗМЕРЕННЫЙ ПРИЗНАК, А НЕ ДОГАДКА О МАШИНЕ. Индикатора
-// «компьютер или сервер» ещё нет (`AUTH-DEBT.md`), но для записей DNS важно не
-// это, а другое: держит ли узел ключ Cloudflare к зоне своего домена. Держит —
-// записи пишет узел; нет — только человек у регистратора. Когда индикатор
-// появится, он ляжет поверх этого признака, а не вместо него.
+// 🔒 КАКОЙ ОТКРЫТ — РЕШАЕТ ИНДИКАТОР (276-4), а не этот островок: компьютер →
+// Cloudflare (записи пишет узел), сервер → регистратор (записи вносит человек).
+// Выбор приходит пропом из экрана, а тот берёт его у двери, считающей его одной
+// функцией `lib/node-state/auth-mode.ts`. Место не объявлено → закрыты оба.
 //
 // 🛑 «ОБНУЛИТЬ ЗАПИСИ НА CLOUDFLARE» ПРОЧИТАНО КАК «УБРАТЬ ПУТЬ ЧЕРЕЗ CLOUDFLARE
 // С ЭКРАНА», а не как удаление записей в зоне: удаление — деструктивная операция
@@ -57,25 +56,11 @@ function LockedNote({ text }: { text: string }) {
   )
 }
 
-export function ResendDns({ words }: { words: DnsWords }) {
-  const [cloudflare, setCloudflare] = useState<boolean | null>(null)
+export function ResendDns({ words, path }: { words: DnsWords; path: "cloudflare" | "registrar" | null }) {
   const [rows, setRows] = useState<Row[]>(START)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [results, setResults] = useState<Result[] | null>(null)
-
-  useEffect(() => {
-    let alive = true
-    fetch(DOOR, { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((d: { cloudflare?: boolean }) => alive && setCloudflare(!!d.cloudflare))
-      // Дверь не ответила — «не знаю», а не «Cloudflare нет»: оба раздела
-      // остаются закрытыми, и ни один не обещает того, чего узел не проверил.
-      .catch(() => alive && setCloudflare(null))
-    return () => {
-      alive = false
-    }
-  }, [])
 
   const setRow = (i: number, patch: Partial<Row>) =>
     setRows((prev) => prev.map((r, j) => (j === i ? { ...r, ...patch } : r)))
@@ -124,11 +109,11 @@ export function ResendDns({ words }: { words: DnsWords }) {
           ? words.outConflict
           : `${words.outFailed}${r.reason ? `: ${r.reason}` : ""}`
 
-  const cfOpen = cloudflare === true
-  const regOpen = cloudflare === false
+  const cfOpen = path === "cloudflare"
+  const regOpen = path === "registrar"
 
   return (
-    <Accordion type="single" collapsible className="mt-3" data-resend-dns defaultValue={cfOpen ? "cf" : regOpen ? "reg" : undefined} key={String(cloudflare)}>
+    <Accordion type="single" collapsible className="mt-3" data-resend-dns defaultValue={cfOpen ? "cf" : regOpen ? "reg" : undefined} key={String(path)}>
       <AccordionItem value="cf" disabled={!cfOpen} data-dns-cf={cfOpen ? "open" : "locked"}>
         <AccordionTrigger className="text-sm">
           <span className="flex items-center gap-2">
@@ -249,11 +234,9 @@ export function ResendDns({ words }: { words: DnsWords }) {
         </AccordionContent>
       </AccordionItem>
       {/* Почему раздел закрыт — видно без раскрытия: запрет без объяснения жесток. */}
-      {cloudflare !== null && (
-        <div className="mt-2">
-          <LockedNote text={cfOpen ? words.regLocked : words.cfLocked} />
-        </div>
-      )}
+      <div className="mt-2">
+        <LockedNote text={path === null ? words.placeUnknown : cfOpen ? words.regLocked : words.cfLocked} />
+      </div>
     </Accordion>
   )
 }

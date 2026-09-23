@@ -32,7 +32,8 @@ const DOOR = `${BASE}/api/auth/providers/resend`
 
 type State = {
   installed: boolean
-  onOwnDomain: boolean
+  /** замок из индикатора (276-4): открыт ли вход и кто вносит записи DNS */
+  mode: { open: boolean; dns: "cloudflare" | "registrar" | null }
   zone: string | null
   apiKey: boolean
   from: string | null
@@ -133,8 +134,8 @@ export function ResendSetup({ words }: { words: ResendSetupWords }) {
     )
   }
 
-  // ЗАМОК: узел ещё не на своём домене — тот же признак, что у экрана Google.
-  if (!state.onOwnDomain) {
+  // ЗАМОК: решает индикатор (276-4) — домен измерен и отвечает этим узлом.
+  if (!state.mode.open) {
     return (
       <div className="my-6 rounded-lg border border-border border-dashed bg-card p-4" data-resend-locked>
         <H3 className="mb-2 flex items-center gap-2" variant="ui">
@@ -165,7 +166,7 @@ export function ResendSetup({ words }: { words: ResendSetupWords }) {
         {state.zone && <p className="mt-2 text-foreground text-sm">{words.zoneHint.replaceAll("{zone}", zone)}</p>}
         <StepPoints items={words.step2Points} />
         <OutLink href={RESEND_DOMAINS_URL}>{words.openDomains}</OutLink>
-        <ResendDns words={words.dns} />
+        <ResendDns words={words.dns} path={state.mode.dns} />
       </Step>
 
       <Step n={3} title={words.step3Title}>

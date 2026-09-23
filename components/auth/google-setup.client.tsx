@@ -42,7 +42,8 @@ const DOOR = `${BASE}/api/auth/providers/google`
 
 type State = {
   installed: boolean
-  onOwnDomain: boolean
+  /** замок из индикатора (276-4): открыт ли вход и кто вносит записи DNS */
+  mode: { open: boolean; dns: "cloudflare" | "registrar" | null }
   clientId: boolean
   clientSecret: boolean
   redirectUri: string | null
@@ -118,8 +119,8 @@ export function GoogleSetup({ words }: { words: GoogleSetupWords }) {
     )
   }
 
-  // ЗАМОК: узел ещё не на своём домене.
-  if (!state.onOwnDomain) {
+  // ЗАМОК: решает индикатор (276-4) — домен измерен и отвечает этим узлом.
+  if (!state.mode.open) {
     return (
       <div className="my-6 rounded-lg border border-border border-dashed bg-card p-4" data-google-locked>
         <H3 className="mb-2 flex items-center gap-2" variant="ui">

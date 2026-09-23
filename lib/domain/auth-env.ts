@@ -89,20 +89,6 @@ export type AuthGoogleState = {
   /** служба вообще установлена на этом узле */
   installed: boolean
   /**
-   * Узел стоит на СОБСТВЕННОМ домене, и вход выведен наружу.
-   *
-   * 🔒 ЭТО И ЕСТЬ «ВТОРАЯ СТУПЕНЬ» ПО СЛОВУ ВЛАДЕЛЬЦА (2026-09-21): пока её нет,
-   * экран включения Google закрыт плашкой. Довод не формальный: Google возвращает
-   * человека по публичному адресу, и на узле без домена возвращать некуда —
-   * настройка завершилась бы кнопкой, которая не работает.
-   *
-   * 🛑 ЭТО ПРОДУКТОВОЕ РЕШЕНИЕ, А НЕ ФИЗИЧЕСКИЙ ЗАПРЕТ, и так оно и называется:
-   * Google допускает `http://localhost` как адрес возврата для разработки. Мы
-   * этот путь не открываем — вход, работающий только на одной машине, выглядит
-   * настроенным и не пускает никого снаружи.
-   */
-  onOwnDomain: boolean
-  /**
    * Адрес источника для поля «Authorized JavaScript origins».
    * Для нашего потока он НЕ обязателен (Google: серверные фреймворки указывают
    * redirect URI), но поле в форме есть, и человек в него упирается. Поэтому
@@ -126,7 +112,6 @@ export type AuthGoogleState = {
 export function authGoogleState(): AuthGoogleState {
   const empty = {
     installed: false,
-    onOwnDomain: false,
     clientId: false,
     clientSecret: false,
     redirectUri: null,
@@ -136,12 +121,8 @@ export function authGoogleState(): AuthGoogleState {
   if (files.length === 0) return empty
   const f = files[0]
   const base = envValueOf(f, "NEXTAUTH_URL").replace(/\/+$/, "")
-  // Свой домен спрашивается у той же формулы, что знает о нём весь узел, — второй
-  // копии этого знания не заводится.
-  const onOwnDomain = publicAuth(ROOT) !== null
   return {
     installed: true,
-    onOwnDomain,
     clientId: envValueOf(f, GOOGLE_ID) !== "",
     clientSecret: envValueOf(f, GOOGLE_SECRET) !== "",
     // Путь колбэка задаёт NextAuth, а не мы: `/api/auth/callback/<провайдер>`.
@@ -181,8 +162,6 @@ const RESEND_FROM = "AUTH_RESEND_FROM"
 
 export type AuthResendState = {
   installed: boolean
-  /** узел на своём домене — тот же признак, что у Google */
-  onOwnDomain: boolean
   /** зона своего домена — чтобы подсказать, какой домен добавлять в Resend */
   zone: string | null
   /** ключ задан — САМО ЗНАЧЕНИЕ НАРУЖУ НЕ ВЫХОДИТ НИКОГДА */
@@ -196,13 +175,12 @@ export function authResendState(): AuthResendState {
   const files = authFiles()
   const pub = publicAuth(ROOT)
   if (files.length === 0) {
-    return { installed: false, onOwnDomain: pub !== null, zone: pub?.zone ?? null, apiKey: false, from: null }
+    return { installed: false, zone: pub?.zone ?? null, apiKey: false, from: null }
   }
   const f = files[0]
   const from = envValueOf(f, RESEND_FROM)
   return {
     installed: true,
-    onOwnDomain: pub !== null,
     zone: pub?.zone ?? null,
     apiKey: envValueOf(f, RESEND_KEY) !== "",
     from: from || null,

@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { authResendState, setAuthResendKeys } from "@/lib/domain/auth-env"
 import { requireRoles } from "@/lib/auth/require-roles"
+import { authMode } from "@/lib/node-state/auth-mode"
+import { measureNodeState } from "@/lib/node-state/measure"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
 
 // ВКЛЮЧЕНИЕ ВХОДА ПИСЬМОМ (RESEND) У СЛУЖБЫ ВХОДА (266-1).
@@ -30,7 +32,8 @@ async function guard(req: NextRequest): Promise<NextResponse | null> {
 export async function GET(req: NextRequest) {
   const denied = await guard(req)
   if (denied) return denied
-  return NextResponse.json({ ok: true, ...authResendState() })
+  // Замок спрашивается у индикатора (276-4): экран не решает сам, свой ли это домен.
+  return NextResponse.json({ ok: true, ...authResendState(), mode: authMode(await measureNodeState()) })
 }
 
 export async function POST(req: NextRequest) {

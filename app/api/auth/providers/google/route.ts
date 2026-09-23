@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { authGoogleState, setAuthGoogleKeys } from "@/lib/domain/auth-env"
 import { requireRoles } from "@/lib/auth/require-roles"
+import { authMode } from "@/lib/node-state/auth-mode"
+import { measureNodeState } from "@/lib/node-state/measure"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
 
 // ВКЛЮЧЕНИЕ ПРОВАЙДЕРА GOOGLE У СЛУЖБЫ ВХОДА (265-1).
@@ -43,7 +45,8 @@ async function guard(req: NextRequest): Promise<NextResponse | null> {
 export async function GET(req: NextRequest) {
   const denied = await guard(req)
   if (denied) return denied
-  return NextResponse.json({ ok: true, ...authGoogleState() })
+  // Замок спрашивается у индикатора (276-4): экран не решает сам, свой ли это домен.
+  return NextResponse.json({ ok: true, ...authGoogleState(), mode: authMode(await measureNodeState()) })
 }
 
 export async function POST(req: NextRequest) {

@@ -17,6 +17,8 @@
 export type DnsWords = {
   cfTitle: string
   cfLocked: string
+  /** место узла не объявлено — оба способа закрыты */
+  placeUnknown: string
   cfAutoTitle: string
   cfAutoText: string
   cfManualTitle: string
@@ -143,7 +145,8 @@ const DICT: Record<string, ResendSetupWords> = {
     openDomains: "Open Domains in Resend",
     dns: {
       cfTitle: "Your domain lives in Cloudflare — the node adds the records",
-      cfLocked: "Closed: this node holds no Cloudflare key for your domain, so it cannot write there. Use the section below.",
+      cfLocked: "Closed: this node is marked as a dedicated server, so you add the records at your registrar. Use the section below.",
+      placeUnknown: "Both sections are closed: say on the architect home page where this node runs — your computer or a server.",
       cfAutoTitle: "The quick way — «Auto configure» in Resend",
       cfAutoText: "On the «DNS Records» step Resend shows «Auto configure» with the Cloudflare logo; it adds everything itself. It works only if in this same browser you are signed in to the Cloudflare account that holds the domain. Not signed in, or prefer to see each record — use the form.",
       cfManualTitle: "By hand — through this form",
@@ -164,7 +167,7 @@ const DICT: Record<string, ResendSetupWords> = {
       errNoZone: "This node has no Cloudflare zone connected.",
       errZoneNotVisible: "The Cloudflare key does not see your zone any more.",
       regTitle: "Your domain lives with a registrar — you add the records",
-      regLocked: "Closed: this node's domain is connected through Cloudflare, so the section above adds the records for you.",
+      regLocked: "Closed: this node is marked as your own computer, so the section above adds the records through Cloudflare for you.",
       regText: "Open the panel of the company you bought the domain from, or wherever its DNS records live, and find the DNS section.",
       regPoints: [
         "Add each row of Resend's table: type, name and content, exactly as shown.",
@@ -250,7 +253,8 @@ const DICT: Record<string, ResendSetupWords> = {
     openDomains: "Открыть Domains в Resend",
     dns: {
       cfTitle: "Домен живёт в Cloudflare — записи добавляет узел",
-      cfLocked: "Закрыто: у этого узла нет ключа Cloudflare для вашего домена, писать туда он не может. Воспользуйтесь разделом ниже.",
+      cfLocked: "Закрыто: этот узел отмечен как выделенный сервер, поэтому записи вносите вы у регистратора. Воспользуйтесь разделом ниже.",
+      placeUnknown: "Оба раздела закрыты: укажите на главной странице архитектора, где работает этот узел — на вашем компьютере или на сервере.",
       cfAutoTitle: "Быстрый путь — «Auto configure» в Resend",
       cfAutoText: "На шаге «DNS Records» Resend показывает кнопку «Auto configure» со значком Cloudflare — он добавит всё сам. Это работает, только если в этом же браузере вы вошли в тот аккаунт Cloudflare, где лежит домен. Не вошли или хотите видеть каждую запись — заполните форму.",
       cfManualTitle: "Вручную — через эту форму",
@@ -271,7 +275,7 @@ const DICT: Record<string, ResendSetupWords> = {
       errNoZone: "К этому узлу не подключена зона Cloudflare.",
       errZoneNotVisible: "Ключ Cloudflare больше не видит вашу зону.",
       regTitle: "Домен у регистратора — записи вносите вы",
-      regLocked: "Закрыто: домен этого узла подключён через Cloudflare, и записи за вас добавляет раздел выше.",
+      regLocked: "Закрыто: этот узел отмечен как ваш компьютер, поэтому записи за вас добавляет через Cloudflare раздел выше.",
       regText: "Откройте панель компании, у которой куплен домен, или ту, где живут его записи DNS, и найдите раздел DNS.",
       regPoints: [
         "Добавьте каждую строку таблицы Resend: тип, имя и значение — точно как показано.",
