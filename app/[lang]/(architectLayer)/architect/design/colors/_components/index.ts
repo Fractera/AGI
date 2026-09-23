@@ -13,6 +13,8 @@ import type { Block } from '@/lib/content/blocks/types'
 //
 // 🛑 СЛОВА ОТСЮДА НЕ ПИШУТСЯ: любая строка, которую увидит человек, приходит
 // параметром из `_data` — иначе она не переводится и её не видит сторож словарей.
-export function content(_lang: string): Block[] {
-  return []
+// 280-6: редактор цветов САЙТА (элемент root) — островок из fractera-next-starter; пишет через дверь
+// настроек сайта, после записи ядро пересобирает сайт.
+export function content(lang: string): Block[] {
+  return [{ kind: 'designColors', lang }]
 }

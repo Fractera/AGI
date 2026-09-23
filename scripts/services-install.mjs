@@ -351,7 +351,14 @@ const stoppedByInstaller = new Set()
 let failed = 0
 const summary = []
 
+// `--only <id>` — одна служба (280-6: ядро поправило настройки сайта и пересобирает только его).
+// `--rebuild` — пересобрать, даже если версия и окружение те же: изменились файлы настроек
+// внутри элемента, а их отпечаток установщик не считает.
+const ONLY = (() => { const i = process.argv.indexOf('--only'); return i > 0 ? process.argv[i + 1] : null })()
+const REBUILD = process.argv.includes('--rebuild')
+
 for (const entry of registry.services) {
+  if (ONLY && entry.id !== ONLY) continue
   const dir = entryDir(entry)
   say(`\n── ${entry.id} — ${entry.version}`)
 
@@ -550,7 +557,7 @@ for (const entry of registry.services) {
     // собранным и ответил «нечем запускать».
     const server = stamp.start?.args?.[0]
     const built = server ? existsSync(join(stamp.start.cwd || dir, server)) : existsSync(join(dir, '.next'))
-    if (built && !FORCE && stamp.version === entry.version && stamp.env === envFingerprint) {
+    if (built && !FORCE && !REBUILD && stamp.version === entry.version && stamp.env === envFingerprint) {
       say('  сборка на месте (версия и окружение те же) — пропущена')
     } else {
       // 🔒 ЖИВУЮ СЛУЖБУ ОСТАНАВЛИВАЕМ И ДО ПЕРЕСБОРКИ (265-6), тем же приёмом, что до замены

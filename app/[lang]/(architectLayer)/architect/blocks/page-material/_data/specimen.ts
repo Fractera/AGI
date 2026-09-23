@@ -1236,6 +1236,12 @@ export const SPECIMEN: SpecimenSection[] = [
     ],
   },
   {
+    kind: 'designColors',
+    when: 'The colour editor of the SITE element, carried over from fractera-next-starter. The palette belongs to the site; the core reads and patches it through the site settings door and rebuilds the site. Asked in the browser: the page is prerendered and the colours change without rebuilding the core.',
+    whenRu: 'Редактор цветов элемента САЙТ, перенесённый из fractera-next-starter. Палитра принадлежит сайту; ядро читает и правит её через дверь настроек сайта и пересобирает сайт. Спрашивается в браузере: страница предрендерена, а цвета меняются без пересборки ядра.',
+    blocks: [{ kind: 'designColors', lang: 'en' }],
+  },
+  {
     kind: 'authGoogleSetup',
     when: "A three-step screen for switching on a sign-in provider whose first steps happen in somebody else console. Step one hands the person the value they must carry there; step two takes back what that console gave them; step three states plainly whether the thing is on. Take it wherever setup depends on a third party: the shape is the same for Resend, for a payment provider, for any key a stranger issues. Secrets go in and never come back out — the door answers set or not set, and the fields clear in every outcome.",
     whenRu: "Экран из трёх ступеней для включения провайдера входа, первые шаги которого человек делает в чужой панели. Первая ступень выдаёт ему значение, которое надо туда отнести; вторая принимает обратно то, что та панель выдала; третья прямо говорит, включено или нет. Берут везде, где настройка зависит от третьей стороны: у Resend, у платёжного провайдера, у любого ключа, который выдаёт кто-то чужой. Секреты уходят внутрь и наружу не возвращаются — дверь отвечает «установлен / не установлен», а поля очищаются в любом исходе.",

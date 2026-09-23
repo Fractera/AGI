@@ -1075,6 +1075,20 @@
     {
       "id": null,
       "codes": [
+        "designColors01"
+      ],
+      "kind": "designColors",
+      "type": "page-material",
+      "shape": "text",
+      "fields": "lang: string",
+      "title": null,
+      "description": null,
+      "hasCard": false,
+      "usedOn": []
+    },
+    {
+      "id": null,
+      "codes": [
         "authGoogleSetup01"
       ],
       "kind": "authGoogleSetup",

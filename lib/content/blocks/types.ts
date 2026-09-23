@@ -123,6 +123,7 @@ export type LeafBlock =
   // 🪦 `agentTerminal`, `claudeSubscription`, `telegramChannel` (267–269) УШЛИ ИЗ КАТАЛОГА В 271: это комплект
   // агента службы, он живёт в папке маршрута службы (`architect/<служба>/_agent-kit/`) и встаёт на страницу
   // полем `widget` вида `workspace`. Мастер — `architect/kits/_agent-kit/`.
+  | { kind: 'designColors'; lang: string }
   | { kind: 'servicePort'; serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords }
   | { kind: 'note'; text: string }
   // Founder pull-quote in the homepage testimonial design (gradient-violet text +
