@@ -45,11 +45,14 @@ export function AccordionSection({
   panels,
   defaultOpen,
   capped = false,
+  cards = false,
   dialogUi,
 }: {
   panels: AccordionPanel[]
   /** Идентификатор полосы, раскрытой при загрузке. Не задан — все свёрнуты. */
   defaultOpen?: string
+  /** Каждая полоса — отдельная карточка с отступом (279). */
+  cards?: boolean
   /** Не выше 1000 px, дальше прокрутка. */
   capped?: boolean
   /** Слова общего окна — резолвятся на сервере; нужны, только если у полос есть подробности. */
@@ -63,10 +66,17 @@ export function AccordionSection({
       type="single"
       collapsible
       defaultValue={defaultOpen}
-      className={cn('divide-y divide-border rounded-lg border border-border', capped && 'max-h-[1000px] overflow-y-auto')}
+      className={cn(
+        cards ? 'flex flex-col gap-3' : 'divide-y divide-border rounded-lg border border-border',
+        capped && 'max-h-[1000px] overflow-y-auto',
+      )}
     >
       {panels.map(panel => (
-        <AccordionItem key={panel.id} value={panel.id} className="border-b-0 px-4">
+        <AccordionItem
+          key={panel.id}
+          value={panel.id}
+          className={cn('px-4', cards ? 'rounded-xl border border-border bg-card' : 'border-b-0')}
+        >
           <div className="flex items-center gap-2">
             <AccordionTrigger className="flex-1 py-4 text-left text-base font-medium hover:no-underline">
               {panel.summary}

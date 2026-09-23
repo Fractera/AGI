@@ -57,6 +57,7 @@ export const accordion: SectionRenderer<'accordion'> = (b, ctx) => {
         panels={panels}
         defaultOpen={openIndex >= 0 ? `${ctx.key}-${openIndex}` : undefined}
         capped={b.capped === true}
+        cards={b.cards === true}
         dialogUi={hasDetails ? appDialogUi(ctx.lang) : undefined}
       />
     </section>

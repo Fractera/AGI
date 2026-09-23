@@ -67,5 +67,6 @@ function kitItem(w: KitWords): Block {
 
 export function content(lang: string): Block[] {
   const items = kitCards().map((k) => kitItem(k.words[lang] ?? k.words.en))
-  return items.length ? [{ kind: 'accordion', capped: true, children: items }] : []
+  // 🔒 `cards` — одно решение, одна карточка (279, слово владельца 2026-09-23).
+  return items.length ? [{ kind: 'accordion', capped: true, cards: true, children: items }] : []
 }

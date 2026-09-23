@@ -27,7 +27,7 @@
 ## Устройство
 
 ```
-{ kind: 'accordion', title?: string, lead?: string, children: Block[] }
+{ kind: 'accordion', title?: string, lead?: string, capped?: boolean, cards?: boolean, children: Block[] }
 { kind: 'accordionItem', summary: string, open?: boolean, children: Block[] }
 ```
 
