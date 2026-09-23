@@ -55,6 +55,24 @@ const say = (m) => console.log(m)
 const warn = []
 const missingForeign = []
 
+// ── Окружение для чужих программ: без меток того, кто нас позвал (280-6).
+//
+// 🛑 ✗ ИЗМЕРЕНО 2026-09-24: установщик, запущенный дверью ядра (сервером Next), передал сборке и pm2
+// окружение ядра целиком — `__NEXT_PROCESSED_ENV: true`, `AGI_COMMIT`, секреты узла. Next сайта,
+// увидев эту метку, считает окружение уже прочитанным и НЕ читает свой `.env.local`: дверь настроек
+// писала мимо `DESIGN_CONFIG_PATH` внутрь сборки. Тот же класс, что метки сессии Claude Code (267).
+// Поэтому каждый элемент получает окружение машины, а не узла: своё он прочитает из своего файла.
+function childEnv() {
+  const own = new Set(typeof nodeEnv === 'undefined' ? [] : [...nodeEnv.keys()])
+  const out = {}
+  for (const [k, v] of Object.entries(process.env)) {
+    if (k.startsWith('__NEXT') || k.startsWith('NEXT_') || k.startsWith('AGI_') || own.has(k)) continue
+    if (k === 'PORT' || k === 'HOSTNAME' || k === 'NODE_ENV') continue
+    out[k] = v
+  }
+  return out
+}
+
 // ── Запуск чужой программы. Один вход, чтобы правила Windows не разъехались.
 function run(cmd, args, cwd, { quiet = false } = {}) {
   const r = spawnSync(cmd, args, {
@@ -63,6 +81,7 @@ function run(cmd, args, cwd, { quiet = false } = {}) {
     shell: IS_WIN,
     windowsHide: true,
     stdio: quiet ? 'pipe' : 'pipe',
+    env: childEnv(),
   })
   return { rc: r.status ?? 1, out: (r.stdout ?? '') + (r.stderr ?? '') }
 }
