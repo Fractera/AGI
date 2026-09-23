@@ -3,7 +3,7 @@ import { collectionMetadata } from '../../../_lib/collection-metadata'
 import { data } from './_data'
 import { content, widget } from './_components'
 
-// РАЗДЕЛ «Claude Code subscription» — `/{lang}/architect/__SERVICE__/claude-code`.
+// РАЗДЕЛ «Claude Code subscription» — `/{lang}/architect/__SERVICE__/__SLUG__`.
 //
 // 🔒 ТОНКИЙ ВХОД: страница называет свою папку и папку-родителя, отдаёт свои слова
 // и свою работающую часть. Меню, раскладка и обработка пустоты — в оболочке.
