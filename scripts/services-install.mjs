@@ -504,6 +504,15 @@ for (const entry of registry.services) {
     }
   }
 
+  // 🔒 ЧТО ВПИСАЛ ЧЕЛОВЕК ИЛИ ЭКРАН УЗЛА, ПЕРЕЖИВАЕТ ПЕРЕУСТАНОВКУ, ДАЖЕ ЕСЛИ БЛОК ЭТОГО НЕ ОБЪЯВИЛ
+  // (265-6). Ключи Google и Resend экраны пишут сюда же (`lib/domain/auth-env.ts`), а в `.env.example`
+  // службы входа их нет. ✗ Оплачено: переустановка 2026-09-22 18:09Z переписала файл по списку
+  // объявленных и молча стёрла ключи Google — вход через Google выключился, экран показал «не задано».
+  const written = new Set(lines.map((l) => l.split('=')[0]))
+  for (const [name, value] of readEnvFile(join(dir, envName))) {
+    if (!written.has(name) && value.trim() !== '') lines.push(`${name}=${value}`)
+  }
+
   const envText = lines.join('\n') + '\n'
   writeFileSync(join(dir, envName), envText, 'utf8')
   say(`  ${envName} написан (${vars.length} переменных)`)
@@ -516,7 +525,11 @@ for (const entry of registry.services) {
     .slice(0, 16)
 
   if (props.runtime?.build) {
-    const built = existsSync(join(dir, '.next'))
+    // 🛑 «СОБРАНО» — ЭТО ФАЙЛ СЕРВЕРА, А НЕ ПАПКА `.next` (265-6). ✗ Оплачено: сборка, прерванная
+    // на Windows `EBUSY`, стёрла standalone-сервер и оставила `.next`; следующий прогон счёл блок
+    // собранным и ответил «нечем запускать».
+    const server = stamp.start?.args?.[0]
+    const built = server ? existsSync(join(stamp.start.cwd || dir, server)) : existsSync(join(dir, '.next'))
     if (built && !FORCE && stamp.version === entry.version && stamp.env === envFingerprint) {
       say('  сборка на месте (версия и окружение те же) — пропущена')
     } else {
