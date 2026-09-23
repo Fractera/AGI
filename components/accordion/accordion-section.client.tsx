@@ -67,7 +67,8 @@ export function AccordionSection({
       collapsible
       defaultValue={defaultOpen}
       className={cn(
-        cards ? 'flex flex-col gap-3' : 'divide-y divide-border rounded-lg border border-border',
+        // p-0.5: рамка последней карточки и обводка фокуса не срезаются контейнером с прокруткой.
+        cards ? 'flex flex-col gap-3 p-0.5' : 'divide-y divide-border rounded-lg border border-border',
         capped && 'max-h-[1000px] overflow-y-auto',
       )}
     >
