@@ -249,6 +249,10 @@ function derivedValue(name, ctx) {
     // 280-2a: сайт узнаёт, где живут страницы архитектора (ядро) и дверь к данным. Имена
     // не подходят под правило соседей ниже: «architect» — не элемент, а ядро; REMOTE_DATA_URL —
     // имя, которое код приложения читает как признак «данные через дверь, а не своим файлом».
+    // 🛑 ПУТЬ К НАСТРОЙКАМ ЭЛЕМЕНТА — АБСОЛЮТНЫЙ (280-6). ✗ Измерено: standalone-сервер работает из
+    // .next/standalone, и дверь настроек писала DESIGN-CONFIG ВНУТРЬ сборки — следующая сборка
+    // стирала правку, а настоящий файл сайта оставался прежним. Тот же класс, что база входа (260-1).
+    case 'DESIGN_CONFIG_PATH': return join(ctx.dir, 'DESIGN-CONFIG', 'design-config.json')
     case 'ARCHITECT_URL': return nodeUrl
     case 'NEXT_PUBLIC_AUTH_URL': {
       const auth = registry.services.find((s) => s.id === 'auth')
@@ -486,7 +490,7 @@ for (const entry of registry.services) {
     continue
   }
 
-  const ctx = { port, id: entry.id, props, nodePort }
+  const ctx = { port, id: entry.id, props, nodePort, dir }
   const lines = [
     '# ПОРОЖДЁННЫЙ ФАЙЛ. Его пишет `npm run services:install` узла AGI.',
     '#',
