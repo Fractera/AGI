@@ -1,5 +1,11 @@
 {
   "enableAllProjectMcpServers": true,
+  "permissions": {
+    "deny": [
+      "Read(./AGI-ITEMS/**)",
+      "Edit(./AGI-ITEMS/**)"
+    ]
+  },
   "hooks": {
     "PostToolUse": [
       {
