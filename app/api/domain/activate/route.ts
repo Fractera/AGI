@@ -120,7 +120,15 @@ export async function POST(req: NextRequest) {
   // `auth.site.<зона>` — нет. Службы входа нет — правила нет, и это честно.
   const authService = serviceUrl("auth")
   const authHostname = authService ? `auth.${zone.name}` : null
-  const rules: IngressRule[] = [{ hostname, service }]
+
+  // 🔒 КОРЕНЬ ДОМЕНА — САЙТУ, ЯДРО — НА `architect.<зона>` (280-3, решение владельца 2026-09-23,
+  // вариант «а»). Сайт — элемент `root`, сменный и независимый: упадёт ядро — корень домена
+  // продолжит отвечать. Элемента `root` нет — корень, как раньше, ведёт на ядро, и поддомена
+  // ядра не заводится: делить нечего.
+  const siteService = serviceUrl("root")
+  const architectHostname = siteService ? `architect.${zone.name}` : null
+  const rules: IngressRule[] = [{ hostname, service: siteService ?? service }]
+  if (architectHostname) rules.push({ hostname: architectHostname, service })
   if (authHostname && authService) rules.push({ hostname: authHostname, service: authService })
 
   const ingress = await setIngress(key, account.result, tunnel.result, rules)
@@ -128,6 +136,11 @@ export async function POST(req: NextRequest) {
 
   const record = await upsertTunnelRecord(key, zone.id, hostname, tunnel.result)
   if (!record.ok) return fail(record.reason)
+
+  if (architectHostname) {
+    const architectRecord = await upsertTunnelRecord(key, zone.id, architectHostname, tunnel.result)
+    if (!architectRecord.ok) return fail(`architect-${architectRecord.reason}`)
+  }
 
   if (authHostname) {
     const authRecord = await upsertTunnelRecord(key, zone.id, authHostname, tunnel.result)
@@ -155,7 +168,8 @@ export async function POST(req: NextRequest) {
     if (existsSync(appConfigFile)) {
       try { cfg = JSON.parse(readFileSync(appConfigFile, "utf8")) as Record<string, unknown> } catch { cfg = {} }
     }
-    cfg.url = `https://${hostname}`
+    // 280-3: адрес ЯДРА — его поддомен, когда корень отдан сайту; сайт держит свой адрес сам.
+    cfg.url = `https://${architectHostname ?? hostname}`
     mkdirSync(join(ROOT, "APP-CONFIG"), { recursive: true })
     writeFileSync(appConfigFile, `${JSON.stringify(cfg, null, 2)}
 `, "utf8")
@@ -175,6 +189,7 @@ export async function POST(req: NextRequest) {
     hostname,
     service,
     authHostname,
+    architectHostname,
     authRouted: !!authHostname,
     siteUrlWritten,
     activatedAt: new Date().toISOString(),
@@ -186,6 +201,6 @@ export async function POST(req: NextRequest) {
   const resident = startDomainResident()
 
   return NextResponse.json({
-    ok: true, hostname, zone: zone.name, tunnel: name, siteUrlWritten, authHostname, auth, resident,
+    ok: true, hostname, zone: zone.name, tunnel: name, siteUrlWritten, authHostname, architectHostname, auth, resident,
   })
 }

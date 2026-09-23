@@ -131,7 +131,7 @@ function measureIsolation(): NodeState['isolation'] {
 
 export async function measureNodeState(): Promise<NodeState> {
   const checkedAt = new Date().toISOString()
-  const domain = readJson<{ hostname?: string; zone?: string }>('logs', 'domain.json')
+  const domain = readJson<{ hostname?: string; zone?: string; architectHostname?: string }>('logs', 'domain.json')
   const tunnel = readJson<{ url?: string; dead?: boolean; reason?: string }>('logs', 'tunnel.json')
 
   const node = {
@@ -145,7 +145,9 @@ export async function measureNodeState(): Promise<NodeState> {
   const base = { place: readPlace(), isolation: measureIsolation(), node }
 
   // 1. Свой домен — первый кандидат: он старше и постояннее туннеля.
-  const host = domain?.hostname
+  // 280-3: корень домена отдан сайту (элементу root) — ядро живёт на своём поддомене, и спрашивать
+  // «кто ты» надо там: корень ответит процессом сайта, и индикатор честно сказал бы «не наш».
+  const host = domain?.architectHostname || domain?.hostname
   if (host) {
     const { health, reachable, detail } = await askHealth(`https://${host}`)
     if (health && isUs(health)) {

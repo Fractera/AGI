@@ -55,7 +55,9 @@ export function applyDomainToAuth(): AuthEnvResult {
   if (files.length === 0) return { files: 0, restarted: false, reason: "auth-not-installed" }
   const overrides = authEnvOverrides(ROOT, currentOrigins(files[0]).filter((o) => o.startsWith("http://127.0.0.1")))
   if (!overrides) return { files: 0, restarted: false, reason: "domain-not-routed" }
-  for (const f of files) patch(f, overrides)
+  // Адреса для элемента root (280-3) службе входа не нужны — ей только её собственные.
+  const { NEXT_PUBLIC_AUTH_URL: _site, ARCHITECT_URL: _core, ...own } = overrides
+  for (const f of files) patch(f, own)
   return { files: files.length, restarted: restartService("fractera-svc-auth") }
 }
 
