@@ -67,7 +67,7 @@ export function AccordionSection({
       collapsible
       defaultValue={defaultOpen}
       className={cn(
-        // p-0.5: рамка последней карточки и обводка фокуса не срезаются контейнером с прокруткой.
+        // p-0.5: обводка фокуса не срезается контейнером. `last:border-b` у карточки: у AccordionItem shadcn стоит `last:border-b-0`, и без него у последней карточки нет нижней рамки.
         cards ? 'flex flex-col gap-3 p-0.5' : 'divide-y divide-border rounded-lg border border-border',
         capped && 'max-h-[1000px] overflow-y-auto',
       )}
@@ -76,7 +76,7 @@ export function AccordionSection({
         <AccordionItem
           key={panel.id}
           value={panel.id}
-          className={cn('px-4', cards ? 'rounded-xl border border-border bg-card' : 'border-b-0')}
+          className={cn('px-4', cards ? 'rounded-xl border border-border bg-card last:border-b' : 'border-b-0')}
         >
           <div className="flex items-center gap-2">
             <AccordionTrigger className="flex-1 py-4 text-left text-base font-medium hover:no-underline">
