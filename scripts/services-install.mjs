@@ -533,6 +533,17 @@ for (const entry of registry.services) {
     if (built && !FORCE && stamp.version === entry.version && stamp.env === envFingerprint) {
       say('  сборка на месте (версия и окружение те же) — пропущена')
     } else {
+      // 🔒 ЖИВУЮ СЛУЖБУ ОСТАНАВЛИВАЕМ И ДО ПЕРЕСБОРКИ (265-6), тем же приёмом, что до замены
+      // зависимостей. ✗ Измерено 2026-09-23 дважды: сборка на Windows падала `EBUSY rmdir` на
+      // `.next/standalone` — работающий сервер держит свои файлы, — и уже СТЕРЕВ сервер, не
+      // записывала новый. Служба жила из памяти до первого перезапуска, после него — вход мёртв.
+      for (const suffix of ['-watch', '']) {
+        const name = `fractera-svc-${entry.id}${suffix}`
+        if (runningAtStart.includes(name) && !stoppedByInstaller.has(name) &&
+            run(pm2cmd, ['stop', name], ROOT, { quiet: true }).rc === 0) {
+          stoppedByInstaller.add(name)
+        }
+      }
       const b = run('npm', ['run', 'build'], dir)
       if (b.rc !== 0) {
         say('  ОШИБКА сборки блока:')
