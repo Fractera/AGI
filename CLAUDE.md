@@ -368,8 +368,8 @@ with a status message: no subscription / terminal inactive / active, with links.
 
 **EVERYTHING OF THE KIT LIVES INSIDE THE ROUTE (271, owner: «delete the route — all its guts go with it»).**
 The master is `architect/kits/_agent-kit/` (`core/` + page and door templates + `kit.json` + `README.md` +
-`install.mjs`) — read that README before touching the kit. A service owns a **full copy**:
-`architect/<service>/_agent-kit/` (+ `VERSION`), its three pages, and its doors
+`install.mjs`) — read that README before touching the kit. A group owns a **full copy**:
+`architect/<group>/agent-kit.json` (the install parameters), `architect/<group>/_agent-kit/`, its three pages, and its doors
 `architect/<service>/agent-api/{session,ticket,claude-auth,channel}`. The page shows its island through the
 new optional `widget` field of the `workspace` block — the three catalogue kinds of 267–269 are gone from the
 catalogue (63 kinds now). The «Ready-made kits» tab is built from the `kits/_*/kit.json` cards; no second list.
@@ -381,9 +381,23 @@ starts one bot poller per service; `server.js` calls it in one line) and `lib/ag
 hand-edited copy). Measured in a clean clone: deleting `architect/data/` **and** the master leaves a green
 build, no trace of the service in the code, and the mount finding only `auth`.
 
-**Commands:** `npm run agent-kit:add -- <service>` · `--force` · `npm run agent-kit:update -- <service>`,
-then `npm run serve:rebuild`. The service must be in `AGI-ITEMS-CONFIG/agi-items.json`, have `AGI-ITEMS/<kind>/<id>` and its
-own page group. Embedded today: `auth`, `data`.
+**THE NODE HAS ITS OWN AGENT TOO, AND IT IS THE SAME KIT (275, owner 2026-09-23).** The Build tab
+(`architect/build/{subscription,terminal,telegram}`) carries a copy installed with `--node`: its agent is
+born in the **node root**, because its subject is the node's own code and the node's `CLAUDE.md` lives
+there. Two install parameters make that possible, and both are data, never a branch on a name:
+`workspace` (`agi-item` | `node`) and `pages` (template → slug and menu order) in `agent-kit.json`.
+🛑 **A node agent sees the whole root, services included — unless the node says otherwise.** Therefore
+`.claude/settings.json` of the node denies `Read(./AGI-ITEMS/**)` and `Edit(./AGI-ITEMS/**)`; measured
+live, the agent answers «File is in a directory that is denied by your permission settings». Only
+`Read(path)` and `Edit(path)` rules are matched by file permission checks — a `Write(...)` or
+`MultiEdit(...)` rule is refused loudly at every start. 🛑 This is a rule of Claude Code, **not an OS
+sandbox**: a shell command still runs as the machine's user. Real isolation would need a separate OS
+account or a container, and it is not built.
+
+**Commands:** `npm run agent-kit:add -- <group>` · `--node` · `--page <tpl>=<name>[:<order>]` · `--force` ·
+`npm run agent-kit:update -- <group>` (repeats the previous install from the manifest), then
+`npm run serve:rebuild`. A service must be in `AGI-ITEMS-CONFIG/agi-items.json`, have `AGI-ITEMS/<kind>/<id>` and its
+own page group; with `--node` the registry is not consulted. Embedded today: `auth`, `data`, `build` (the node).
 🛑 The first start in a new service folder asks Claude Code's trust question — answer «Yes» in its terminal.
 🛑 The subscription is one per machine: its page is the same for every service.
 🛑 Words of the kit live in `core/words/`, never a folder called `i18n/`: `check:lang-delivery` reads that

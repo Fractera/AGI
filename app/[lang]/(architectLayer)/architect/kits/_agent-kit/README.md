@@ -31,9 +31,13 @@ architect/kits/_agent-kit/           MASTER — never edit a service copy by han
   kit.json   the card: the «Ready-made kits» tab is built from these cards
   install.mjs · README.md
 
-architect/<service>/                 A COPY, owned by the service
-  _agent-kit/                        copy of core/ + VERSION (fingerprint of the master)
+architect/<group>/                   A COPY, owned by the group
+  agent-kit.json                     install parameters: service id, workspace (agi-item | node),
+                                     master fingerprint, page names and order. Written by the installer,
+                                     read by workspace.cjs and by check.mjs — there is no second list
+  _agent-kit/                        copy of core/
   claude-code/ terminal/ telegram/   the three pages; each passes its island as `widget`
+                                     (named otherwise when installed with --page)
   agent-api/{session,ticket,claude-auth,channel}/route.ts   doors: /{lang}/architect/<service>/agent-api/*
 
 lib/agent-kit/mount.cjs              node level: finds architect/*/_agent-kit/server/entry.cjs by walking
@@ -56,6 +60,10 @@ process, while there are as many kit copies as services. The mount knows no serv
 1. The service is in `AGI-ITEMS-CONFIG/agi-items.json` (`"id": "<service>"`, `"kind": "core"|"user"`) and
    the folder `AGI-ITEMS/<kind>/<service>/` exists. The agent is born in that folder — **the folder is the agent's identity** (`CLAUDE.md`,
    settings and tools are read from there).
+   **The node's own agent skips this check entirely:** install it with `--node`, and the agent is born in
+   the node root, because its subject is the node's own code. What such an agent may see inside that root
+   is the node's business, not the kit's: `.claude/settings.json` of the node denies `AGI-ITEMS/**` so the
+   node agent does not reach into the services. That is a rule of Claude Code, not an OS sandbox.
 2. The service has its own page group `architect/<service>/` (`_data/index.ts`). The installer puts the
    kit INTO it and refuses to invent a group.
 3. On the machine: Claude Code (`claude` in PATH or `~/.local/bin`), Bun (`~/.bun/bin`), and the plugin
@@ -70,18 +78,31 @@ process, while there are as many kit copies as services. The mount knows no serv
 ## Install, reinstall, update
 
 ```
-npm run agent-kit:add -- <service>            install
-npm run agent-kit:add -- <service> --force    reinstall over an existing copy
-npm run agent-kit:update -- <service>         copy the current master into an installed service
-npm run serve:rebuild                         after any of them
+npm run agent-kit:add -- <group>                          install into a service
+npm run agent-kit:add -- <group> --node                   install for the node itself (agent in the node root)
+npm run agent-kit:add -- <group> --page <tpl>=<name>[:<order>]   name a page your own way (repeatable)
+npm run agent-kit:add -- <group> --force                  reinstall over an existing copy
+npm run agent-kit:update -- <group>                       copy the current master into an installed group
+npm run serve:rebuild                                     after any of them
 ```
 
-The installer removes the previous copy whole first — a file deleted from the master must not survive
-an update. It refuses a service that is not registered, has no folder or no page group.
+`--page` takes a template name (`claude-code`, `terminal`, `telegram`) and gives it the slug and the menu
+order it will have in this group — this is how the node's Build tab carries `subscription`, `terminal`,
+`telegram`. The template name never changes: it also selects the island in `core/widgets.tsx`.
+
+`agent-kit:update` repeats the **previous** install, reading `agent-kit.json`; it does not fall back to
+the defaults. Otherwise an update of the master would silently rename the node's pages back and break
+addresses that were already handed out.
+
+The installer removes the previous copy whole first — a file deleted from the master, and a page renamed
+by this install, must not survive an update. It refuses a service that is not registered, has no folder
+or no page group; with `--node` the registry is not consulted at all.
 
 `npm run check:agent-kits` has three verdicts: **ok** · **debt** (the copy lags behind the master —
 printed every run, does not fail the build) · **error** (a torn copy: pages or doors missing, doors
-without `_agent-kit/`, or the copy edited by hand so it no longer matches its own `VERSION`).
+without `_agent-kit/`, no `agent-kit.json`, or the copy edited by hand so it no longer matches the
+fingerprint in its own manifest). The page names it checks come from the manifest, never from a list
+of its own.
 
 ## Verify — two planes, one negative control
 
