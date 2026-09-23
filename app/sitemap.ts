@@ -4,14 +4,6 @@ import { SUPPORTED_LANGUAGES } from "@/config/translations/translations.config"
 import { urlFor } from "@/lib/seo/alternates"
 import { ARCHITECT_PAGES } from "@/app/[lang]/(architectLayer)/_lib/architect-menu"
 import { translatedLanguages } from "@/lib/seo/translation-state"
-import { data as homeData } from "@/app/[lang]/(publicLayer)/_data"
-import { data as agiItemData } from "@/app/[lang]/(publicLayer)/(rootPages)/agi-item/_data"
-import { data as architectureData } from "@/app/[lang]/(publicLayer)/(rootPages)/m2m/_data"
-import { data as hostData } from "@/app/[lang]/(publicLayer)/(rootPages)/host/_data"
-import { data as privacyData } from "@/app/[lang]/(publicLayer)/(footerPages)/privacy/_data"
-import { data as termsData } from "@/app/[lang]/(publicLayer)/(footerPages)/terms/_data"
-import { data as cookiesData } from "@/app/[lang]/(publicLayer)/(footerPages)/cookies/_data"
-import { data as accessibilityData } from "@/app/[lang]/(publicLayer)/(footerPages)/accessibility/_data"
 import { architectSitemapPaths } from "@/app/[lang]/(architectLayer)/_lib/collection-visibility"
 
 // ГЛАВНАЯ КАРТА САЙТА — страницы, множество которых конечно и авторское.
@@ -44,18 +36,7 @@ import { architectSitemapPaths } from "@/app/[lang]/(architectLayer)/_lib/collec
 // каких языках у страницы есть СВОЙ текст, — а это знают только её данные. Голый
 // путь заставлял карту догадываться, и она догадывалась неверно: печатала каждый
 // включённый язык подряд, обещая поисковику страницы, помеченные `noindex`.
-const ROOT_PAGES = [
-  { sub: "/agi-item", data: agiItemData },
-  { sub: "/m2m", data: architectureData },
-  { sub: "/host", data: hostData },
-] as const
-
-const FOOTER_PAGES = [
-  { sub: "/privacy", data: privacyData },
-  { sub: "/terms", data: termsData },
-  { sub: "/cookies", data: cookiesData },
-  { sub: "/accessibility", data: accessibilityData },
-] as const
+// 280-2b: the public pages live in the site element and are listed by its own sitemap.
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const site = brand().siteUrl
@@ -84,40 +65,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // 🪦 БЛОГ УДАЛЁН ИЗ ПРОЕКТА (229-2, 2026-09-18, по слову владельца). Здесь
   // стоял перечень раздела /blog и всех его постов — вместе с разделом он
   // потерял предмет.
-  for (const lang of translatedLanguages(homeData)) {
-    out.push({ url: urlFor(lang, ""), changeFrequency: "daily", priority: 1 })
-  }
-
-  // Разделы верхнего меню: то, ради чего на сайт приходят. `weekly` и 0.8 —
-  // между главной (1) и справочными документами (0.3).
-  for (const { sub, data } of ROOT_PAGES) {
-    for (const lang of translatedLanguages(data)) {
-      out.push({ url: urlFor(lang, sub), changeFrequency: "weekly", priority: 0.8 })
-    }
-  }
-
-  // Правовые страницы: приоритет ниже разделов, потому что это справочные
-  // документы, а не то, ради чего приходят. Частота — `yearly`: их текст
-  // меняется редко, и обещать поисковику иное значит тратить его обходы зря.
-  for (const { sub, data } of FOOTER_PAGES) {
-    for (const lang of translatedLanguages(data)) {
-      out.push({ url: urlFor(lang, sub), changeFrequency: "yearly", priority: 0.3 })
-    }
-  }
-
-  // 🔒 СЛОЙ АРХИТЕКТОРА — ТОЛЬКО КОГДА ОН ОТКРЫТ, И РЕШАЕТ ЭТО ОДИН
-  // ПЕРЕКЛЮЧАТЕЛЬ (255, `_lib/collection-visibility.ts`): с 256-2 он отвечает
-  // «да» на витрине `fractera.ai` и «нет» везде ещё.
-  //
-  // 🛑 ПОЧЕМУ НЕЛЬЗЯ ПЕРЕЧИСЛИТЬ ИХ «НА БУДУЩЕЕ»: закрытая страница в карте
-  // сайта есть обещание поисковику того, чего он не получит — `proxy.ts`
-  // отвечает чужому 404. Набор адресов, объявленных роботу и недоступных
-  // человеку, и есть определение дорвея, а ярлык выдаётся САЙТУ ЦЕЛИКОМ, а не
-  // одной странице.
-  //
-  // Адреса приходят из того же дерева, что строит меню, — карта и меню не могут
-  // разойтись, потому что источник у них один. Языки — из данных каждой страницы,
-  // по тому же правилу, что и у публичных.
   for (const { path, page } of ARCHITECT_PAGES) {
     if (architectSitemapPaths([path]).length === 0) continue
     for (const lang of translatedLanguages(page)) {

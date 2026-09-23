@@ -1,4 +1,3 @@
-import { administrationUsersUi } from "@/app/[lang]/(protectedLayer)/(admin)/administration/users/_data/ui.i18n"
 import type { DrawerLink } from "@/components/menu/account/account-drawer.client"
 import { ARCHITECT_HOME } from "@/app/[lang]/(architectLayer)/_lib/architect-menu"
 import { architectLayerUi } from "@/app/[lang]/(architectLayer)/_i18n/architect-layer.i18n"
@@ -42,6 +41,5 @@ export function accountLinks(lang: string): DrawerLink[] {
       label: architectLayerUi(lang).home.title,
       roles: ARCHITECT_LAYER_ROLES,
     },
-    { href: `/${lang}/administration/users`, label: administrationUsersUi(lang).title },
   ]
 }

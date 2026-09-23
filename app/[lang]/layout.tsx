@@ -22,8 +22,6 @@ import { bannerUi } from "./_components/cookie-banner/cookie-banner.i18n";
 import { featureOn } from "@/config/platform-config";
 import { RegisterServiceWorker } from "@/components/pwa/register-sw.client";
 import { InstallPrompt } from "@/components/pwa/install-prompt.client";
-import { StarterBanner } from "./(publicLayer)/_components/starter-banner.client";
-import { starterBannerStrings } from "./(publicLayer)/_components/starter-banner.i18n";
 import { installUi } from "@/components/pwa/install-prompt.i18n";
 import { IosSplash } from "@/components/pwa/ios-splash";
 import { SignInNotice, SIGN_IN_TOASTER } from "@/components/auth/sign-in-notice.client";
@@ -168,7 +166,6 @@ export default async function LangLayout({
 
                 🔒 СТАТИКУ НЕ ЛОМАЕТ: это островок, слушатель прокрутки живёт
                 внутри него, а макет остаётся серверным и ничего не спрашивает. */}
-            <StarterBanner strings={starterBannerStrings(lang)} lang={lang} />
             {children}
             <FooterMenu lang={lang} />
             {/* Left & right slide-in drawers (shadcn Sheet), controlled by the same

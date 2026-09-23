@@ -32,6 +32,9 @@ const nextConfig: NextConfig = {
       // 262: каталог секций переехал в слой архитектора по слову владельца.
       { source: "/:lang/blocks", destination: "/:lang/architect/blocks/page-material", permanent: true },
       { source: "/:lang/architecture/index.md", destination: "/:lang/m2m/index.md", permanent: true },
+      // 280-2b: the public pages and the visitor cabinet moved into the site element
+      // (fractera-root-starter). The core's home is the architect group of pages.
+      { source: "/:lang([a-z]{2})", destination: "/:lang/architect", permanent: false },
     ];
   },
 
