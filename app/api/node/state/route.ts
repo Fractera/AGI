@@ -1,6 +1,7 @@
 // @api report how this node is reachable and whether it is walled off
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
+import { requireRoles } from "@/lib/auth/require-roles"
 import { measureNodeState } from "@/lib/node-state/measure"
 
 // СОСТОЯНИЕ УЗЛА ОДНОЙ ДВЕРЬЮ (276-1).
@@ -22,9 +23,17 @@ import { measureNodeState } from "@/lib/node-state/measure"
 // 🛑 ОТВЕТ ВСЕГДА НАЗЫВАЕТ ИСТОЧНИК КАЖДОГО СВЕДЕНИЯ (`measured` · `declared` · `unknown`). Половина
 // состояния измеряется сетью, половина объявлена человеком, и показывать их с одинаковой
 // уверенностью значит врать видом. `unknown` — это «не знаю», а не «нет».
+// 🛑 РОЛЬ ПРОВЕРЯЕТСЯ ЗДЕСЬ, А НЕ ТОЛЬКО ВОРОТАМИ. ✗ Оплачено в тот же день, измерением: ворота
+// `proxy.ts` пропускают ЛЮБОГО вошедшего, и живая сессия владельца на домене оказалась с ролью
+// `user` — то есть адрес узла, порт, номер процесса и хэш сборки отдавались рядовому пользователю.
+// Двухслойная проверка — закон проекта, и вторая половина стоит одной строки.
 export const dynamic = "force-dynamic"
 
-export async function GET() {
+const ROLES = ["architect", "admin"] as const
+
+export async function GET(req: NextRequest) {
+  const denied = await requireRoles(req, ROLES)
+  if (denied) return denied
   const state = await measureNodeState()
   return NextResponse.json({ ok: true, ...state }, { headers: { "Cache-Control": "no-store" } })
 }
