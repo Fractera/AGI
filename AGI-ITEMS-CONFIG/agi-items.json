@@ -54,6 +54,18 @@
       "required": true,
       "note": "Единственная дверь к данным. Узел не открывает файл базы сам.",
       "kind": "core"
+    },
+    {
+      "id": "root",
+      "repo": "https://github.com/Fractera/fractera-root-starter.git",
+      "version": "v1.0.0",
+      "port": null,
+      "provides": [
+        "site"
+      ],
+      "required": true,
+      "note": "Сайт узла: что видит посетитель в корне домена. Заменяется другим репозиторием с тем же договором (OWN-SERVICE-PROPS.json), убрать нельзя.",
+      "kind": "core"
     }
   ]
 }
