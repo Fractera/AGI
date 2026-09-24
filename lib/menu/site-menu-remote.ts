@@ -13,7 +13,10 @@ import type { MenuGroup } from "@/lib/menu/group-menus"
 // 🔒 ЧИТАЕТСЯ НА СБОРКЕ ЯДРА — страницы архитектора предрендерены. Меню меняется вместе с развёртыванием.
 // Сайт не ответил — `null`, и шапка ядра рисует своё прежнее меню, а не пустую полосу.
 
-type Answer = { top?: MenuGroup[]; footer?: MenuGroup[] }
+type Answer = { top?: MenuGroup[]; footer?: MenuGroup[]; brand?: string }
+// 283-6: имя проекта и корень проекта — у сайта. Слово владельца 2026-09-24: имя в левом верхнем углу хедера и в
+// левом нижнем углу футера ведёт в корень проекта, в том числе со страниц архитектора.
+export type SiteMenu = { top: MenuGroup[]; footer: MenuGroup[]; brand: string; home: string }
 
 function siteBase(): string | null {
   const pub = publicAuth(process.cwd())
@@ -37,7 +40,7 @@ function absolute(groups: MenuGroup[], base: string, lang: string): MenuGroup[] 
 // нарисовало своё запасное меню (4 кнопки из 9 — одни заглушки), и сборка прошла зелёной — откат был
 // молчаливым. Сотни страниц спрашивали сайт каждая сама под нагрузкой сборки. Теперь ответ один на язык,
 // неудача повторяется, а окончательный отказ печатается в журнал сборки с причиной.
-const memo = new Map<string, Promise<{ top: MenuGroup[]; footer: MenuGroup[] } | null>>()
+const memo = new Map<string, Promise<SiteMenu | null>>()
 
 async function ask(url: string): Promise<Answer> {
   let last: unknown
@@ -56,7 +59,7 @@ async function ask(url: string): Promise<Answer> {
   throw last
 }
 
-export function siteMenu(lang: string): Promise<{ top: MenuGroup[]; footer: MenuGroup[] } | null> {
+export function siteMenu(lang: string): Promise<SiteMenu | null> {
   const hit = memo.get(lang)
   if (hit) return hit
   const local = serviceUrl("root")
@@ -69,7 +72,7 @@ export function siteMenu(lang: string): Promise<{ top: MenuGroup[]; footer: Menu
     const url = `${local.replace(/\/+$/, "")}/api/menu/${lang}`
     try {
       const data = await ask(url)
-      return { top: absolute(data.top ?? [], base, lang), footer: absolute(data.footer ?? [], base, lang) }
+      return { top: absolute(data.top ?? [], base, lang), footer: absolute(data.footer ?? [], base, lang), brand: typeof data.brand === "string" ? data.brand : "", home: `${base}/${lang}` }
     } catch (err) {
       console.warn(`[site-menu] ${lang}: сайт не ответил (${url}: ${err instanceof Error ? err.message : err}) — ядро рисует своё меню`)
       return null

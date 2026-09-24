@@ -120,12 +120,14 @@ export async function TopMenu({ lang }: { lang: string }) {
 
           {/* Brand: the SHORT company name is ALWAYS shown; the logo sits beside it when
               one is uploaded (logo + wordmark together, never either/or). */}
-          <Link href={`/${lang}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity shrink-0">
+          {/* 283-6: имя и адрес — корень ПРОЕКТА (сайт), а не главная ядра: слово владельца 2026-09-24,
+              «меню всегда отправляют людей в корень проекта». Сайт не ответил на сборке — прежнее своё. */}
+          <Link href={remote?.home ?? `/${lang}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity shrink-0">
             {cfg.logo && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={cfg.logo} alt="" className="h-7 w-auto object-contain" />
             )}
-            <span className="text-sm font-semibold tracking-tight text-foreground">{cfg.short_name}</span>
+            <span className="text-sm font-semibold tracking-tight text-foreground">{remote?.brand || cfg.short_name}</span>
           </Link>
 
           {groups.length > 0 && <DesktopNav lang={lang} groups={groups} />}

@@ -197,7 +197,10 @@ export async function FooterMenu({ lang }: { lang: string }) {
         <div className="flex flex-row items-center justify-between gap-3 text-sm">
           <div className="flex flex-col gap-1 min-w-0">
             <span className="truncate">
-              © {new Date().getFullYear()} {cfg.short_name}.<span className="hidden sm:inline"> {ui.rights}</span>
+              {/* 283-6: имя ведёт в корень ПРОЕКТА (сайт), и со страниц архитектора тоже. */}
+              © {new Date().getFullYear()}{" "}
+              <Link href={remote?.home ?? `/${lang}`} className="hover:text-primary transition-colors">{remote?.brand || cfg.short_name}</Link>.
+              <span className="hidden sm:inline"> {ui.rights}</span>
             </span>
             {address && <span className="text-xs text-muted-foreground truncate">{address}</span>}
           </div>
