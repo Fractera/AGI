@@ -18,7 +18,9 @@
 // 🔒 `chat` ДОБАВЛЕН В СПИСОК ШАГОМ 137. Без него `apexFrom("chat.aifa.dev")` вернул бы
 // сам себя, и построенный из него адрес стал бы `chat.chat.aifa.dev` — отказ, видимый
 // только тому, кто откроет ссылку со страницы бота.
-export const KNOWN_PREFIXES = ["www", "auth", "admin", "data", "chat", "hermes", "lightrag", "projects", "design"];
+// 285: `architect` — поддомен ядра (280-3). ✗ Без него кнопка входа замка на `architect.<зона>` вела на
+// `auth.architect.<зона>` — такого имени нет (найдено владельцем 2026-09-24).
+export const KNOWN_PREFIXES = ["www", "auth", "admin", "architect", "data", "chat", "hermes", "lightrag", "projects", "design"];
 
 export function isIpHost(hostname: string): boolean {
   return /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname) || hostname === "localhost";

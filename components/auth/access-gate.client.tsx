@@ -150,7 +150,9 @@ export function AccessGate(
             {/* Адрес возврата — ЭТА страница: после входа человек оказывается
                 там, куда шёл, а не на чужой стартовой. */}
             <Button
-              onClick={() => { window.location.href = signInRedirectUrl(window.location.href, "user") }}
+              // 285: вход просит ту роль, которую требует страница — иначе человек с ролью `user` входит и снова
+              // упирается в этот же замок, не узнав, чего ему не хватает.
+              onClick={() => { window.location.href = signInRedirectUrl(window.location.href, roles.includes("architect") ? "architect" : "user") }}
             >
               {t.signIn}
             </Button>
