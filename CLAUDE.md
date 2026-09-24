@@ -455,11 +455,17 @@ the README is for the agent who installs and extends it. It must say: what it gi
 example per variant** · when a change reaches a service · **how to extend** (where, how many places in one
 change, what is the owner's decision) · what it does not do · how to remove · what proves it. Test: could a
 service agent holding only the README install, wire and extend the kit without opening the master? Written:
-`_agent-kit`, `_header`, `_footer`. **Debt:** `_node-state` has no README yet.
+`_agent-kit`, `_shell`. **Debt:** `_node-state` has no README yet.
 
-Header and footer kits (step 283): `npm run header-kit:add` / `npm run footer-kit:add -- <service source>
-[--express]`; both read the site's static door `/api/menu/<lang>` (`top` / `footer`) through
-`PROJECT_MENU_URL` and link to `PROJECT_SITE_URL`. Details — their READMEs.
+**The project shell (step 285-3) — ONE header and footer for the site, the core and every service.** The view is
+the site's `components/shell/` (fractera-root-starter): it reads no config and draws a `ShellData` object. The site
+builds it from its settings (`lib/shell/site-shell-data.ts`) and serves it by the static door `/api/shell/<lang>`;
+the core and services load it at build (`components/shell/remote-shell.ts`; the core's addresses —
+`lib/shell/core-shell-where.ts`). Copies are installed by `npm run shell-kit:add -- <service source>` and checked
+byte for byte by `npm run check:shell-kits` (in `prebuild`: the core's own copy must equal the site's). Theme,
+width and language are a cookie on the project domain (`shared-prefs.ts`) — one choice on every page. The core's
+design is taken from the site before every build (`scripts/sync-site-design.mjs`, 285-1). Details — `kits/_shell/README.md`.
+🪦 The header/footer kits of 283-2/283-3 (`header-kit:add`, `footer-kit:add`, a simplified look-alike) are removed.
 
 ---
 

@@ -279,6 +279,11 @@ function derivedValue(name, ctx) {
       const root = registry.services.find((x) => x.id === 'root')
       return root && Number.isInteger(root.port) ? `http://127.0.0.1:${root.port}/api/menu` : ''
     }
+    // 285-3: оболочка проекта (шапка и подвал) — статическая дверь сайта, по петле машины.
+    case 'PROJECT_SHELL_URL': {
+      const root = registry.services.find((x) => x.id === 'root')
+      return root && Number.isInteger(root.port) ? `http://127.0.0.1:${root.port}/api/shell` : ''
+    }
     case 'PROJECT_SITE_URL': {
       const pub = publicAuth(ROOT)
       if (pub && pub.architectHost) return `https://${pub.siteHost}`

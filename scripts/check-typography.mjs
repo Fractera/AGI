@@ -66,6 +66,8 @@ const ALLOWED_RAW_HEADERS = new Set([
   // Шапка САЙТА — верхняя полоса. Это мебель, а не шапка страницы: у неё своя
   // ширина, своё прилипание к верху окна и своё содержимое.
   path.join("components", "menu", "top", "top-menu.server.tsx"),
+  // 285-3: та же шапка сайта, переехавшая в оболочку проекта — одна копия у сайта и всех служб.
+  path.join("components", "shell", "project-header.tsx"),
 ])
 
 const ALLOWED_SHRINKING = new Set([

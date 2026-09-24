@@ -21,7 +21,8 @@ import path from "path"
 
 const ROOT = process.cwd()
 // Платформенная шапка — единственное законное место такой разметки.
-const ALLOWED = ["components/menu/"]
+// 285-3: шапка проекта переехала в оболочку `components/shell/` — одна копия у сайта и всех служб.
+const ALLOWED = ["components/menu/", "components/shell/"]
 const SCAN = ["app", "components"]
 // 🔒 ГРАНИЦА `microservices/` — причина целиком в scripts/microservices-boundary.mjs.
 const SKIP = new Set(["node_modules", ".next", ".git", ".swc", ...FOREIGN_DIRS])
@@ -136,7 +137,7 @@ console.log(`
   управления: пункты, порядок, группы и переводы. Вторая шапка даёт на странице
   две полосы, и вашей владелец управлять не сможет.
 
-  Нужен другой ВИД — меняйте components/menu/top/top-menu.server.tsx.
+  Нужен другой ВИД — меняйте components/shell/project-header.tsx (оболочка проекта, 285-3).
   Нужны другие ПУНКТЫ — это настройка, а не код: npm run read:menu покажет,
   что там сейчас и где это меняется.
 

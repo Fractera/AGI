@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useDrawer } from "@/providers/drawer-provider.client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useVisibleGroups } from "@/components/menu/shared/use-visible-groups.client";
+import { useVisibleGroups } from "@/components/shell/shell-menu.client";
 import type { MenuGroup } from "@/lib/menu/group-menus";
 
 // Left/right drawer panel (step 160, sub-step 3). UI standard: shadcn Sheet (Radix
@@ -21,7 +21,7 @@ export function DrawerPanel({
 }) {
   const { leftOpen, rightOpen, close } = useDrawer();
   const open = side === "left" ? leftOpen : rightOpen;
-  const visible = useVisibleGroups(groups);
+  const visible = useVisibleGroups(groups, "/api/me");
 
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) close(side); }}>

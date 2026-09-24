@@ -26,7 +26,7 @@ import type { NextRequest } from "next/server"
 // остаётся и работает первым — он не требует публичного адреса вовсе.
 
 /** Домены, которые Cloudflare раздаёт быстрым туннелям. Ровно они, без поддоменов третьих лиц. */
-const TEMPORARY_SUFFIXES = [".trycloudflare.com"]
+import { TEMPORARY_SUFFIXES } from "@/components/shell/temporary-host"
 
 /**
  * Принадлежит ли ИМЯ ХОСТА быстрому туннелю — единственное место, где это знание

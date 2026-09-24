@@ -1,0 +1,101 @@
+{
+  "_": "Карточка готового решения «Оболочка проекта» (285-3): шапка и подвал сайта — одна копия у сайта, ядра и служб. Источник вида — components/shell сайта; установка — install.mjs рядом; подробно — README.md рядом.",
+  "id": "project-shell",
+  "order": 30,
+  "words": {
+    "en": {
+      "summary": "Project shell: the site's header and footer in every service",
+      "intro": "The same header and footer as the site — menu, sign-in, footer pages, socials, language, width and theme — in any service of the node. The view is the site's own components, copied byte for byte; the data comes from the site's door, so a change on the site reaches every service. A visitor's choice of theme, width and language holds on every page of the project.",
+      "embedLabel": "How to embed",
+      "command": "npm run shell-kit:add -- <service source folder>",
+      "paramsHeaders": [
+        "Parameter",
+        "What it is"
+      ],
+      "params": [
+        [
+          "<service source folder>",
+          "the service's repository or fork — not AGI-ITEMS/: a reinstall would reset that folder to its tag"
+        ],
+        [
+          "--from <site folder>",
+          "where to take the view from; by default the node's own site element"
+        ],
+        [
+          "PROJECT_SHELL_URL",
+          "the site's shell door (/api/shell); the node installer gives it"
+        ],
+        [
+          "PROJECT_SITE_URL",
+          "where the links lead (the site); the node installer gives it"
+        ]
+      ],
+      "sample": "Live sample: the header and footer of this very page are the shell, drawn from [the site's](/en/architect/root/preview) data.",
+      "detailsTitle": "Project shell — in detail",
+      "details": [
+        {
+          "heading": "One view, one source",
+          "items": [
+            "The owner's word: every service uses one and the same header and footer, and the whole footer includes the footer pages.",
+            "The view lives once, in the site's components/shell; the core and every service hold a copy, and the guard compares it byte for byte.",
+            "The data is the site's: menu, name, sign-in, footer pages, socials, switches and words."
+          ]
+        },
+        {
+          "heading": "The same choice everywhere",
+          "items": [
+            "Theme, width and language are written to a cookie on the project domain: switched on any page — switched on all.",
+            "Sign-in is the node's one sign-in service: signed in on one page — signed in on all."
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "summary": "Оболочка проекта: шапка и подвал сайта в каждой службе",
+      "intro": "Та же шапка и тот же подвал, что у сайта, — меню, вход, страницы подвала, соцсети, язык, ширина и тема — в любой службе узла. Вид — сами компоненты сайта, скопированные байт в байт; данные — из двери сайта, поэтому правка на сайте доходит до всех служб. Выбор посетителя — тема, ширина, язык — действует на всех страницах проекта.",
+      "embedLabel": "Как встроить",
+      "command": "npm run shell-kit:add -- <папка исходника службы>",
+      "paramsHeaders": [
+        "Параметр",
+        "Что это"
+      ],
+      "params": [
+        [
+          "<папка исходника службы>",
+          "репозиторий службы или её форк, а не AGI-ITEMS/: переустановка вернула бы ту папку к тегу"
+        ],
+        [
+          "--from <папка сайта>",
+          "откуда взять вид; по умолчанию — элемент сайта этого узла"
+        ],
+        [
+          "PROJECT_SHELL_URL",
+          "дверь оболочки сайта (/api/shell); выдаёт установщик узла"
+        ],
+        [
+          "PROJECT_SITE_URL",
+          "куда ведут ссылки (сайт); выдаёт установщик узла"
+        ]
+      ],
+      "sample": "Живой образец: шапка и подвал этой самой страницы — оболочка, нарисованная по данным [сайта](/ru/architect/root/preview).",
+      "detailsTitle": "Оболочка проекта — подробно",
+      "details": [
+        {
+          "heading": "Один вид, один источник",
+          "items": [
+            "Слово владельца: все службы пользуются одной и той же шапкой и одним подвалом, и подвал целиком — со страницами подвала.",
+            "Вид живёт один раз — в components/shell сайта; ядро и каждая служба держат копию, сторож сверяет её байт в байт.",
+            "Данные — сайта: меню, имя, вход, страницы подвала, соцсети, выключатели и слова."
+          ]
+        },
+        {
+          "heading": "Один выбор везде",
+          "items": [
+            "Тема, ширина и язык пишутся в cookie на домен проекта: переключили на любой странице — переключилось на всех.",
+            "Вход — одна служба входа узла: вошли на одной странице — вошли на всех."
+          ]
+        }
+      ]
+    }
+  }
+}

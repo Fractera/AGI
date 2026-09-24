@@ -1,4 +1,4 @@
-import type { DrawerLink } from "@/components/menu/account/account-drawer.client"
+import type { ShellLink as DrawerLink } from "@/components/shell/shell-types"
 import { ARCHITECT_HOME } from "@/app/[lang]/(architectLayer)/_lib/architect-menu"
 import { architectLayerUi } from "@/app/[lang]/(architectLayer)/_i18n/architect-layer.i18n"
 import { ARCHITECT_LAYER_ROLES } from "@/lib/roles"
