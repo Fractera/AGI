@@ -126,16 +126,29 @@ self.addEventListener("fetch", (event) => {
   const isDocument = req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html");
   if (!isDocument) return;
 
+  /* 🔒 СТАРАЯ СТРАНИЦА — ТОЛЬКО БЕЗ СЕТИ (285-8). ✗ Измерено 2026-09-24 в браузере владельца: воркер отдал страницу
+   * из кеша прошлой сборки, хотя сеть была, — сервер на секунды пропал при развёртывании (переключение сборки,
+   * туннель), и ветка «нет сети» сработала на «сервер не ответил». Владелец видел прошлые версии и называл это
+   * «откатами». Теперь: сеть есть — запрос повторяется с растущей паузой, и если сервер всё ещё молчит, отдаётся
+   * крошечная страница, которая сама перезагрузится (без слов — она не требует перевода); старая страница при живой
+   * сети не отдаётся НИКОГДА. Сети нет — последняя виденная, как и задумано. */
   event.respondWith(
     (async () => {
-      try {
-        const res = await fetch(req);
-        if (res.ok) {
-          const cache = await caches.open(PAGES);
-          cache.put(req, res.clone());
+      const online = self.navigator.onLine !== false;
+      const attempts = online ? 4 : 1;
+      for (let i = 0; i < attempts; i++) {
+        try {
+          const res = await fetch(req);
+          if (res.ok) {
+            const cache = await caches.open(PAGES);
+            cache.put(req, res.clone());
+          }
+          return res;
+        } catch {
+          if (i < attempts - 1) await new Promise((r) => setTimeout(r, 700 * (i + 1)));
         }
-        return res;
-      } catch {
+      }
+      if (!online) {
         // Два чтения, а не одно: запись могла лечь сюда либо навигационным
         // запросом (обычный переход), либо строковым адресом (страница первого
         // визита, сохранённая при активации). Ключи разной природы, и
@@ -143,8 +156,11 @@ self.addEventListener("fetch", (event) => {
         // цена промаха тут ровно та ошибка браузера, ради которой всё и писано.
         const cached = (await caches.match(req)) || (await caches.match(req.url));
         if (cached) return cached;
-        throw new Error("offline and not cached");
       }
+      return new Response(
+        '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="3"><title>…</title><body style="margin:0;display:grid;place-items:center;height:100vh;font:600 2rem system-ui;opacity:.5">⟳</body>',
+        { status: 503, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "retry-after": "3" } },
+      );
     })(),
   );
 });
