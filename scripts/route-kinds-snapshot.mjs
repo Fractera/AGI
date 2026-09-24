@@ -1,7 +1,12 @@
 // ПРИБОР: КАКИЕ МАРШРУТЫ СБОРКИ СТАТИЧЕСКИЕ, А КАКИЕ ДИНАМИЧЕСКИЕ (шаг 295-0).
 //
 //   node scripts/route-kinds-snapshot.mjs <папка сборки> <файл снимка>
-//   node scripts/route-kinds-snapshot.mjs --diff <снимок ДО> <снимок ПОСЛЕ>
+//   node scripts/route-kinds-snapshot.mjs --diff <снимок ДО> <снимок ПОСЛЕ> [--allow /api/a,/api/b]
+//
+// 🛑 ДВЕРЬ, СТАВШАЯ СТАТИЧЕСКОЙ, — ТОЖЕ ОТКАЗ (295-1, измерено на входе): с Cache Components обработчик GET, не
+// тронувший запрос, предрендерится при сборке. `/api/auth/architect` без ARCHITECT_TOKEN на сборке запомнил отказ
+// навсегда; `/api/auth/methods` запомнил бы «ключей Google нет». Лечение — `await connection()`. Намеренно
+// кэшируемые двери перечисляются в `--allow`.
 //
 // Слово владельца 2026-09-24: «ни в коем случае страницы не должны становиться динамическими». Переход на Cache Components
 // доказывается СРАВНЕНИЕМ, а не словами: до и после — одна и та же таблица. Источник — манифесты уже собранной сборки
@@ -30,10 +35,13 @@ if (args[0] === '--diff') {
   const a = JSON.parse(readFileSync(args[1], 'utf8'))
   const b = JSON.parse(readFileSync(args[2], 'utf8'))
   let worse = 0
+  const ai = args.indexOf('--allow')
+  const allow = new Set(ai > 0 ? (args[ai + 1] ?? '').split(',').filter(Boolean) : [])
   for (const [p, v] of Object.entries(a)) {
     const n = b[p]
     if (!n) { console.log(`  − исчез: ${p}`); continue }
     if (v.prerendered && !n.prerendered) { worse++; console.log(`  ✗ СТАЛ ДИНАМИЧЕСКИМ: ${p} (${v.kind})`) }
+    else if (!v.prerendered && n.prerendered && v.kind !== 'page' && !allow.has(p)) { worse++; console.log(`  ✗ ДВЕРЬ ЗАМОРОЖЕНА СБОРКОЙ: ${p} — ответ со сборки навсегда; await connection() или --allow`) }
     else if (!v.prerendered && n.prerendered) console.log(`  ✓ стал статическим: ${p} (${v.kind})`)
   }
   for (const p of Object.keys(b)) if (!a[p]) console.log(`  + появился: ${p} (${b[p].kind}, ${b[p].prerendered ? 'статика' : 'динамика'})`)
