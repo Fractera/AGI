@@ -1,7 +1,10 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { StarIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 import { Small } from "@/components/ui/typography"
 import type { ServicePortWords } from "@/components/services/service-port.i18n"
 
@@ -65,54 +68,60 @@ export function ServiceReach({ serviceId, words }: { serviceId: string; words: S
     }
   }
 
-  let body: React.ReactNode
-  if (state.phase === "asking") body = <p className="text-sm text-muted-foreground">{words.asking}</p>
-  else if (state.phase === "denied") body = <p className="text-sm text-muted-foreground">{words.notAllowed}</p>
-  else if (state.phase === "failed") body = <p className="text-sm text-muted-foreground">{words.cannotCheck.replace("{reason}", "—")}</p>
-  else {
-    const r = state.reach
-    if (r.mode !== "cloudflare") {
-      const url = r.port ? `http://localhost:${r.port}` : "—"
-      body = <p className="text-sm text-foreground">{words.local.replace("{url}", url)}</p>
-    } else {
-      const missing = [r.dns === false ? words.noDns : null, r.routed === false ? words.noRoute : null].filter(Boolean)
-      const live = typeof r.answers === "number" && r.answers < 500 && r.answers !== 0 && missing.length === 0 && r.answers !== 404
-      body = (
-        <div className="flex flex-col gap-2">
-          <p className="text-sm text-foreground">{words.cloudflare}</p>
-          {r.url && (
-            <p className="text-sm text-foreground">
-              {words.address}{" "}
-              <a href={r.url} target="_blank" rel="noopener noreferrer" className="font-medium underline underline-offset-4" data-service-reach-url>
-                {r.url}
-              </a>
-            </p>
-          )}
-          {r.reason ? (
-            <p className="text-sm text-muted-foreground">{words.cannotCheck.replace("{reason}", r.reason)}</p>
-          ) : missing.length > 0 ? (
-            <p className="text-sm text-destructive">{words.notConnected} {missing.join(", ")}.</p>
-          ) : live ? (
-            <p className="text-sm text-foreground" data-service-reach-live>{words.live}</p>
-          ) : (
-            <p className="text-sm text-destructive">{words.notAnswering.replace("{code}", String(r.answers ?? "—"))}</p>
-          )}
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={load}>{words.check}</Button>
-            {missing.length > 0 && !r.reason && (
-              <Button size="sm" onClick={connect} disabled={connecting}>{connecting ? words.connecting : words.connect}</Button>
-            )}
-          </div>
-          {connectError && <Small className="text-destructive">{connectError}</Small>}
-        </div>
-      )
-    }
-  }
+  // 289-6: карточка в стиле индикатора узла. Адрес отвечает — подсветка и закрашенная звезда; иначе — предупреждение
+  // (незакрашенная звезда) и причина словами. Домен — крупно: это главное, что человек ищет на этой вкладке.
+  const r = state.phase === "known" ? state.reach : null
+  const cloud = r?.mode === "cloudflare"
+  const missing = r && cloud ? [r.dns === false ? words.noDns : null, r.routed === false ? words.noRoute : null].filter(Boolean) : []
+  const live = !!r && cloud && !r.reason && missing.length === 0 && typeof r.answers === "number" && r.answers > 0 && r.answers < 400
+  const big = cloud ? r?.hostname : r?.port ? `localhost:${r.port}` : null
+
+  let line: React.ReactNode
+  if (state.phase === "asking") line = words.asking
+  else if (state.phase === "denied") line = words.notAllowed
+  else if (state.phase === "failed") line = words.cannotCheck.replace("{reason}", "—")
+  else if (!cloud) line = words.local.replace("{url}", r?.port ? `http://localhost:${r.port}` : "—")
+  else if (r?.reason) line = words.cannotCheck.replace("{reason}", r.reason)
+  else if (missing.length > 0) line = `${words.notConnected} ${missing.join(", ")}.`
+  else if (live) line = words.live
+  else line = words.notAnswering.replace("{code}", String(r?.answers ?? "—"))
 
   return (
-    <div className="flex flex-col gap-2 border-t border-border pt-4" data-service-reach={serviceId} data-phase={state.phase}>
-      <p className="text-sm font-semibold text-foreground">{words.title}</p>
-      {body}
-    </div>
+    <Card
+      size="sm"
+      data-service-reach={serviceId}
+      data-phase={state.phase}
+      data-active={String(live)}
+      className={cn(live ? "bg-primary/10 ring-primary/40" : "bg-destructive/10 ring-destructive/40")}
+    >
+      <CardHeader>
+        <CardTitle className="font-semibold">{words.title}</CardTitle>
+        <CardAction>
+          <StarIcon role="img" aria-hidden className={cn("size-5", live ? "fill-primary text-primary" : "text-destructive")} />
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2">
+        {big ? (
+          cloud && r?.url ? (
+            <a href={r.url} target="_blank" rel="noopener noreferrer" className="font-mono text-2xl font-black tracking-tight break-all text-foreground underline-offset-4 hover:underline md:text-3xl" data-service-reach-url>
+              {big}
+            </a>
+          ) : (
+            <p className="font-mono text-2xl font-black tracking-tight break-all text-foreground md:text-3xl">{big}</p>
+          )
+        ) : null}
+        {cloud ? <p className="text-muted-foreground text-sm">{words.cloudflare}</p> : null}
+        <p className={cn("text-sm", live ? "text-foreground" : "text-destructive")} data-service-reach-line>{line}</p>
+        {state.phase === "known" && cloud ? (
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={load}>{words.check}</Button>
+            {missing.length > 0 && !r?.reason ? (
+              <Button size="sm" onClick={connect} disabled={connecting}>{connecting ? words.connecting : words.connect}</Button>
+            ) : null}
+          </div>
+        ) : null}
+        {connectError ? <Small className="text-destructive">{connectError}</Small> : null}
+      </CardContent>
+    </Card>
   )
 }

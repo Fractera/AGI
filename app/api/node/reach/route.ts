@@ -1,5 +1,6 @@
 // @api measure and connect a service's address on the node's own domain
 import { readFileSync, existsSync } from "node:fs"
+import https from "node:https"
 import { join } from "node:path"
 import { NextRequest, NextResponse } from "next/server"
 
@@ -41,13 +42,51 @@ function readDomain(): Domain | null {
 
 const hostnameFor = (id: string, d: Domain) => (id === "root" ? d.hostname ?? d.zone ?? "" : `${id}.${d.zone}`)
 
-async function answers(url: string): Promise<number | null> {
+// 🔒 ОТВЕЧАЕТ ЛИ АДРЕС — ИЗМЕРЯЕТСЯ МИМО DNS ЭТОЙ МАШИНЫ (289-6). ✗ Измерено: сразу после подключения имени DNS машины
+// ещё помнил прежний ответ «имени нет» (отрицательный кэш), и дверь показала «адрес не отвечает», хотя из интернета он
+// отвечал 200. Имя спрашивается у DNS Cloudflare (DoH), запрос идёт на полученный адрес с настоящим именем сервера.
+async function publicIp(host: string): Promise<string | null> {
   try {
-    const r = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(8000), cache: "no-store" })
-    return r.status
+    const r = await fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(host)}&type=A`, {
+      headers: { accept: "application/dns-json" },
+      signal: AbortSignal.timeout(5000),
+      cache: "no-store",
+    })
+    const j = (await r.json()) as { Answer?: Array<{ type: number; data: string }> }
+    return j.Answer?.find((a) => a.type === 1)?.data ?? null
   } catch {
     return null
   }
+}
+
+async function answers(url: string): Promise<number | null> {
+  const host = new URL(url).hostname
+  const ip = await publicIp(host)
+  if (!ip) return null
+  return new Promise((done) => {
+    const req = https.request(
+      {
+        host,
+        servername: host,
+        path: "/",
+        method: "GET",
+        timeout: 8000,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        lookup: ((_h: string, opts: { all?: boolean }, cb: (...a: any[]) => void) =>
+          opts?.all ? cb(null, [{ address: ip, family: 4 }]) : cb(null, ip, 4)) as unknown as https.RequestOptions["lookup"],
+      } as https.RequestOptions,
+      (res) => {
+        done(res.statusCode ?? null)
+        res.resume()
+      },
+    )
+    req.on("error", () => done(null))
+    req.on("timeout", () => {
+      req.destroy()
+      done(null)
+    })
+    req.end()
+  })
 }
 
 type Cf = { key: string; zoneId: string; accountId: string; tunnelId: string }

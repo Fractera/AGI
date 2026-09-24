@@ -1,7 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { StarIcon } from "lucide-react"
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Small } from "@/components/ui/typography"
+import { cn } from "@/lib/utils"
 import type { ServicePortWords } from "@/components/services/service-port.i18n"
 import { ServiceReach } from "@/components/services/service-reach.client"
 
@@ -72,14 +75,35 @@ export function ServicePort({
             ? words.absent
             : words.unknown
 
+  // 289-6 (владелец: «Оформи это красивые карточки … как индикатор на главной архитектора … очень крупные цифры … подсвечивать
+  // если соединение установлено и отвечает страница … карточка в стиле Warning, у которой звёздочка не закрашена»): две
+  // карточки в стиле индикатора узла — порт и адрес; всё в порядке — подсветка и закрашенная звезда, нет — предупреждение.
+  const known = state === "port" && port !== null
   return (
-    <div className="my-6 flex flex-col gap-1" data-service-port={serviceId} data-state={state}>
-      <p className="text-foreground text-sm" data-service-port-line>
-        {line}
-      </p>
+    <div className="my-6 flex flex-col gap-3" data-service-port={serviceId} data-state={state}>
+      <div className="grid gap-3 md:grid-cols-2">
+        <Card size="sm" data-active={String(known)} className={cn(known ? "bg-primary/10 ring-primary/40" : "bg-destructive/10 ring-destructive/40")}>
+          <CardHeader>
+            <CardTitle className="font-semibold">{words.portTitle}</CardTitle>
+            <CardAction>
+              <StarIcon role="img" aria-hidden className={cn("size-5", known ? "fill-primary text-primary" : "text-destructive")} />
+            </CardAction>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2">
+            {known ? (
+              <p className="font-mono text-5xl font-black tracking-tight tabular-nums text-foreground" data-service-port-number>
+                {port}
+              </p>
+            ) : null}
+            <p className="text-foreground text-sm" data-service-port-line>
+              {line}
+            </p>
+          </CardContent>
+        </Card>
+        {/* 289-3: адрес службы в интернете — режим, состояние, «Проверить подключение», «Подключить». */}
+        <ServiceReach serviceId={serviceId} words={words.reach} />
+      </div>
       <Small className="text-muted-foreground">{words.note}</Small>
-      {/* 289-3: адрес службы в интернете — режим, состояние, «Проверить подключение», «Подключить». */}
-      <ServiceReach serviceId={serviceId} words={words.reach} />
     </div>
   )
 }

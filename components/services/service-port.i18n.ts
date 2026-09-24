@@ -24,6 +24,8 @@ export type ServicePortWords = {
   /** одна фраза о том, почему число спрашивается, а не написано */
   note: string
   /** секция «адрес в интернете» (289-3) */
+  /** заголовок карточки порта (289-6) */
+  portTitle: string
   reach: {
     title: string
     asking: string
@@ -57,6 +59,7 @@ const DICT: Record<string, ServicePortWords> = {
     notInstalled: "The service is part of this node, but it has not been installed yet — no port is assigned.",
     unknown: "The node did not answer just now, so the port is unknown. Nothing is guessed here: a plausible number would read as a checked fact.",
     note: "The number is asked of the node on every visit, never remembered: the installer may hand the block a different port, and a remembered one would knock at an empty door.",
+    portTitle: "Port on this machine",
     reach: {
       title: "Address on the internet",
       asking: "Checking the address…",
@@ -83,6 +86,7 @@ const DICT: Record<string, ServicePortWords> = {
     notInstalled: "Служба входит в состав узла, но ещё не установлена — порт ей не назначен.",
     unknown: "Узел сейчас не ответил, и порт неизвестен. Правдоподобное число здесь не подставляется: его читают как проверенный факт.",
     note: "Число спрашивается у узла при каждом заходе и никогда не помнится: установщик может назначить блоку другой порт, а запомненный стучался бы в пустоту.",
+    portTitle: "Порт на этой машине",
     reach: {
       title: "Адрес в интернете",
       asking: "Проверяю адрес…",
