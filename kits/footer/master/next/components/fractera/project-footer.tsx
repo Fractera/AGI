@@ -15,24 +15,28 @@ const WORDS: Record<string, { pages: string; rights: string }> = {
   ru: { pages: "Страницы футера", rights: "Все права защищены." },
 }
 
-async function loadFooter(lang: string): Promise<Group[]> {
+// Имя проекта — поле `brand` той же двери (сайт v1.5.0+): своей копии имени у службы нет. Проп `brand` —
+// запасной, на случай старого сайта или сайта, который не ответил.
+async function loadFooter(lang: string): Promise<{ footer: Group[]; brand: string }> {
+  const none = { footer: [], brand: "" }
   const base = process.env.PROJECT_MENU_URL
-  if (!base) return []
+  if (!base) return none
   try {
     const res = await fetch(`${base.replace(/\/+$/, "")}/${lang}`, { signal: AbortSignal.timeout(5000) })
-    if (!res.ok) return []
-    const data = (await res.json()) as { footer?: Group[] }
-    return Array.isArray(data.footer) ? data.footer : []
+    if (!res.ok) return none
+    const data = (await res.json()) as { footer?: Group[]; brand?: string }
+    return { footer: Array.isArray(data.footer) ? data.footer : [], brand: typeof data.brand === "string" ? data.brand : "" }
   } catch {
-    return []
+    return none
   }
 }
 
 const abs = (site: string, lang: string, path: string) => (/^https?:\/\//.test(path) ? path : `${site}/${lang}${path}`)
 
-export async function ProjectFooter({ lang, brand }: { lang: string; brand: string }) {
+export async function ProjectFooter({ lang, brand: fallback = "" }: { lang: string; brand?: string }) {
   const site = (process.env.PROJECT_SITE_URL ?? "").replace(/\/+$/, "")
-  const groups = await loadFooter(lang)
+  const { footer: groups, brand: fromSite } = await loadFooter(lang)
+  const brand = fromSite || fallback
   const w = WORDS[lang] ?? WORDS.en
   return (
     <footer className="mt-auto w-full border-t border-border bg-background text-foreground" data-project-footer>
@@ -50,7 +54,7 @@ export async function ProjectFooter({ lang, brand }: { lang: string; brand: stri
           </div>
         )}
         <p className="truncate text-sm">
-          © {new Date().getFullYear()} {brand}. {w.rights}
+          © {new Date().getFullYear()}{brand ? ` ${brand}` : ""}. {w.rights}
         </p>
       </div>
     </footer>

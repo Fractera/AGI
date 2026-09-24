@@ -31,8 +31,12 @@ would read it as a second header of the core. ✗ paid in 283-2.
 
 **Where the menu comes from:** the site (element `root`, `fractera-root-starter`) builds it in
 `lib/menu/site-menu.ts → resolveTopGroups` and serves it as the static door `GET /api/menu/<lang>` →
-`{ lang, top: Group[], footer: Group[] }`. The same function draws the site's own header — there is no
+`{ lang, brand, top: Group[], footer: Group[] }`. The same function draws the site's own header — there is no
 second copy of the menu logic.
+
+**The project name** is the field `brand` of the same door (site v1.5.0+) — the site's `short_name`, the one
+its own header draws. A service never keeps a copy of the name: renaming the project would drift across
+services silently. The `brand` prop (Next) or argument (Express) is only a fallback for an older site.
 
 ## Install
 
@@ -63,7 +67,7 @@ export default async function Layout({ children, params }: { children: React.Rea
   const { lang } = await params
   return (
     <body>
-      <ProjectHeader lang={lang} brand="My project" />
+      <ProjectHeader lang={lang} />
       {children}
     </body>
   )
@@ -82,7 +86,7 @@ import { loadProjectMenu, renderProjectHeader, PROJECT_HEADER_CSS } from './proj
 app.get('/:lang', async (req, res) => {
   const menu = await loadProjectMenu(req.params.lang)
   res.send(`<!doctype html><html><head><style>${PROJECT_HEADER_CSS}</style></head>
-<body>${renderProjectHeader(menu, req.params.lang, 'My project')}…</body></html>`)
+<body>${renderProjectHeader(menu, req.params.lang)}…</body></html>`)
 })
 ```
 

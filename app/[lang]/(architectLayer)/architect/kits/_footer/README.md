@@ -31,7 +31,8 @@ app/[lang]/(architectLayer)/architect/kits/_footer/
 
 **Where the list comes from:** the site's static door `GET /api/menu/<lang>`, field `footer`, built by
 `lib/menu/site-menu.ts → resolveFooterGroups` in `fractera-root-starter` — the same function draws the
-site's own footer. The header kit reads field `top` of the same door (`../_header/README.md`).
+site's own footer. The header kit reads field `top` of the same door (`../_header/README.md`). The name in
+the copyright line is the door's `brand` (site v1.5.0+); the `brand` prop or argument is only a fallback.
 
 ## Install
 
@@ -60,9 +61,9 @@ export default async function Layout({ children, params }: { children: React.Rea
   const { lang } = await params
   return (
     <body className="flex min-h-screen flex-col">
-      <ProjectHeader lang={lang} brand="My project" />
+      <ProjectHeader lang={lang} />
       <main className="flex-1">{children}</main>
-      <ProjectFooter lang={lang} brand="My project" />
+      <ProjectFooter lang={lang} />
     </body>
   )
 }
@@ -79,7 +80,7 @@ import { loadProjectFooter, renderProjectFooter, PROJECT_FOOTER_CSS } from './pr
 app.get('/:lang', async (req, res) => {
   const footer = await loadProjectFooter(req.params.lang)
   res.send(`<!doctype html><html><head><style>${PROJECT_FOOTER_CSS}</style></head>
-<body style="display:flex;flex-direction:column;min-height:100vh">…${renderProjectFooter(footer, req.params.lang, 'My project')}</body></html>`)
+<body style="display:flex;flex-direction:column;min-height:100vh">…${renderProjectFooter(footer, req.params.lang)}</body></html>`)
 })
 ```
 

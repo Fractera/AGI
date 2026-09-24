@@ -6,6 +6,8 @@
 // держится в памяти. Сайт не ответил — футер рисует одну строку с именем проекта.
 
 const cache = new Map()
+// Имя проекта — поле `brand` той же двери (сайт v1.5.0+); аргумент `brand` рендера — запасной.
+const brands = new Map()
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
 
 const WORDS = {
@@ -24,6 +26,7 @@ export async function loadProjectFooter(lang) {
       if (res.ok) {
         const data = await res.json()
         if (Array.isArray(data.footer)) footer = data.footer
+        if (typeof data.brand === 'string') brands.set(lang, data.brand)
       }
     } catch { /* сайт не ответил */ }
   }
@@ -31,7 +34,8 @@ export async function loadProjectFooter(lang) {
   return footer
 }
 
-export function renderProjectFooter(groups, lang, brand) {
+export function renderProjectFooter(groups, lang, fallback = '') {
+  const brand = brands.get(lang) || fallback
   const site = String(process.env.PROJECT_SITE_URL || '').replace(/\/+$/, '')
   const abs = (p) => (/^https?:\/\//.test(p) ? p : `${site}/${lang}${p}`)
   const w = WORDS[lang] || WORDS.en
@@ -40,7 +44,7 @@ export function renderProjectFooter(groups, lang, brand) {
         .map((g) => `<a class="pf-link" href="${esc(abs(g.href || `/${g.slug}`))}">${esc(g.label)}</a>`)
         .join('')}</nav></div>`
     : ''
-  return `<footer class="pf">${pages}<p class="pf-copy">© ${new Date().getFullYear()} ${esc(brand)}. ${esc(w.rights)}</p></footer>`
+  return `<footer class="pf">${pages}<p class="pf-copy">© ${new Date().getFullYear()}${brand ? ` ${esc(brand)}` : ''}. ${esc(w.rights)}</p></footer>`
 }
 
 /** Стили футера — на токенах оформления узла (`--background`, `--foreground`, `--border`, `--muted-foreground`, `--primary`). */

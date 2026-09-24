@@ -6,6 +6,8 @@
 // запросе. Сайт не ответил — хедер рисует одно имя проекта.
 
 const cache = new Map()
+// Имя проекта — поле `brand` той же двери (сайт v1.5.0+); аргумент `brand` рендера — запасной.
+const brands = new Map()
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
 
 export async function loadProjectMenu(lang) {
@@ -19,6 +21,7 @@ export async function loadProjectMenu(lang) {
       if (res.ok) {
         const data = await res.json()
         if (Array.isArray(data.top)) top = data.top
+        if (typeof data.brand === 'string') brands.set(lang, data.brand)
       }
     } catch { /* сайт не ответил */ }
   }
@@ -26,7 +29,8 @@ export async function loadProjectMenu(lang) {
   return top
 }
 
-export function renderProjectHeader(groups, lang, brand) {
+export function renderProjectHeader(groups, lang, fallback = '') {
+  const brand = brands.get(lang) || fallback
   const site = String(process.env.PROJECT_SITE_URL || '').replace(/\/+$/, '')
   const abs = (p) => (/^https?:\/\//.test(p) ? p : `${site}/${lang}${p}`)
   const items = groups.map((g) => {
@@ -36,7 +40,8 @@ export function renderProjectHeader(groups, lang, brand) {
     const kids = g.children.map((c) => `<a class="ph-item" href="${esc(abs(c.href || `${g.href || `/${g.slug}`}/${c.slug}`))}">${esc(c.title)}</a>`).join('')
     return `<details class="ph-group"><summary class="ph-item">${esc(g.label)}</summary><div class="ph-drop">${kids}</div></details>`
   }).join('')
-  return `<header class="ph"><a class="ph-brand" href="${esc(site ? `${site}/${lang}` : '/')}">${esc(brand)}</a><nav class="ph-nav">${items}</nav></header>`
+  const home = brand ? `<a class="ph-brand" href="${esc(site ? `${site}/${lang}` : '/')}">${esc(brand)}</a>` : ''
+  return `<header class="ph">${home}<nav class="ph-nav">${items}</nav></header>`
 }
 
 /** Стили хедера — на токенах оформления узла (`--background`, `--foreground`, `--border`, `--muted`, `--radius`). */

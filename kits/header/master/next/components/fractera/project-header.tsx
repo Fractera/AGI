@@ -10,30 +10,36 @@
 type Child = { slug: string; title: string; href?: string }
 type Group = { slug: string; label: string; href?: string; inert?: boolean; children: Child[] }
 
-async function loadMenu(lang: string): Promise<Group[]> {
+// Имя проекта — поле `brand` той же двери (сайт v1.5.0+): своей копии имени у службы нет. Проп `brand` —
+// запасной, на случай старого сайта или сайта, который не ответил.
+async function loadMenu(lang: string): Promise<{ top: Group[]; brand: string }> {
+  const none = { top: [], brand: "" }
   const base = process.env.PROJECT_MENU_URL
-  if (!base) return []
+  if (!base) return none
   try {
     const res = await fetch(`${base.replace(/\/+$/, "")}/${lang}`, { signal: AbortSignal.timeout(5000) })
-    if (!res.ok) return []
-    const data = (await res.json()) as { top?: Group[] }
-    return Array.isArray(data.top) ? data.top : []
+    if (!res.ok) return none
+    const data = (await res.json()) as { top?: Group[]; brand?: string }
+    return { top: Array.isArray(data.top) ? data.top : [], brand: typeof data.brand === "string" ? data.brand : "" }
   } catch {
-    return []
+    return none
   }
 }
 
 const abs = (site: string, lang: string, path: string) => (/^https?:\/\//.test(path) ? path : `${site}/${lang}${path}`)
 
-export async function ProjectHeader({ lang, brand }: { lang: string; brand: string }) {
+export async function ProjectHeader({ lang, brand: fallback = "" }: { lang: string; brand?: string }) {
   const site = (process.env.PROJECT_SITE_URL ?? "").replace(/\/+$/, "")
-  const groups = await loadMenu(lang)
+  const { top: groups, brand: fromSite } = await loadMenu(lang)
+  const brand = fromSite || fallback
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-sm" data-project-header>
       <div className="flex h-14 w-full items-center gap-4 px-6 md:px-8">
-        <a href={site ? `${site}/${lang}` : "/"} className="shrink-0 font-semibold text-foreground">
-          {brand}
-        </a>
+        {brand && (
+          <a href={site ? `${site}/${lang}` : "/"} className="shrink-0 font-semibold text-foreground">
+            {brand}
+          </a>
+        )}
         <nav className="flex min-w-0 flex-wrap items-center gap-1 text-sm">
           {groups.map((g) => {
             if (g.inert) {
