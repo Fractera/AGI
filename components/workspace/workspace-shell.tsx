@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ChevronDown, Menu, X } from 'lucide-react'
 import { H3, H4, P, Small } from '@/components/ui/typography'
 import { TabsScroll } from '@/components/workspace/tabs-scroll.client'
+import { MenuScrollKeep } from '@/components/workspace/menu-scroll-keep.client'
 
 // РАСКЛАДКА РАБОЧЕГО ЭКРАНА — ОДНА НА БЛОК И НА СТРАНИЦЫ (шаг 49, 2026-08-30).
 //
@@ -382,6 +383,9 @@ export function WorkspaceShell({
             способность, которой не пользуется. Что именно он чинит и почему это
             обход, а не лечение корня, — в самом файле. */}
         {tabs && tabs.length > 0 && <TabsScroll />}
+
+        {/* 285-0: левое меню помнит прокрутку между страницами — причина и устройство в самом файле. */}
+        {menu.length > 0 && <MenuScrollKeep />}
 
         {children && <div data-workspace-body className="flex flex-col">{children}</div>}
       </div>
