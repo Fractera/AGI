@@ -26,7 +26,9 @@ export function typeCatalogue(lang: string, type: string): Block[] {
 
   return [
     { kind: 'p', text: `**${kinds} ${ui.countLabel}.** ${ui.subtitle}` },
+    // Разделитель ПЕРЕД каждым образцом (владелец 2026-09-25: «не видно границ блоков»).
     ...shown.flatMap(({ section, code }): Block[] => [
+      { kind: 'separator' },
       {
         kind: 'badges',
         items: [

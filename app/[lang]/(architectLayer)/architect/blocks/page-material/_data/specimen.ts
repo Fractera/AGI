@@ -1275,6 +1275,40 @@ export const SPECIMEN: SpecimenSection[] = [
       },
     ],
   },
+  {
+    kind: 'separator',
+    when: 'A horizontal line between two parts of a page — where the boundary between blocks must be seen, not guessed from spacing.',
+    whenRu: 'Горизонтальная линия между двумя частями страницы — там, где границу между блоками нужно видеть, а не угадывать по отступам.',
+    blocks: [{ kind: 'p', text: 'The text above the line.' }, { kind: 'separator' }, { kind: 'p', text: 'The text below the line.' }],
+  },
+  {
+    kind: 'dialogSample',
+    label: 'Plain',
+    when: 'A window without buttons: read and close. The right kind for reference.',
+    whenRu: 'Простое окно без кнопок: прочитать и закрыть. Правильный вид для справки.',
+    blocks: [{ kind: 'dialogSample', lang: 'en', sample: 'plain' }],
+  },
+  {
+    kind: 'dialogSample',
+    label: 'With buttons',
+    when: 'A window with a footer that stays put: confirm or cancel.',
+    whenRu: 'Окно с подвалом, который стоит на месте: подтвердить или отменить.',
+    blocks: [{ kind: 'dialogSample', lang: 'en', sample: 'footer' }],
+  },
+  {
+    kind: 'dialogSample',
+    label: 'Long',
+    when: 'The body outgrows the screen and scrolls; the heading and the buttons stay. The sample that proves the standard.',
+    whenRu: 'Тело перерастает экран и прокручивается; заголовок и кнопки остаются. Образец, который доказывает стандарт.',
+    blocks: [{ kind: 'dialogSample', lang: 'en', sample: 'long' }],
+  },
+  {
+    kind: 'dialogSample',
+    label: 'Cannot be dismissed',
+    when: 'No cross, no Escape, no click outside — for refusing access only.',
+    whenRu: 'Ни крестика, ни Escape, ни нажатия мимо — только для отказа в доступе.',
+    blocks: [{ kind: 'dialogSample', lang: 'en', sample: 'locked' }],
+  },
 ]
 
 // КОД ОБРАЗЦА — УНИКАЛЬНЫЙ, И ОН ВЫЧИСЛЯЕТСЯ, А НЕ ПРОСТАВЛЯЕТСЯ РУКАМИ

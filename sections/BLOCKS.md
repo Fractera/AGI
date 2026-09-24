@@ -21,7 +21,7 @@
 и только карточка говорит, что он выдержит** — сколько элементов, что ломается за пределом, когда
 его не брать. Есть карточка — прочти её перед использованием.
 
-Видов: **66** · рендереров: **65** · карточек: **40**
+Видов: **68** · рендереров: **67** · карточек: **42**
 
 | Код | Вид | Семейство | Что это | Поля | Правила владельца |
 |---|---|---|---|---|---|
@@ -91,6 +91,8 @@
 | `elementPreview01` | `elementPreview` | Workspace | a live preview of an element | lang: string; serviceId: string | [карточка](blocks/elementPreview.md) |
 | `authGoogleSetup01` | `authGoogleSetup` | Workspace | — | words: import('@/components/auth/google-setup.i18n').GoogleSetupWords | — |
 | `authResendSetup01` | `authResendSetup` | Workspace | — | words: import('@/components/auth/resend-setup.i18n').ResendSetupWords | — |
+| `dialogSample01` `dialogSample02` `dialogSample03` `dialogSample04` | `dialogSample` | Dialogs | a sample of the project's one modal window | lang: string; sample: 'plain' \| 'footer' \| 'long' \| 'locked' | [карточка](blocks/dialogSample.md) |
+| `separator01` | `separator` | Page material | a horizontal line between blocks | — | [карточка](blocks/separator.md) |
 
 ## Чего в этой таблице нет
 

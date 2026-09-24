@@ -219,6 +219,22 @@
         "en": "Area, bars and line over a time series; pie and radial bars for shares; a radar for several measures at once; a tooltip-first example.",
         "ru": "Область, столбцы и линия по ряду времени; круговая и радиальная для долей; лепестковая для нескольких мер сразу; образец, где главное — подсказка."
       }
+    },
+    {
+      "id": "dialogs",
+      "order": 14,
+      "title": {
+        "en": "Dialogs",
+        "ru": "Модальные окна"
+      },
+      "purpose": {
+        "en": "A window over the page that interrupts for one question or one piece of reference, and says how it closes.",
+        "ru": "Окно поверх страницы, которое прерывает ради одного вопроса или одной справки и говорит, как закрывается."
+      },
+      "variants": {
+        "en": "Plain (no buttons), with a footer, long (the body scrolls, heading and buttons stay), cannot be dismissed (refusing access only).",
+        "ru": "Простое (без кнопок), с подвалом, длинное (тело прокручивается, заголовок и кнопки на месте), неотменяемое (только отказ в доступе)."
+      }
     }
   ],
   "kinds": {
@@ -551,6 +567,16 @@
       "id": "0066",
       "type": "workspace",
       "shape": "steps"
+    },
+    "dialogSample": {
+      "id": "0067",
+      "type": "dialogs",
+      "shape": "panel"
+    },
+    "separator": {
+      "id": "0068",
+      "type": "page-material",
+      "shape": "text"
     }
   }
 }

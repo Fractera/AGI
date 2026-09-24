@@ -124,6 +124,9 @@ export type LeafBlock =
   // агента службы, он живёт в папке маршрута службы (`architect/<служба>/_agent-kit/`) и встаёт на страницу
   // полем `widget` вида `workspace`. Мастер — `architect/kits/_agent-kit/`.
   | { kind: 'deployBoard'; lang: string }
+  // 296: образец модального окна (каталог окон с aifa.dev) и горизонтальный разделитель между блоками.
+  | { kind: 'dialogSample'; lang: string; sample: 'plain' | 'footer' | 'long' | 'locked' }
+  | { kind: 'separator' }
   | { kind: 'elementPreview'; lang: string; serviceId: string }
   | { kind: 'designSection'; lang: string; section: 'colors' | 'fonts' | 'type' | 'shape' }
   | { kind: 'servicePort'; serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords }

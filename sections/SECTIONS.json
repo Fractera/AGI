@@ -214,6 +214,22 @@
         "en": "Area, bars and line over a time series; pie and radial bars for shares; a radar for several measures at once; a tooltip-first example.",
         "ru": "Область, столбцы и линия по ряду времени; круговая и радиальная для долей; лепестковая для нескольких мер сразу; образец, где главное — подсказка."
       }
+    },
+    {
+      "id": "dialogs",
+      "order": 14,
+      "title": {
+        "en": "Dialogs",
+        "ru": "Модальные окна"
+      },
+      "purpose": {
+        "en": "A window over the page that interrupts for one question or one piece of reference, and says how it closes.",
+        "ru": "Окно поверх страницы, которое прерывает ради одного вопроса или одной справки и говорит, как закрывается."
+      },
+      "variants": {
+        "en": "Plain (no buttons), with a footer, long (the body scrolls, heading and buttons stay), cannot be dismissed (refusing access only).",
+        "ru": "Простое (без кнопок), с подвалом, длинное (тело прокручивается, заголовок и кнопки на месте), неотменяемое (только отказ в доступе)."
+      }
     }
   ],
   "kinds": [
@@ -1140,6 +1156,37 @@
       "title": null,
       "description": null,
       "hasCard": false,
+      "usedOn": []
+    },
+    {
+      "id": "0067",
+      "codes": [
+        "dialogSample01",
+        "dialogSample02",
+        "dialogSample03",
+        "dialogSample04"
+      ],
+      "kind": "dialogSample",
+      "type": "dialogs",
+      "shape": "panel",
+      "fields": "lang: string; sample: 'plain' | 'footer' | 'long' | 'locked'",
+      "title": "a sample of the project's one modal window",
+      "description": "**Type:** Dialogs. One setting of `AppDialog` opened by a button — plain, with a footer, long, cannot be dismissed. Carried over from the dialogs catalogue of fractera-next-starter (aifa.dev, `architect/design?section=dialogs`) on the owner's word 2026-09-25: «почему нет модальных окон». The real window, not a picture of it.",
+      "hasCard": true,
+      "usedOn": []
+    },
+    {
+      "id": "0068",
+      "codes": [
+        "separator01"
+      ],
+      "kind": "separator",
+      "type": "page-material",
+      "shape": "text",
+      "fields": "",
+      "title": "a horizontal line between blocks",
+      "description": "**Type:** Page material. A visible boundary between two parts of a page (owner, 2026-09-25: «не видно границ блоков»). No fields.",
+      "hasCard": true,
       "usedOn": []
     }
   ]
