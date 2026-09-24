@@ -63,6 +63,7 @@
     "agent-kit:update": "node \"app/[lang]/(architectLayer)/architect/kits/_agent-kit/install.mjs\" --update",
     "check:agent-kits": "node lib/agent-kit/check.mjs",
     "check:shell-kits": "node scripts/check-shell-kits.mjs",
+    "deploy:rollback": "node scripts/deploy-rollback.mjs",
     "shell-kit:add": "node \"app/[lang]/(architectLayer)/architect/kits/_shell/install.mjs\""
   },
   "dependencies": {

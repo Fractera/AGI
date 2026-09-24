@@ -13,7 +13,7 @@
 // раз в несколько секунд. Файл держит и замок: пока `running`, вторая кнопка получает отказ.
 
 import { spawnSync } from 'node:child_process'
-import { writeFileSync, mkdirSync, appendFileSync } from 'node:fs'
+import { writeFileSync, mkdirSync, appendFileSync, readFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -44,6 +44,12 @@ for (const id of ids) {
     note: (out.match(/собран[^\n]*|ОШИБКА[^\n]*|прежняя сборка[^\n]*/g) || []).join(' · ').slice(0, 300),
   })
   save()
+  // 287: журнал развёртываний — откат берёт из него последнюю УСПЕШНУЮ версию элемента.
+  let version = null
+  try {
+    version = (JSON.parse(readFileSync(join(ROOT, 'AGI-ITEMS-CONFIG', 'agi-items.json'), 'utf8')).services || []).find((s) => s.id === id)?.version ?? null
+  } catch { /* реестр не прочитан — версия неизвестна */ }
+  appendFileSync(join(ROOT, 'logs', 'deploy-history.jsonl'), JSON.stringify({ id, version, ok, at: new Date().toISOString() }) + '\n')
 }
 
 state.running = false

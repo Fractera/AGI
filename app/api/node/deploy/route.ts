@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { requireRoles } from "@/lib/auth/require-roles"
 import paths from "@/lib/agi-items/paths.cjs"
+import rollback from "@/lib/deploy/previous-version.cjs"
 
 // ДАШБОРД РАЗВЁРТЫВАНИЙ — ДВЕРЬ (280-11b).
 //
@@ -66,6 +67,8 @@ function elements() {
       takesSettings: owns.length > 0,
       pending: !!(settingsChangedAt && builtAt && settingsChangedAt > Date.parse(builtAt)),
       settingsChangedAt: settingsChangedAt ? new Date(settingsChangedAt).toISOString() : null,
+      // 287: предыдущая рабочая версия — для кнопки «Вернуть»; `source: git` — успех той версии не записан.
+      previous: stamp ? rollback.previousVersion(s.id) : null,
     }
   })
 }
@@ -89,13 +92,26 @@ export async function POST(req: NextRequest) {
   if (denied) return denied
   const current = readJson<{ running?: boolean }>(STATE)
   if (current?.running) return NextResponse.json({ ok: false, reason: "already-running" }, { status: 409 })
-  let body: { ids?: unknown } = {}
+  let body: { ids?: unknown; rollback?: unknown } = {}
   try {
-    body = (await req.json()) as { ids?: unknown }
+    body = (await req.json()) as { ids?: unknown; rollback?: unknown }
   } catch {
     return NextResponse.json({ ok: false, reason: "bad-json" }, { status: 400 })
   }
   const known = new Set(elements().filter((e) => e.installed).map((e) => e.id))
+  // 287: откат — та же команда, что с машины (`npm run deploy:rollback -- <id>`), отдельным процессом.
+  if (typeof body.rollback === "string") {
+    if (!known.has(body.rollback)) return NextResponse.json({ ok: false, reason: "no-elements" }, { status: 400 })
+    if (!rollback.previousVersion(body.rollback)) return NextResponse.json({ ok: false, reason: "no-previous" }, { status: 409 })
+    const child = spawn(process.execPath, [join(ROOT, "scripts", "deploy-rollback.mjs"), body.rollback], {
+      cwd: ROOT,
+      detached: true,
+      windowsHide: true,
+      stdio: "ignore",
+    })
+    child.unref()
+    return NextResponse.json({ ok: true, rollback: body.rollback })
+  }
   const ids = Array.isArray(body.ids) ? body.ids.filter((x): x is string => typeof x === "string" && known.has(x)) : []
   if (ids.length === 0) return NextResponse.json({ ok: false, reason: "no-elements" }, { status: 400 })
   const child = spawn(process.execPath, [join(ROOT, "scripts", "deploy-elements.mjs"), ...ids], {

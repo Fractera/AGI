@@ -27,6 +27,8 @@ const WORDS: Record<string, DeployBoardWords> = {
     core: 'core',
     coreNote: 'The core (these architect pages) is rebuilt with npm run serve:rebuild on this computer: it restarts the server that serves this page and is not yet done without downtime.',
     busy: 'A deployment is already running — wait for it to finish.',
+    rollback: 'Roll back to {version}',
+    rollbackGit: 'The previous version from the registry history — whether it worked is not recorded.',
   },
   ru: {
     intro: 'Развёртывание пересобирает часть проекта, чтобы она показала сохранённое: оформление, настройки, новую версию. Само сохранение того, что видят посетители, не меняет.',
@@ -51,6 +53,8 @@ const WORDS: Record<string, DeployBoardWords> = {
     core: 'ядро',
     coreNote: 'Ядро (эти страницы архитектора) пересобирается командой npm run serve:rebuild на этом компьютере: она перезапускает сервер, отдающий эту страницу, и пока идёт с простоем.',
     busy: 'Развёртывание уже идёт — дождитесь окончания.',
+    rollback: 'Вернуть {version}',
+    rollbackGit: 'Предыдущая версия из истории реестра — была ли она рабочей, не записано.',
   },
 }
 

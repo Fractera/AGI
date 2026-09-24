@@ -36,6 +36,10 @@ export type DeployBoardWords = {
   core: string
   coreNote: string
   busy: string
+  /** 287: «Вернуть {version}» — откат до предыдущей рабочей версии */
+  rollback: string
+  /** подсказка: версия взята из истории реестра, её успех не записан */
+  rollbackGit: string
 }
 
 type Element = {
@@ -45,6 +49,7 @@ type Element = {
   builtAt: string | null
   takesSettings: boolean
   pending: boolean
+  previous: { version: string; source: "history" | "git" } | null
 }
 type Deployment = {
   running: boolean
@@ -80,6 +85,13 @@ export function DeployBoard({ words, lang }: { words: DeployBoardWords; lang: st
     const t = setInterval(load, 3000)
     return () => clearInterval(t)
   }, [running, load])
+
+  async function rollbackTo(id: string) {
+    setRefused(false)
+    const r = await fetch(DOOR, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rollback: id }) })
+    if (r.status === 409) setRefused(true)
+    setTimeout(load, 800)
+  }
 
   async function deploy(ids: string[]) {
     setRefused(false)
@@ -127,7 +139,20 @@ export function DeployBoard({ words, lang }: { words: DeployBoardWords; lang: st
               )}
               {queued && <span className="text-muted-foreground">{words.queued}</span>}
               {running && dep?.current === e.id && <Spinner />}
-              <span className="ml-auto">
+              <span className="ml-auto flex flex-wrap gap-2">
+                {/* 287: откат до предыдущей рабочей версии — та же команда, что с машины. */}
+                {e.previous && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => rollbackTo(e.id)}
+                    disabled={running}
+                    title={e.previous.source === "git" ? words.rollbackGit : undefined}
+                    data-deploy-rollback={e.id}
+                  >
+                    {words.rollback.replace("{version}", e.previous.version)}
+                  </Button>
+                )}
                 <Button variant="outline" size="sm" onClick={() => deploy([e.id])} disabled={running || !e.installed}>
                   {words.deployOne}
                 </Button>
