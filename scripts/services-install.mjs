@@ -438,6 +438,9 @@ async function warmUp(start, healthPath) {
 const retiredDists = []
 /** Папка сборки, из которой служба запущена сейчас (по её отметке). */
 function currentDist(stamp) {
+  // 285-4: служба без standalone-сервера (Express со встроенным Next) запускается `server.js` — по пути
+  // сервера папку сборки не узнать; её помнит отметка (`dist`). У сайта и входа поведение прежнее.
+  if (typeof stamp?.dist === 'string' && stamp.dist.startsWith('.next')) return stamp.dist
   const first = String(stamp?.start?.args?.[0] ?? '').split(/[\\/]/)[0]
   return first.startsWith('.next') ? first : '.next'
 }
@@ -654,7 +657,9 @@ for (const entry of registry.services) {
       // (секунды), старая папка удаляется после перезапуска.
       const distEnv = props.runtime?.distDirEnv
       if (distEnv) {
-        const current = server ? String(server).split(/[\\/]/)[0] : null
+        const fromServer = server ? String(server).split(/[\\/]/)[0] : null
+        // 285-4: у службы, чей старт — `server.js`, текущую папку помнит отметка.
+        const current = typeof stamp.dist === 'string' && stamp.dist.startsWith('.next') ? stamp.dist : fromServer
         const target = current === '.next-a' ? '.next-b' : '.next-a'
         // Папка прошлой-прошлой сборки: обычно уже свободна; занята — next build очистит её сам.
         try { rmSync(join(dir, target), { recursive: true, force: true }) } catch { /* next build очистит */ }
@@ -744,6 +749,8 @@ for (const entry of registry.services) {
     env: envFingerprint,
     port,
     start,
+    // 285-4: папка текущей сборки — для служб, чей старт не называет её путём (Express со встроенным Next).
+    ...(props.runtime?.distDirEnv ? { dist: builtDist ?? currentDist(stamp) } : {}),
     health: props.health?.path ?? null,
     at: new Date().toISOString(),
   }, null, 2), 'utf8')

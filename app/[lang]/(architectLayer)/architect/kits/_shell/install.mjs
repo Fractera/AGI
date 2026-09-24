@@ -53,9 +53,11 @@ for (const p of PRIMITIVES) {
   console.log(`  + ${p} (не было у службы — взят у сайта)`)
 }
 
-const DEPS = ['lucide-react', 'radix-ui', 'class-variance-authority', 'clsx', 'tailwind-merge']
+// 285-4: кнопка сайта стоит на @base-ui/react — без него сборка службы падает «Can't resolve '@base-ui/react/button'».
+const DEPS = ['lucide-react', 'radix-ui', '@base-ui/react', 'class-variance-authority', 'clsx', 'tailwind-merge']
 const sitePkg = JSON.parse(readFileSync(join(site, 'package.json'), 'utf8'))
-const pkgPath = join(dst, 'package.json')
+// 285-4: приложение Next может жить папкой ВНУТРИ службы (данные: `presentation/`) — его package.json у службы.
+const pkgPath = existsSync(join(dst, 'package.json')) ? join(dst, 'package.json') : join(dst, '..', 'package.json')
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'))
 const added = []
 for (const d of DEPS) {

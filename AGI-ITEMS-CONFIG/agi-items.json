@@ -43,7 +43,7 @@
     {
       "id": "data",
       "repo": "https://github.com/Fractera/fractera-data-starter.git",
-      "version": "v1.2.1",
+      "version": "v1.3.0",
       "port": 24682,
       "provides": [
         "tables",

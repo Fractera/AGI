@@ -59,8 +59,9 @@ if (core.length) {
 
 for (const s of reg.services ?? []) {
   if (s.id === 'root') continue
-  const copy = join(dirOf(s), 'components', 'shell')
-  if (!existsSync(copy)) continue
+  // 285-4: у службы, где Next живёт папкой внутри (данные: `presentation/`), оболочка там.
+  const copy = [join(dirOf(s), 'components', 'shell'), join(dirOf(s), 'presentation', 'components', 'shell')].find((p) => existsSync(p))
+  if (!copy) continue
   const d = compare(copy)
   if (d.length) {
     console.log(`  ⚠ ДОЛГ ${s.id} ${s.version}: оболочка старше сайта — shell-kit:add в исходник службы, новый тег`)
