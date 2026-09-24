@@ -446,6 +446,23 @@ folder name in an import path as a dictionary shipped to the browser, even for a
 
 ---
 
+## Every ready-made kit has a README.md next to its card (owner's decision 2026-09-24)
+
+A kit is anything a service gets by a command from a master: `architect/kits/_<name>/`. **Without
+`README.md` in that folder it is not finished.** `kit.json` is for a person on the «Ready-made kits» tab;
+the README is for the agent who installs and extends it. It must say: what it gives · where it lives
+(master, card, installer, where its data comes from) · install and environment · **wiring with a full code
+example per variant** · when a change reaches a service · **how to extend** (where, how many places in one
+change, what is the owner's decision) · what it does not do · how to remove · what proves it. Test: could a
+service agent holding only the README install, wire and extend the kit without opening the master? Written:
+`_agent-kit`, `_header`, `_footer`. **Debt:** `_node-state` has no README yet.
+
+Header and footer kits (step 283): `npm run header-kit:add` / `npm run footer-kit:add -- <service source>
+[--express]`; both read the site's static door `/api/menu/<lang>` (`top` / `footer`) through
+`PROJECT_MENU_URL` and link to `PROJECT_SITE_URL`. Details — their READMEs.
+
+---
+
 ## The top menu and the M2M document (step 261, 2026-09-21)
 
 The owner's menu, in his order: **Core · Host · AGI · WEB3 · M2M · Nostr · Blog** (the brand link on the left is the root).
