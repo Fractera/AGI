@@ -1,0 +1,73 @@
+{
+  "_": "Карточка готового решения «Стандартный хедер» (283-2). Мастер — master/next и master/express рядом; установка — install.mjs.",
+  "id": "project-header",
+  "order": 30,
+  "words": {
+    "en": {
+      "summary": "Standard header: one project menu in every service",
+      "intro": "Wraps any service of the node — sign-in, data, a new element — in the project's own header. The menu is the site's setting: the header takes it from the site's door and links to the site's pages, so every service shows the same buttons, including the reserved ones.",
+      "embedLabel": "How to embed",
+      "command": "npm run header-kit:add -- <service source folder>\nnpm run header-kit:add -- <service source folder> --express",
+      "paramsHeaders": ["Parameter", "What it is"],
+      "params": [
+        ["<service source folder>", "the service's repository or fork — not AGI-ITEMS/: a reinstall would reset that folder to its tag"],
+        ["--express", "a service on Express: an HTML renderer instead of a React component"],
+        ["PROJECT_MENU_URL", "where the header takes the menu (the site's /api/menu); the node installer gives it"],
+        ["PROJECT_SITE_URL", "where the menu links lead (the site); the node installer gives it"]
+      ],
+      "sample": "Live sample: the header of this very page draws the same menu as [the site](/en/architect/root/preview).",
+      "detailsTitle": "Standard header — in detail",
+      "details": [
+        {
+          "heading": "Why one menu",
+          "items": [
+            "The owner's word: every service uses one and the same menu, and wraps itself in our header when it wants to.",
+            "The menu lives in the site's settings; other services read it and never keep a copy of their own.",
+            "Two levels: a group with its pages opens without JavaScript; reserved buttons stay visible and inert."
+          ]
+        },
+        {
+          "heading": "When it changes",
+          "items": [
+            "A Next service reads the menu when it is built: a menu change reaches it with the next deployment.",
+            "An Express service reads it once a minute.",
+            "The site did not answer — the header shows the project name and nothing breaks."
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "summary": "Стандартный хедер: одно меню проекта в каждой службе",
+      "intro": "Оборачивает любую службу узла — вход, данные, новый элемент — в хедер проекта. Меню — настройка сайта: хедер берёт его у двери сайта и ведёт на страницы сайта, поэтому у всех служб одни и те же кнопки, включая заглушки.",
+      "embedLabel": "Как встроить",
+      "command": "npm run header-kit:add -- <папка исходника службы>\nnpm run header-kit:add -- <папка исходника службы> --express",
+      "paramsHeaders": ["Параметр", "Что это"],
+      "params": [
+        ["<папка исходника службы>", "репозиторий службы или её форк, а не AGI-ITEMS/: переустановка вернула бы ту папку к тегу"],
+        ["--express", "служба на Express: вместо компонента React — функция, отдающая HTML"],
+        ["PROJECT_MENU_URL", "откуда хедер берёт меню (дверь сайта /api/menu); выдаёт установщик узла"],
+        ["PROJECT_SITE_URL", "куда ведут ссылки меню (сайт); выдаёт установщик узла"]
+      ],
+      "sample": "Живой образец: хедер этой самой страницы рисует то же меню, что [сайт](/ru/architect/root/preview).",
+      "detailsTitle": "Стандартный хедер — подробно",
+      "details": [
+        {
+          "heading": "Зачем одно меню",
+          "items": [
+            "Слово владельца: все службы пользуются одним и тем же меню и по желанию оборачивают себя в наш хедер.",
+            "Меню живёт в настройках сайта; остальные службы его читают и своей копии не держат.",
+            "Два уровня: группа со страницами раскрывается без JavaScript; заглушки видны и неактивны."
+          ]
+        },
+        {
+          "heading": "Когда оно меняется",
+          "items": [
+            "Служба на Next читает меню при сборке: правка меню доходит до неё со следующим развёртыванием.",
+            "Служба на Express читает его раз в минуту.",
+            "Сайт не ответил — хедер показывает имя проекта, и ничего не ломается."
+          ]
+        }
+      ]
+    }
+  }
+}

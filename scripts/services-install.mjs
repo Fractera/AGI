@@ -43,7 +43,7 @@ import paths from '../lib/agi-items/paths.cjs'
 
 const require = createRequire(import.meta.url)
 const { isFree, PORT_BLOCK_START, PORT_BLOCK_END } = require('../lib/server-port.cjs')
-const { authEnvOverrides } = require('../lib/domain/public-auth.cjs')
+const { authEnvOverrides, publicAuth } = require('../lib/domain/public-auth.cjs')
 
 const ROOT = process.cwd()
 // 🔒 Пути элементов — из одного места узла (272): `lib/agi-items/paths.cjs`.
@@ -273,6 +273,18 @@ function derivedValue(name, ctx) {
     // стирала правку, а настоящий файл сайта оставался прежним. Тот же класс, что база входа (260-1).
     case 'DESIGN_CONFIG_PATH': return join(ctx.dir, 'DESIGN-CONFIG', 'design-config.json')
     case 'ARCHITECT_URL': return nodeUrl
+    // 283-2: стандартный хедер и футер — меню проекта у двери сайта, ссылки — на сайт. Сервер службы
+    // спрашивает сайт по петле; браузер человека идёт на публичный адрес сайта, если домен подключён.
+    case 'PROJECT_MENU_URL': {
+      const root = registry.services.find((x) => x.id === 'root')
+      return root && Number.isInteger(root.port) ? `http://127.0.0.1:${root.port}/api/menu` : ''
+    }
+    case 'PROJECT_SITE_URL': {
+      const pub = publicAuth(ROOT)
+      if (pub && pub.architectHost) return `https://${pub.siteHost}`
+      const root = registry.services.find((x) => x.id === 'root')
+      return root && Number.isInteger(root.port) ? `http://localhost:${root.port}` : ''
+    }
     case 'NEXT_PUBLIC_AUTH_URL': {
       const auth = registry.services.find((s) => s.id === 'auth')
       return auth && Number.isInteger(auth.port) ? `http://127.0.0.1:${auth.port}` : ''

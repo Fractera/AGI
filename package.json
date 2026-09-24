@@ -61,7 +61,8 @@
     "check:case": "node scripts/check-case.mjs",
     "agent-kit:add": "node \"app/[lang]/(architectLayer)/architect/kits/_agent-kit/install.mjs\"",
     "agent-kit:update": "node \"app/[lang]/(architectLayer)/architect/kits/_agent-kit/install.mjs\" --update",
-    "check:agent-kits": "node lib/agent-kit/check.mjs"
+    "check:agent-kits": "node lib/agent-kit/check.mjs",
+    "header-kit:add": "node \"app/[lang]/(architectLayer)/architect/kits/_header/install.mjs\""
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.55",
