@@ -18,8 +18,9 @@ import { serviceUrl } from "@/lib/microservices/registry"
 // `{ patch }`): островки перенесены оттуда без изменения того, как они сохраняют.
 //
 // 🛑 ПЕРЕСБОРКА ИДЁТ ОТДЕЛЬНЫМ ПРОЦЕССОМ И НЕ ЖДЁТСЯ. Она занимает минуты; ответ говорит
-// `rebuilding: true`, а журнал — `logs/root-rebuild.log`. Сайт на это время отвечает прежней сборкой
-// (установщик останавливает его только на время сборки, см. `services-install.mjs --only root --rebuild`).
+// `rebuilding: true`, а журнал — `logs/root-rebuild.log`. 🛑 НА ВРЕМЯ СБОРКИ (~2 мин) САЙТ ОСТАНОВЛЕН:
+// установщик гасит его, иначе на Windows сборка падает EBUSY (265-6). Провал сборки откатывается к
+// прежней (services-install.mjs). Сборка без простоя — отдельная работа (сборка в соседнюю папку).
 export const dynamic = "force-dynamic"
 
 const ROLES = ["architect", "admin"] as const

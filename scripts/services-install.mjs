@@ -594,10 +594,32 @@ for (const entry of registry.services) {
           stoppedByInstaller.add(name)
         }
       }
-      const b = run('npm', ['run', 'build'], dir)
+      // 🔒 ПЕРЕСБОРКА С ОТКАТОМ (280-6). ✗ Измерено 2026-09-24: пересборка сайта, запущенная правкой
+      // оформления, упала на Windows `kill EPERM` (сбой воркера `next build`) — а `next build` к этому
+      // моменту уже стёр `.next`. Сайту стало нечем запускаться, pm2 ушёл в вечный рестарт, и корень
+      // домена лежал ~18 минут. Поэтому: рабочая сборка копируется ДО сборки в `data/services/<id>/`
+      // (вне дерева элемента и вне git); провал — одна повторная попытка; снова провал — сборка
+      // возвращается на место, и элемент поднимается прежним.
+      const standaloneDir = server ? dirname(join(stamp.start.cwd || dir, server)) : null
+      const standaloneRoot = standaloneDir ? join(dir, '.next', 'standalone') : null
+      const backup = standaloneRoot ? join(serviceDataDir(entry.id), 'standalone-prev') : null
+      if (backup && built && existsSync(standaloneRoot)) {
+        rmSync(backup, { recursive: true, force: true })
+        cpSync(standaloneRoot, backup, { recursive: true })
+      }
+      let b = run('npm', ['run', 'build'], dir)
+      if (b.rc !== 0) {
+        say('  сборка упала — повторяю один раз')
+        b = run('npm', ['run', 'build'], dir)
+      }
       if (b.rc !== 0) {
         say('  ОШИБКА сборки блока:')
         say(b.out.split('\n').slice(-8).map((l) => '    ' + l).join('\n'))
+        if (backup && existsSync(backup)) {
+          rmSync(standaloneRoot, { recursive: true, force: true })
+          cpSync(backup, standaloneRoot, { recursive: true })
+          say('  прежняя сборка возвращена на место — элемент поднимется ею')
+        }
         failed += 1
         continue
       }
