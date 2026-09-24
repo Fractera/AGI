@@ -463,6 +463,12 @@ for (const entry of registry.services) {
     say('  клонирован')
   } else {
     run('git', ['fetch', '--quiet', '--tags', 'origin'], dir)
+    // 🛑 СБОРКА NEXT САМА ПРАВИТ `tsconfig.json` (дописывает .next-a/.next-b) и `next-env.d.ts` (295-1, измерено):
+    // выпуск, меняющий эти же файлы, git отказывался ставить («Aborting»). Они — след сборки, а не чья-то работа:
+    // возвращаем ТОЛЬКО их; любая другая локальная правка по-прежнему останавливает переход.
+    const nextOwned = run('git', ['ls-files', '-m'], dir).out.split('\n').map((l) => l.trim())
+      .filter((f) => /(^|\/)(tsconfig\.json|next-env\.d\.ts)$/.test(f))
+    if (nextOwned.length) run('git', ['checkout', '--quiet', '--', ...nextOwned], dir)
     const co = run('git', ['checkout', '--quiet', `tags/${entry.version}`], dir)
     if (co.rc !== 0) {
       say(`  ОШИБКА перехода на ${entry.version}: ${co.out.trim().split('\n').slice(-1)[0]}`)
