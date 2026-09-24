@@ -457,6 +457,42 @@ change, what is the owner's decision) · what it does not do · how to remove ·
 service agent holding only the README install, wire and extend the kit without opening the master? Written:
 `_agent-kit`, `_shell`. **Debt:** `_node-state` has no README yet.
 
+## Every page folder has a README.md — and two sections in it are mandatory (owner's decision 2026-09-24)
+
+The owner, verbatim: «при создании этого файла писать требования … которые должны позволить избежать длительной
+сборки вследствие каких-то архитектурных нарушений, а также … стандарты … из новой документации next 16 …
+правила кеширования страниц». A new page folder is not finished without `README.md` (what is here · the three
+states · languages · SEO signals — see any `architect/blocks/<type>/README.md`), and from now on it also carries:
+
+**`## Build cost` — what this page does so that a change does not cost a full rebuild.** Measured 2026-09-24: the
+core is ONE Next app — any edit rebuilds all 244 pages (compile 6.9 min + TypeScript 4.3 min on this machine).
+1. **Data that changes without a code change is not baked into the build.** Menu, shell, design, another service's
+   words are read at run time inside a cached function (`'use cache'` + `cacheLife`) — a change reaches the page in
+   minutes with NO build. Name here which data of this page is of that kind.
+2. **One source, the page names only itself.** A list (block types, menu, sections) lives in one file; the page
+   passes its own `meta.slug`. Example: `architect/blocks/_components/type-catalogue.ts` + `sections/taxonomy.json`.
+3. **No file-system reads from `process.cwd()` and no import of `next.config.ts` in route code** — Turbopack then
+   traces the whole project (warning «whole project was traced unintentionally»; present today via
+   `build/github/api/connect/push/route.ts` — its time cost is NOT measured yet).
+4. **Run the guard of the changed area first (seconds), not the build (minutes)** — e.g. `build:blocks-map`,
+   `check:blocks-catalogue`. A guard failing inside `prebuild` costs the whole wait.
+5. **Rebuild only what changed:** `npm run serve:rebuild` — the core; `node scripts/deploy-elements.mjs <id>` —
+   one element. Never all elements for a change in one.
+
+**`## Caching (Next 16)` — the page's cache in Cache Components terms** (docs Next 16.2.0; step 295; applies to a
+project once it has `cacheComponents: true` — today auth and data; the core and site in 295-2/295-3):
+1. No segment config: `dynamic`, `dynamicParams`, `revalidate`, `fetchCache` are removed (`check-segment-config`).
+2. Cache = `'use cache'` + `cacheLife('<profile>')` (+ `cacheTag`) on a function or component; name the profile here.
+3. Current time, random, an uncached `fetch` outside a cache = build error on a static page. Render that part inside
+   a cached component (measured: the footer's year — 295-1).
+4. Request data (cookies, headers, `searchParams`, session) only inside `<Suspense>`; a redirect that must stay a
+   real 307 lives in `proxy.ts` (measured on auth `/`).
+5. A GET route handler that does not read the request is PRERENDERED at build: an answer that must be per request
+   calls `await connection()` first (measured: `/api/auth/architect` froze its refusal).
+6. `generateStaticParams` returns at least one value; an unknown param → `notFound()`.
+7. Proof, not words: `scripts/route-kinds-snapshot.mjs` before/after + `--diff` — no page turned dynamic, no door
+   frozen; build with the node's environment (`PROJECT_SHELL_URL`) or shell errors stay hidden.
+
 **The project shell (step 285-3) — ONE header and footer for the site, the core and every service.** The view is
 the site's `components/shell/` (fractera-root-starter): it reads no config and draws a `ShellData` object. The site
 builds it from its settings (`lib/shell/site-shell-data.ts`) and serves it by the static door `/api/shell/<lang>`;
