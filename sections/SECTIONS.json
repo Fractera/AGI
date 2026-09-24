@@ -1081,9 +1081,9 @@
       "type": "page-material",
       "shape": "text",
       "fields": "lang: string; section: 'colors' | 'fonts' | 'type' | 'shape'",
-      "title": null,
-      "description": null,
-      "hasCard": false,
+      "title": "a design editor of the site element",
+      "description": "**Type:** Page material. A working part of the architect layer: one of four editors carried over from\nfractera-next-starter — `colors`, `fonts`, `type`, `shape`, chosen by `section`.\n\n## Whose settings it edits\n\nThe **site's** (the `root` element's `DESIGN-CONFIG`), not the core's. The owner's law of 2026-09-23:\nthe site keeps its own settings and stays alive without the core; the core reaches them through the\nsite's settings door. The editor asks the core door `/api/architect/design-config`, which passes the\nrequest to the site door `/api/settings/design` under the key `SETTINGS_SECRET`. The values are asked in\nthe browser: the page is prerendered, and settings asked on the server would freeze into its HTML.\n\nThree states, and \"the site did not answer\" is not \"no settings\": on refusal the editor is not drawn at\nall, so nothing empty can be saved over the real settings.\n\n## Saving does not apply — deploying does\n\n**Decision of the owner, 2026-09-24:** «важно чтобы пользователь не запускал это после каждого изменения:\nизменил шрифт сохранил рано запускать развёртывание, изменил цвет сохранил – рано». So **Save** only\nwrites the settings. After a successful save an orange plate (token `warning`) says the site does not\nshow it yet and leads to «Build → Deployments», where one deployment applies all the changes at once.\nAbove the editor a hint: settle the design early — every deployment rebuilds every part of the project\nthat uses these settings.\n\nUntil 280-11a the door rebuilt the site on every save; one such save on 2026-09-24 at 08:12 took the site\ndown (`kill EPERM` during the build).",
+      "hasCard": true,
       "usedOn": []
     },
     {

@@ -113,6 +113,8 @@ export function DesignColors({ initial, ui }: { initial: State; ui: DesignUi["co
         body: JSON.stringify({ patch: { colors: { light: build(state.light), dark: build(state.dark) } } }),
       })
       setStatus(res.ok ? "saved" : "failed")
+      // 280-11a: сохранение не пересобирает сайт — загрузчик показывает, что нужно развёртывание.
+      if (res.ok) window.dispatchEvent(new CustomEvent("design:saved"))
     } catch {
       setStatus("failed")
     }

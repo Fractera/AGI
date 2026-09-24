@@ -16,7 +16,25 @@ const WAIT: Record<string, { loading: string; unavailable: string }> = {
   },
 }
 
+// 280-11a: плашка после «Сохранить» и напоминание о начальной стадии (слово владельца 2026-09-24).
+const DEPLOY: Record<string, { hint: string; savedTitle: string; savedText: string; savedButton: string }> = {
+  en: {
+    hint: 'Settle the design early: every change is applied by a deployment, and a deployment rebuilds every part of the project that uses these settings.',
+    savedTitle: 'Saved. The site does not show it yet.',
+    savedText: 'Design changes are applied by a deployment, not by saving. Make all the changes you need first, then deploy once — each deployment rebuilds the project.',
+    savedButton: 'Go to deployments',
+  },
+  ru: {
+    hint: 'Оформление дешевле решить в начале: каждое изменение применяется развёртыванием, а развёртывание пересобирает все части проекта, которые пользуются этими настройками.',
+    savedTitle: 'Сохранено. На сайте этого пока нет.',
+    savedText: 'Изменения оформления применяются развёртыванием, а не сохранением. Сначала сделайте все нужные правки, потом разверните один раз — каждое развёртывание пересобирает проект.',
+    savedButton: 'Перейти к развёртываниям',
+  },
+}
+
 export const designSection: SectionRenderer<'designSection'> = (b, { key: k }) => {
   const w = WAIT[b.lang] ?? WAIT.en
-  return <DesignSectionLoader key={k} section={b.section} ui={designUi(b.lang)} loading={w.loading} unavailable={w.unavailable} />
+  const d = DEPLOY[b.lang] ?? DEPLOY.en
+  const deploy = { ...d, deployHref: `/${b.lang}/architect/build/deployments` }
+  return <DesignSectionLoader key={k} section={b.section} ui={designUi(b.lang)} loading={w.loading} unavailable={w.unavailable} deploy={deploy} />
 }

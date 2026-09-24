@@ -56,6 +56,8 @@ export function DesignType({ initial, ui }: { initial: State; ui: DesignUi["type
         body: JSON.stringify({ patch }),
       })
       setStatus(res.ok ? "saved" : "failed")
+      // 280-11a: сохранение не пересобирает сайт — загрузчик показывает, что нужно развёртывание.
+      if (res.ok) window.dispatchEvent(new CustomEvent("design:saved"))
     } catch {
       setStatus("failed")
     }

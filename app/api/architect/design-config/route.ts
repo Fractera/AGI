@@ -1,6 +1,5 @@
 // @api read and change the site element's design settings from the core
-import { spawn } from "node:child_process"
-import { openSync, readFileSync, existsSync, mkdirSync } from "node:fs"
+import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { NextRequest, NextResponse } from "next/server"
 
@@ -12,15 +11,15 @@ import { serviceUrl } from "@/lib/microservices/registry"
 // 🔒 ЯДРО НЕ ХРАНИТ ОФОРМЛЕНИЕ САЙТА — ОНО ДОТЯГИВАЕТСЯ ДО НЕГО (закон направления потока, слово
 // владельца 2026-09-23). Файл живёт в элементе root (`DESIGN-CONFIG/design-config.json` сайта);
 // эта дверь только передаёт правку его двери настроек `/api/settings/design` под ключом
-// `SETTINGS_SECRET` и после записи пересобирает сайт — оформление запекается в его страницы.
+// `SETTINGS_SECRET`. Оформление запекается в страницы сайта на сборке — применяет его развёртывание.
 //
 // 🔒 АДРЕС ТОТ ЖЕ, ЧТО У РЕДАКТОРА fractera-next-starter (`/api/architect/design-config`, POST с
 // `{ patch }`): островки перенесены оттуда без изменения того, как они сохраняют.
 //
-// 🛑 ПЕРЕСБОРКА ИДЁТ ОТДЕЛЬНЫМ ПРОЦЕССОМ И НЕ ЖДЁТСЯ. Она занимает минуты; ответ говорит
-// `rebuilding: true`, а журнал — `logs/root-rebuild.log`. 🛑 НА ВРЕМЯ СБОРКИ (~2 мин) САЙТ ОСТАНОВЛЕН:
-// установщик гасит его, иначе на Windows сборка падает EBUSY (265-6). Провал сборки откатывается к
-// прежней (services-install.mjs). Сборка без простоя — отдельная работа (сборка в соседнюю папку).
+// 🔒 СОХРАНЕНИЕ НЕ ПЕРЕСОБИРАЕТ САЙТ (280-11a, слово владельца 2026-09-24): «важно чтобы пользователь не
+// запускал это после каждого изменения: изменил шрифт сохранил рано запускать развёртывание». До 280-11a
+// дверь пересобирала сайт на КАЖДОЕ сохранение — ~2 минуты машины, и одно такое сохранение 2026-09-24
+// 08:12 уронило сайт (kill EPERM). Применяет правки кнопка на «Строительство → Дашборд развёртываний».
 export const dynamic = "force-dynamic"
 
 const ROLES = ["architect", "admin"] as const
@@ -54,20 +53,6 @@ async function siteDoor(init: RequestInit = {}): Promise<Response | { unavailabl
   }
 }
 
-function startSiteRebuild(): boolean {
-  if (!existsSync(join(ROOT, "scripts", "services-install.mjs"))) return false
-  mkdirSync(join(ROOT, "logs"), { recursive: true })
-  const log = openSync(join(ROOT, "logs", "root-rebuild.log"), "a")
-  const child = spawn(process.execPath, [join(ROOT, "scripts", "services-install.mjs"), "--only", "root", "--rebuild"], {
-    cwd: ROOT,
-    detached: true,
-    windowsHide: true,
-    stdio: ["ignore", log, log],
-  })
-  child.unref()
-  return true
-}
-
 export async function GET(req: NextRequest) {
   const denied = await requireRoles(req, ROLES)
   if (denied) return denied
@@ -91,5 +76,5 @@ export async function POST(req: NextRequest) {
   if ("unavailable" in r) return NextResponse.json({ ok: false, reason: r.unavailable }, { status: 503 })
   const answer = (await r.json().catch(() => ({ ok: false }))) as { ok?: boolean }
   if (!r.ok || !answer.ok) return NextResponse.json(answer, { status: r.status || 500 })
-  return NextResponse.json({ ...answer, rebuilding: startSiteRebuild() })
+  return NextResponse.json({ ...answer, deployNeeded: true })
 }

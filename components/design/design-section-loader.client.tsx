@@ -1,6 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
+import { Lightbulb, Rocket } from "lucide-react"
+import { buttonVariants } from "@/components/ui/button"
 import { DesignColors } from "./design-colors.client"
 import { DesignFonts } from "./design-fonts.client"
 import { DesignType } from "./design-type.client"
@@ -29,18 +32,38 @@ type Raw = {
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
+/** Слова двух плашек (280-11a) — приходят с сервера, словарь в браузер не грузится. */
+export type DeployWords = {
+  hint: string
+  savedTitle: string
+  savedText: string
+  savedButton: string
+  deployHref: string
+}
+
 export function DesignSectionLoader({
   section,
   ui,
   loading,
   unavailable,
+  deploy,
 }: {
   section: DesignSection
   ui: DesignUi
   loading: string
   unavailable: string
+  deploy: DeployWords
 }) {
   const [state, setState] = useState<{ config: Raw } | "loading" | "failed">("loading")
+  // 🔒 280-11a: «Сохранить» только записывает настройки сайта; применяет их развёртывание. Слово
+  // владельца 2026-09-24: не запускать пересборку после каждой правки — изменил шрифт, сохранил,
+  // изменил цвет, сохранил, — а развернуть один раз, когда оформление решено.
+  const [saved, setSaved] = useState(false)
+  useEffect(() => {
+    const on = () => setSaved(true)
+    window.addEventListener("design:saved", on)
+    return () => window.removeEventListener("design:saved", on)
+  }, [])
 
   useEffect(() => {
     let alive = true
@@ -57,8 +80,31 @@ export function DesignSectionLoader({
   if (state === "failed") return <p className="text-muted-foreground text-sm" data-design-unavailable>{unavailable}</p>
 
   const c = state.config
-  if (section === "colors") return <DesignColors initial={{ light: c.colors?.light ?? {}, dark: c.colors?.dark ?? {} }} ui={ui.colors} />
-  if (section === "fonts") return <DesignFonts initial={c.fonts ?? {}} ui={ui.fonts} />
-  if (section === "type") return <DesignType initial={c.type ?? {}} ui={ui.type} />
-  return <DesignShape initial={c.shape ?? {}} ui={ui.shape} />
+  const editor =
+    section === "colors" ? <DesignColors initial={{ light: c.colors?.light ?? {}, dark: c.colors?.dark ?? {} }} ui={ui.colors} />
+    : section === "fonts" ? <DesignFonts initial={c.fonts ?? {}} ui={ui.fonts} />
+    : section === "type" ? <DesignType initial={c.type ?? {}} ui={ui.type} />
+    : <DesignShape initial={c.shape ?? {}} ui={ui.shape} />
+
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="flex gap-2 text-muted-foreground text-sm" data-design-hint>
+        <Lightbulb className="mt-0.5 size-4 shrink-0" aria-hidden />
+        {deploy.hint}
+      </p>
+      {editor}
+      {saved && (
+        <div className="flex flex-col gap-3 rounded-md border border-warning/50 bg-warning/10 p-4 text-sm" data-design-saved>
+          <p className="font-medium text-foreground">{deploy.savedTitle}</p>
+          <p className="text-muted-foreground">{deploy.savedText}</p>
+          <div>
+            <Link href={deploy.deployHref} className={buttonVariants({ variant: "outline" })}>
+              <Rocket className="mr-2 size-4" aria-hidden />
+              {deploy.savedButton}
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
