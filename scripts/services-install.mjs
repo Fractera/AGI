@@ -74,14 +74,14 @@ function childEnv() {
 }
 
 // ── Запуск чужой программы. Один вход, чтобы правила Windows не разъехались.
-function run(cmd, args, cwd, { quiet = false } = {}) {
+function run(cmd, args, cwd, { quiet = false, env = {} } = {}) {
   const r = spawnSync(cmd, args, {
     cwd,
     encoding: 'utf8',
     shell: IS_WIN,
     windowsHide: true,
     stdio: quiet ? 'pipe' : 'pipe',
-    env: childEnv(),
+    env: { ...childEnv(), ...env },
   })
   return { rc: r.status ?? 1, out: (r.stdout ?? '') + (r.stderr ?? '') }
 }
@@ -311,8 +311,8 @@ function derivedValue(name, ctx) {
 //
 // Возвращает { cmd, args, cwd } или null. Ни одной строки, зависящей от имени
 // конкретной службы: всё выводится из того, что лежит в её папке.
-function findStandaloneServer(dir) {
-  const stack = [join(dir, '.next', 'standalone')]
+function findStandaloneServer(dir, distDir = '.next') {
+  const stack = [join(dir, distDir, 'standalone')]
   for (let depth = 0; depth < 5 && stack.length; depth += 1) {
     const next = []
     for (const d of stack) {
@@ -328,13 +328,14 @@ function findStandaloneServer(dir) {
   return null
 }
 
-function resolveStart(dir, props) {
-  const standaloneDir = findStandaloneServer(dir)
+function resolveStart(dir, props, distDir = '.next') {
+  const standaloneDir = findStandaloneServer(dir, distDir)
   if (standaloneDir) {
-    // Статика — рядом с найденным сервером, а не в корне standalone.
-    const staticFrom = join(dir, '.next', 'static')
+    // Статика — рядом с найденным сервером, а не в корне standalone; папка сборки — та, в
+    // которую собирали (280-9: .next-a / .next-b у элементов со сборкой без простоя).
+    const staticFrom = join(dir, distDir, 'static')
     if (existsSync(staticFrom)) {
-      cpSync(staticFrom, join(standaloneDir, '.next', 'static'), { recursive: true })
+      cpSync(staticFrom, join(standaloneDir, distDir, 'static'), { recursive: true })
     }
     if (existsSync(join(dir, 'public'))) {
       cpSync(join(dir, 'public'), join(standaloneDir, 'public'), { recursive: true })
@@ -380,8 +381,17 @@ const summary = []
 const ONLY = (() => { const i = process.argv.indexOf('--only'); return i > 0 ? process.argv[i + 1] : null })()
 const REBUILD = process.argv.includes('--rebuild')
 
+// Папки прежних сборок, которые удаляются ПОСЛЕ перезапуска процессов (280-9).
+const retiredDists = []
+/** Папка сборки, из которой служба запущена сейчас (по её отметке). */
+function currentDist(stamp) {
+  const first = String(stamp?.start?.args?.[0] ?? '').split(/[\\/]/)[0]
+  return first.startsWith('.next') ? first : '.next'
+}
+
 for (const entry of registry.services) {
   if (ONLY && entry.id !== ONLY) continue
+  let builtDist = null
   const dir = entryDir(entry)
   say(`\n── ${entry.id} — ${entry.version}`)
 
@@ -583,6 +593,33 @@ for (const entry of registry.services) {
     if (built && !FORCE && !REBUILD && stamp.version === entry.version && stamp.env === envFingerprint) {
       say('  сборка на месте (версия и окружение те же) — пропущена')
     } else {
+      // 🔒 СБОРКА БЕЗ ПРОСТОЯ (280-9, слово владельца 2026-09-24: «blue/green build without downtime»).
+      // Элемент, объявивший в паспорте `runtime.distDirEnv`, собирается В СОСЕДНЮЮ ПАПКУ (.next-a /
+      // .next-b попеременно), пока работает прежняя сборка: процесс не останавливается, EBUSY не
+      // возникает — сборка не трогает файлы, которые держит сервер. Провал оставляет прежнюю версию
+      // работать нетронутой. Успех — отметка переключается на новую папку, процесс перезапускается
+      // (секунды), старая папка удаляется после перезапуска.
+      const distEnv = props.runtime?.distDirEnv
+      if (distEnv) {
+        const current = server ? String(server).split(/[\\/]/)[0] : null
+        const target = current === '.next-a' ? '.next-b' : '.next-a'
+        rmSync(join(dir, target), { recursive: true, force: true })
+        let bg = run('npm', ['run', 'build'], dir, { env: { [distEnv]: target } })
+        if (bg.rc !== 0) {
+          say('  сборка упала — повторяю один раз')
+          bg = run('npm', ['run', 'build'], dir, { env: { [distEnv]: target } })
+        }
+        if (bg.rc !== 0) {
+          say('  ОШИБКА сборки блока (работающая версия не тронута):')
+          say(bg.out.split('\n').slice(-8).map((l) => '    ' + l).join('\n'))
+          rmSync(join(dir, target), { recursive: true, force: true })
+          failed += 1
+          continue
+        }
+        builtDist = target
+        if (current && current !== target && current.startsWith('.next')) retiredDists.push(join(dir, current))
+        say(`  собран в ${target} без остановки службы`)
+      } else {
       // 🔒 ЖИВУЮ СЛУЖБУ ОСТАНАВЛИВАЕМ И ДО ПЕРЕСБОРКИ (265-6), тем же приёмом, что до замены
       // зависимостей. ✗ Измерено 2026-09-23 дважды: сборка на Windows падала `EBUSY rmdir` на
       // `.next/standalone` — работающий сервер держит свои файлы, — и уже СТЕРЕВ сервер, не
@@ -624,6 +661,7 @@ for (const entry of registry.services) {
         continue
       }
       say('  собран')
+      }
     }
   }
 
@@ -638,7 +676,7 @@ for (const entry of registry.services) {
   // 🛑 И ВТОРОЕ, ЧЕГО NEXT НЕ ДЕЛАЕТ САМ: статику в standalone он не копирует.
   // Без этого страницы рисуются, а КАЖДЫЙ стиль и скрипт отдают 404 — снаружи
   // это выглядит «сломалась вёрстка», а не «не доделана упаковка».
-  const start = resolveStart(dir, props)
+  const start = resolveStart(dir, props, builtDist ?? currentDist(stamp))
   if (!start) {
     say('  ОШИБКА: нечем запускать — не нашёл ни standalone-сервера, ни простой команды старта')
     failed += 1
@@ -716,6 +754,7 @@ for (const name of stoppedByInstaller) {
   if (refreshed.includes(name)) continue
   if (run(pm2cmd, ['start', name], ROOT, { quiet: true }).rc === 0) refreshed.push(name)
 }
+for (const old of retiredDists) rmSync(old, { recursive: true, force: true })
 if (refreshed.length) {
   run(pm2cmd, ['save'], ROOT, { quiet: true })
   say(`\n  перезапущено с чистым окружением (delete + start): ${refreshed.join(', ')}`)
