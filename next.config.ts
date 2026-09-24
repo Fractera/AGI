@@ -3,26 +3,6 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * `/<lang>/site` — кнопка «Сайт» шапки ядра (280-3). На своём домене — корень зоны; без него — порт
- * элемента root на этой машине (из реестра). Читается на сборке, как и правило ниже.
- */
-function siteHomeRedirect() {
-  let target: string | null = null
-  try {
-    const d = JSON.parse(readFileSync(join(process.cwd(), "logs", "domain.json"), "utf8")) as { hostname?: string; architectHostname?: string }
-    if (d.hostname && d.architectHostname) target = `https://${d.hostname}`
-  } catch { /* домена нет */ }
-  if (!target) {
-    try {
-      const r = JSON.parse(readFileSync(join(process.cwd(), "AGI-ITEMS-CONFIG", "agi-items.json"), "utf8")) as { services?: { id: string; port?: number }[] }
-      const port = r.services?.find((s) => s.id === "root")?.port
-      if (port) target = `http://localhost:${port}`
-    } catch { /* реестра нет */ }
-  }
-  return target ? [{ source: "/:lang([a-z]{2})/site", destination: `${target}/:lang`, permanent: false }] : []
-}
-
-/**
  * Where the site element answers, when the domain root belongs to it (280-3). Taken from
  * logs/domain.json, which the activation door writes; no file or no architect subdomain —
  * no rule, and the core serves what it has.
@@ -82,7 +62,6 @@ const nextConfig: NextConfig = {
       // 280-3: the mirror of the site's rule. When the domain root belongs to the site, every
       // non-architect page (the header and footer link to them) lives there. Read at build, as
       // the activation door says: a domain change needs a rebuild.
-      ...siteHomeRedirect(),
       ...siteRedirects(),
     ];
   },

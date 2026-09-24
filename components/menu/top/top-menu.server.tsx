@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAppConfig } from "@/config/app-config";
-import { slotHasGroups } from "@/lib/menu/group-menus";
+import { getMenuGroups, slotHasGroups } from "@/lib/menu/group-menus";
+import { navGroupsFromConfig } from "@/lib/menu/nav-config";
 import { DesktopNav } from "@/components/menu/top/desktop-nav.client";
 import { MobileMenu } from "@/components/menu/top/mobile-menu.client";
 import { AccountButton } from "@/components/menu/account/account-button.client";
@@ -38,15 +39,37 @@ export async function TopMenu({ lang }: { lang: string }) {
   // Источник пунктов: настройки панели, а если владелец их ещё не открывал —
   // прежние манифесты на диске. Различие «ветки нет» и «ветка пуста» разобрано
   // в `nav-config.ts`; без него каждый существующий проект потерял бы меню.
-  // 🔒 280-3: У СТРАНИЦ АРХИТЕКТОРА СВОЯ ШАПКА (слово владельца 2026-09-24: «правильно кнопки сейчас
-  // нарисованы на корне … и неправильно нарисованы на ядре»). Кнопки верхнего меню принадлежат САЙТУ
-  // (элемент root) и его настройкам; в шапке ядра одна кнопка «Сайт» — /<язык>/site, её ядро
-  // переадресует на адрес сайта (next.config.ts).
   const menuOn = featureOn("topMenu");
+  const fromConfig = menuOn ? navGroupsFromConfig("top", lang) : null;
+  const baseGroups = menuOn ? (fromConfig ?? getMenuGroups("top", lang)) : [];
+
+  // Полоса шапки нужна, когда её кто-то населяет: само меню (даже пустое — это
+  // состояние, а не ошибка) или ящик сбоку, которому нужен переключатель.
+  // 🔒 ЗАРЕЗЕРВИРОВАННЫЕ КНОПКИ (261-6) — слово владельца 2026-09-21: «Nostr - blog. Два
+  // последних названия будут просто кнопки про которые пока никуда не будут везти».
+  // Nostr — будущий визуальный поиск микросервисов сети. Кнопка без адреса, а не
+  // ссылка на пустую страницу: пустая страница в выдаче хуже отсутствующей.
+  // Новый массив, а не push: список групп может быть закэширован, и каждое
+  // обновление страницы дописывало бы кнопки ещё раз.
   const ui0 = topMenuUi(lang);
-  const groups = menuOn
-    ? [{ slug: "site", href: `/${lang}/site`, label: ui0.site, order: 0, childrenAsDropdown: false, roles: "public", children: [] }]
-    : [];
+  // 🔒 STORE И A2A (277) — слово владельца 2026-09-23: «После кнопки core need Store, a после AGI
+  // need A2A, заглушки то есть неактивные». Встают ВПЛОТНУЮ за своим соседом, а не по `order`:
+  // меню выводится в порядке массива. Соседа нет (владелец убрал пункт) — кнопка встаёт перед Nostr,
+  // а не пропадает молча.
+  const reserved = (slug: string, label: string) =>
+    ({ slug, label, order: 0, childrenAsDropdown: false, roles: "public", children: [], inert: true });
+  const after: Record<string, ReturnType<typeof reserved>> = {
+    core: reserved("store", ui0.store),
+    "agi-item": reserved("a2a", ui0.a2a),
+  };
+  const placed = baseGroups.flatMap((g) => (after[g.slug] ? [g, after[g.slug]] : [g]));
+  const orphans = Object.keys(after).filter((s) => !baseGroups.some((g) => g.slug === s)).map((s) => after[s]);
+  const groups = menuOn ? [
+    ...placed,
+    ...orphans,
+    { slug: "nostr", label: ui0.nostr, order: 50, childrenAsDropdown: false, roles: "public", children: [], inert: true },
+    { slug: "blog", label: ui0.blog, order: 60, childrenAsDropdown: false, roles: "public", children: [], inert: true },
+  ] : baseGroups;
 
   const barNeeded = menuOn || leftHas || rightHas;
 
