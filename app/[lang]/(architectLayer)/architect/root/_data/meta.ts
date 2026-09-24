@@ -4,4 +4,5 @@ import type { WorkspacePageMeta } from '@/lib/collection/types'
 export const meta: WorkspacePageMeta = {
   slug: 'root',
   order: 21,
+  icon: 'globe',
 }

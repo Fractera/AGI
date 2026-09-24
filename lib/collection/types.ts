@@ -38,6 +38,8 @@ export type WorkspacePageMeta = {
    * — and renaming a folder would silently reshuffle a menu.
    */
   order: number
+  /** Значок пункта левого меню (288-2): имя из `components/workspace/menu-icons.tsx`. */
+  icon?: string
   /**
    * The page exists and is reachable, but no menu lists it.
    *

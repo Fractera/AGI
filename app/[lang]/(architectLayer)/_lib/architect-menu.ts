@@ -79,6 +79,7 @@ export function architectMenu(lang: string, currentPath: string): WorkspaceItem[
 
     return {
       label: wordsOf(group, lang).title,
+      ...(group.meta.icon ? { icon: group.meta.icon } : {}),
       href: at(dir),
       active: currentPath === dir,
       open: currentPath === dir || children.some((c) => c.active),

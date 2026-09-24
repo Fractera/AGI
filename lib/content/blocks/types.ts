@@ -994,6 +994,8 @@ export type TocItem = { id: string; text: string; children?: { id: string; text:
  */
 export type WorkspaceItem = {
   label: string
+  /** Значок пункта (288-2) — имя из `components/workspace/menu-icons.tsx`. */
+  icon?: string
   href?: string
   active?: boolean
   /**

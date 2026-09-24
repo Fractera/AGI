@@ -4,6 +4,7 @@ import { ChevronDown, Menu, X } from 'lucide-react'
 import { H3, H4, P, Small } from '@/components/ui/typography'
 import { TabsScroll } from '@/components/workspace/tabs-scroll.client'
 import { MenuScrollKeep } from '@/components/workspace/menu-scroll-keep.client'
+import { MenuIcon } from '@/components/workspace/menu-icons'
 
 // РАСКЛАДКА РАБОЧЕГО ЭКРАНА — ОДНА НА БЛОК И НА СТРАНИЦЫ (шаг 49, 2026-08-30).
 //
@@ -28,6 +29,8 @@ import { MenuScrollKeep } from '@/components/workspace/menu-scroll-keep.client'
 
 export type WorkspaceShellItem = {
   label: string
+  /** Значок слева от подписи (288-2) — имя из `menu-icons.tsx`. */
+  icon?: string
   href?: string
   active?: boolean
   /** Разделы пункта — раскрывающееся подменю. Закон и цена — у поля `children` вида `workspace`. */
@@ -199,7 +202,7 @@ export function WorkspaceShell({
       <nav
         data-workspace-menu
         aria-label={menuTitle ?? menuWord}
-        className="slim-scrollbar fixed left-0 top-0 z-40 h-dvh w-[90%] -translate-x-full overflow-y-auto border-r border-border bg-card p-4 shadow-xl transition-transform duration-200 peer-checked:translate-x-0 md:static md:z-auto md:h-auto md:max-h-[calc(100dvh-var(--wsx-top)-2rem)] md:w-60 md:shrink-0 md:translate-x-0 md:self-start md:shadow-none md:sticky wsx-sticky wsx-rule-up"
+        className="slim-scrollbar fixed left-0 top-0 z-40 h-dvh w-[90%] -translate-x-full overflow-y-auto border-r border-border bg-card px-3 py-4 shadow-xl transition-transform duration-200 peer-checked:translate-x-0 md:static md:z-auto md:h-auto md:max-h-[calc(100dvh-var(--wsx-top)-2rem)] md:w-60 md:shrink-0 md:translate-x-0 md:self-start md:shadow-none md:sticky wsx-sticky wsx-rule-up"
       >
         <div className="mb-3 flex items-center justify-between gap-2">
           {menuTitle ? <H4 variant="ui">{menuTitle}</H4> : <span aria-hidden />}
@@ -233,13 +236,15 @@ export function WorkspaceShell({
                 <details open={item.open ?? item.active} className="group/sub">
                   <summary
                     className={
-                      'flex cursor-pointer list-none items-center justify-between gap-2 rounded-md px-3 py-2 text-[length:var(--fs-body)] transition-colors [&::-webkit-details-marker]:hidden hover:bg-muted/60' +
+                      'flex cursor-pointer list-none items-center justify-between gap-2 rounded-md px-[9px] py-2 text-[length:var(--fs-body)] transition-colors [&::-webkit-details-marker]:hidden hover:bg-muted/60' +
                       ((item.open ?? item.active) ? ' font-medium text-foreground' : ' text-muted-foreground hover:text-foreground')
                     }
                   >
                     {/* Подчёркивание — только когда открыта САМА страница группы,
                         а не какой-то её раздел: иначе отметка «вы здесь» стоит
                         в двух местах сразу. */}
+                    <span className="flex min-w-0 items-center gap-2">
+                    <MenuIcon name={item.icon} />
                     {item.href ? (
                       <Link
                         href={item.href}
@@ -254,6 +259,7 @@ export function WorkspaceShell({
                     ) : (
                       <span className="truncate whitespace-nowrap">{renderItem?.(item, i) ?? item.label}</span>
                     )}
+                    </span>
                     <ChevronDown
                       size={16}
                       aria-hidden
@@ -261,7 +267,7 @@ export function WorkspaceShell({
                     />
                   </summary>
 
-                  <ul className="mt-1 ml-3 flex flex-col gap-1 border-l border-border pl-3">
+                  <ul className="mt-1 ml-[9px] flex flex-col gap-1 border-l border-border pl-[9px]">
                     {item.children.map((sub, j) => (
                       <li key={`${id}-m-${i}-${j}`}>
                         {/* 🔒 АКТИВНЫЙ ПУНКТ ПОДМЕНЮ — НИЖНЯЯ ЛИНИЯ, А НЕ ЗАЛИВКА
@@ -290,8 +296,17 @@ export function WorkspaceShell({
                 <Item
                   item={item}
                   closes={drawer}
-                  content={renderItem?.(item, i)}
-                  base="block truncate whitespace-nowrap rounded-md px-3 py-2 text-[length:var(--fs-body)] transition-colors"
+                  content={
+                    item.icon ? (
+                      <span className="flex min-w-0 items-center gap-2">
+                        <MenuIcon name={item.icon} />
+                        <span className="truncate">{renderItem?.(item, i) ?? item.label}</span>
+                      </span>
+                    ) : (
+                      renderItem?.(item, i)
+                    )
+                  }
+                  base="block truncate whitespace-nowrap rounded-md px-[9px] py-2 text-[length:var(--fs-body)] transition-colors"
                   activeClass=" bg-muted font-medium text-foreground"
                   idleClass=" text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                 />
