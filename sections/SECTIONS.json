@@ -554,13 +554,13 @@
       "usedOn": []
     },
     {
-      "id": null,
+      "id": "0059",
       "codes": [
         "personaCases01"
       ],
       "kind": "personaCases",
-      "type": "page-material",
-      "shape": "text",
+      "type": "workspace",
+      "shape": "cards",
       "fields": "badge?: string; title: string; note?: string; personas: [Persona, Persona, Persona] }; | { kind: 'statement'; text: string }; | { kind: 'invite'; href: string; label: string }; | {; title?: string; note?: string; cols?: 2 | 3; items: { title: string; text: string; href?: string; linkLabel?: string }[]",
       "title": "one deal, told three times",
       "description": "**Type:** How it works (3). Its neighbours are `flow` and `problemSolution`.\n\n## What it actually draws\n\nA titled section with a row of three person cards on top — a round avatar on the left, the name and\nthe role on the right — and, underneath, the six cases of whoever is selected. Picking a person\nchanges the container: the card gains a border, a tinted background and a glow.\n\n🔒 **Switching is radio inputs plus CSS, not an island.** All eighteen cases sit in the markup, so a\nsearch engine reads them and a person with JavaScript off still sees the whole story. An island would\ngive the opposite: the text would travel to the browser and the section would be empty without a\nscript. The rules live in `styles/globals.css` (`.pc-*`) — a `:checked ~` relation belongs to the\nlink between elements and cannot be written as a utility on one of them.\n\n🔒 **Exactly three people, exactly six cases each.** This is not a list of people: it is one story\ntold from three sides. A fourth person would turn a scenario into a catalogue, and the type refuses\nit.\n\n## When to take it\n\nOne process that touches several parties, where the interesting part is that the same events look\ndifferent to each of them: a client, a provider and a validator in one deal.\n\n## When NOT to take it\n\n- A process with an order and no second point of view — that is `flow`, and it takes exactly three\n  steps (the owner's rule, 2026-09-21).\n- Two states of one process, before and after — that is `problemSolution`.\n- Equal pieces with no order and no people — that is `cards`.",
@@ -737,13 +737,13 @@
       "usedOn": []
     },
     {
-      "id": null,
+      "id": "0057",
       "codes": [
         "accordion01"
       ],
       "kind": "accordion",
       "type": "page-material",
-      "shape": "text",
+      "shape": "list",
       "fields": "title?: string; lead?: string; capped?: boolean; cards?: boolean; children: Block[]",
       "title": "раскрывающиеся полосы",
       "description": "Заголовок раздела и несколько свёрнутых полос: видно всё оглавление, читается выбранное. Внутрь\nполосы кладут любые блоки каталога — абзац, список, совет, ссылку.\n\n## Откуда взялся вид\n\n**Решение владельца 2026-09-19, дословно:** «Дело эту идею достаточно компактно при необходимости\nможешь использовать раскрывающуюся карточку типа аккордеон чтобы показать больше описание».\n\nЗадача, ради которой вид заведён: корневая страница слоя архитектора обязана объяснить десяток тем\nсразу. Простыню текста не читают, а сокращение до трёх строк теряет половину сказанного. Аккордеон —\nтретий ответ.\n\n## Когда брать и когда НЕ брать\n\n| Берут | Не берут |\n|---|---|\n| тем много, читать будут одну-две | тем две-три и обе короткие — обычные абзацы честнее |\n| у каждой темы своя начинка (список, совет, ссылка) | это вопросы и ответы — тогда `faq` |\n| текст важен, но не всем и не сразу | текст обязателен к прочтению — свёрнутое не читают вовсе |\n\n🔒 **Это НЕ `faq`, и различие не в оформлении.** У «вопросов и ответов» своя семантика: `<dl>` — пара\n«термин — определение», постоянный якорь `faq-heading`, один раздел на страницу и своё место в\nразметке для поисковика. Там разметка и есть содержание; взять её ради похожего вида значит соврать.\n\n## Устройство\n\n```\n{ kind: 'accordion', title?: string, lead?: string, capped?: boolean, cards?: boolean, children: Block[] }\n{ kind: 'accordionItem', summary: string, open?: boolean, children: Block[] }\n```\n\n🔒 **`cards: true` — каждая полоса отдельной карточкой с отступом** (279, слово владельца 2026-09-23:\n«одно решение одна карточка аккордеон за доступно открытие только одной карточки»). Для списка\nсамостоятельных сущностей — решений, товаров; без поля — прежний вид, одна рамка с разделителями.\nОткрытой по-прежнему бывает одна полоса.\n\n🔒 **Ячейка — контейнер, а не строка.** Довод оплачен у `cards`: внутрь кладут не только абзац.\nСтрока такого не выражает, и вид пришлось бы расширять полями «а ещё список».\n\n🔒 **`open` ставится не более чем одной полосе.** Раскрытые по умолчанию полосы перестают быть\nаккордеоном: человек получает ту же простыню, ради сворачивания которой вид и заведён. Рендерер берёт\nпервую помеченную и остальные помечает свёрнутыми.\n\n🔒 **Открыта одна полоса за раз** (`type=\"single\" collapsible`). Закрыть последнюю оставшуюся человек\nимеет право — иначе экран навсегда занят разделом, который он дочитал.\n\n## Что легко сделать неправильно\n\n🛑 **Положить внутрь `accordion` что-то кроме `accordionItem`.** Такой блок негде открыть, и он\nисчезнет с экрана без следа. Тип этого не даёт, а рендерер молча отбрасывает чужих детей — последняя\nлиния для материала, собранного не типами.\n\n🛑 **Спрятать сюда то, что человек обязан прочесть.** Свёрнутое не читают; предупреждение о том, что\nсайт открыт без авторизации, живёт в аккордеоне только потому, что его ПЕРВАЯ строка видна всегда.\n\n🔒 **Вид состоит из двух половин, и это не сложность ради сложности.** Раскрытие живёт движением, а ни\nодин файл под `sections/` не бывает клиентским. Поэтому рендерер серверный и только переводит блоки в\nпропсы островка `components/accordion/accordion-section.client.tsx` — тот же приём, что у `workspace`\nи у диаграмм. Содержимое приходит островку **уже нарисованным**: он не знает о видах и не заводит\nвторой системы разметки.",
@@ -751,7 +751,7 @@
       "usedOn": []
     },
     {
-      "id": null,
+      "id": "0058",
       "codes": [
         "accordionItem01"
       ],
@@ -1045,13 +1045,13 @@
       "usedOn": []
     },
     {
-      "id": null,
+      "id": "0060",
       "codes": [
         "domainLadder01"
       ],
       "kind": "domainLadder",
-      "type": "page-material",
-      "shape": "text",
+      "type": "workspace",
+      "shape": "steps",
       "fields": "lang: string; words: import('@/components/domain/domain-ladder.i18n').DomainLadderWords",
       "title": null,
       "description": null,
@@ -1059,13 +1059,13 @@
       "usedOn": []
     },
     {
-      "id": null,
+      "id": "0061",
       "codes": [
         "servicePort01"
       ],
       "kind": "servicePort",
-      "type": "page-material",
-      "shape": "text",
+      "type": "workspace",
+      "shape": "panel",
       "fields": "serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords",
       "title": null,
       "description": null,
@@ -1073,13 +1073,13 @@
       "usedOn": []
     },
     {
-      "id": null,
+      "id": "0062",
       "codes": [
         "designSection01"
       ],
       "kind": "designSection",
-      "type": "page-material",
-      "shape": "text",
+      "type": "workspace",
+      "shape": "panel",
       "fields": "lang: string; section: 'colors' | 'fonts' | 'type' | 'shape'",
       "title": "a design editor of the site element",
       "description": "**Type:** Page material. A working part of the architect layer: one of four editors carried over from\nfractera-next-starter — `colors`, `fonts`, `type`, `shape`, chosen by `section`.\n\n## Whose settings it edits\n\nThe **site's** (the `root` element's `DESIGN-CONFIG`), not the core's. The owner's law of 2026-09-23:\nthe site keeps its own settings and stays alive without the core; the core reaches them through the\nsite's settings door. The editor asks the core door `/api/architect/design-config`, which passes the\nrequest to the site door `/api/settings/design` under the key `SETTINGS_SECRET`. The values are asked in\nthe browser: the page is prerendered, and settings asked on the server would freeze into its HTML.\n\nThree states, and \"the site did not answer\" is not \"no settings\": on refusal the editor is not drawn at\nall, so nothing empty can be saved over the real settings.\n\n## Saving does not apply — deploying does\n\n**Decision of the owner, 2026-09-24:** «важно чтобы пользователь не запускал это после каждого изменения:\nизменил шрифт сохранил рано запускать развёртывание, изменил цвет сохранил – рано». So **Save** only\nwrites the settings. After a successful save an orange plate (token `warning`) says the site does not\nshow it yet and leads to «Build → Deployments», where one deployment applies all the changes at once.\nAbove the editor a hint: settle the design early — every deployment rebuilds every part of the project\nthat uses these settings.\n\nUntil 280-11a the door rebuilt the site on every save; one such save on 2026-09-24 at 08:12 took the site\ndown (`kill EPERM` during the build).",
@@ -1087,13 +1087,13 @@
       "usedOn": []
     },
     {
-      "id": null,
+      "id": "0063",
       "codes": [
         "deployBoard01"
       ],
       "kind": "deployBoard",
-      "type": "page-material",
-      "shape": "text",
+      "type": "workspace",
+      "shape": "table",
       "fields": "lang: string",
       "title": "the deployment board of the node",
       "description": "**Type:** Page material. The working part of «Core → Deployments».\n\n**Decision of the owner, 2026-09-24:** saving design or settings does not rebuild anything; «кнопку\nповторить развёртывание … выборочно сделать развёртывание либо одного из сервисов либо сразу всех одной\nкнопкой». The board lists every element of the node (`AGI-ITEMS-CONFIG/agi-items.json`) with its version,\nthe time of its last build and a **measured** sign «changes waiting»: a settings file the element owns\n(`settings.owns` in its passport) is newer than its last build. A button per element and «Deploy\neverything»; elements are deployed one after another by `scripts/deploy-elements.mjs`, each through the\ninstaller — without downtime for elements that build into a neighbour folder (280-9).\n\nThe core is listed without a button: its rebuild restarts the server that serves this page and still has\ndowntime. Version history is future work.",
@@ -1101,13 +1101,13 @@
       "usedOn": []
     },
     {
-      "id": null,
+      "id": "0064",
       "codes": [
         "elementPreview01"
       ],
       "kind": "elementPreview",
-      "type": "page-material",
-      "shape": "text",
+      "type": "workspace",
+      "shape": "figure",
       "fields": "lang: string; serviceId: string",
       "title": "a live preview of an element",
       "description": "**Type:** Page material. The first page of each element section of the architect layer (Root, Authorization,\nData). **Decision of the owner, 2026-09-24:** the Root section's Preview shows the root application, and the\nsame standard goes to sign-in and data. Drawn by `WebPreview` from AI Elements (vendored in\n`components/ai-elements/web-preview.tsx` from the AI Elements registry, imports pointed at our primitives).\n\nThe address is asked of `/api/node/preview-url` in the browser: on an own domain the public one (site —\nthe zone root, sign-in — `auth.<zone>`), otherwise the loopback of this machine, and then the page says\nthat the preview opens only on this computer. The element itself must allow being framed by the core\n(`frame-ancestors`).",
@@ -1115,13 +1115,13 @@
       "usedOn": []
     },
     {
-      "id": null,
+      "id": "0065",
       "codes": [
         "authGoogleSetup01"
       ],
       "kind": "authGoogleSetup",
-      "type": "page-material",
-      "shape": "text",
+      "type": "workspace",
+      "shape": "steps",
       "fields": "words: import('@/components/auth/google-setup.i18n').GoogleSetupWords",
       "title": null,
       "description": null,
@@ -1129,13 +1129,13 @@
       "usedOn": []
     },
     {
-      "id": null,
+      "id": "0066",
       "codes": [
         "authResendSetup01"
       ],
       "kind": "authResendSetup",
-      "type": "page-material",
-      "shape": "text",
+      "type": "workspace",
+      "shape": "steps",
       "fields": "words: import('@/components/auth/resend-setup.i18n').ResendSetupWords",
       "title": null,
       "description": null,

@@ -49,7 +49,7 @@
 | `panel01` | `panel` | Page material | — | tone?: 'plain' \| 'warn' \| 'accent'; eyebrow?: string; title: string; children: Block[] | — |
 | `metrics01` | `metrics` | Trust and logos | the numbers that prove it | items: { value: string; label: string }[] | [карточка](blocks/metrics.md) |
 | `flow01` | `flow` | How it works | how it works, step by step | badge?: string; title: string; note?: string; steps: [FlowStep, FlowStep, FlowStep] }; \| { kind: 'personaCases'; badge?: string; title: string; note?: string; personas: [Persona, Persona, Persona] }; \| { kind: 'statement'; text: string }; \| { kind: 'invite'; href: string; label: string }; \| {; title?: string; note?: string; cols?: 2 \| 3; items: { title: string; text: string; href?: string; linkLabel?: string }[] | [карточка](blocks/flow.md) |
-| `personaCases01` | `personaCases` | Page material | one deal, told three times | badge?: string; title: string; note?: string; personas: [Persona, Persona, Persona] }; \| { kind: 'statement'; text: string }; \| { kind: 'invite'; href: string; label: string }; \| {; title?: string; note?: string; cols?: 2 \| 3; items: { title: string; text: string; href?: string; linkLabel?: string }[] | [карточка](blocks/personaCases.md) |
+| `personaCases01` | `personaCases` | Workspace | one deal, told three times | badge?: string; title: string; note?: string; personas: [Persona, Persona, Persona] }; \| { kind: 'statement'; text: string }; \| { kind: 'invite'; href: string; label: string }; \| {; title?: string; note?: string; cols?: 2 \| 3; items: { title: string; text: string; href?: string; linkLabel?: string }[] | [карточка](blocks/personaCases.md) |
 | `problemSolution01` | `problemSolution` | Comparison | cases on the left, the chosen one broken down on the right | badge?: string; title: string; note?: string; demandLabel: string; answerLabel: string; items: { title: string; demand: string; answer: string }[] }; \| { kind: 'flow'; badge?: string; title: string; note?: string; steps: [FlowStep, FlowStep, FlowStep] }; \| { kind: 'personaCases'; badge?: string; title: string; note?: string; personas: [Persona, Persona, Persona] }; \| { kind: 'statement'; text: string }; \| { kind: 'invite'; href: string; label: string }; \| {; title?: string; note?: string; cols?: 2 \| 3; items: { title: string; text: string; href?: string; linkLabel?: string }[] | [карточка](blocks/problemSolution.md) |
 | `cards01` | `cards` | Benefits and value | a section made of cards | badge?: string; title: string; note?: string; cols?: 2 \| 3; children: Block[] | [карточка](blocks/cards.md) |
 | `card01` | `card` | Page material | — | tone?: Tone; children: Block[] | — |
@@ -84,13 +84,13 @@
 | `chartTooltip01` | `chartTooltip` | Charts | подсказка, видимая без наведения | title: string; description?: string; rows?: ChartRow[]; labels?: { a?: string; b?: string }; openAt?: number | [карточка](blocks/chartTooltip.md) |
 | `orbitLayers01` | `orbitLayers` | Product in action | орбита: четыре опоры как одна конструкция | badge?: string; title: string; accent?: string; lead?: string; core?: FeatureIcon; cards: [OrbitLayerCard, OrbitLayerCard, OrbitLayerCard, OrbitLayerCard] | [карточка](blocks/orbitLayers.md) |
 | `chat01` | `chat` | Workspace | `chat` — переписка как секция страницы | title?: string; note?: string; size?: 'compact' \| 'tall'; messages: ChatBlockMessage[] | [карточка](blocks/chat.md) |
-| `domainLadder01` | `domainLadder` | Page material | — | lang: string; words: import('@/components/domain/domain-ladder.i18n').DomainLadderWords | — |
-| `servicePort01` | `servicePort` | Page material | — | serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords | — |
-| `designSection01` | `designSection` | Page material | a design editor of the site element | lang: string; section: 'colors' \| 'fonts' \| 'type' \| 'shape' | [карточка](blocks/designSection.md) |
-| `deployBoard01` | `deployBoard` | Page material | the deployment board of the node | lang: string | [карточка](blocks/deployBoard.md) |
-| `elementPreview01` | `elementPreview` | Page material | a live preview of an element | lang: string; serviceId: string | [карточка](blocks/elementPreview.md) |
-| `authGoogleSetup01` | `authGoogleSetup` | Page material | — | words: import('@/components/auth/google-setup.i18n').GoogleSetupWords | — |
-| `authResendSetup01` | `authResendSetup` | Page material | — | words: import('@/components/auth/resend-setup.i18n').ResendSetupWords | — |
+| `domainLadder01` | `domainLadder` | Workspace | — | lang: string; words: import('@/components/domain/domain-ladder.i18n').DomainLadderWords | — |
+| `servicePort01` | `servicePort` | Workspace | — | serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords | — |
+| `designSection01` | `designSection` | Workspace | a design editor of the site element | lang: string; section: 'colors' \| 'fonts' \| 'type' \| 'shape' | [карточка](blocks/designSection.md) |
+| `deployBoard01` | `deployBoard` | Workspace | the deployment board of the node | lang: string | [карточка](blocks/deployBoard.md) |
+| `elementPreview01` | `elementPreview` | Workspace | a live preview of an element | lang: string; serviceId: string | [карточка](blocks/elementPreview.md) |
+| `authGoogleSetup01` | `authGoogleSetup` | Workspace | — | words: import('@/components/auth/google-setup.i18n').GoogleSetupWords | — |
+| `authResendSetup01` | `authResendSetup` | Workspace | — | words: import('@/components/auth/resend-setup.i18n').ResendSetupWords | — |
 
 ## Чего в этой таблице нет
 

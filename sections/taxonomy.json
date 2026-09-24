@@ -501,6 +501,56 @@
       "id": "0056",
       "type": "workspace",
       "shape": "list"
+    },
+    "accordion": {
+      "id": "0057",
+      "type": "page-material",
+      "shape": "list"
+    },
+    "accordionItem": {
+      "id": "0058",
+      "type": "page-material",
+      "shape": "text"
+    },
+    "personaCases": {
+      "id": "0059",
+      "type": "workspace",
+      "shape": "cards"
+    },
+    "domainLadder": {
+      "id": "0060",
+      "type": "workspace",
+      "shape": "steps"
+    },
+    "servicePort": {
+      "id": "0061",
+      "type": "workspace",
+      "shape": "panel"
+    },
+    "designSection": {
+      "id": "0062",
+      "type": "workspace",
+      "shape": "panel"
+    },
+    "deployBoard": {
+      "id": "0063",
+      "type": "workspace",
+      "shape": "table"
+    },
+    "elementPreview": {
+      "id": "0064",
+      "type": "workspace",
+      "shape": "figure"
+    },
+    "authGoogleSetup": {
+      "id": "0065",
+      "type": "workspace",
+      "shape": "steps"
+    },
+    "authResendSetup": {
+      "id": "0066",
+      "type": "workspace",
+      "shape": "steps"
     }
   }
 }

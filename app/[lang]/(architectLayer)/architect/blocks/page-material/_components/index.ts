@@ -1,7 +1,7 @@
 import type { Block } from '@/lib/content/blocks/types'
 import { voiceStrings } from '@/lib/i18n/voice-field.i18n'
-import { SPECIMEN, SPECIMEN_CODES } from '../_data/specimen'
-import { blocksCatalogueUi } from '../_data/ui.i18n'
+import { typeCatalogue } from '../../_components/type-catalogue'
+import { meta } from '../_data/meta'
 
 // СОДЕРЖИМОЕ СТРАНИЦЫ «Материал страницы» — КАТАЛОГ СЕКЦИЙ.
 //
@@ -21,7 +21,6 @@ const EXPORT_CMD = 'npm run i18n:export -- voice-field --langs es,fr,de,it,pt,pl
 const IMPORT_CMD = 'npm run i18n:import -- voice-field <файл-ответа.json>'
 
 export function content(lang: string): Block[] {
-  const ui = blocksCatalogueUi(lang)
   const voice = voiceStrings(lang)
 
   // Обмен переводами элементов формы: рамка про СЛОВАРЬ, а не про элемент —
@@ -32,23 +31,9 @@ export function content(lang: string): Block[] {
     { kind: 'code', text: `${EXPORT_CMD}\n${IMPORT_CMD}\n\nlib/i18n/voice-field.i18n.json` },
   ]
 
-  const catalogue: Block[] = SPECIMEN.flatMap((section, i): Block[] => [
-    {
-      kind: 'badges',
-      items: [
-        // Имя вида не переводится ни на один язык: это машинная строка, она и
-        // есть значение в данных материала.
-        { label: SPECIMEN_CODES[i], tone: 'code' },
-        ...(section.label ? [{ label: section.label, tone: 'muted' as const }] : []),
-      ],
-    },
-    { kind: 'p', text: `**${ui.whenLabel}:** ${section.when}` },
-    ...section.blocks,
-  ])
-
   return [
-    { kind: 'p', text: `**${SPECIMEN.length} ${ui.countLabel}.** ${ui.subtitle}` },
     ...i18nExchange,
-    ...catalogue,
+    // 296: только блоки своего раздела — остальные стоят на своих страницах группы «Блоки».
+    ...typeCatalogue(lang, meta.slug),
   ]
 }
