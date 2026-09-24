@@ -36,7 +36,7 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, readdirSync, cpSync } from 'node:fs'
 import { join, dirname, relative } from 'node:path'
-import { spawnSync } from 'node:child_process'
+import { spawnSync, spawn } from 'node:child_process'
 import { randomBytes, createHash } from 'node:crypto'
 import { createRequire } from 'node:module'
 import paths from '../lib/agi-items/paths.cjs'
@@ -381,6 +381,42 @@ const summary = []
 const ONLY = (() => { const i = process.argv.indexOf('--only'); return i > 0 ? process.argv[i + 1] : null })()
 const REBUILD = process.argv.includes('--rebuild')
 
+// ── Прогрев свежей сборки (280-9) ───────────────────────────────────────────
+//
+// ✗ ИЗМЕРЕНО 2026-09-24: сразу после переключения на новую папку сборки процесс 18 с не слушал порт,
+// а ещё ≥14 с принимал соединения и не отвечал: первый запуск читает тысячи только что записанных
+// файлов, и Windows проверяет каждый. Поэтому новая сборка сначала поднимается на ЗАПАСНОМ порту и
+// отвечает на здоровье и главную — и только потом pm2 переключается на неё: файлы уже прочитаны.
+async function warmUp(start, healthPath) {
+  let port = null
+  for (let c = PORT_BLOCK_END; c >= PORT_BLOCK_START; c -= 1) {
+    if (takenByRegistry.has(c) || c === nodePort) continue
+    if (await freeOnBothStacks(c)) { port = c; break }
+  }
+  if (!port) return 'нет свободного порта для прогрева'
+  const proc = spawn(process.execPath, start.args, {
+    cwd: start.cwd, windowsHide: true, stdio: 'ignore',
+    env: { ...childEnv(), PORT: String(port), HOSTNAME: '127.0.0.1', NODE_ENV: 'production' },
+  })
+  const base = `http://127.0.0.1:${port}`
+  const t0 = Date.now()
+  try {
+    for (const path of [healthPath || '/', '/']) {
+      for (;;) {
+        if (Date.now() - t0 > 180000) return 'прогрев не дождался ответа за 3 минуты'
+        try {
+          const res = await fetch(base + path, { signal: AbortSignal.timeout(15000) })
+          if (res.status < 500) break
+        } catch { /* ещё не слушает */ }
+        await new Promise((ok) => setTimeout(ok, 1000))
+      }
+    }
+    return `прогрет за ${Math.round((Date.now() - t0) / 1000)} с на порту ${port}`
+  } finally {
+    proc.kill()
+  }
+}
+
 // Папки прежних сборок, которые удаляются ПОСЛЕ перезапуска процессов (280-9).
 const retiredDists = []
 /** Папка сборки, из которой служба запущена сейчас (по её отметке). */
@@ -677,6 +713,7 @@ for (const entry of registry.services) {
   // Без этого страницы рисуются, а КАЖДЫЙ стиль и скрипт отдают 404 — снаружи
   // это выглядит «сломалась вёрстка», а не «не доделана упаковка».
   const start = resolveStart(dir, props, builtDist ?? currentDist(stamp))
+  if (builtDist && start) say(`  ${await warmUp(start, props.health?.path)}`)
   if (!start) {
     say('  ОШИБКА: нечем запускать — не нашёл ни standalone-сервера, ни простой команды старта')
     failed += 1
@@ -754,7 +791,16 @@ for (const name of stoppedByInstaller) {
   if (refreshed.includes(name)) continue
   if (run(pm2cmd, ['start', name], ROOT, { quiet: true }).rc === 0) refreshed.push(name)
 }
-for (const old of retiredDists) rmSync(old, { recursive: true, force: true })
+// Старая папка сборки удаляется после перезапуска. Windows отпускает файлы убитого процесса не сразу
+// (✗ измерено 2026-09-24: rmSync сразу после pm2 delete уронил установщик до pm2 save) — несколько
+// попыток с паузой; не вышло — папка неактивна и будет удалена перед следующей сборкой в неё.
+for (const old of retiredDists) {
+  let gone = false
+  for (let i = 0; i < 6 && !gone; i += 1) {
+    try { rmSync(old, { recursive: true, force: true }); gone = true } catch { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2000) }
+  }
+  if (!gone) say(`  прежняя сборка ${old} пока занята системой — удалится перед следующей сборкой`)
+}
 if (refreshed.length) {
   run(pm2cmd, ['save'], ROOT, { quiet: true })
   say(`\n  перезапущено с чистым окружением (delete + start): ${refreshed.join(', ')}`)
