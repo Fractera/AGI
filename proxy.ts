@@ -551,7 +551,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 // статические, и вторая проверка внутри страницы означала бы чтение запроса в
 // `layout`/`page`, то есть перевод всего слоя в динамику. Статика здесь дороже
 // второго замка: замок один, зато названный.
-const ARCHITECT_PAGE = /^\/[a-z]{2}\/architect(?:\/|$)/;
+// 🔒 285-6: СТРАНИЦЫ АРХИТЕКТОРА ЖИВУТ ОТ КОРНЯ ЯДРА (`/<язык>/…`), и перезапись `next.config.ts` отдаёт их папкой
+// `architect/` ПОСЛЕ прокси — прокси видит чистый адрес. Других страниц у ядра нет (280-2b), поэтому ворота
+// закрывают ЛЮБОЙ путь с языком. ✗ Узнавай они по `/architect` в пути — чистые адреса прошли бы мимо входа.
+const ARCHITECT_PAGE = /^\/[a-z]{2}(?:\/|$)/;
 
 async function architectPagesGate(request: NextRequest): Promise<NextResponse | null> {
   if (!ARCHITECT_PAGE.test(request.nextUrl.pathname)) return null;

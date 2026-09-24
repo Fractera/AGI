@@ -1,28 +1,7 @@
 import type { NextConfig } from "next";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 
-/**
- * Where the site element answers, when the domain root belongs to it (280-3). Taken from
- * logs/domain.json, which the activation door writes; no file or no architect subdomain —
- * no rule, and the core serves what it has.
- */
-function siteRedirects() {
-  try {
-    const d = JSON.parse(readFileSync(join(process.cwd(), "logs", "domain.json"), "utf8")) as {
-      hostname?: string
-      architectHostname?: string
-    };
-    if (!d.hostname || !d.architectHostname) return [];
-    return [{
-      source: "/:lang([a-z]{2})/:path((?!architect(?:/|$)).+)",
-      destination: `https://${d.hostname}/:lang/:path`,
-      permanent: false,
-    }];
-  } catch {
-    return [];
-  }
-}
+// 🪦 `siteRedirects()` (280-3: non-architect paths → the site) removed by 285-6 — the core serves only architect
+// pages at its root, and the project shell links to the site by absolute addresses.
 
 // 🔒 ЗДЕСЬ БЫЛА ОБЁРТКА `withWorkflow` — СНЯТА 2026-08-13 (уборка перед
 // развёртыванием, вопрос владельца про `app/.well-known`).
@@ -54,16 +33,31 @@ const nextConfig: NextConfig = {
     return [
       { source: "/:lang/architecture", destination: "/:lang/m2m", permanent: true },
       // 262: каталог секций переехал в слой архитектора по слову владельца.
-      { source: "/:lang/blocks", destination: "/:lang/architect/blocks/page-material", permanent: true },
+      { source: "/:lang/blocks", destination: "/:lang/blocks/page-material", permanent: true },
       { source: "/:lang/architecture/index.md", destination: "/:lang/m2m/index.md", permanent: true },
-      // 280-2b: the public pages and the visitor cabinet moved into the site element
-      // (fractera-root-starter). The core's home is the architect group of pages.
-      { source: "/:lang([a-z]{2})", destination: "/:lang/architect", permanent: false },
-      // 280-3: the mirror of the site's rule. When the domain root belongs to the site, every
-      // non-architect page (the header and footer link to them) lives there. Read at build, as
-      // the activation door says: a domain change needs a rebuild.
-      ...siteRedirects(),
+      // 🔒 285-6: THE ARCHITECT PAGES LIVE AT THE ROOT OF THE CORE — owner 2026-09-24: «должно быть так:
+      // https://architect.throughsongs.com/ru/». The folder stays `(architectLayer)/architect/` (424 places build
+      // their links from it); the address loses `/architect`: an old address answers with a redirect to the clean one,
+      // and the clean one is served by the rewrite below. The core has no other pages (280-2b), so every
+      // `/<lang>/…` of the core is an architect page — and the proxy's gate guards every such path.
+      // 🪦 280-2b `/:lang → /:lang/architect` and 280-3 `siteRedirects()` (non-architect paths → the site) are gone:
+      // the header and footer now link to the site by absolute addresses (the project shell, 285-3).
+      { source: "/:lang([a-z]{2})/architect", destination: "/:lang", permanent: false },
+      { source: "/:lang([a-z]{2})/architect/:path*", destination: "/:lang/:path*", permanent: false },
     ];
+  },
+
+  // 285-6: the clean address is served by the architect page. `afterFiles` — only where the file system has no
+  // route of its own (`llms.txt`, `manifest.webmanifest` keep theirs).
+  async rewrites() {
+    return {
+      beforeFiles: [],
+      afterFiles: [
+        { source: "/:lang([a-z]{2})", destination: "/:lang/architect" },
+        { source: "/:lang([a-z]{2})/:path*", destination: "/:lang/architect/:path*" },
+      ],
+      fallback: [],
+    };
   },
 
   // 🔒 МОМЕНТ СБОРКИ ВЫЧИСЛЯЕТСЯ ОДИН РАЗ — ЗДЕСЬ, А НЕ НА ЗАПРОС.
