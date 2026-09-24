@@ -22,7 +22,9 @@ if (!target || !existsSync(target)) {
 }
 
 const variant = express ? 'express' : 'next'
-const from = join(here, 'master', variant)
+// Мастер лежит в kits/header/master/ в корне узла — вне дерева страниц ядра: он шаблон для ДРУГИХ служб,
+// и сторожа страниц ядра (шапка, типографика) к нему не относятся.
+const from = join(here, '..', '..', '..', '..', '..', '..', 'kits', 'header', 'master', variant)
 cpSync(from, resolve(target), { recursive: true })
 
 console.log(`header-kit: стандартный хедер (${variant}) поставлен в ${resolve(target)}`)
