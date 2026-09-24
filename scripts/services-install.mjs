@@ -527,10 +527,16 @@ for (const entry of registry.services) {
   // чего человек начинает избегать. Отметка в `.install-stamp.json` хранит
   // версию и отпечаток окружения; совпали — работа пропускается и это сказано
   // вслух. `--force` пересобирает всё безусловно.
-  const depsReady = existsSync(join(dir, 'node_modules')) && stamp.version === entry.version
+  // 🔒 296: ЗАВИСИМОСТИ МЕНЯЮТСЯ ТОЛЬКО С `package-lock.json`, А НЕ С ВЕРСИЕЙ. ✗ Измерено 2026-09-24: каждый выпуск
+  // (даже правка одной строки) переставлял node_modules — минуты на элемент, и на Windows `npm ci` падал EPERM на
+  // `tailwindcss-oxide…node`, который держит работающая служба (три раза за день). Отпечаток замка совпал — пропуск.
+  const lockFile = join(dir, 'package-lock.json')
+  const lockHash = existsSync(lockFile) ? createHash('sha256').update(readFileSync(lockFile)).digest('hex') : null
+  const depsReady = existsSync(join(dir, 'node_modules')) &&
+    (stamp.lockHash ? stamp.lockHash === lockHash : stamp.version === entry.version)
 
   if (depsReady && !FORCE) {
-    say('  зависимости на месте (та же версия) — пропущено')
+    say('  зависимости на месте (тот же package-lock.json) — пропущено')
   } else {
     // 🔒 ЖИВУЮ СЛУЖБУ ОСТАНАВЛИВАЕМ ДО ЗАМЕНЫ ЕЁ ЗАВИСИМОСТЕЙ (260-1).
     // ✗ ИЗМЕРЕНО 2026-09-21 на Windows: `npm ci` падал `EPERM unlink` на
@@ -762,6 +768,7 @@ for (const entry of registry.services) {
   writeFileSync(stampFile, JSON.stringify({
     version: entry.version,
     env: envFingerprint,
+    lockHash,
     port,
     start,
     // 285-4: папка текущей сборки — для служб, чей старт не называет её путём (Express со встроенным Next).
