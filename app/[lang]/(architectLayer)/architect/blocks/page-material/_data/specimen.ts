@@ -1236,6 +1236,12 @@ export const SPECIMEN: SpecimenSection[] = [
     ],
   },
   {
+    kind: 'elementPreview',
+    when: 'A live preview of an element of this node — the site, sign-in, data — inside the architect page, drawn by the WebPreview component of AI Elements. The address is asked of the node in the browser: public on an own domain, the loopback of this machine otherwise.',
+    whenRu: 'Живой просмотр элемента узла — сайта, входа, данных — внутри страницы архитектора, компонентом WebPreview из AI Elements. Адрес спрашивается у узла в браузере: публичный на своём домене, иначе петля этой машины.',
+    blocks: [{ kind: 'elementPreview', lang: 'en', serviceId: 'root' }],
+  },
+  {
     kind: 'deployBoard',
     when: 'The deployment board of the node: every element with its version, when it was built and whether saved settings are waiting for a deployment; a button per element and one for everything. Saving never deploys — this is where changes are applied, once, after a series of edits.',
     whenRu: 'Дашборд развёртываний узла: каждый элемент с версией, временем сборки и признаком, ждут ли сохранённые настройки развёртывания; кнопка у каждого и одна на всё. Сохранение никогда не разворачивает — изменения применяются здесь, один раз, после серии правок.',

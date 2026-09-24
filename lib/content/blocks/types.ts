@@ -124,6 +124,7 @@ export type LeafBlock =
   // агента службы, он живёт в папке маршрута службы (`architect/<служба>/_agent-kit/`) и встаёт на страницу
   // полем `widget` вида `workspace`. Мастер — `architect/kits/_agent-kit/`.
   | { kind: 'deployBoard'; lang: string }
+  | { kind: 'elementPreview'; lang: string; serviceId: string }
   | { kind: 'designSection'; lang: string; section: 'colors' | 'fonts' | 'type' | 'shape' }
   | { kind: 'servicePort'; serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords }
   | { kind: 'note'; text: string }

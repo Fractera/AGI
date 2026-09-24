@@ -1103,6 +1103,20 @@
     {
       "id": null,
       "codes": [
+        "elementPreview01"
+      ],
+      "kind": "elementPreview",
+      "type": "page-material",
+      "shape": "text",
+      "fields": "lang: string; serviceId: string",
+      "title": "a live preview of an element",
+      "description": "**Type:** Page material. The first page of each element section of the architect layer (Root, Authorization,\nData). **Decision of the owner, 2026-09-24:** the Root section's Preview shows the root application, and the\nsame standard goes to sign-in and data. Drawn by `WebPreview` from AI Elements (vendored in\n`components/ai-elements/web-preview.tsx` from the AI Elements registry, imports pointed at our primitives).\n\nThe address is asked of `/api/node/preview-url` in the browser: on an own domain the public one (site —\nthe zone root, sign-in — `auth.<zone>`), otherwise the loopback of this machine, and then the page says\nthat the preview opens only on this computer. The element itself must allow being framed by the core\n(`frame-ancestors`).",
+      "hasCard": true,
+      "usedOn": []
+    },
+    {
+      "id": null,
+      "codes": [
         "authGoogleSetup01"
       ],
       "kind": "authGoogleSetup",

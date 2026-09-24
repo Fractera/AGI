@@ -4,11 +4,12 @@
 import type { WorkspacePageData, CollectionBranch } from '@/lib/collection/types'
 import { data as p0 } from './claude-code/_data'
 import { data as p1 } from './google/_data'
-import { data as p2 } from './resend/_data'
-import { data as p3 } from './telegram/_data'
-import { data as p4 } from './terminal/_data'
+import { data as p2 } from './preview/_data'
+import { data as p3 } from './resend/_data'
+import { data as p4 } from './telegram/_data'
+import { data as p5 } from './terminal/_data'
 
-export const PAGES: WorkspacePageData[] = [p0, p1, p2, p3, p4]
+export const PAGES: WorkspacePageData[] = [p0, p1, p2, p3, p4, p5]
 
 /** Each child together with its own children — see the law in the generator. */
 export const TREE: CollectionBranch[] = [
@@ -17,4 +18,5 @@ export const TREE: CollectionBranch[] = [
   { page: p2, children: [] },
   { page: p3, children: [] },
   { page: p4, children: [] },
+  { page: p5, children: [] },
 ]
