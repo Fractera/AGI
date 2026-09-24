@@ -84,7 +84,8 @@ export function FooterMenu({ lang }: { lang: string }) {
   // Владелец раздел не открывал — показываем три страницы, которые в проекте
   // уже есть. Плюс группы с диска, если разработчик их объявил.
   const groups = pagesOn
-    ? (fromConfig ?? [...defaultFooterGroups(lang), ...getMenuGroups("footer", lang)])
+    // 280-3: страницы подвала (правовые и прочие) — страницы САЙТА; у ядра своих нет.
+    ? ([] as ReturnType<typeof defaultFooterGroups>)
     : [];
   const ui = footerLabels(lang);
   // 🔒 ВИДИМОСТЬ — ВОПРОС PLATFORM-CONFIG, СОДЕРЖАНИЕ — APP-CONFIG (шаг 523,
