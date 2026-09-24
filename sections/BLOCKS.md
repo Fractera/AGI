@@ -86,7 +86,7 @@
 | `chat01` | `chat` | Workspace | `chat` — переписка как секция страницы | title?: string; note?: string; size?: 'compact' \| 'tall'; messages: ChatBlockMessage[] | [карточка](blocks/chat.md) |
 | `domainLadder01` | `domainLadder` | Page material | — | lang: string; words: import('@/components/domain/domain-ladder.i18n').DomainLadderWords | — |
 | `servicePort01` | `servicePort` | Page material | — | serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords | — |
-| `designColors01` | `designColors` | Page material | — | lang: string | — |
+| `designSection01` | `designSection` | Page material | — | lang: string; section: 'colors' \| 'fonts' \| 'type' \| 'shape' | — |
 | `authGoogleSetup01` | `authGoogleSetup` | Page material | — | words: import('@/components/auth/google-setup.i18n').GoogleSetupWords | — |
 | `authResendSetup01` | `authResendSetup` | Page material | — | words: import('@/components/auth/resend-setup.i18n').ResendSetupWords | — |
 

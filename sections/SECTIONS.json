@@ -1075,12 +1075,12 @@
     {
       "id": null,
       "codes": [
-        "designColors01"
+        "designSection01"
       ],
-      "kind": "designColors",
+      "kind": "designSection",
       "type": "page-material",
       "shape": "text",
-      "fields": "lang: string",
+      "fields": "lang: string; section: 'colors' | 'fonts' | 'type' | 'shape'",
       "title": null,
       "description": null,
       "hasCard": false,

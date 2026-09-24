@@ -1236,10 +1236,10 @@ export const SPECIMEN: SpecimenSection[] = [
     ],
   },
   {
-    kind: 'designColors',
-    when: 'The colour editor of the SITE element, carried over from fractera-next-starter. The palette belongs to the site; the core reads and patches it through the site settings door and rebuilds the site. Asked in the browser: the page is prerendered and the colours change without rebuilding the core.',
-    whenRu: 'Редактор цветов элемента САЙТ, перенесённый из fractera-next-starter. Палитра принадлежит сайту; ядро читает и правит её через дверь настроек сайта и пересобирает сайт. Спрашивается в браузере: страница предрендерена, а цвета меняются без пересборки ядра.',
-    blocks: [{ kind: 'designColors', lang: 'en' }],
+    kind: 'designSection',
+    when: 'A design editor of the SITE element — colours, fonts, type or shape, chosen by `section` — carried over from fractera-next-starter. The settings belong to the site; the core reads and patches them through the site settings door and rebuilds the site. Asked in the browser: the page is prerendered and the settings change without rebuilding the core.',
+    whenRu: 'Редактор оформления элемента САЙТ — цвета, шрифты, типографика или форма, раздел задаётся `section`, — перенесённый из fractera-next-starter. Настройки принадлежат сайту; ядро читает и правит их через дверь настроек сайта и пересобирает сайт. Спрашивается в браузере: страница предрендерена, а настройки меняются без пересборки ядра.',
+    blocks: [{ kind: 'designSection', lang: 'en', section: 'colors' }],
   },
   {
     kind: 'authGoogleSetup',
