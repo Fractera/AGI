@@ -639,7 +639,8 @@ for (const entry of registry.services) {
       if (distEnv) {
         const current = server ? String(server).split(/[\\/]/)[0] : null
         const target = current === '.next-a' ? '.next-b' : '.next-a'
-        rmSync(join(dir, target), { recursive: true, force: true })
+        // Папка прошлой-прошлой сборки: обычно уже свободна; занята — next build очистит её сам.
+        try { rmSync(join(dir, target), { recursive: true, force: true }) } catch { /* next build очистит */ }
         let bg = run('npm', ['run', 'build'], dir, { env: { [distEnv]: target } })
         if (bg.rc !== 0) {
           say('  сборка упала — повторяю один раз')
