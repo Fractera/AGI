@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { siteMenu } from "@/lib/menu/site-menu-remote";
+import { menuHref } from "@/lib/menu/menu-href";
 import { Boxes, SlidersHorizontal, Wrench, Palette, GitBranch, Send, KeyRound, Bot } from "lucide-react";
 import { findSocialIcon } from "@/components/icons/socials";
 import { isUploadedIcon } from "@/lib/socials/catalogue";
@@ -72,7 +74,7 @@ function footerSocials(seo: Parameters<typeof resolveSocialLinks>[0]): FooterSoc
   });
 }
 
-export function FooterMenu({ lang }: { lang: string }) {
+export async function FooterMenu({ lang }: { lang: string }) {
   const cfg = getAppConfig();
   // 🔒 ТОТ ЖЕ МЕХАНИЗМ, ЧТО У ВЕРХНЕГО МЕНЮ (2026-08-12). Ссылки подвала —
   // настройка владельца в панели, а не манифесты на диске. Различие «ветки нет»
@@ -83,9 +85,12 @@ export function FooterMenu({ lang }: { lang: string }) {
   const fromConfig = pagesOn ? navGroupsFromConfig("footer", lang) : null;
   // Владелец раздел не открывал — показываем три страницы, которые в проекте
   // уже есть. Плюс группы с диска, если разработчик их объявил.
-  const groups = pagesOn
+  const ownFooter = pagesOn
     ? (fromConfig ?? [...defaultFooterGroups(lang), ...getMenuGroups("footer", lang)])
     : [];
+  // 283-1: страницы подвала — страницы САЙТА и включаются в его панели; ядро рисует их у себя.
+  const remote = await siteMenu(lang);
+  const groups = remote ? remote.footer : ownFooter;
   const ui = footerLabels(lang);
   // 🔒 ВИДИМОСТЬ — ВОПРОС PLATFORM-CONFIG, СОДЕРЖАНИЕ — APP-CONFIG (шаг 523,
   // разделение владельца). Прежде ряд значков появлялся просто оттого, что в
@@ -151,7 +156,7 @@ export function FooterMenu({ lang }: { lang: string }) {
             <p className="text-xs font-mono font-bold text-muted-foreground uppercase tracking-widest">{ui.footerPages}</p>
             <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-foreground font-medium">
               {groups.map((g) => (
-                <Link key={g.slug} href={g.href ? `/${lang}${g.href}` : `/${lang}/${g.slug}`} className="hover:text-primary transition-colors">
+                <Link key={g.slug} href={menuHref(lang, g.href, `/${lang}/${g.slug}`)} className="hover:text-primary transition-colors">
                   {g.label}
                 </Link>
               ))}

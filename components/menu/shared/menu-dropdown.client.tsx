@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { menuHref } from "@/lib/menu/menu-href";
 import { ChevronDown } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -31,8 +32,8 @@ export function MenuDropdown({
   /** Кнопка без перехода (261-6): видна, но никуда не ведёт. */
   inert?: boolean;
 }) {
-  const groupHref = href ? `/${lang}${href}` : `/${lang}/${slug}`;
-  const childHref = (c: MenuChildLink) => (c.href ? `/${lang}${c.href}` : `${groupHref}/${c.slug}`);
+  const groupHref = menuHref(lang, href, `/${lang}/${slug}`);
+  const childHref = (c: MenuChildLink) => menuHref(lang, c.href, `${groupHref}/${c.slug}`);
 
   if (inert) {
     return (

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { menuHref } from "@/lib/menu/menu-href";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -80,7 +81,7 @@ export function MobileMenu({ lang, groups, label }: { lang: string; groups: Menu
                     <span aria-disabled="true" className="py-2.5 text-sm font-semibold text-muted-foreground cursor-default">{g.label}</span>
                   ) : (
                   <Link
-                    href={g.href ? `/${lang}${g.href}` : `/${lang}/${g.slug}`}
+                    href={menuHref(lang, g.href, `/${lang}/${g.slug}`)}
                     onClick={() => setOpen(false)}
                     className="py-2.5 text-sm font-semibold text-foreground hover:text-foreground transition-colors"
                   >
@@ -90,7 +91,7 @@ export function MobileMenu({ lang, groups, label }: { lang: string; groups: Menu
                   {g.childrenAsDropdown && g.children.map((c) => (
                     <Link
                       key={c.slug}
-                      href={c.href ? `/${lang}${c.href}` : `/${lang}/${g.slug}/${c.slug}`}
+                      href={menuHref(lang, c.href, `/${lang}/${g.slug}/${c.slug}`)}
                       onClick={() => setOpen(false)}
                       // Полный текст, как и в выпадающем списке на десктопе: здесь
                       // ширина экрана и так узкая, поэтому название переносится по

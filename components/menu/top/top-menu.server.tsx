@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { siteMenu } from "@/lib/menu/site-menu-remote";
 import { getAppConfig } from "@/config/app-config";
 import { getMenuGroups, slotHasGroups } from "@/lib/menu/group-menus";
 import { navGroupsFromConfig } from "@/lib/menu/nav-config";
@@ -64,12 +65,16 @@ export async function TopMenu({ lang }: { lang: string }) {
   };
   const placed = baseGroups.flatMap((g) => (after[g.slug] ? [g, after[g.slug]] : [g]));
   const orphans = Object.keys(after).filter((s) => !baseGroups.some((g) => g.slug === s)).map((s) => after[s]);
-  const groups = menuOn ? [
+  const ownGroups = menuOn ? [
     ...placed,
     ...orphans,
     { slug: "nostr", label: ui0.nostr, order: 50, childrenAsDropdown: false, roles: "public", children: [], inert: true },
     { slug: "blog", label: ui0.blog, order: 60, childrenAsDropdown: false, roles: "public", children: [], inert: true },
   ] : baseGroups;
+  // 🔒 283-1: МЕНЮ ОДНО НА ВЕСЬ ПРОЕКТ (слово владельца 2026-09-24). Ядро рисует меню САЙТА (дверь
+  // `/api/menu/<язык>`, ссылки абсолютные на адрес сайта); своё — только если сайт не ответил на сборке.
+  const remote = menuOn ? await siteMenu(lang) : null;
+  const groups = remote ? remote.top : ownGroups;
 
   const barNeeded = menuOn || leftHas || rightHas;
 
