@@ -1,5 +1,11 @@
 # DESIGN-CONFIG — how the project LOOKS
 
+> 🔒 **In the core this file is a derived copy of the SITE's design (step 285-1).** Before every build
+> `scripts/sync-site-design.mjs` (first in `prebuild`) takes the site's `DESIGN-CONFIG` through its settings
+> door and writes it here, so the core looks like the site, sign-in and data. Never edit it by hand — change the
+> design on «Design» (it writes the site and every element), then rebuild the core. The site did not answer —
+> the file stays as it was and the build log says so.
+
 Holds `design-config.json`: the owner's visual choices — colours by role (light and dark),
 fonts (heading / body / mono), the type scale, and shape (radius, border width, content width).
 

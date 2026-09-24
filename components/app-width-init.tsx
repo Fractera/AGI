@@ -1,4 +1,5 @@
 import Script from "next/script";
+import { READ_PREF_JS } from "@/lib/shared-prefs";
 
 // Поднимает сохранённый выбор ширины в `html[data-app-width]` ДО первой
 // отрисовки — тем же приёмом, что и тема. Без этого лента успевала показаться
@@ -14,7 +15,7 @@ import Script from "next/script";
 const appWidthScript = `
 (function() {
   try {
-    if (localStorage.getItem('fractera-app-width') === 'narrow') {
+    if ((${READ_PREF_JS})('fractera-app-width') === 'narrow') { // 285-2: cookie проекта
       document.documentElement.setAttribute('data-app-width', 'narrow');
     }
   } catch (e) {}

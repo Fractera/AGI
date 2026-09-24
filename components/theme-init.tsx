@@ -1,4 +1,5 @@
 import Script from "next/script";
+import { READ_PREF_JS } from "@/lib/shared-prefs";
 
 // Inline theme bootstrap (runs before paint to avoid a light/dark flash). Shared by
 // every root-owning zone ([lang] + (service)) after the static-rendering refactor
@@ -10,7 +11,7 @@ const themeScript = `
   // 🛑 Запрещённое хранилище БРОСАЕТ на обращении к свойству, а не возвращает
   // null: без try/catch этот скрипт валится до отрисовки, в самом head.
   var saved = null;
-  try { saved = localStorage.getItem('fractera-theme'); } catch (e) {}
+  saved = (${READ_PREF_JS})('fractera-theme'); // 285-2: cookie проекта, иначе память адреса
   var theme = saved || '${defaultTheme}';
   if (theme === 'dark') {
     document.documentElement.classList.add('dark');

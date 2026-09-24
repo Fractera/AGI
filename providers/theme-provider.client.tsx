@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { readStored, writeStored } from '@/lib/safe-storage';
+import { readPref, writePref } from '@/lib/shared-prefs';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 
@@ -32,7 +32,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const envDefault = (process.env.NEXT_PUBLIC_DEFAULT_THEME as ThemeMode | undefined) ?? 'light';
-    const saved = readStored(THEME_KEY) as ThemeMode | null;
+    const saved = readPref(THEME_KEY) as ThemeMode | null;
     const active = saved ?? envDefault;
     setMode(active);
     applyTheme(active);
@@ -49,7 +49,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const cycleTheme = useCallback(() => {
     setMode((prev) => {
       const next = THEME_CYCLE[(THEME_CYCLE.indexOf(prev) + 1) % THEME_CYCLE.length];
-      writeStored(THEME_KEY, next);
+      writePref(THEME_KEY, next);
       applyTheme(next);
       return next;
     });

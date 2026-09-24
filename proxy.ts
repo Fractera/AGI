@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { prefCookieDomain } from "@/lib/shared-prefs";
 import { NextResponse } from "next/server";
 import { shouldBypassAuthEdge } from "@/lib/auth/auth-bypass.edge";
 import { isOwnerAtMachine } from "@/lib/auth/owner-at-machine";
@@ -100,12 +101,19 @@ const SERVICE_ROOTS = new Set<string>([]);
 const LOCALE_COOKIE = "NEXT_LOCALE";
 const COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
-function withLangCookie(response: NextResponse, lang: string): NextResponse {
+// 🔒 285-2: ЯЗЫК — ВЫБОР ПОСЕТИТЕЛЯ НА ВЕСЬ ПРОЕКТ, cookie ставится на домен проекта (`.<зона>`), как тема и
+// ширина (`lib/shared-prefs.ts`). Прежний cookie без домена стирается тем же ответом: иначе браузер пришлёт оба,
+// и победит старый, видимый одному адресу.
+function withLangCookie(response: NextResponse, lang: string, request: NextRequest): NextResponse {
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? "";
+  const domain = prefCookieDomain(host);
   response.cookies.set(LOCALE_COOKIE, lang, {
     maxAge: COOKIE_MAX_AGE,
     path: "/",
     sameSite: "lax",
+    ...(domain ? { domain } : {}),
   });
+  if (domain) response.headers.append("Set-Cookie", `${LOCALE_COOKIE}=; Path=/; Max-Age=0`);
   return response;
 }
 
@@ -291,18 +299,18 @@ function languageRouter(request: NextRequest): NextResponse {
       const without = pathname.replace(`/${singleLang}`, "") || "/";
       const url = request.nextUrl.clone();
       url.pathname = without;
-      return withLangCookie(NextResponse.redirect(url, 301), singleLang);
+      return withLangCookie(NextResponse.redirect(url, 301), singleLang, request);
     }
     const url = request.nextUrl.clone();
     url.pathname = `/${singleLang}${pathname}`;
-    return withLangCookie(NextResponse.rewrite(url), singleLang);
+    return withLangCookie(NextResponse.rewrite(url), singleLang, request);
   }
 
   // Multi-language mode: language already present in the URL → pass through.
   if (SUPPORTED_LANGUAGES.includes(firstSegment)) {
     const res = NextResponse.next();
     res.headers.set("x-lang", firstSegment);
-    return withLangCookie(res, firstSegment);
+    return withLangCookie(res, firstSegment, request);
   }
 
   // No language prefix → detect and route.
@@ -318,17 +326,17 @@ function languageRouter(request: NextRequest): NextResponse {
       const res = NextResponse.rewrite(url);
       res.headers.set("x-lang", lang);
       res.headers.set("Vary", "Cookie, Accept-Language");
-      return withLangCookie(res, lang);
+      return withLangCookie(res, lang, request);
     }
     const url = request.nextUrl.clone();
     url.pathname = `/${lang}`;
-    return withLangCookie(NextResponse.redirect(url), lang);
+    return withLangCookie(NextResponse.redirect(url), lang, request);
   }
 
   // Non-root content path without a language prefix → redirect to /<lang>/… .
   const url = request.nextUrl.clone();
   url.pathname = `/${lang}${pathname}`;
-  return withLangCookie(NextResponse.redirect(url), lang);
+  return withLangCookie(NextResponse.redirect(url), lang, request);
 }
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {

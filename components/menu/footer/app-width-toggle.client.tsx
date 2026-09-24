@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { UnfoldHorizontal, FoldHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { writeStored } from "@/lib/safe-storage";
+import { writePref } from "@/lib/shared-prefs";
 
 // Переключатель ширины СРЕДИННОЙ ЧАСТИ страницы (в подвале).
 //
@@ -43,7 +43,7 @@ export function AppWidthToggle({ labels }: { labels: { wide: string; normal: str
     if (next) el.setAttribute("data-app-width", "narrow");
     else el.removeAttribute("data-app-width");
     // приватный просмотр — переключение работает, просто не запомнится
-    writeStored(STORAGE_KEY, next ? "narrow" : "normal");
+    writePref(STORAGE_KEY, next ? "narrow" : "normal"); // 285-2: на все страницы проекта
     setNarrow(next);
   }
 
