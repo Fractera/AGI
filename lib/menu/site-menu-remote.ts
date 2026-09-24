@@ -33,17 +33,48 @@ function absolute(groups: MenuGroup[], base: string, lang: string): MenuGroup[] 
   })
 }
 
-export async function siteMenu(lang: string): Promise<{ top: MenuGroup[]; footer: MenuGroup[] } | null> {
+// 🔒 ОДИН ЗАПРОС НА ЯЗЫК ЗА ПРОЦЕСС, ПОВТОР И ГРОМКИЙ ОТКАЗ (283-4). ✗ Измерено: ядро, собранное в 283-3,
+// нарисовало своё запасное меню (4 кнопки из 9 — одни заглушки), и сборка прошла зелёной — откат был
+// молчаливым. Сотни страниц спрашивали сайт каждая сама под нагрузкой сборки. Теперь ответ один на язык,
+// неудача повторяется, а окончательный отказ печатается в журнал сборки с причиной.
+const memo = new Map<string, Promise<{ top: MenuGroup[]; footer: MenuGroup[] } | null>>()
+
+async function ask(url: string): Promise<Answer> {
+  let last: unknown
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(10000) })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = (await res.json()) as Answer
+      if (!Array.isArray(data.top)) throw new Error("no top in answer")
+      return data
+    } catch (err) {
+      last = err
+      await new Promise((r) => setTimeout(r, 1000))
+    }
+  }
+  throw last
+}
+
+export function siteMenu(lang: string): Promise<{ top: MenuGroup[]; footer: MenuGroup[] } | null> {
+  const hit = memo.get(lang)
+  if (hit) return hit
   const local = serviceUrl("root")
   const base = siteBase()
-  if (!local || !base) return null
-  try {
-    const res = await fetch(`${local.replace(/\/+$/, "")}/api/menu/${lang}`, { signal: AbortSignal.timeout(5000) })
-    if (!res.ok) return null
-    const data = (await res.json()) as Answer
-    if (!Array.isArray(data.top)) return null
-    return { top: absolute(data.top, base, lang), footer: absolute(data.footer ?? [], base, lang) }
-  } catch {
-    return null
-  }
+  const job = (async () => {
+    if (!local || !base) {
+      console.warn(`[site-menu] ${lang}: адрес сайта неизвестен — ядро рисует своё меню`)
+      return null
+    }
+    const url = `${local.replace(/\/+$/, "")}/api/menu/${lang}`
+    try {
+      const data = await ask(url)
+      return { top: absolute(data.top ?? [], base, lang), footer: absolute(data.footer ?? [], base, lang) }
+    } catch (err) {
+      console.warn(`[site-menu] ${lang}: сайт не ответил (${url}: ${err instanceof Error ? err.message : err}) — ядро рисует своё меню`)
+      return null
+    }
+  })()
+  memo.set(lang, job)
+  return job
 }
