@@ -1236,6 +1236,12 @@ export const SPECIMEN: SpecimenSection[] = [
     ],
   },
   {
+    kind: 'deployBoard',
+    when: 'The deployment board of the node: every element with its version, when it was built and whether saved settings are waiting for a deployment; a button per element and one for everything. Saving never deploys — this is where changes are applied, once, after a series of edits.',
+    whenRu: 'Дашборд развёртываний узла: каждый элемент с версией, временем сборки и признаком, ждут ли сохранённые настройки развёртывания; кнопка у каждого и одна на всё. Сохранение никогда не разворачивает — изменения применяются здесь, один раз, после серии правок.',
+    blocks: [{ kind: 'deployBoard', lang: 'en' }],
+  },
+  {
     kind: 'designSection',
     when: 'A design editor of the SITE element — colours, fonts, type or shape, chosen by `section` — carried over from fractera-next-starter. The settings belong to the site; the core reads and patches them through the site settings door and rebuilds the site. Asked in the browser: the page is prerendered and the settings change without rebuilding the core.',
     whenRu: 'Редактор оформления элемента САЙТ — цвета, шрифты, типографика или форма, раздел задаётся `section`, — перенесённый из fractera-next-starter. Настройки принадлежат сайту; ядро читает и правит их через дверь настроек сайта и пересобирает сайт. Спрашивается в браузере: страница предрендерена, а настройки меняются без пересборки ядра.',
