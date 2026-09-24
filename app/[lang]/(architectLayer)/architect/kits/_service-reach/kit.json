@@ -1,0 +1,69 @@
+{
+  "_": "Карточка готового решения «Адрес службы» (289-4): главная вкладка службы — порт на машине, режим узла, адрес в интернете, «Проверить подключение», «Подключить». Подробно — README.md рядом.",
+  "id": "service-reach",
+  "order": 40,
+  "words": {
+    "en": {
+      "summary": "Service address: port, mode and internet address with a check",
+      "intro": "The main tab of every service of the node says where it lives: the port on this machine, how the node is served (Cloudflare or this machine only), the service's address on the internet and whether it answers — with «Check connection» and, when the name is missing, «Connect». A person whose address does not open looks for the answer exactly here.",
+      "embedLabel": "How to embed",
+      "command": "{ kind: 'servicePort', serviceId: '<id>', words: servicePortWords(lang, '<id>') }",
+      "paramsHeaders": ["Parameter", "What it is"],
+      "params": [
+        ["<id>", "the service's eternal id in AGI-ITEMS-CONFIG/agi-items.json — auth, data, root, …"],
+        ["/api/services", "the node's door: the port"],
+        ["/api/node/reach", "the node's door: mode, address, DNS, tunnel route, answer; POST connects (architect)"]
+      ],
+      "sample": "Live sample: the main tab of [Authorization](/en/auth), [Data](/en/data), [Root](/en/root).",
+      "detailsTitle": "Service address — in detail",
+      "details": [
+        {
+          "heading": "Why here",
+          "items": [
+            "The owner's word: a person whose address does not open will look for the answer on the service's own tab.",
+            "The address is a fact of the machine (domain or port); the page asks the node on every visit and never bakes it in."
+          ]
+        },
+        {
+          "heading": "What «Connect» does",
+          "items": [
+            "Adds the service's name to the node's own Cloudflare tunnel and zone: <id>.<zone>, the site — the zone itself.",
+            "Existing routes are read first and kept: the tunnel's rule list is replaced as a whole.",
+            "A service decides itself what it shows to the internet: the data service shows only its page."
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "summary": "Адрес службы: порт, режим и адрес в интернете с проверкой",
+      "intro": "Главная вкладка каждой службы узла говорит, где она живёт: порт на этой машине, как обслуживается узел (Cloudflare или только эта машина), адрес службы в интернете и отвечает ли он — с кнопками «Проверить подключение» и, если имени нет, «Подключить». Человек, у которого адрес не открывается, ищет ответ именно здесь.",
+      "embedLabel": "Как встроить",
+      "command": "{ kind: 'servicePort', serviceId: '<id>', words: servicePortWords(lang, '<id>') }",
+      "paramsHeaders": ["Параметр", "Что это"],
+      "params": [
+        ["<id>", "вечное имя службы в AGI-ITEMS-CONFIG/agi-items.json — auth, data, root, …"],
+        ["/api/services", "дверь узла: порт"],
+        ["/api/node/reach", "дверь узла: режим, адрес, DNS, маршрут туннеля, ответ; POST подключает (архитектор)"]
+      ],
+      "sample": "Живой образец: главная вкладка [Авторизации](/ru/auth), [Данных](/ru/data), [Корня](/ru/root).",
+      "detailsTitle": "Адрес службы — подробно",
+      "details": [
+        {
+          "heading": "Почему здесь",
+          "items": [
+            "Слово владельца: человек, у которого адрес не открывается, будет искать ответ на вкладке самой службы.",
+            "Адрес — факт машины (домен или порт); страница спрашивает узел при каждом заходе и не запекает его."
+          ]
+        },
+        {
+          "heading": "Что делает «Подключить»",
+          "items": [
+            "Добавляет имя службы в собственный туннель и зону Cloudflare узла: <id>.<зона>, сайту — сама зона.",
+            "Существующие маршруты сначала читаются и сохраняются: список правил туннеля заменяется целиком.",
+            "Что служба показывает интернету, решает она сама: служба данных показывает только свою страницу."
+          ]
+        }
+      ]
+    }
+  }
+}

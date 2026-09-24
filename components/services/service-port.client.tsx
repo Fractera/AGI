@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { Small } from "@/components/ui/typography"
 import type { ServicePortWords } from "@/components/services/service-port.i18n"
+import { ServiceReach } from "@/components/services/service-reach.client"
 
 // ОСТРОВОК: НА КАКОМ ПОРТУ ЖИВЁТ СМЕННЫЙ БЛОК (264-1).
 //
@@ -77,6 +78,8 @@ export function ServicePort({
         {line}
       </p>
       <Small className="text-muted-foreground">{words.note}</Small>
+      {/* 289-3: адрес службы в интернете — режим, состояние, «Проверить подключение», «Подключить». */}
+      <ServiceReach serviceId={serviceId} words={words.reach} />
     </div>
   )
 }

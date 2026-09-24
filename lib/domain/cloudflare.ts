@@ -222,3 +222,28 @@ export async function addMailRecord(token: string, zoneId: string, zone: string,
   const made = await send<{ id: string }>("POST", `/zones/${zoneId}/dns_records`, token, body)
   return made.ok ? { name, type: rec.type, outcome: "created" } : { name, type: rec.type, outcome: "failed", reason: made.reason }
 }
+
+// ── АДРЕС СЛУЖБЫ В ИНТЕРНЕТЕ (289-2) ─────────────────────────────────────────
+//
+// 🔒 МАРШРУТ ДОПИСЫВАЕТСЯ, А НЕ ЗАМЕНЯЕТ. `setIngress` делает PUT всего списка: новое имя, записанное без чтения
+// текущих правил, стёрло бы сайт, вход и ядро разом. Поэтому сначала читаются правила туннеля, затем к ним
+// добавляется одно — и только если такого имени ещё нет.
+
+/** Правила туннеля (без последнего «всё прочее — 404»). */
+export async function getIngress(token: string, accountId: string, tunnelId: string) {
+  const r = await send<{ config?: { ingress?: Array<{ hostname?: string; service: string }> } }>(
+    "GET", `/accounts/${accountId}/cfd_tunnel/${tunnelId}/configurations`, token,
+  )
+  if (!r.ok) return r
+  const rules = (r.result?.config?.ingress ?? []).filter((x): x is IngressRule => typeof x.hostname === "string" && !!x.hostname)
+  return { ok: true as const, result: rules }
+}
+
+/** Есть ли в зоне запись с этим именем (любого типа). */
+export async function hasDnsRecord(token: string, zoneId: string, name: string) {
+  const r = await send<Array<{ id: string; type: string; content: string }>>(
+    "GET", `/zones/${zoneId}/dns_records?name=${encodeURIComponent(name)}`, token,
+  )
+  if (!r.ok) return r
+  return { ok: true as const, result: r.result.length > 0 }
+}

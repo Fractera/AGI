@@ -1,4 +1,5 @@
 import type { Block } from '@/lib/content/blocks/types'
+import { servicePortWords } from '@/components/services/service-port.i18n'
 
 // СОДЕРЖИМОЕ СТРАНИЦЫ «Data».
 //
@@ -13,6 +14,8 @@ import type { Block } from '@/lib/content/blocks/types'
 //
 // 🛑 СЛОВА ОТСЮДА НЕ ПИШУТСЯ: любая строка, которую увидит человек, приходит
 // параметром из `_data` — иначе она не переводится и её не видит сторож словарей.
-export function content(_lang: string): Block[] {
-  return []
+// 289-3: главная вкладка службы данных — где она живёт: порт на машине и адрес в интернете (готовое решение
+// «Адрес службы», одна строка блока).
+export function content(lang: string): Block[] {
+  return [{ kind: 'servicePort', serviceId: 'data', words: servicePortWords(lang, 'data') }]
 }
