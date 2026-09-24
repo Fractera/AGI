@@ -1,4 +1,5 @@
 import { AccessGate } from "@/components/auth/access-gate.client"
+import { coreShellWhere } from "@/lib/shell/core-shell-where"
 import { ARCHITECT_LAYER_ROLES } from "@/lib/roles"
 import { accessGateUi } from "@/components/auth/access-gate.i18n"
 import { appDialogUi } from "@/components/dialog/app-dialog.i18n"
@@ -36,8 +37,11 @@ export default async function Layout(
   { children, params }: { children: React.ReactNode; params: Promise<{ lang: string }> },
 ) {
   const { lang } = await params
+  // 294: «На главную» замка — корень ПРОЕКТА (сайт): главная ядра сама под этим замком, и кнопка крутила цикл.
+  const site = coreShellWhere().siteUrl
   return (
     <AccessGate
+      homeHref={site ? `${site}/${lang}` : undefined}
       roles={ARCHITECT_LAYER_ROLES}
       lang={lang}
       ui={accessGateUi(lang)}

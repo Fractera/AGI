@@ -68,7 +68,7 @@ function isOpenAddress(hostname: string): boolean {
 }
 
 export function AccessGate(
-  { roles, lang, ui, dialogUi, children }:
+  { roles, lang, ui, dialogUi, children, homeHref }:
   {
     roles: readonly string[]
     lang: string
@@ -76,9 +76,17 @@ export function AccessGate(
     /** Слова общего окна — резолвятся на сервере (`appDialogUi(lang)`). */
     dialogUi: AppDialogUi
     children: React.ReactNode
+    /**
+     * Куда ведёт «На главную» (294). По умолчанию `/<язык>` этого адреса — верно у сайта. У ядра главная сама под
+     * замком: ✗ владелец 2026-09-24 — «перебрасывает снова на этот же сайт … бесконечный цикл». Ядро передаёт корень
+     * ПРОЕКТА (сайт).
+     */
+    homeHref?: string
   },
 ) {
   const router = useRouter()
+  const home = homeHref ?? `/${lang}`
+  const goHome = () => (/^https?:\/\//.test(home) ? window.location.assign(home) : router.push(home))
   const t = ui
   const [verdict, setVerdict] = useState<Verdict>("checking")
 
@@ -156,7 +164,7 @@ export function AccessGate(
             >
               {t.signIn}
             </Button>
-            <Button variant="outline" onClick={() => router.push(`/${lang}`)}>
+            <Button variant="outline" onClick={() => goHome()}>
               {t.goHome}
             </Button>
             {/* «Отмена» = назад. По прямой ссылке истории нет — тогда это тот же
@@ -166,7 +174,7 @@ export function AccessGate(
               variant="ghost"
               onClick={() => {
                 if (window.history.length > 1) router.back()
-                else router.push(`/${lang}`)
+                else goHome()
               }}
             >
               {t.cancel}

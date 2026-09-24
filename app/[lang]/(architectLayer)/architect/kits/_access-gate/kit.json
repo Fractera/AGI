@@ -1,0 +1,67 @@
+{
+  "_": "Карточка готового решения «Замок страницы» (294): окно «Эта страница вам недоступна» для макета закрытой группы страниц любого элемента узла. Подробно — README.md рядом.",
+  "id": "access-gate",
+  "order": 50,
+  "words": {
+    "en": {
+      "summary": "Page lock: «This page is not available to you»",
+      "intro": "The dialog every element of the node shows over a closed group of pages: which roles it needs, «I have access — sign in» (back to this very page after signing in, asking for the page's role), «Home» (the project root, never a page under the same lock) and «Cancel».",
+      "embedLabel": "How to embed",
+      "command": "<AccessGate roles={ROLES} lang={lang} ui={accessGateUi(lang)} dialogUi={appDialogUi(lang)} homeHref={projectRoot}>{children}</AccessGate>",
+      "paramsHeaders": ["Parameter", "What it is"],
+      "params": [
+        ["roles", "the roles that open the group; any one of them is enough"],
+        ["homeHref", "where «Home» leads — the project root; without it /<lang> of this address (right for the site only)"],
+        ["ui, dialogUi", "words of the lock and of the shared dialog, resolved on the server"]
+      ],
+      "sample": "Live sample: the architect layer of the core and the private groups of [the site](/en/root).",
+      "detailsTitle": "Page lock — in detail",
+      "details": [
+        {
+          "heading": "Why one lock",
+          "items": [
+            "The owner's word: the dialog is a reusable module — every AGI item uses this logic everywhere.",
+            "The site and the core hold the same file; the guard check:shell-kits compares the core's copy with the site's."
+          ]
+        },
+        {
+          "heading": "What it is not",
+          "items": [
+            "A courtesy on the page, not the lock of the data: the doors /api/* check the role themselves.",
+            "Static pages stay static: the layout never reads the session; the lock asks /api/me after hydration."
+          ]
+        }
+      ]
+    },
+    "ru": {
+      "summary": "Замок страницы: «Эта страница вам недоступна»",
+      "intro": "Окно, которое любой элемент узла показывает поверх закрытой группы страниц: какие роли нужны, «У меня есть доступ — войти» (после входа — обратно на эту же страницу, с запросом роли страницы), «На главную» (в корень проекта, а не на страницу под тем же замком) и «Отмена».",
+      "embedLabel": "Как встроить",
+      "command": "<AccessGate roles={ROLES} lang={lang} ui={accessGateUi(lang)} dialogUi={appDialogUi(lang)} homeHref={projectRoot}>{children}</AccessGate>",
+      "paramsHeaders": ["Параметр", "Что это"],
+      "params": [
+        ["roles", "роли, открывающие группу; достаточно любой одной"],
+        ["homeHref", "куда ведёт «На главную» — корень проекта; без него /<язык> этого адреса (верно только у сайта)"],
+        ["ui, dialogUi", "слова замка и общего окна, резолвятся на сервере"]
+      ],
+      "sample": "Живой образец: слой архитектора ядра и приватные группы [сайта](/ru/root).",
+      "detailsTitle": "Замок страницы — подробно",
+      "details": [
+        {
+          "heading": "Почему один замок",
+          "items": [
+            "Слово владельца: окно — переиспользуемый модуль, любой AGI ITEM всегда и везде использует эту логику.",
+            "У сайта и ядра один и тот же файл; сторож check:shell-kits сверяет копию ядра с сайтом."
+          ]
+        },
+        {
+          "heading": "Чем он не является",
+          "items": [
+            "Это вежливость страницы, а не замок данных: двери /api/* проверяют роль сами.",
+            "Статичные страницы остаются статичными: макет не читает сессию; замок спрашивает /api/me после гидратации."
+          ]
+        }
+      ]
+    }
+  }
+}

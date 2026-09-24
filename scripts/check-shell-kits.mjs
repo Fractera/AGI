@@ -69,6 +69,16 @@ for (const s of reg.services ?? []) {
   } else console.log(`  ✓ ${s.id} — копия сайта`)
 }
 
+// 294: замок страницы (`components/auth/access-gate.client.tsx`) — один файл у сайта и ядра; копия ядра = сайт.
+const gateSite = join(dirOf(root), 'components', 'auth', 'access-gate.client.tsx')
+const gateCore = join(ROOT, 'components', 'auth', 'access-gate.client.tsx')
+if (existsSync(gateSite) && existsSync(gateCore)) {
+  if (read(gateSite) !== read(gateCore)) {
+    errors++
+    console.log('  ✗ ОШИБКА ядро: components/auth/access-gate.client.tsx не совпадает с сайтом — скопируйте файл сайта')
+  } else console.log('  ✓ замок страницы ядра — копия сайта')
+}
+
 if (errors) {
   console.log('===SHELL_KITS_FAILED===')
   process.exit(1)
