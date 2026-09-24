@@ -21,7 +21,7 @@
 и только карточка говорит, что он выдержит** — сколько элементов, что ломается за пределом, когда
 его не брать. Есть карточка — прочти её перед использованием.
 
-Видов: **66** · рендереров: **65** · карточек: **39**
+Видов: **66** · рендереров: **65** · карточек: **40**
 
 | Код | Вид | Семейство | Что это | Поля | Правила владельца |
 |---|---|---|---|---|---|
@@ -39,7 +39,7 @@
 | `cta01` | `cta` | Page material | призыв к действию | text?: string; href: string; label: string; secondary?: { href: string; label: string } | [карточка](blocks/cta.md) |
 | `callout01` | `callout` | Page material | — | title: string; text: string | — |
 | `table01` | `table` | Page material | — | headers: string[]; rows: string[][]; caption?: string | — |
-| `docref01` | `docref` | Page material | — | title: string; summary: string; href: string; label?: string; kicker?: string | — |
+| `docref01` | `docref` | Page material | a card that leads somewhere: a document to download or a page to open | title: string; summary: string; href: string; label?: string; kicker?: string; navigate?: boolean | [карточка](blocks/docref.md) |
 | `founder01` | `founder` | Testimonials and social proof | the owner's quote, signed from settings | text: string | [карточка](blocks/founder.md) |
 | `columns01` | `columns` | Page material | — | children: Block[]; cols?: 2 \| 3 | — |
 | `group01` | `group` | Page material | — | children: Block[] | — |
