@@ -536,7 +536,14 @@ for (const entry of registry.services) {
         stoppedByInstaller.add(name)
       }
     }
-    const ci = run('npm', ['ci', '--no-audit', '--no-fund'], dir)
+    let ci = run('npm', ['ci', '--no-audit', '--no-fund'], dir)
+    // 287: на Windows файл native-модуля бывает занят процессом прошлой сборки (EPERM/EBUSY unlink) — через секунды
+    // он свободен. ✗ Измерено: возврат auth после отката упал здесь, повтор минутой позже прошёл. Один повтор.
+    if (ci.rc !== 0 && /EPERM|EBUSY/.test(ci.out)) {
+      say('  зависимости: файл занят (EPERM/EBUSY) — повторяю через 5 с')
+      await new Promise((r) => setTimeout(r, 5000))
+      ci = run('npm', ['ci', '--no-audit', '--no-fund'], dir)
+    }
     if (ci.rc !== 0) {
       say('  ОШИБКА установки зависимостей:')
       say(ci.out.split('\n').filter((l) => l.includes('npm error')).slice(0, 6).map((l) => '    ' + l).join('\n'))
