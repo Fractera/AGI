@@ -136,7 +136,8 @@ export type LeafBlock =
   // Optional `label` overrides the default download-button text (e.g. "Download PDF"
   // for a .pdf instead of the default "Download .md"); optional `kicker` overrides
   // the eyebrow above the title (default "Full documentation").
-  | { kind: 'docref'; title: string; summary: string; href: string; label?: string; kicker?: string }
+  // 291: `navigate` — карточка ведёт на СТРАНИЦУ (переход, next/link), а не скачивает документ (`download`).
+  | { kind: 'docref'; title: string; summary: string; href: string; label?: string; kicker?: string; navigate?: boolean }
   // "Did you know" callout — icon + tinted panel for an aside fact (e.g. the page
   // auto-updates in real time as an AI agent edits it). title is the lead-in.
   | { kind: 'callout'; title: string; text: string }

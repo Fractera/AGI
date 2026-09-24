@@ -62,8 +62,10 @@ export function CollectionIndex({
       kind: 'docref',
       title: w.title,
       summary: w.lead ?? ui.emptyLead,
-      href: `/${lang}${dir}/${p.meta.slug}`,
+      // 291: переход, а не скачивание; адрес — чистый (285-6: страницы архитектора от корня ядра, без `/architect`).
+      href: `/${lang}${dir.replace(/^\/architect(?=\/|$)/, '')}/${p.meta.slug}`,
       label: ui.openSection,
+      navigate: true,
     }
   })
 
