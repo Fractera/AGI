@@ -61,6 +61,19 @@ for (let attempt = 0; attempt < 3 && !config; attempt++) {
 const next = JSON.stringify(config, null, 2) + '\n'
 let prev = ''
 try { prev = readFileSync(FILE, 'utf8') } catch { /* файла не было */ }
+
+// 🛑 ПУСТОЙ ОТВЕТ НЕ ЗАТИРАЕТ НАСТРОЕННОЕ (2026-09-25). ✗ Измерено: в 01:21 сайт только что поднялся после
+// простоя, дверь ответила `{ ok: true, config: {} }` (её читатель при ЛЮБОЙ ошибке чтения отдаёт `{}` —
+// тот же ответ, что «владелец ещё ничего не настраивал»), скрипт записал `{}` поверх голубой палитры, и
+// страницы архитектора собрались чёрно-белыми, пока остальные элементы оставались голубыми.
+// Отличить «сбросили» от «не смогли прочитать» по пустому объекту нельзя, поэтому пустота сюда не проходит.
+const hasColors = (c) => !!c && typeof c === 'object' && !!c.colors && Object.keys(c.colors).length > 0
+let prevConfig = null
+try { prevConfig = JSON.parse(prev) } catch { /* прежний файл пуст или битый */ }
+if (!hasColors(config) && hasColors(prevConfig)) {
+  console.warn('[sync-site-design] ⚠ сайт отдал ПУСТОЕ оформление, а у ядра оно настроено — оставляю прежнее. Проверь дверь /api/settings/design сайта.')
+  process.exit(0)
+}
 if (prev.replace(/\r\n/g, '\n') === next) {
   console.log('[sync-site-design] оформление ядра уже совпадает с сайтом')
 } else {
