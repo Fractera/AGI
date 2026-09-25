@@ -281,6 +281,11 @@ function derivedValue(name, ctx) {
     // .next/standalone, и дверь настроек писала DESIGN-CONFIG ВНУТРЬ сборки — следующая сборка
     // стирала правку, а настоящий файл сайта оставался прежним. Тот же класс, что база входа (260-1).
     case 'DESIGN_CONFIG_PATH': return join(ctx.dir, 'DESIGN-CONFIG', 'design-config.json')
+    // 299: тот же класс для остальных файлов настроек элемента. ✗ Измерено 2026-09-25: сайт читал APP-CONFIG и
+    // PLATFORM-CONFIG из копии внутри сборки — правка файла на диске не видна до пересборки.
+    case 'APP_CONFIG_PATH': return join(ctx.dir, 'APP-CONFIG', 'app-config.json')
+    case 'PLATFORM_CONFIG_PATH': return join(ctx.dir, 'PLATFORM-CONFIG', 'platform-config.json')
+    case 'LEGAL_CONFIG_DIR': return join(ctx.dir, 'APP-CONFIG', 'legal')
     // Файл подключённого домена — у узла; собранный сервер элемента сам его не найдёт (сайт вёл «Войти» на петлю).
     case 'NODE_DOMAIN_FILE': return join(ROOT, 'logs', 'domain.json')
     // 299: реестр узла — какие элементы стоят здесь. Элемент настроек показывает по нему ссылки на все элементы перед

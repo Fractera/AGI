@@ -70,7 +70,7 @@
     {
       "id": "root",
       "repo": "https://github.com/Fractera/fractera-root-starter.git",
-      "version": "v1.7.17",
+      "version": "v1.7.18",
       "port": 24683,
       "provides": [
         "site"
