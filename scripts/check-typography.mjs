@@ -80,7 +80,7 @@ function walk(dir) {
   let entries
   try { entries = fs.readdirSync(dir, { withFileTypes: true }) } catch { return }
   for (const e of entries) {
-    if (SKIP.has(e.name) || e.name.startsWith(".next")) continue
+    if (SKIP.has(e.name)) continue
     if (VENDORED.has(path.relative(ROOT, path.join(dir, e.name)))) continue
     const p = path.join(dir, e.name)
     if (e.isDirectory()) walk(p)

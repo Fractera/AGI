@@ -1,6 +1,4 @@
 import type { NextConfig } from "next";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 
 // 🪦 `siteRedirects()` (280-3: non-architect paths → the site) removed by 285-6 — the core serves only architect
 // pages at its root, and the project shell links to the site by absolute addresses.
@@ -26,25 +24,7 @@ import { join } from "node:path";
 // Папку можно удалить с диска — она не вернётся, потому что её больше некому
 // порождать.
 
-// 🔒 ПАПКА СБОРКИ (2026-09-25): сборка пишет в запасную папку (`NEXT_DIST_DIR`), сервер читает живую из
-// `logs/core-dist.txt` — упавшая сборка больше не стирает то, чем отвечает сайт. Подробно — `scripts/core-dist.mjs`.
-function distDir(): string {
-  if (process.env.NEXT_DIST_DIR) return process.env.NEXT_DIST_DIR;
-  try {
-    const d = readFileSync(join(process.cwd(), "logs", "core-dist.txt"), "utf8").trim();
-    if (d.startsWith(".next")) return d;
-  } catch { /* узел до этой правки — прежняя папка */ }
-  return ".next";
-}
-
 const nextConfig: NextConfig = {
-  distDir: distDir(),
-  // 🔒 КЭШ КОМПИЛЯЦИИ МЕЖДУ СБОРКАМИ (2026-09-25). Измерено: каждая сборка ядра компилировала все 307 страниц с нуля —
-  // 4,2–6,5 мин из 12–15, при правке одного файла. В Next 16.2 кэш сборки выключен по умолчанию
-  // (docs: turbopackFileSystemCache.md — «experimental for production builds»), живёт в `<distDir>/cache`.
-  experimental: {
-    turbopackFileSystemCacheForBuild: true,
-  },
   serverExternalPackages: ["better-sqlite3"],
 
   // 🔒 261: страница «Архитектура» стала страницей M2M. Старый адрес живёт в

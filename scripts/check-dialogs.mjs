@@ -52,7 +52,7 @@ function walk(dir, out = []) {
   let entries;
   try { entries = readdirSync(dir); } catch { return out; }
   for (const name of entries) {
-    if (name === "node_modules" || name.startsWith(".next")) continue;
+    if (name === "node_modules" || name === ".next") continue;
     const full = join(dir, name);
     if (statSync(full).isDirectory()) walk(full, out);
     else if (/\.(tsx|ts)$/.test(full)) out.push(full);

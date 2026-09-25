@@ -98,7 +98,3 @@ lib/images/previews.generated.ts
 # класс, которым проект уже платил: папка `.claude/` целиком стояла в игноре, и
 # только что написанный навык оказался вне git.
 /AGI-ITEMS/
-.next-a/
-.next-b/
-next-env.d.ts
-.next-trial/
