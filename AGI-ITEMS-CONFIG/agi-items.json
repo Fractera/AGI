@@ -56,6 +56,18 @@
       "kind": "core"
     },
     {
+      "id": "config",
+      "repo": "https://github.com/Fractera/fractera-config-starter.git",
+      "version": "v0.1.0",
+      "provides": [
+        "project-settings"
+      ],
+      "required": true,
+      "note": "Настройки проекта отдельным элементом (299): APP/PLATFORM/DESIGN-CONFIG, режим архитектора, двери /api/settings/*. Источник настроек для всех элементов узла.",
+      "kind": "core",
+      "port": 24685
+    },
+    {
       "id": "root",
       "repo": "https://github.com/Fractera/fractera-root-starter.git",
       "version": "v1.7.13",
