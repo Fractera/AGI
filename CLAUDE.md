@@ -1791,12 +1791,17 @@ itself → `[slug]`. Yes → a user-scoped surface, never indexed.
 
 | Model | Route | Render | In search | Specimen |
 |---|---|---|---|---|
-| public, authored, finite | folder per item | SSG | yes | blog, footer pages, home |
+| public, authored, finite | **a data folder per item + ONE template per collection** (never a `page.tsx` per item) | SSG over a slice + first visit | yes | Blocks: `content/` + `[collection]/[[...slug]]` |
 | public, from data, unbounded | `[slug]` | `generateStaticParams` over a SLICE, `dynamicParams`, ISR by `revalidateTag`, chunked sitemap | yes | `products` |
 | user-scoped | `[id]` | static shell, data behind `/api/*` | never | `(protectedLayer)/*` |
 
 ✗ the mistake is not cosmetic: a folder per item for a catalogue means a million folders, and a dynamic
 page for authored text means a site search cannot see.
+
+🔒 **2026-09-25: A NEW PAGE IS A DATA FOLDER, NEVER A NEW `page.tsx`** — skill `use-page-tree`. Measured on the
+Blocks service: 300 page files built in 1252 s, the same 300 pages through one template in 98 s; this core reached
+126 near-identical `page.tsx` and 5–7 minutes of compile. The existing per-page files here are DEBT, moved into a
+tree collection by collection when their area is touched. Reference implementation: `Fractera/fractera-blocks-starter`.
 
 ## Where you are now
 

@@ -84,12 +84,17 @@ neighbouring route's table is not a library.
 
 | Model | Route shape | Rendering | Skill |
 |---|---|---|---|
-| public, authored, finite | a folder per item | SSG | `use-static-pages` |
+| public, authored, finite | **a data folder per item, ONE template per collection** — never a `page.tsx` per item | SSG (a slice) + first visit | **`use-page-tree`** |
 | public, from data, unbounded | `[slug]` | prerender a slice, `dynamicParams`, ISR | `use-static-pages` + the catalogue example |
 | a person's own screen | inside a permission group | static shell, data through `/api/*` | `use-dynamic-pages` |
 
 Getting this wrong is not cosmetic: a folder per item for a catalogue is a million folders, and a
 dynamic page for an authored text is a page search never sees.
+
+🔒 **2026-09-25 — the first row changed.** It used to read "a folder per item" and was built as one `page.tsx`
+per folder. Measured on the Blocks service: 300 page files built in 1252 s, the same 300 pages through one
+template in 98 s; the core reached 126 near-identical `page.tsx` and 5–7 minutes of compile. The folder stays
+(it holds the data); the route file per page is forbidden. Details and the guard — `use-page-tree`.
 
 🔒 **The row is chosen by an answer only the OWNER has, and he was probably never asked.** "One page,
 or one per record" is invisible inside a sentence like "make a client page", which is complete in

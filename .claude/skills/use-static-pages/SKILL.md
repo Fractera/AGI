@@ -13,6 +13,10 @@ description: >
 
 # use-static-pages
 
+> 🔒 **Superseded in one point (2026-09-25): a new page is a DATA folder read by one template, never a new**
+> **`page.tsx`** — load `use-page-tree` first. Measured: 300 page files 1252 s against 98 s through one template. The
+> per-folder `page.tsx` shape described below is how the existing pages were built — debt, not an example.
+
 > Informational, not binding. **Know a better way for the case in front of you — do it your way and
 > say so.** You are trusted with the creative work on this project.
 
