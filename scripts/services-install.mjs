@@ -34,7 +34,7 @@
 // постоянными аргументами. `windowsHide: true` — каждому порождённому процессу,
 // иначе на экране человека мигают чёрные окна консоли.
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, readdirSync, cpSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, readdirSync, cpSync, renameSync } from 'node:fs'
 import { join, dirname, relative } from 'node:path'
 import { spawnSync, spawn } from 'node:child_process'
 import { randomBytes, createHash } from 'node:crypto'
@@ -569,7 +569,22 @@ for (const entry of registry.services) {
         stoppedByInstaller.add(name)
       }
     }
+    // 🔒 297: СТАРАЯ ПАПКА БИБЛИОТЕК ОТОДВИГАЕТСЯ, А НЕ УДАЛЯЕТСЯ НА МЕСТЕ. Слово владельца 2026-09-25: продукт «никак не
+    // должен зависеть от компьютера пользователя». ✗ Измерено: нативный модуль Tailwind держал VS Code (расширение
+    // IntelliSense) — на Windows файл, который держит ЛЮБАЯ программа (редактор, антивирус, бэкап), удалить нельзя
+    // (EPERM), и `npm ci` падал, оставляя полуудалённую папку. Замер той же минуты: удалить файл — EPERM, ПЕРЕИМЕНОВАТЬ
+    // ПАПКУ — можно. Поэтому `node_modules` уезжает в `node_modules.old-<время>`, `npm ci` ставит свежую, старая
+    // удаляется, когда её отпустят (сейчас или при следующей установке).
+    for (const n of readdirSync(dir)) {
+      if (n.startsWith('node_modules.old-')) try { rmSync(join(dir, n), { recursive: true, force: true }) } catch { /* ещё держат — в следующий раз */ }
+    }
+    let movedAside = null
+    if (existsSync(join(dir, 'node_modules'))) {
+      const aside = join(dir, `node_modules.old-${Date.now()}`)
+      try { renameSync(join(dir, 'node_modules'), aside); movedAside = aside } catch { /* не вышло — npm ci попробует сам */ }
+    }
     let ci = run('npm', ['ci', '--no-audit', '--no-fund'], dir)
+    if (movedAside) try { rmSync(movedAside, { recursive: true, force: true }) } catch { say('  прежняя папка библиотек занята другой программой — удалится при следующей установке') }
     // 287: на Windows файл native-модуля бывает занят процессом прошлой сборки (EPERM/EBUSY unlink) — через секунды
     // он свободен. ✗ Измерено: возврат auth после отката упал здесь, повтор минутой позже прошёл. Один повтор.
     if (ci.rc !== 0 && /EPERM|EBUSY/.test(ci.out)) {
