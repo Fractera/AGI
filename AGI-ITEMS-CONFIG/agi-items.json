@@ -63,9 +63,21 @@
       "provides": [
         "site"
       ],
-      "required": true,
+      "required": false,
       "note": "Сайт узла: что видит посетитель в корне домена. Заменяется другим репозиторием с тем же договором (OWN-SERVICE-PROPS.json), убрать нельзя.",
-      "kind": "core"
+      "kind": "user"
+    },
+    {
+      "id": "blocks",
+      "repo": "https://github.com/Fractera/fractera-blocks-starter.git",
+      "version": "v0.1.0",
+      "provides": [
+        "page-blocks"
+      ],
+      "required": false,
+      "note": "Реестр блоков страниц по методологии shadcn: API (/r/*.json) и свой MCP (/mcp). Первый элемент вида user (297).",
+      "kind": "user",
+      "port": 24684
     }
   ]
 }
