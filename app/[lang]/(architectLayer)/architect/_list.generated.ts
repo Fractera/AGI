@@ -10,12 +10,9 @@ import { data as p4 } from './data/_data'
 import { data as p5 } from './design/_data'
 import { data as p6 } from './hosting/_data'
 import { data as p7 } from './kits/_data'
-import { data as p8 } from './marketplace/_data'
-import { data as p9 } from './passport/_data'
-import { data as p10 } from './root/_data'
-import { data as p11 } from './testing/_data'
-import { data as p12 } from './tools/_data'
-import { data as p13 } from './tools-app/_data'
+import { data as p8 } from './passport/_data'
+import { data as p9 } from './root/_data'
+import { data as p10 } from './testing/_data'
 import { PAGES as c0 } from './auth/_list.generated'
 import { PAGES as c1 } from './blocks/_list.generated'
 import { PAGES as c2 } from './build/_list.generated'
@@ -23,14 +20,11 @@ import { PAGES as c3 } from './cron/_list.generated'
 import { PAGES as c4 } from './data/_list.generated'
 import { PAGES as c5 } from './design/_list.generated'
 import { PAGES as c6 } from './hosting/_list.generated'
-import { PAGES as c8 } from './marketplace/_list.generated'
-import { PAGES as c9 } from './passport/_list.generated'
-import { PAGES as c10 } from './root/_list.generated'
-import { PAGES as c11 } from './testing/_list.generated'
-import { PAGES as c12 } from './tools/_list.generated'
-import { PAGES as c13 } from './tools-app/_list.generated'
+import { PAGES as c8 } from './passport/_list.generated'
+import { PAGES as c9 } from './root/_list.generated'
+import { PAGES as c10 } from './testing/_list.generated'
 
-export const PAGES: WorkspacePageData[] = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13]
+export const PAGES: WorkspacePageData[] = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10]
 
 /** Each child together with its own children — see the law in the generator. */
 export const TREE: CollectionBranch[] = [
@@ -45,7 +39,4 @@ export const TREE: CollectionBranch[] = [
   { page: p8, children: c8 },
   { page: p9, children: c9 },
   { page: p10, children: c10 },
-  { page: p11, children: c11 },
-  { page: p12, children: c12 },
-  { page: p13, children: c13 },
 ]
