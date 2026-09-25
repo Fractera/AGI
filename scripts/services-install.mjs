@@ -283,6 +283,9 @@ function derivedValue(name, ctx) {
     case 'DESIGN_CONFIG_PATH': return join(ctx.dir, 'DESIGN-CONFIG', 'design-config.json')
     // Файл подключённого домена — у узла; собранный сервер элемента сам его не найдёт (сайт вёл «Войти» на петлю).
     case 'NODE_DOMAIN_FILE': return join(ROOT, 'logs', 'domain.json')
+    // 299: реестр узла — какие элементы стоят здесь. Элемент настроек показывает по нему ссылки на все элементы перед
+    // выключением меню или входа (слово владельца: «откуда мы знаем какие у нас есть сервисы? … AGI config»).
+    case 'NODE_ITEMS_FILE': return paths.REGISTRY_FILE
     case 'ARCHITECT_URL': return nodeUrl
     // 283-2: стандартный хедер и футер — меню проекта у двери сайта, ссылки — на сайт. Сервер службы
     // спрашивает сайт по петле; браузер человека идёт на публичный адрес сайта, если домен подключён.
