@@ -23,8 +23,11 @@ export async function GET(req: NextRequest) {
   const lang = req.nextUrl.searchParams.get("lang") ?? "en"
   const pub = publicAuth(process.cwd())
   let base: string | null = null
-  if (pub && id === "root" && pub.architectHost) base = `https://${pub.siteHost}`
-  if (pub && id === "auth") base = `https://${pub.authHost}`
+  // 🔒 ОДНО ПРАВИЛО ДЛЯ ВСЕХ ЭЛЕМЕНТОВ (владелец 2026-09-25: у «Данных» и «Блоков» просмотр был белым). Здесь стояли
+  // поимённо только root и auth — остальные получали http://127.0.0.1:<порт>, а страница ядра на https такой адрес во
+  // фрейм не грузит. Формула та же, что у установщика (SERVICE_PUBLIC_URL) и двери /api/node/reach: root — корень зоны,
+  // любой другой — <id>.<зона>.
+  if (pub) base = id === "root" ? `https://${pub.siteHost}` : `https://${id}.${pub.zone}`
   const url = `${(base ?? local).replace(/\/+$/, "")}/${lang}`
   return NextResponse.json({ ok: true, url, public: !!base }, { headers: { "Cache-Control": "no-store" } })
 }
