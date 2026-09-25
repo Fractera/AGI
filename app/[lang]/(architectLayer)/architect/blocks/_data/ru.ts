@@ -2,5 +2,5 @@ import type { WorkspacePageWords } from '@/lib/collection/types'
 
 export const ru: WorkspacePageWords = {
   title: 'Блоки',
-  lead: 'Каталог блоков, из которых собирается страница, — каждый показан таким, каким рисуется.',
+  lead: 'Готовые решения для быстрого проектирования проекта: единый стиль и разумный расход токенов.',
 }
