@@ -70,7 +70,7 @@
     {
       "id": "blocks",
       "repo": "https://github.com/Fractera/fractera-blocks-starter.git",
-      "version": "v0.5.0",
+      "version": "v0.5.1",
       "provides": [
         "page-blocks"
       ],
