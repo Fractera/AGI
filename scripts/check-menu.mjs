@@ -32,7 +32,7 @@ function walk(dir) {
   let entries
   try { entries = fs.readdirSync(dir, { withFileTypes: true }) } catch { return }
   for (const e of entries) {
-    if (SKIP.has(e.name)) continue
+    if (SKIP.has(e.name) || e.name.startsWith(".next")) continue
     const p = path.join(dir, e.name)
     if (e.isDirectory()) walk(p)
     else if (e.name.endsWith(".tsx")) files.push(p)

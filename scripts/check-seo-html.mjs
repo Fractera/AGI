@@ -21,9 +21,10 @@
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs"
 import { join, relative, sep } from "node:path"
+import { currentDist } from "./core-dist.mjs"
 
 const ROOT = process.cwd()
-const BUILD = join(ROOT, ".next", "server", "app")
+const BUILD = join(ROOT, currentDist(), "server", "app")
 
 const errors = []
 const fail = (where, rule, detail) => errors.push({ where, rule, detail })

@@ -15,6 +15,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import os from 'node:os'
 import paths from '../lib/agi-items/paths.cjs'
+import fs from 'node:fs'
+import { liveDist, nextSlot, setLiveDist } from './core-dist.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(here, '..')
@@ -403,11 +405,20 @@ function autostart() {
 // не применилась». В режиме разработки пересборки не нужно, но там каждая
 // страница компилируется при заходе — ровно то, от чего мы ушли.
 function rebuild() {
-  console.log("Собираю сайт заново. Это занимает около минуты; сайт всё это время работает.")
+  // 🔒 СБОРКА — В ЗАПАСНУЮ ПАПКУ, ПЕРЕКЛЮЧЕНИЕ — ТОЛЬКО ПОСЛЕ УСПЕХА (2026-09-25, `scripts/core-dist.mjs`).
+  // ✗ Прежде сборка шла прямо в `.next`: `next build` стирает папку в начале, и упавшая сборка оставляла
+  // ядро без сайта (20 минут простоя), хотя строка ниже обещала «сайт работает на прежней сборке».
+  const live = liveDist()
+  const target = nextSlot()
+  // Кэш компиляции Turbopack живёт в `<папка>/cache`: переносим его в целевую папку (переименование — мгновенно),
+  // иначе у каждой из двух папок был бы свой холодный кэш и каждая вторая сборка шла бы с нуля.
+  moveBuildCache(live, target)
+  console.log(`Собираю сайт заново в ${target} (сейчас работает ${live}); сайт всё это время работает.`)
   const build = spawnSync(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"], {
     cwd: root,
     stdio: "inherit",
     shell: isWindows,
+    env: { ...process.env, NEXT_DIST_DIR: target },
   })
   // 🛑 Код выхода берётся у самой сборки. ✗ оплачено в 232-1: конвейер (| tail)
   // печатает код последней команды, и упавшая сборка выглядит успешной.
@@ -428,6 +439,7 @@ function rebuild() {
   const seo = spawnSync(process.execPath, [path.join(root, "scripts", "check-seo-html.mjs")], {
     cwd: root,
     stdio: "inherit",
+    env: { ...process.env, NEXT_DIST_DIR: target },
   })
   if (seo.status !== 0) {
     console.error("\nСборка собралась, но языковые сигналы в ней противоречат друг другу —")
@@ -437,9 +449,23 @@ function rebuild() {
     process.exit(1)
   }
 
-  console.log("\nСборка готова, перезапускаю сайт…")
+  console.log(`\nСборка готова, переключаю сайт на ${target} и перезапускаю…`)
+  setLiveDist(target)
   pm2run(["restart", "fractera-agi"], { quiet: true })
-  console.log("Готово. Проверить: npm run serve:status")
+  console.log(`Готово. Прежняя сборка оставлена в ${live} — откат: записать «${live}» в logs/core-dist.txt и перезапустить. Проверить: npm run serve:status`)
+}
+
+function moveBuildCache(from, to) {
+  const src = path.join(root, from, "cache")
+  const dst = path.join(root, to, "cache")
+  if (!fs.existsSync(src) || from === to) return
+  try {
+    fs.mkdirSync(path.join(root, to), { recursive: true })
+    fs.rmSync(dst, { recursive: true, force: true })
+    fs.renameSync(src, dst)
+  } catch (err) {
+    console.warn(`(кэш сборки не перенесён: ${err instanceof Error ? err.message : err} — сборка пойдёт медленнее, но пойдёт)`)
+  }
 }
 
 // 🔒 ПРЕДУПРЕЖДЕНИЕ ГОВОРИТСЯ В МОМЕНТ ВЫДАЧИ АДРЕСА, А НЕ В МОМЕНТ ОТКАЗА —
