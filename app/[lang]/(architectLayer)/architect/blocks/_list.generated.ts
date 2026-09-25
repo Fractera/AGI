@@ -2,22 +2,12 @@
 // Rewritten on every build and every dev start (npm prebuild / predev).
 // Lists every child folder of this one that carries _data/index.ts.
 import type { WorkspacePageData, CollectionBranch } from '@/lib/collection/types'
-import { data as p0 } from './benefits/_data'
-import { data as p1 } from './charts/_data'
-import { data as p2 } from './comparison/_data'
-import { data as p3 } from './dialogs/_data'
-import { data as p4 } from './hero/_data'
-import { data as p5 } from './how-it-works/_data'
-import { data as p6 } from './page-material/_data'
-import { data as p7 } from './pricing/_data'
-import { data as p8 } from './product-demo/_data'
-import { data as p9 } from './showcase/_data'
-import { data as p10 } from './testimonials/_data'
-import { data as p11 } from './trust/_data'
-import { data as p12 } from './use-cases/_data'
-import { data as p13 } from './workspace/_data'
+import { data as p0 } from './claude-code/_data'
+import { data as p1 } from './preview/_data'
+import { data as p2 } from './telegram/_data'
+import { data as p3 } from './terminal/_data'
 
-export const PAGES: WorkspacePageData[] = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13]
+export const PAGES: WorkspacePageData[] = [p0, p1, p2, p3]
 
 /** Each child together with its own children — see the law in the generator. */
 export const TREE: CollectionBranch[] = [
@@ -25,14 +15,4 @@ export const TREE: CollectionBranch[] = [
   { page: p1, children: [] },
   { page: p2, children: [] },
   { page: p3, children: [] },
-  { page: p4, children: [] },
-  { page: p5, children: [] },
-  { page: p6, children: [] },
-  { page: p7, children: [] },
-  { page: p8, children: [] },
-  { page: p9, children: [] },
-  { page: p10, children: [] },
-  { page: p11, children: [] },
-  { page: p12, children: [] },
-  { page: p13, children: [] },
 ]

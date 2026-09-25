@@ -7,11 +7,13 @@ const WORDS: Record<string, ElementPreviewWords> = {
     loading: 'Asking the node where this element answers…',
     unavailable: 'The node did not answer, so the preview is not shown.',
     localOnly: 'This element has no public address: the preview opens only on the computer where the node runs.',
+    openNew: 'Open in a new tab',
   },
   ru: {
     loading: 'Спрашиваю узел, где отвечает этот элемент…',
     unavailable: 'Узел не ответил, поэтому просмотр не показан.',
     localOnly: 'У этого элемента нет публичного адреса: просмотр открывается только на компьютере, где работает узел.',
+    openNew: 'Открыть в новой вкладке',
   },
 }
 

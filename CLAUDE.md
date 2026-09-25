@@ -462,7 +462,7 @@ service agent holding only the README install, wire and extend the kit without o
 The owner, verbatim: «при создании этого файла писать требования … которые должны позволить избежать длительной
 сборки вследствие каких-то архитектурных нарушений, а также … стандарты … из новой документации next 16 …
 правила кеширования страниц». A new page folder is not finished without `README.md` (what is here · the three
-states · languages · SEO signals — see any `architect/blocks/<type>/README.md`), and from now on it also carries:
+states · languages · SEO signals — see `architect/data/preview/README.md`), and from now on it also carries:
 
 **`## Build cost` — what this page does so that a change does not cost a full rebuild.** Measured 2026-09-24: the
 core is ONE Next app — any edit rebuilds all 244 pages (compile 6.9 min + TypeScript 4.3 min on this machine).
@@ -470,7 +470,7 @@ core is ONE Next app — any edit rebuilds all 244 pages (compile 6.9 min + Type
    words are read at run time inside a cached function (`'use cache'` + `cacheLife`) — a change reaches the page in
    minutes with NO build. Name here which data of this page is of that kind.
 2. **One source, the page names only itself.** A list (block types, menu, sections) lives in one file; the page
-   passes its own `meta.slug`. Example: `architect/blocks/_components/type-catalogue.ts` + `sections/taxonomy.json`.
+   passes its own `meta.slug`. Example: the section map — one taxonomy `sections/taxonomy.json`, read by `scripts/build-blocks-map.mjs` (the core catalogue pages that also read it were removed 2026-09-25: the catalogue lives in the Blocks element).
 3. **No file-system reads from `process.cwd()` and no import of `next.config.ts` in route code** — Turbopack then
    traces the whole project (warning «whole project was traced unintentionally»; present today via
    `build/github/api/connect/push/route.ts` — its time cost is NOT measured yet).

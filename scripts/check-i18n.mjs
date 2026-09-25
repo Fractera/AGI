@@ -54,8 +54,6 @@ const FILES = [
   ["lib/content/post-body-ui.ts", "PostBodyUi", 2],
   // Кнопка в подвале и кнопка на главной, ведущие на страницу архитектуры.
   ["lib/i18n/architecture-link.i18n.ts", "ArchitectureLinkUi", 2],
-  // Каталог секций.
-  ["app/[lang]/(architectLayer)/architect/blocks/page-material/_data/ui.i18n.ts", "BlocksCatalogueUi", 2],
   // Слова СЛОЯ АРХИТЕКТОРА (236-1). ✗ До того шага сторож их не проверял вовсе:
   // словарь существовал с 230-4 и в списке отсутствовал, поэтому прибор оставался
   // зелёным, когда из словаря НАМЕРЕННО убрали русский ключ. Зелёный цвет означал
