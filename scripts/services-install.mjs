@@ -540,7 +540,17 @@ for (const entry of registry.services) {
   // (даже правка одной строки) переставлял node_modules — минуты на элемент, и на Windows `npm ci` падал EPERM на
   // `tailwindcss-oxide…node`, который держит работающая служба (три раза за день). Отпечаток замка совпал — пропуск.
   const lockFile = join(dir, 'package-lock.json')
-  const lockHash = existsSync(lockFile) ? createHash('sha256').update(readFileSync(lockFile)).digest('hex') : null
+  // ✗ Измерено 2026-09-25: номер версии самого пакета тоже лежит в замке — повышение версии без новых библиотек меняло
+  // отпечаток, и зависимости переставлялись (368 с). Отпечаток — по библиотекам, без версии корневого пакета.
+  const lockHash = (() => {
+    if (!existsSync(lockFile)) return null
+    try {
+      const lock = JSON.parse(readFileSync(lockFile, 'utf8'))
+      delete lock.version
+      if (lock.packages?.['']) delete lock.packages[''].version
+      return createHash('sha256').update(JSON.stringify(lock)).digest('hex')
+    } catch { return createHash('sha256').update(readFileSync(lockFile)).digest('hex') }
+  })()
   const depsReady = existsSync(join(dir, 'node_modules')) &&
     (stamp.lockHash ? stamp.lockHash === lockHash : stamp.version === entry.version)
 
