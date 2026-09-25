@@ -576,6 +576,21 @@ for (const entry of registry.services) {
     say('  зависимости поставлены')
   }
 
+  // 4а. ОФОРМЛЕНИЕ ПРОЕКТА НАСЛЕДУЕТСЯ С РОЖДЕНИЯ (297; слово владельца 2026-09-25: «каждый AGI ITEM наследует дизайн»).
+  // Элемент, объявивший в паспорте `settings.owns: DESIGN-CONFIG`, получает текущее оформление сайта, если своего файла
+  // ещё нет. ✗ Измерено: новый элемент «Блоки» рисовался оформлением по умолчанию — ядро рассылает дизайн только при
+  // сохранении, и до первого сохранения элемент выпадал из проекта. Свой файл не перезаписывается никогда.
+  if (entry.id !== 'root' && Array.isArray(props.settings?.owns) && props.settings.owns.includes('DESIGN-CONFIG')) {
+    const own = join(dir, 'DESIGN-CONFIG', 'design-config.json')
+    const site = registry.services.find((x) => x.id === 'root')
+    const from = site ? join(entryDir(site), 'DESIGN-CONFIG', 'design-config.json') : null
+    if (!existsSync(own) && from && existsSync(from)) {
+      mkdirSync(dirname(own), { recursive: true })
+      cpSync(from, own)
+      say('  оформление проекта взято у сайта (DESIGN-CONFIG)')
+    }
+  }
+
   // 5. Файл окружения — С ИМЕНЕМ, КОТОРОЕ НАЗВАЛ САМ БЛОК.
   const envName = props.env?.file
   if (!envName) {
