@@ -58,7 +58,7 @@
     {
       "id": "config",
       "repo": "https://github.com/Fractera/fractera-config-starter.git",
-      "version": "v0.2.7",
+      "version": "v0.2.8",
       "provides": [
         "project-settings"
       ],
