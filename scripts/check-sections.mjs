@@ -24,7 +24,7 @@ import { join } from "node:path"
 
 const ROOT = process.cwd()
 const TYPES = join(ROOT, "lib", "content", "blocks", "types.ts")
-const SPECIMEN = join(ROOT, "app", "[lang]", "(architectLayer)", "architect", "blocks", "page-material", "_data", "specimen.ts")
+const SPECIMEN = join(ROOT, "lib", "content", "blocks", "specimen.ts")
 const SECTIONS = join(ROOT, "sections")
 /** Шаблон страницы рисует хром вокруг блоков — правило пары действует и там. */
 const PAGE_SHELL = join(ROOT, "components", "content-page", "standard-content-page.tsx")
