@@ -253,7 +253,13 @@ function derivedValue(name, ctx) {
     case 'DATA_PUBLIC_URL': return self
     // 297: общие имена для любого элемента — в коде узла нет имени службы (первый AGI ITEM вида user — «Блоки»).
     case 'SERVICE_BIND': return '127.0.0.1'
-    case 'SERVICE_PUBLIC_URL': return self
+    // 297: публичный адрес элемента — по той же формуле, что у двери `/api/node/reach`: сайт — корень зоны, прочие —
+    // `<id>.<зона>` (публичная главная любого AGI ITEM индексируется: canonical и hreflang нужен настоящий адрес).
+    case 'SERVICE_PUBLIC_URL': {
+      const pub = publicAuth(ROOT)
+      if (pub) return id === 'root' ? `https://${pub.siteHost}` : `https://${id}.${pub.zone}`
+      return self
+    }
     case 'COOKIE_DOMAIN': return ''            // host-only: одна машина
     case 'COOKIE_SECURE': return 'false'       // http://localhost, Secure не вернётся
     // 🔒 БАЗА ВХОДА ЖИВЁТ У УЗЛА, А НЕ У СЛУЖБЫ, И ПУТЬ АБСОЛЮТНЫЙ (260-1).
