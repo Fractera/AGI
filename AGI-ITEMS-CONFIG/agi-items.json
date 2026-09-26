@@ -29,7 +29,7 @@
     {
       "id": "auth",
       "repo": "https://github.com/Fractera/fractera-auth-starter.git",
-      "version": "v1.3.10",
+      "version": "v1.3.11",
       "port": 24681,
       "provides": [
         "session",
@@ -43,7 +43,7 @@
     {
       "id": "data",
       "repo": "https://github.com/Fractera/fractera-data-starter.git",
-      "version": "v1.3.8",
+      "version": "v1.3.9",
       "port": 24682,
       "provides": [
         "tables",
@@ -58,7 +58,7 @@
     {
       "id": "config",
       "repo": "https://github.com/Fractera/fractera-config-starter.git",
-      "version": "v0.2.13",
+      "version": "v0.2.14",
       "provides": [
         "project-settings"
       ],
@@ -70,7 +70,7 @@
     {
       "id": "root",
       "repo": "https://github.com/Fractera/fractera-root-starter.git",
-      "version": "v1.7.22",
+      "version": "v1.7.23",
       "port": 24683,
       "provides": [
         "site"
@@ -82,7 +82,7 @@
     {
       "id": "blocks",
       "repo": "https://github.com/Fractera/fractera-blocks-starter.git",
-      "version": "v0.5.10",
+      "version": "v0.5.11",
       "provides": [
         "page-blocks"
       ],
