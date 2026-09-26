@@ -95,7 +95,9 @@ export async function pullDesign(): Promise<DesignFollowResult> {
 export async function subscribeToDesign(who: string): Promise<{ ok: boolean; reason?: string; url?: string }> {
   const port = Number(process.env.PORT)
   if (!Number.isInteger(port) || port <= 0) return { ok: false, reason: "no-port" }
-  const url = `http://127.0.0.1:${port}/api/settings/changed`
+  // 🔒 Хост — тот, что слушает сервер ядра (`server.js`: `HOST` или `localhost`), а не петля 127.0.0.1. ✗ Замерено на узле
+  // 2026-09-26: `localhost` здесь — IPv6 (::1), и сигнал на 127.0.0.1 падал «соединения нет» — ядро одно не перекрасилось.
+  const url = `http://${process.env.HOST || "localhost"}:${port}/api/settings/changed`
   try {
     await callTool("subscribe", { url, who })
     return { ok: true, url }
