@@ -457,6 +457,22 @@ change, what is the owner's decision) · what it does not do · how to remove ·
 service agent holding only the README install, wire and extend the kit without opening the master? Written:
 `_agent-kit`, `_shell`. **Debt:** `_node-state` has no README yet.
 
+## Element Preview — Highlight and «Find block» (node steps 317–318)
+
+`components/preview/element-preview.client.tsx` shows an element in a frame. The core never reaches into the frame: it
+sends messages to the element's origin, and the element's island (`components/block-highlight/` of the item template)
+does the work. **Highlight** — `fractera:highlight {on}` → a frame over the hovered block, «Copy address» gives
+«page · file · block · link». **Find block** (owner, 2026-09-26: «вставляет специальную ссылку … открывается нужная
+страница, она прокручивается до нужной секции … блок подсвечивается на 3 секунды а потом тухнет, адрес внутри инпут
+очищается») — the field takes `/<lang>/<path>#block=<bid>` (the link the element's agent returns after an edit), reopens the
+frame on that page and sends `fractera:locate {bid}`; the element scrolls, frames the block for 3 s, answers
+`fractera:locate-state {found}`. Found → the field clears; not found / no answer / foreign link → the reason stays under it.
+🛑 Three things measured only in the owner's Chrome, each invisible to a headless probe: the frame's `onLoad` comes before
+the element's island is alive (the message is resent every 300 ms until an answer, max 5 s, within one click);
+`scrollIntoView` in the frame also scrolls this page (same site `localhost`) — the element scrolls only its own document;
+the element's `<html>` has `scroll-smooth`, which never reached the block there — `behavior: "instant"`. Elements not built
+from the template answer nothing, and the field says so.
+
 ## Every page folder has a README.md — and two sections in it are mandatory (owner's decision 2026-09-24)
 
 The owner, verbatim: «при создании этого файла писать требования … которые должны позволить избежать длительной
