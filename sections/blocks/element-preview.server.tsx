@@ -8,12 +8,20 @@ const WORDS: Record<string, ElementPreviewWords> = {
     unavailable: 'The node did not answer, so the preview is not shown.',
     localOnly: 'This element has no public address: the preview opens only on the computer where the node runs.',
     openNew: 'Open in a new tab',
+    reload: 'Reload',
+    reloading: 'Asking the element to redraw its pages…',
+    reloaded: 'The element redrew its pages — the preview shows the current version.',
+    reloadUnconfirmed: 'The element did not confirm the redraw (it may not have this door yet) — the preview was reloaded; a text change still appears within five minutes.',
   },
   ru: {
     loading: 'Спрашиваю узел, где отвечает этот элемент…',
     unavailable: 'Узел не ответил, поэтому просмотр не показан.',
     localOnly: 'У этого элемента нет публичного адреса: просмотр открывается только на компьютере, где работает узел.',
     openNew: 'Открыть в новой вкладке',
+    reload: 'Обновить',
+    reloading: 'Прошу элемент перерисовать страницы…',
+    reloaded: 'Элемент перерисовал страницы — в просмотре текущая версия.',
+    reloadUnconfirmed: 'Элемент не подтвердил перерисовку (возможно, у него ещё нет этой двери) — просмотр перезапущен; правка текста всё равно появится не позже чем через пять минут.',
   },
 }
 
