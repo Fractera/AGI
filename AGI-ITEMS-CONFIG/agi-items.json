@@ -29,7 +29,7 @@
     {
       "id": "auth",
       "repo": "https://github.com/Fractera/fractera-auth-starter.git",
-      "version": "v1.3.13",
+      "version": "v1.3.14",
       "port": 24681,
       "provides": [
         "session",
@@ -43,7 +43,7 @@
     {
       "id": "data",
       "repo": "https://github.com/Fractera/fractera-data-starter.git",
-      "version": "v1.3.12",
+      "version": "v1.3.13",
       "port": 24682,
       "provides": [
         "tables",
@@ -58,7 +58,7 @@
     {
       "id": "config",
       "repo": "https://github.com/Fractera/fractera-config-starter.git",
-      "version": "v0.2.18",
+      "version": "v0.2.19",
       "provides": [
         "project-settings"
       ],
@@ -68,9 +68,21 @@
       "port": 24685
     },
     {
+      "id": "design",
+      "repo": "file:///C:/Users/Usuario/Documents/git-bare/fractera-design-starter.git",
+      "version": "v0.1.0",
+      "provides": [
+        "project-design"
+      ],
+      "required": false,
+      "note": "Дизайн проекта отдельным элементом (309): цвета светлой и тёмной темы, шрифты, текст, формы, настройки блоков. После сохранения — сигнал подписчикам, и каждая служба узла перекрашивается на лету. Репозиторий пока локальный (file://) — на GitHub его нет, завести Fractera/fractera-design-starter и сменить адрес.",
+      "kind": "core",
+      "port": 24686
+    },
+    {
       "id": "root",
       "repo": "https://github.com/Fractera/fractera-root-starter.git",
-      "version": "v1.7.25",
+      "version": "v1.7.26",
       "port": 24683,
       "provides": [
         "site"
@@ -82,7 +94,7 @@
     {
       "id": "blocks",
       "repo": "https://github.com/Fractera/fractera-blocks-starter.git",
-      "version": "v0.5.14",
+      "version": "v0.5.15",
       "provides": [
         "page-blocks"
       ],
