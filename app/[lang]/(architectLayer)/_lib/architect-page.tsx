@@ -6,6 +6,7 @@ import type { ReactNode } from 'react'
 import type { Block, WorkspaceItem } from '@/lib/content/blocks/types'
 import { architectLayerUi } from '../_i18n/architect-layer.i18n'
 import { architectMenu, ARCHITECT_HOME } from './architect-menu'
+import { withDrafts } from './draft-menu'
 import { OwnerBand } from '../_components/owner-band.client'
 
 // ОБОЛОЧКА СТРАНИЦЫ СЛОЯ АРХИТЕКТОРА (236-2).
@@ -75,7 +76,7 @@ export function ArchitectPage({
     {
       kind: 'workspace',
       menuTitle: ui.menuTitle,
-      menu: architectMenu(lang, path),
+      menu: withDrafts(architectMenu(lang, path), lang, path),
       tabs,
       title,
       // 🔒 «РАЗДЕЛ НА МЕСТЕ, СОДЕРЖИМОЕ ПРИДЁТ» ГОВОРИТСЯ ТОЛЬКО ПУСТОМУ РАЗДЕЛУ.

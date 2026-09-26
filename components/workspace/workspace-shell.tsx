@@ -37,6 +37,8 @@ export type WorkspaceShellItem = {
   children?: WorkspaceShellItem[]
   /** Подменю раскрыто. Отдельно от `active` — см. закон у поля `open` вида `workspace`. */
   open?: boolean
+  /** Пункт-действие (314-1): вместо ссылки рисуется готовый островок, например кнопка «Создать микросервис». */
+  node?: ReactNode
 }
 export type WorkspaceShellNote = {
   tone: 'recommended' | 'advice' | 'warning'
@@ -232,7 +234,9 @@ export function WorkspaceShell({
         <ul className="flex flex-col gap-1">
           {menu.map((item, i) => (
             <li key={`${id}-m-${i}`}>
-              {item.children && item.children.length > 0 ? (
+              {item.node ? (
+                item.node
+              ) : item.children && item.children.length > 0 ? (
                 <details open={item.open ?? item.active} className="group/sub">
                   <summary
                     className={

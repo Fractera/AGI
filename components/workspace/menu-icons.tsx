@@ -1,6 +1,6 @@
 import {
-  AppWindow, Blocks, Clock, Database, FlaskConical, Hammer, House, IdCard, KeyRound, LayoutTemplate, Package, Palette,
-  Server, Settings, SlidersHorizontal, Store, ToggleRight, Wrench,
+  AppWindow, Blocks, Box, Clock, Database, FlaskConical, Hammer, House, IdCard, KeyRound, LayoutTemplate, Package, Palette,
+  Plus, Server, Settings, SlidersHorizontal, Store, ToggleRight, Wrench,
 } from 'lucide-react'
 
 // ЗНАЧКИ ЛЕВОГО МЕНЮ (шаг 288-2). Слово владельца 2026-09-24: «Слева от кнопок нужно нарисовать иконке … для корня
@@ -28,6 +28,9 @@ const ICONS = {
   flask: FlaskConical,
   wrench: Wrench,
   window: AppWindow,
+  // 314-1: черновик элемента узла и кнопка «Создать микросервис».
+  box: Box,
+  plus: Plus,
 } as const
 
 export type MenuIconName = keyof typeof ICONS
