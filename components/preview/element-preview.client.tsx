@@ -1,9 +1,11 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Copy, ExternalLink, Highlighter, RefreshCw } from "lucide-react"
+import { Copy, ExternalLink, Highlighter, RefreshCw, SquareTerminal } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { WebPreview, WebPreviewBody, WebPreviewNavigation, WebPreviewUrl } from "@/components/ai-elements/web-preview"
+// 316: ссылка на терминал службы с адресом блока в окне вставки — одна функция мастера комплекта агента.
+import { terminalLink } from "@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/client/terminal-paste.mjs"
 
 // ПРОСМОТР ЭЛЕМЕНТА УЗЛА ВНУТРИ ЯДРА (слово владельца 2026-09-24: «транслировалось наше корневое
 // приложение»). Компонент — WebPreview из AI Elements; адрес спрашивается у двери ядра в браузере:
@@ -36,6 +38,7 @@ export type ElementPreviewWords = {
   picked: string
   copy: string
   copied: string
+  toTerminal: string
 }
 
 type ReloadState = "idle" | "busy" | "done" | "unconfirmed"
@@ -169,10 +172,21 @@ export function ElementPreview({ serviceId, lang, words }: { serviceId: string; 
         <div className="flex flex-col gap-2 rounded-lg border border-border p-3" data-preview-picked>
           <p className="text-sm font-medium">{words.picked}</p>
           <pre className="whitespace-pre-wrap break-all font-mono text-xs select-all">{picked}</pre>
-          <Button type="button" variant="outline" size="sm" className="w-fit gap-1.5" onClick={copyPicked}>
-            <Copy className="size-4" aria-hidden />
-            {copied ? words.copied : words.copy}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" size="sm" className="w-fit gap-1.5" onClick={copyPicked}>
+              <Copy className="size-4" aria-hidden />
+              {copied ? words.copied : words.copy}
+            </Button>
+            {/* Текст в терминал не уходит сам: ссылка открывает страницу терминала с окном вставки, отправляет человек. */}
+            <a
+              href={terminalLink({ base: BASE, lang, service: serviceId, text: picked })}
+              className={buttonVariants({ variant: "outline", size: "sm", className: "w-fit gap-1.5" })}
+              data-preview-to-terminal
+            >
+              <SquareTerminal className="size-4" aria-hidden />
+              {words.toTerminal}
+            </a>
+          </div>
         </div>
       )}
       {status && (

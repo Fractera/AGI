@@ -24,6 +24,15 @@ export type AgentTerminalWords = {
   exited: string
   offline: string
   forbidden: string
+  /** Окно вставки (шаг 316). */
+  paste: string
+  pasteTitle: string
+  pasteText: string
+  pastePlaceholder: string
+  pasteInsert: string
+  pasteInsertSend: string
+  pasteNeedsRun: string
+  pasteCancel: string
 }
 
 const DICT: Record<string, AgentTerminalWords> = {
@@ -51,6 +60,14 @@ const DICT: Record<string, AgentTerminalWords> = {
     exited: "The agent has finished.",
     offline: "The connection to the node was lost.",
     forbidden: "The terminal is open only to the architect, and only from this computer or your own domain.",
+    paste: "Paste",
+    pasteTitle: "Paste into the terminal",
+    pasteText: "The text goes into the agent's input line as one paste. Nothing reaches the agent until you press a button below.",
+    pastePlaceholder: "Paste or type the text for the agent…",
+    pasteInsert: "Insert",
+    pasteInsertSend: "Insert and send",
+    pasteNeedsRun: "Start the agent first — the text is kept here.",
+    pasteCancel: "Cancel",
   },
   ru: {
     folderLabel: "Агент запускается в папке:",
@@ -76,6 +93,14 @@ const DICT: Record<string, AgentTerminalWords> = {
     exited: "Агент завершил работу.",
     offline: "Связь с узлом потеряна.",
     forbidden: "Терминал открыт только архитектору и только с этого компьютера или со своего домена.",
+    paste: "Вставить",
+    pasteTitle: "Вставить в терминал",
+    pasteText: "Текст встанет в строку ввода агента одной вставкой. До агента ничего не дойдёт, пока вы не нажмёте кнопку ниже.",
+    pastePlaceholder: "Вставьте или напишите текст для агента…",
+    pasteInsert: "Вставить",
+    pasteInsertSend: "Вставить и отправить",
+    pasteNeedsRun: "Сначала запустите агента — текст останется здесь.",
+    pasteCancel: "Отмена",
   },
 }
 

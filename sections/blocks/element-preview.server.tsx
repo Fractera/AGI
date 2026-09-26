@@ -18,6 +18,7 @@ const WORDS: Record<string, ElementPreviewWords> = {
     picked: 'Selected block',
     copy: 'Copy',
     copied: 'Copied',
+    toTerminal: 'To the terminal',
   },
   ru: {
     loading: 'Спрашиваю узел, где отвечает этот элемент…',
@@ -34,6 +35,7 @@ const WORDS: Record<string, ElementPreviewWords> = {
     picked: 'Выбранный блок',
     copy: 'Скопировать',
     copied: 'Скопировано',
+    toTerminal: 'В терминал',
   },
 }
 

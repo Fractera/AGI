@@ -5,6 +5,7 @@ import { TelegramChannel } from './client/telegram-channel.client'
 import { agentTerminalWords } from './words/agent-terminal.i18n'
 import { claudeSubscriptionWords } from './words/claude-subscription.i18n'
 import { telegramChannelWords } from './words/telegram-channel.i18n'
+import { appDialogUi } from '@/components/dialog/app-dialog.i18n'
 
 // ВХОД СТРАНИЦ СЛУЖБЫ В КОПИЮ КОМПЛЕКТА АГЕНТА (271).
 //
@@ -20,7 +21,7 @@ export function agentKitWidget(page: AgentKitPage, service: string, lang: string
     case 'claude-code':
       return <ClaudeSubscription service={service} lang={lang} words={claudeSubscriptionWords(lang)} />
     case 'terminal':
-      return <AgentTerminal service={service} lang={lang} words={agentTerminalWords(lang)} />
+      return <AgentTerminal service={service} lang={lang} words={agentTerminalWords(lang)} dialogUi={appDialogUi(lang)} />
     case 'telegram':
       return <TelegramChannel service={service} lang={lang} words={telegramChannelWords(lang)} />
   }

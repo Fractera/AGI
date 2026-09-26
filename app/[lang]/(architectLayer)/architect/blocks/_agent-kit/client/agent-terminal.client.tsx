@@ -1,8 +1,12 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { AlertTriangle, ChevronDown, Eraser, Moon, Play, Square } from "lucide-react"
+import { AlertTriangle, ChevronDown, ClipboardPaste, Eraser, Moon, Play, Square } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { AppDialog } from "@/components/dialog/app-dialog.client"
+import type { AppDialogUi } from "@/components/dialog/app-dialog.i18n"
+import { bracketedPaste, cleanPaste, pasteFromSearch } from "./terminal-paste.mjs"
 import type { AgentTerminalWords } from "../words/agent-terminal.i18n"
 import { createMouseFilter, MOUSE_OFF } from "./mouse-filter.mjs"
 import { type XtermHandle, XtermTerminal } from "./xterm-terminal.client"
@@ -20,7 +24,7 @@ const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
 type State = "checking" | "sleeping" | "connecting" | "running" | "stopped" | "offline" | "forbidden"
 
-export function AgentTerminal({ service, lang, words }: { service: string; lang: string; words: AgentTerminalWords }) {
+export function AgentTerminal({ service, lang, words, dialogUi }: { service: string; lang: string; words: AgentTerminalWords; dialogUi: AppDialogUi }) {
   const api = `${BASE}/${lang}/architect/${service}/agent-api`
   const sessionUrl = `${api}/session`
   const [state, setState] = useState<State>("checking")
@@ -32,6 +36,21 @@ export function AgentTerminal({ service, lang, words }: { service: string; lang:
   const mouseRef = useRef(createMouseFilter())
   // Закрытие, которое сделали мы сами, не должно читаться как обрыв связи.
   const quietCloseRef = useRef(false)
+  // 316: окно вставки. Текст приходит кнопкой «Вставить» или ссылкой `?paste=` (адрес блока из подсветки Preview);
+  // в терминал он уходит ТОЛЬКО кнопкой человека в окне.
+  const [pasteOpen, setPasteOpen] = useState(false)
+  const [pasteText, setPasteText] = useState("")
+
+  useEffect(() => {
+    const incoming = pasteFromSearch(window.location.search)
+    if (incoming === null) return
+    setPasteText(incoming)
+    setPasteOpen(true)
+    // Параметр убирается сразу: перезагрузка страницы не откроет окно второй раз.
+    const url = new URL(window.location.href)
+    url.searchParams.delete("paste")
+    window.history.replaceState(null, "", url.pathname + url.search + url.hash)
+  }, [])
 
   const send = useCallback((payload: unknown) => {
     const ws = wsRef.current
@@ -151,6 +170,18 @@ export function AgentTerminal({ service, lang, words }: { service: string; lang:
     [send],
   )
 
+  const insertPaste = useCallback(
+    (sendIt: boolean) => {
+      const text = cleanPaste(pasteText)
+      if (!text) return
+      send({ data: bracketedPaste(text, sendIt), type: "stdin" })
+      setPasteOpen(false)
+      setPasteText("")
+      termRef.current?.focus()
+    },
+    [pasteText, send],
+  )
+
   if (state === "forbidden") {
     return <p className="my-6 text-muted-foreground text-sm">{words.forbidden}</p>
   }
@@ -218,6 +249,10 @@ export function AgentTerminal({ service, lang, words }: { service: string; lang:
             </span>
             <span className="text-muted-foreground text-xs">{words.keepsRunning}</span>
             <div className="ml-auto flex gap-2">
+              <Button onClick={() => setPasteOpen(true)} size="sm" type="button" variant="outline" data-agent-paste>
+                <ClipboardPaste className="size-4" aria-hidden />
+                {words.paste}
+              </Button>
               <Button onClick={handleClear} size="sm" type="button" variant="outline">
                 <Eraser className="size-4" aria-hidden />
                 {words.clear}
@@ -233,6 +268,37 @@ export function AgentTerminal({ service, lang, words }: { service: string; lang:
           </div>
         </>
       )}
+
+      <AppDialog
+        open={pasteOpen}
+        onOpenChange={setPasteOpen}
+        title={words.pasteTitle}
+        description={words.pasteText}
+        ui={dialogUi}
+        size="lg"
+        footer={
+          <>
+            <Button type="button" variant="ghost" onClick={() => setPasteOpen(false)}>{words.pasteCancel}</Button>
+            <Button type="button" variant="outline" disabled={!live || !pasteText.trim()} onClick={() => insertPaste(false)} data-agent-paste-insert>
+              {words.pasteInsert}
+            </Button>
+            <Button type="button" disabled={!live || !pasteText.trim()} onClick={() => insertPaste(true)} data-agent-paste-send>
+              {words.pasteInsertSend}
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-2">
+          <Textarea
+            value={pasteText}
+            onChange={(e) => setPasteText(e.target.value)}
+            placeholder={words.pastePlaceholder}
+            className="min-h-40 font-mono text-xs"
+            data-agent-paste-text
+          />
+          {!live && <p className="text-muted-foreground text-sm">{words.pasteNeedsRun}</p>}
+        </div>
+      </AppDialog>
     </div>
   )
 }
