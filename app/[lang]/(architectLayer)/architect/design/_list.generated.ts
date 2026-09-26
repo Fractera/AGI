@@ -2,10 +2,10 @@
 // Rewritten on every build and every dev start (npm prebuild / predev).
 // Lists every child folder of this one that carries _data/index.ts.
 import type { WorkspacePageData, CollectionBranch } from '@/lib/collection/types'
-import { data as p0 } from './colors/_data'
-import { data as p1 } from './fonts/_data'
-import { data as p2 } from './shape/_data'
-import { data as p3 } from './type/_data'
+import { data as p0 } from './claude-code/_data'
+import { data as p1 } from './preview/_data'
+import { data as p2 } from './telegram/_data'
+import { data as p3 } from './terminal/_data'
 
 export const PAGES: WorkspacePageData[] = [p0, p1, p2, p3]
 

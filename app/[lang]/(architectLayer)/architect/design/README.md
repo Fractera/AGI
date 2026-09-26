@@ -1,66 +1,24 @@
-# `/architect/design` — a group page
+# `/architect/design` — the Design element's section
 
-This folder is a **group**: it has its own words and it lists the sections next to
-it. It is not a special kind of object — a group is a page whose folder happens to
-have children, which is why depth costs this project nothing.
+Step 309 (owner, 2026-09-26): the design editor left the core. The look of the project is now the node element **Design**
+(`AGI-ITEMS/core/design`, repository `fractera-design-starter`): colours of the light and dark theme, fonts, text scale,
+shapes and spacing, block settings. A save there sends a signal, and every service of the node re-styles itself in seconds,
+without a rebuild. This section is shaped like «Blocks» and «Config».
+
+🪦 The pages `colors`, `fonts`, `type`, `shape` (the core's own editor that patched every element's `DESIGN-CONFIG`
+through `/api/architect/design-config` and needed a rebuild) were removed on 2026-09-26. The editor components
+(`components/design/*`) and the door stay as the catalogue kind `designSection`; nothing in the core menu leads to them.
 
 ## What is here
 
 | Path | Role |
 |---|---|
-| `page.tsx` | thin entry: names this folder, exports metadata, renders the index |
-| `_data/` | the words of THIS page — `meta` (slug, order) + `en` (base) + `ru` |
-| `_components/` | the working part; returns `[]` until something is built here |
-| `_list.generated.ts` | **generated** — the sections of this group. Never edit |
+| `page.tsx`, `_data/` | the menu item «Design»: title, lead, `order`, icon |
+| `_components/index.ts` | one block `servicePort` with `serviceId: 'design'`: port on the machine and address on the internet |
+| `preview/` | live preview of `https://design.<zone>`, with «open in a new tab» |
+| `claude-code/`, `terminal/`, `telegram/`, `agent-api/`, `_agent-kit/`, `agent-kit.json` | the agent kit — `npm run agent-kit:add -- design`; never edited by hand |
 
-## Multilingual
+## Changing it
 
-`_data/en.ts` is the base and is mandatory; `_data/ru.ts` overrides it. A language
-we do not have falls back to `en`, so a missing translation degrades to a readable
-page rather than a hole. Every visible string of this page lives in `_data` —
-never inline in `page.tsx` or `_components/`, or it is untranslatable and invisible
-to `npm run check:i18n`.
-
-Two languages here (`en` + `ru`), not 82: this layer is one closed surface behind
-a lock, not a reused part of the product. The reasoning is in the layer README.
-
-## Search engines and AI agents
-
-This page carries the **full** set of signals, because the template is meant to be
-reusable in a public layer too — not only behind this lock:
-
-| Signal | Where it comes from | Value here |
-|---|---|---|
-| `<title>` | `_data/<lang>.ts` → `title` | the page's own name, per language |
-| `description` | `_data/<lang>.ts` → `lead` | its own sentence; never inherited, never shared |
-| `canonical` | `buildAlternates` | the page's one true address |
-| `hreflang` | `buildAlternates` | `x-default`, `en`, `ru` — all pointing at each other |
-| `alternate text/markdown` | `buildAlternates` | the machine-readable twin, for agents |
-| `og:*` | the metadata factory | title, description, url, site name, locale |
-| `robots` | `_lib/collection-visibility.ts` | follows one switch, see below |
-
-🔒 **Two language versions that do not point at each other read as duplicates.**
-That is precisely how a site earns the "doorway" label — a set of near-identical
-pages with no declared relation. The `hreflang` block is what turns them into one
-page in two languages, so it is emitted in **both** visibility modes.
-
-🛑 **One switch decides three things at once** — `ARCHITECT_LAYER_IS_PUBLIC` in
-`_lib/collection-visibility.ts`: the `robots` tag, presence in `sitemap.xml`, and
-the `robots.txt` rule. They must agree: a page listed in the sitemap that answers
-404 to a stranger is worse than an unlisted one — the sitemap stops being
-trustworthy as a whole. While the layer is locked, all three say "closed".
-
-🛑 **`canonical` and `hreflang` appear only once the site has an address.** With an
-empty `url` in `APP-CONFIG`, `buildAlternates` returns nothing at all — measured,
-and true for every page of this project, not just this layer. That is the correct
-behaviour rather than a gap: a canonical pointing at a temporary tunnel address
-would be a lie the day the tunnel rotates. The address arrives with a real domain
-(see `/architect/hosting/domain`).
-
-
-## Adding a section
-
-Create a folder next to this one with `_data/` and a thin `page.tsx`. Nothing else:
-the build regenerates `_list.generated.ts`, and the section appears in this index
-and in the left menu by itself. See `../../lib/collection/README.md` for the mechanism
-and `../README.md` for this layer's skeleton.
+Words — `_data/<lang>.ts`; the kit — the master in `kits/_agent-kit/`, then `npm run agent-kit:update -- design`.
+The design itself is edited in the element: `design.<zone>/<lang>/architect`.

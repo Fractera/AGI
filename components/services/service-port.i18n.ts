@@ -47,8 +47,8 @@ export type ServicePortWords = {
 }
 
 const NAMES: Record<string, Record<string, string>> = {
-  en: { auth: "Your sign-in service", data: "Your data service", config: "Your settings service", root: "Your site", default: "This service" },
-  ru: { auth: "Ваша служба входа", data: "Ваша служба данных", config: "Ваша служба настроек", root: "Ваш сайт", default: "Эта служба" },
+  en: { auth: "Your sign-in service", data: "Your data service", config: "Your settings service", design: "Your design service", root: "Your site", default: "This service" },
+  ru: { auth: "Ваша служба входа", data: "Ваша служба данных", config: "Ваша служба настроек", design: "Ваша служба дизайна", root: "Ваш сайт", default: "Эта служба" },
 }
 
 const DICT: Record<string, ServicePortWords> = {

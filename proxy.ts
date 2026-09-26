@@ -59,6 +59,8 @@ const ADMIN_API_PREFIXES: string[] = [];
 // возможность работает у разработчика и падает у покупателя.
 const PUBLIC_API_PREFIXES = [
   "/api/health",
+  // 309: сигнал элемента «Дизайн» — у службы нет сессии; дверь стережёт ключ узла (X-Settings-Key), а не роль.
+  "/api/settings/changed",
   "/api/catalogue",   // догрузка витрины: те же товары, что в статическом HTML
   "/api/i18n",        // строки интерфейса — они и так в разметке
   "/api/project-types",
