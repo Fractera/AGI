@@ -60,6 +60,8 @@ export type ElementPreviewWords = {
 }
 
 type FindState = "idle" | "waiting" | "notFound" | "silent" | "bad" | "foreign"
+const LOCATE_EVERY_MS = 300
+const LOCATE_MAX_MS = 5000
 
 /** Ссылка на блок из вставленного текста: `/<путь>#block=<bid>` или полный адрес с тем же хвостом; из скопированного
  *  адреса в несколько строк берётся строка со ссылкой. `origin` — источник, если ссылка была полным адресом. */
@@ -183,18 +185,27 @@ export function ElementPreview({ serviceId, lang, words }: { serviceId: string; 
     setPreviewKey((k) => k + 1)
   }
 
-  // Ответ элемента ждём полторы секунды после загрузки окна — как у «Подсветки».
+  // 🛑 `onLoad` окна приходит РАНЬШЕ, чем островок элемента оживёт в браузере и начнёт слушать: первое сообщение
+  // теряется (замерено 318-2 в браузере владельца — «не ответил», то же сообщение секундой позже — `found: true`).
+  // Поэтому сообщение повторяется каждые LOCATE_EVERY_MS, пока элемент не ответит, но не дольше LOCATE_MAX_MS. Повторы
+  // живут только внутри одного нажатия «Найти» — сами по себе ничего не запускают.
   function sendLocate() {
     const bid = pendingBid.current
-    const win = frameRef.current?.contentWindow
-    if (!bid || !win || !elementOrigin) return
-    win.postMessage({ type: "fractera:locate", bid }, elementOrigin)
+    if (!bid || !elementOrigin) return
+    const origin = elementOrigin
+    const started = Date.now()
     if (findTimer.current) window.clearTimeout(findTimer.current)
-    findTimer.current = window.setTimeout(() => {
+    const tick = () => {
       if (pendingBid.current !== bid) return
-      pendingBid.current = null
-      setFind("silent")
-    }, 1500)
+      if (Date.now() - started > LOCATE_MAX_MS) {
+        pendingBid.current = null
+        setFind("silent")
+        return
+      }
+      frameRef.current?.contentWindow?.postMessage({ type: "fractera:locate", bid }, origin)
+      findTimer.current = window.setTimeout(tick, LOCATE_EVERY_MS)
+    }
+    tick()
   }
 
   const findMessage =
