@@ -98,3 +98,6 @@ lib/images/previews.generated.ts
 # класс, которым проект уже платил: папка `.claude/` целиком стояла в игноре, и
 # только что написанный навык оказался вне git.
 /AGI-ITEMS/
+
+# 315: font files copied from @fontsource packages before each build (scripts/local-fonts.mjs)
+public/fonts/

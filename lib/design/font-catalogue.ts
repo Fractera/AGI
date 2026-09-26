@@ -13,23 +13,19 @@
 // оставляет `font-family` без самого файла. Список снимает все три: у каждой
 // записи есть проверенный адрес и честно указанные алфавиты.
 //
-// 🔒 ОТКУДА ФАЙЛЫ. Google Fonts — `fonts.google.com`, свободная лицензия (OFL
-// или Apache), раздача с `fonts.googleapis.com`. Мы НЕ храним файлы у себя:
-// шрифт приезжает посетителю с раздачи Google, и её кэш уже прогрет почти на
-// каждом устройстве.
-//
-// 🔒 ЧТО ЭТО ЗНАЧИТ ДЛЯ ЕВРОПЫ. Подключение внешнего шрифта отдаёт адрес
-// посетителя серверам Google, и немецкий суд однажды признал это нарушением
-// GDPR (LG München I, 3 O 17493/20). Поэтому набор всегда открывается системным
-// вариантом — он не ходит наружу вовсе, — а выбор внешнего шрифта сопровождается
-// прямым предупреждением, а не мелким шрифтом внизу.
+// 🔒 ОТКУДА ФАЙЛЫ (шаг 315, 2026-09-26). Семейства — с Google Fonts (`fonts.google.com`), все под свободной
+// лицензией OFL или Apache, но файлы отдаёт САМ УЗЕЛ: пакеты `@fontsource*` ставятся вместе со службой, скрипт
+// `scripts/local-fonts.mjs` кладёт их в `public/fonts/` перед сборкой, `import` записи — адрес на своём сервере.
+// Прежде шрифт приезжал с раздачи Google, и без интернета страница рисовалась системным шрифтом — слово
+// владельца: «critical error». Заодно адрес посетителя больше не уходит Google (GDPR, LG München I, 3 O 17493/20).
+// Таблица файлов — `lib/design/local-fonts.json`; семейство здесь и там обязано совпадать буквально.
 
 export type FontAlphabet = "latin" | "cyrillic" | "greek" | "arabic" | "cjk";
 
 export type FontEntry = {
   /** Имя семейства — уезжает в `font-family` как есть. */
   family: string;
-  /** Адрес таблицы стилей. Пусто = системный шрифт, наружу не ходит. */
+  /** Адрес таблицы стилей на своём сервере (`/fonts/<slug>.css`). Пусто = системный шрифт, ничего не загружается. */
   import?: string;
   /** Какие алфавиты покрывает. */
   alphabets: FontAlphabet[];
@@ -49,8 +45,7 @@ export const SYSTEM_STACK: Record<FontEntry["kind"], string> = {
   mono: "ui-monospace, SFMono-Regular, Menlo, monospace",
 };
 
-const g = (family: string, params: string) =>
-  `https://fonts.googleapis.com/css2?family=${params}&display=swap`;
+const local = (slug: string) => `/fonts/${slug}.css`;
 
 export const FONT_CATALOGUE: FontEntry[] = [
   // ── Без загрузки ───────────────────────────────────────────────────────────
@@ -59,21 +54,21 @@ export const FONT_CATALOGUE: FontEntry[] = [
   { family: SYSTEM_STACK.mono, alphabets: ["latin", "cyrillic"], kind: "mono" },
 
   // ── Без засечек ────────────────────────────────────────────────────────────
-  { family: "Inter", import: g("Inter", "Inter:wght@400;500;600;700"), alphabets: ["latin", "cyrillic", "greek"], kind: "sans" },
-  { family: "Manrope", import: g("Manrope", "Manrope:wght@400;500;600;700"), alphabets: ["latin", "cyrillic", "greek"], kind: "sans" },
-  { family: "Montserrat", import: g("Montserrat", "Montserrat:wght@400;500;600;700"), alphabets: ["latin", "cyrillic"], kind: "sans" },
-  { family: "Rubik", import: g("Rubik", "Rubik:wght@400;500;600;700"), alphabets: ["latin", "cyrillic", "arabic"], kind: "sans" },
-  { family: "Noto Sans", import: g("Noto Sans", "Noto+Sans:wght@400;500;600;700"), alphabets: ["latin", "cyrillic", "greek"], kind: "sans" },
+  { family: "Inter", import: local("inter"), alphabets: ["latin", "cyrillic", "greek"], kind: "sans" },
+  { family: "Manrope", import: local("manrope"), alphabets: ["latin", "cyrillic", "greek"], kind: "sans" },
+  { family: "Montserrat", import: local("montserrat"), alphabets: ["latin", "cyrillic"], kind: "sans" },
+  { family: "Rubik", import: local("rubik"), alphabets: ["latin", "cyrillic", "arabic"], kind: "sans" },
+  { family: "Noto Sans", import: local("noto-sans"), alphabets: ["latin", "cyrillic", "greek"], kind: "sans" },
 
   // ── С засечками ────────────────────────────────────────────────────────────
-  { family: "Playfair Display", import: g("Playfair Display", "Playfair+Display:wght@400;500;600;700"), alphabets: ["latin", "cyrillic"], kind: "serif" },
-  { family: "Merriweather", import: g("Merriweather", "Merriweather:wght@400;700"), alphabets: ["latin", "cyrillic"], kind: "serif" },
-  { family: "Lora", import: g("Lora", "Lora:wght@400;500;600;700"), alphabets: ["latin", "cyrillic"], kind: "serif" },
-  { family: "Source Serif 4", import: g("Source Serif 4", "Source+Serif+4:wght@400;600;700"), alphabets: ["latin", "cyrillic", "greek"], kind: "serif" },
+  { family: "Playfair Display", import: local("playfair-display"), alphabets: ["latin", "cyrillic"], kind: "serif" },
+  { family: "Merriweather", import: local("merriweather"), alphabets: ["latin", "cyrillic"], kind: "serif" },
+  { family: "Lora", import: local("lora"), alphabets: ["latin", "cyrillic"], kind: "serif" },
+  { family: "Source Serif 4", import: local("source-serif-4"), alphabets: ["latin", "cyrillic", "greek"], kind: "serif" },
 
   // ── Моноширинные ───────────────────────────────────────────────────────────
-  { family: "JetBrains Mono", import: g("JetBrains Mono", "JetBrains+Mono:wght@400;500;700"), alphabets: ["latin", "cyrillic", "greek"], kind: "mono" },
-  { family: "IBM Plex Mono", import: g("IBM Plex Mono", "IBM+Plex+Mono:wght@400;500;700"), alphabets: ["latin", "cyrillic"], kind: "mono" },
+  { family: "JetBrains Mono", import: local("jetbrains-mono"), alphabets: ["latin", "cyrillic", "greek"], kind: "mono" },
+  { family: "IBM Plex Mono", import: local("ibm-plex-mono"), alphabets: ["latin", "cyrillic"], kind: "mono" },
 ];
 
 /** Системный ли это вариант — то есть без загрузки и без обращения наружу. */
