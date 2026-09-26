@@ -1,8 +1,10 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Copy, ExternalLink, Highlighter, RefreshCw, SquareTerminal } from "lucide-react"
+import { CircleHelp, Copy, ExternalLink, Highlighter, RefreshCw, Search, SquareTerminal } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { WebPreview, WebPreviewBody, WebPreviewNavigation, WebPreviewUrl } from "@/components/ai-elements/web-preview"
 // 316: ссылка на терминал службы с адресом блока в окне вставки — одна функция мастера комплекта агента.
 import { terminalLink } from "@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/client/terminal-paste.mjs"
@@ -22,6 +24,14 @@ import { terminalLink } from "@/app/[lang]/(architectLayer)/architect/kits/_agen
 // `{ type: "fractera:highlight", on }` ровно на источник элемента; рамки рисует островок самого элемента. Он отвечает
 // `fractera:highlight-state` — нет ответа, значит элемент подсветку ещё не умеет, и строка так и говорит. Выбранный блок
 // элемент присылает `fractera:block` — адрес «страница · файл · блок» стоит в панели под окном с кнопкой «Скопировать».
+//
+// 🔒 «НАЙТИ БЛОК» — ОБРАТНЫЙ ХОД (шаг 318, слово владельца: «когда пользователь вставляет и нажимает то открывается нужно
+// страница она прокручивается до нужной секции и выделяется нужный блок… блок подсвечивается на 3 секунды а потом тухнет
+// адрес внутри инпут очищается»). Ссылка — `/<lang>/<путь>#block=<bid>` (её даёт агент элемента и строка «Ссылка» в
+// «Скопировать адрес»); полный адрес принимается только с источником этого элемента. Окно открывает страницу заново
+// (перемонтирование просмотра), по загрузке ядро шлёт `{ type: "fractera:locate", bid }`, прокрутку и рамку делает сам
+// элемент и отвечает `fractera:locate-state`. Нашёл — поле пустеет; не нашёл или молчит — причина под полем, текст
+// остаётся, чтобы человек видел, что вставил.
 
 export type ElementPreviewWords = {
   loading: string
@@ -39,6 +49,33 @@ export type ElementPreviewWords = {
   copy: string
   copied: string
   toTerminal: string
+  findPlaceholder: string
+  find: string
+  findHelp: string
+  findSearching: string
+  findNotFound: string
+  findNoAnswer: string
+  findBadLink: string
+  findForeign: string
+}
+
+type FindState = "idle" | "waiting" | "notFound" | "silent" | "bad" | "foreign"
+
+/** Ссылка на блок из вставленного текста: `/<путь>#block=<bid>` или полный адрес с тем же хвостом; из скопированного
+ *  адреса в несколько строк берётся строка со ссылкой. `origin` — источник, если ссылка была полным адресом. */
+function parseBlockLink(text: string): { path: string; bid: string; origin: string | null } | null {
+  const m = text.match(/(\S*)#block=([a-z0-9]+)/i)
+  if (!m) return null
+  const [, head, bid] = m
+  if (/^https?:\/\//i.test(head)) {
+    try {
+      const u = new URL(head)
+      return { path: u.pathname, bid, origin: u.origin }
+    } catch {
+      return null
+    }
+  }
+  return head.startsWith("/") ? { path: head, bid, origin: null } : null
 }
 
 type ReloadState = "idle" | "busy" | "done" | "unconfirmed"
@@ -56,6 +93,13 @@ export function ElementPreview({ serviceId, lang, words }: { serviceId: string; 
   const [picked, setPicked] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const frameRef = useRef<HTMLIFrameElement | null>(null)
+  // «Найти блок» (318): текст поля, ход поиска, адрес, с которого просмотр открыт заново, и блок, ждущий загрузки окна.
+  const [findText, setFindText] = useState("")
+  const [find, setFind] = useState<FindState>("idle")
+  const [startUrl, setStartUrl] = useState<string | null>(null)
+  const [previewKey, setPreviewKey] = useState(0)
+  const pendingBid = useRef<string | null>(null)
+  const findTimer = useRef<number | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -75,8 +119,13 @@ export function ElementPreview({ serviceId, lang, words }: { serviceId: string; 
     if (!elementOrigin) return
     function onMessage(e: MessageEvent) {
       if (e.origin !== elementOrigin) return
-      const d = e.data as { type?: string; on?: boolean; address?: string } | null
+      const d = e.data as { type?: string; on?: boolean; address?: string; bid?: string; found?: boolean } | null
       if (d?.type === "fractera:highlight-state") setAnswer(d.on ? "on" : "none")
+      if (d?.type === "fractera:locate-state" && pendingBid.current && d.bid === pendingBid.current) {
+        pendingBid.current = null
+        if (findTimer.current) window.clearTimeout(findTimer.current)
+        if (d.found) { setFind("idle"); setFindText("") } else setFind("notFound")
+      }
       if (d?.type === "fractera:block" && typeof d.address === "string") { setPicked(d.address); setCopied(false) }
     }
     window.addEventListener("message", onMessage)
@@ -121,6 +170,37 @@ export function ElementPreview({ serviceId, lang, words }: { serviceId: string; 
     sendHighlight(on)
   }
 
+  // Окно открывается заново на странице из ссылки; блок ищется, когда оно загрузится (`onLoad` ниже).
+  function findBlock() {
+    const link = parseBlockLink(findText.trim())
+    if (!link || !elementOrigin) { setFind("bad"); return }
+    if (link.origin && link.origin !== elementOrigin) { setFind("foreign"); return }
+    const target = `${elementOrigin}${link.path}`
+    pendingBid.current = link.bid
+    setFind("waiting")
+    setStartUrl(target)
+    setCurrent(target)
+    setPreviewKey((k) => k + 1)
+  }
+
+  // Ответ элемента ждём полторы секунды после загрузки окна — как у «Подсветки».
+  function sendLocate() {
+    const bid = pendingBid.current
+    const win = frameRef.current?.contentWindow
+    if (!bid || !win || !elementOrigin) return
+    win.postMessage({ type: "fractera:locate", bid }, elementOrigin)
+    if (findTimer.current) window.clearTimeout(findTimer.current)
+    findTimer.current = window.setTimeout(() => {
+      if (pendingBid.current !== bid) return
+      pendingBid.current = null
+      setFind("silent")
+    }, 1500)
+  }
+
+  const findMessage =
+    find === "waiting" ? words.findSearching : find === "notFound" ? words.findNotFound : find === "silent" ? words.findNoAnswer
+      : find === "bad" ? words.findBadLink : find === "foreign" ? words.findForeign : null
+
   async function copyPicked() {
     if (!picked) return
     try { await navigator.clipboard.writeText(picked); setCopied(true) } catch { setCopied(false) }
@@ -132,7 +212,39 @@ export function ElementPreview({ serviceId, lang, words }: { serviceId: string; 
   return (
     <div className="flex flex-col gap-2" data-element-preview={serviceId}>
       {!state.public && <p className="text-muted-foreground text-sm">{words.localOnly}</p>}
-      <WebPreview defaultUrl={state.url} onUrlChange={setCurrent} className="h-[70vh] min-h-[480px]">
+      <TooltipProvider>
+        <form
+          className="flex items-center gap-2"
+          onSubmit={(e) => { e.preventDefault(); findBlock() }}
+          data-preview-find
+        >
+          <Input
+            value={findText}
+            onChange={(e) => { setFindText(e.target.value); if (find !== "waiting") setFind("idle") }}
+            placeholder={words.findPlaceholder}
+            aria-label={words.findPlaceholder}
+            className="h-8 flex-1 font-mono text-sm"
+          />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button type="button" variant="ghost" size="icon" className="size-8 shrink-0" aria-label={words.findHelp} data-preview-find-help>
+                <CircleHelp className="size-4" aria-hidden />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">{words.findHelp}</TooltipContent>
+          </Tooltip>
+          <Button type="submit" variant="outline" size="sm" className="shrink-0 gap-1.5" disabled={!findText.trim() || find === "waiting"}>
+            <Search className="size-4" aria-hidden />
+            {words.find}
+          </Button>
+        </form>
+      </TooltipProvider>
+      {findMessage && (
+        <p className="text-muted-foreground text-sm" role="status" data-preview-find-state={find}>
+          {findMessage}
+        </p>
+      )}
+      <WebPreview key={previewKey} defaultUrl={startUrl ?? state.url} onUrlChange={setCurrent} className="h-[70vh] min-h-[480px]">
         <WebPreviewNavigation>
           <WebPreviewUrl />
           {/* Слово владельца 2026-09-25: «добавь кнопку открыть страницу в новой вкладке чтобы из превью можно было уйти
@@ -160,7 +272,10 @@ export function ElementPreview({ serviceId, lang, words }: { serviceId: string; 
           key={frameKey}
           ref={frameRef}
           allow="clipboard-write"
-          onLoad={() => { if (highlight) { awaitAnswer(); sendHighlight(true) } }}
+          onLoad={() => {
+            if (highlight) { awaitAnswer(); sendHighlight(true) }
+            if (pendingBid.current) sendLocate()
+          }}
         />
       </WebPreview>
       {highlight && answer !== "waiting" && (
