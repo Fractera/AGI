@@ -1,14 +1,19 @@
 import {
-  AppWindow, Blocks, Clock, FlaskConical, Globe, Hammer, IdCard, LayoutTemplate, Package, Palette, Server, Settings,
-  Store, ToggleRight, Wrench,
+  AppWindow, Blocks, Clock, Database, FlaskConical, Hammer, House, IdCard, KeyRound, LayoutTemplate, Package, Palette,
+  Server, Settings, SlidersHorizontal, Store, ToggleRight, Wrench,
 } from 'lucide-react'
 
 // ЗНАЧКИ ЛЕВОГО МЕНЮ (шаг 288-2). Слово владельца 2026-09-24: «Слева от кнопок нужно нарисовать иконке … для корня
 // авторизации и данных будет иконка глобус символизирующая интернет все остальные иконки расставь на своё усмотрение».
 // Значок раздела — поле `icon` в его `_data/meta.ts` (одно место); здесь только словарь «имя → значок». Глобус — у
 // служб, живущих в интернете (сайт, вход, данные); новая служба узла получает его же.
+// 🪦 Глобус отменён владельцем 2026-09-26 (шаг 311): «Убери глобус вообще и перерисуй чтобы каждой вкладке соответствовала
+// своя иконка». Значка `globe` в словаре нет намеренно: имя, которого здесь нет, не рисует ничего.
 const ICONS = {
-  globe: Globe,
+  home: House,
+  key: KeyRound,
+  database: Database,
+  sliders: SlidersHorizontal,
   settings: Settings,
   toggle: ToggleRight,
   blocks: Blocks,

@@ -1,7 +1,7 @@
 # `/architect/blocks` — the element «Blocks» in the core
 
 The page of the node element **Blocks** (`AGI-ITEMS/user/blocks`, the first AGI ITEM of kind user, step 297) in the
-core menu — under «Data», with the globe icon like root, auth and data. Built like «Authorization» (the owner's word,
+core menu — under «Data», with its own «blocks» icon (step 311: every tab has its own icon, no globe). Built like «Authorization» (the owner's word,
 2026-09-25: «удалить все страницы которые там существуют а вместо этого, также как на вкладка авторизация поставить
 кнопку Preview и секцию из трёх сервисов Claude Code Agent»).
 

@@ -70,7 +70,7 @@
     {
       "id": "design",
       "repo": "https://github.com/Fractera/fractera-design-starter.git",
-      "version": "v0.1.0",
+      "version": "v0.1.1",
       "provides": [
         "project-design"
       ],
