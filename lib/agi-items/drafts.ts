@@ -20,16 +20,45 @@ export type AgiDraft = { id: string; createdAt: string }
 
 const FILE = join(process.cwd(), "data", "agi-drafts.json")
 
-/** Имя черновика в форме CUID2: строчная буква + 23 знака base36. Годится и для поддомена, и для имени службы моста. */
-export function newDraftId(): string {
+// 🔒 ИМЯ — ПЯТЬ ЗНАКОВ (слово владельца 2026-09-26 о 24-значном: «very long, no? may be 5 chars no?»): строчная буква и
+// четыре знака base36 — около 43 млн имён, на узле их единицы. Годится и для поддомена, и для имени службы моста.
+// 🛑 КОРОТКОЕ ИМЯ МОЖЕТ СОВПАСТЬ С ЗАНЯТЫМ, И ТОГДА ЧЕРНОВИК НЕВИДИМ: папка раздела с точным именем (`architect/build`)
+// перекрывает динамический маршрут. Поэтому имя сверяется с реестром служб, разделами слоя, служебными поддоменами и
+// черновиками. Прежние 24-значные имена (первые часы 314-1) читаются по-прежнему.
+const ID_LENGTH = 5
+const RESERVED = new Set([
+  "auth", "blocks", "build", "config", "data", "design", "hosting", "kits", "passport", "root",
+  "admin", "architect", "api", "www", "mail", "memory", "telegram", "store", "items",
+])
+
+function registryIds(): string[] {
+  try {
+    const r = JSON.parse(readFileSync(join(process.cwd(), "AGI-ITEMS-CONFIG", "agi-items.json"), "utf8")) as { services?: { id?: unknown }[] }
+    return (r.services ?? []).map((s) => s.id).filter((x): x is string => typeof x === "string")
+  } catch {
+    return []
+  }
+}
+
+function randomId(): string {
   const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
-  const bytes = randomBytes(24)
+  const bytes = randomBytes(ID_LENGTH)
   let id = alphabet[bytes[0] % 26]
-  for (let i = 1; i < 24; i++) id += alphabet[bytes[i] % 36]
+  for (let i = 1; i < ID_LENGTH; i++) id += alphabet[bytes[i] % 36]
   return id
 }
 
-export const DRAFT_ID = /^[a-z][a-z0-9]{23}$/
+/** Свободное имя: не занято реестром, разделом, служебным поддоменом или другим черновиком. */
+export function newDraftId(taken: string[]): string {
+  const busy = new Set([...RESERVED, ...registryIds(), ...taken])
+  for (let i = 0; i < 100; i++) {
+    const id = randomId()
+    if (!busy.has(id)) return id
+  }
+  throw new Error("no-free-id")
+}
+
+export const DRAFT_ID = /^[a-z][a-z0-9]{4,23}$/
 
 type ReadResult = { ok: true; drafts: AgiDraft[] } | { ok: false }
 
@@ -73,7 +102,9 @@ export function getDraft(id: string): AgiDraft | null {
 export function createDraft(): AgiDraft | null {
   const r = read()
   if (!r.ok) return null
-  const draft = { id: newDraftId(), createdAt: new Date().toISOString() }
+  let id: string
+  try { id = newDraftId(r.drafts.map((d) => d.id)) } catch { return null }
+  const draft = { id, createdAt: new Date().toISOString() }
   return write([...r.drafts, draft]) ? draft : null
 }
 
