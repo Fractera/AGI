@@ -32,8 +32,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/:lang/architecture", destination: "/:lang/m2m", permanent: true },
-      // 262: каталог секций переехал в слой архитектора по слову владельца.
-      { source: "/:lang/blocks", destination: "/:lang/blocks/page-material", permanent: true },
+      // 🪦 262 `/:lang/blocks → /:lang/blocks/page-material` снята 2026-09-26: каталог секций уехал в элемент «Блоки»
+      // (301), страницы page-material нет, а правило перехватывало главную раздела «Блоки» и вело в пустоту.
       { source: "/:lang/architecture/index.md", destination: "/:lang/m2m/index.md", permanent: true },
       // 🔒 285-6: THE ARCHITECT PAGES LIVE AT THE ROOT OF THE CORE — owner 2026-09-24: «должно быть так:
       // https://architect.throughsongs.com/ru/». The folder stays `(architectLayer)/architect/` (424 places build
