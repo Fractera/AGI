@@ -33,9 +33,8 @@ const out = []
 let errors = 0
 const fail = (rule, m) => { errors += 1; out.push(`  ОШИБКА [${rule}]: ${m}`) }
 // Долги repo-https: элемент ещё не на GitHub и едет из локального репозитория. Закрывается ТОЙ ЖЕ правкой, что меняет адрес.
-const REPO_DEBTS = {
-  design: { repo: 'file:///C:/Users/Usuario/Documents/git-bare/fractera-design-starter.git', why: '2026-09-26 (шаг 309): репозитория Fractera/fractera-design-starter на GitHub нет — создать его (владелец), запушить main и теги из C:/Users/Usuario/Documents/code/fractera-design-starter, сменить repo в agi-items.json и удалить эту строку.' },
-}
+// Сейчас долгов нет. Закрыт 2026-09-26: design переехал на https://github.com/Fractera/fractera-design-starter.git.
+const REPO_DEBTS = {}
 const debts = []
 
 // ── 1. registry-parse. Порча: сломать JSON запятой.
