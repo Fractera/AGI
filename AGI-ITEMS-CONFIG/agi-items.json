@@ -43,7 +43,7 @@
     {
       "id": "data",
       "repo": "https://github.com/Fractera/fractera-data-starter.git",
-      "version": "v1.3.14",
+      "version": "v1.3.15",
       "port": 24682,
       "provides": [
         "tables",
@@ -58,7 +58,7 @@
     {
       "id": "config",
       "repo": "https://github.com/Fractera/fractera-config-starter.git",
-      "version": "v0.2.21",
+      "version": "v0.2.22",
       "provides": [
         "project-settings"
       ],
@@ -70,7 +70,7 @@
     {
       "id": "design",
       "repo": "https://github.com/Fractera/fractera-design-starter.git",
-      "version": "v0.1.2",
+      "version": "v0.1.3",
       "provides": [
         "project-design"
       ],
@@ -94,7 +94,7 @@
     {
       "id": "blocks",
       "repo": "https://github.com/Fractera/fractera-blocks-starter.git",
-      "version": "v0.5.19",
+      "version": "v0.5.20",
       "provides": [
         "page-blocks"
       ],
