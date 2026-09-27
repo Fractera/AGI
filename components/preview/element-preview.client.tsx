@@ -143,7 +143,8 @@ export function ElementPreview({ serviceId, lang, words }: { serviceId: string; 
     setReload("busy")
     let ok = false
     try {
-      const r = await fetch(`${new URL(page).origin}/api/revalidate`, { method: "POST", credentials: "include", cache: "no-store" })
+      // 324-6: перерисовку зовёт сервер ядра по петле машины — на собственном домене элемента кука узла не живёт.
+      const r = await fetch(`${BASE}/api/architect/items/${encodeURIComponent(serviceId)}/redraw`, { method: "POST", cache: "no-store" })
       ok = r.ok
     } catch {
       ok = false

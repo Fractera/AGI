@@ -8,7 +8,7 @@ export type ElementSettingsUi = {
   agentNotBorn: string
   describe: Card
   mirrorCard: {
-    current: string; label: string; placeholder: string; attach: string; attaching: string; detach: string; detaching: string; empty: string; add: string; loadFailed: string; note: string
+    current: string; label: string; placeholder: string; attach: string; attaching: string; detach: string; detaching: string; primaryTitle: string; primaryNote: string; empty: string; add: string; loadFailed: string; note: string
     kinds: Record<"ready" | "waiting" | "taken" | "current", string>; errors: Record<string, string>
   }
   addressCard: { current: string; label: string; free: string; "bad-shape": string; taken: string; suggest: string; renaming: string; failed: string; note: string }
@@ -38,6 +38,8 @@ const DICT: Record<string, ElementSettingsUi> = {
       attaching: "Connecting…",
       detach: "Disconnect",
       detaching: "Disconnecting…",
+      primaryTitle: "Main address",
+      primaryNote: "The site is served at {primary} and calls itself so (canonical, sitemap, hreflang); the other address answers 301 to it.",
       empty: "The node has no extra domains yet — add one on «Domain activation».",
       add: "Add a domain",
       loadFailed: "The list of domains did not load.",
@@ -61,6 +63,8 @@ const DICT: Record<string, ElementSettingsUi> = {
         "tunnel-failed": "Cloudflare did not accept the tunnel route.",
         "dns-failed": "Cloudflare did not accept the DNS record.",
         "no-port": "The element has no port on this node.",
+        "no-subdomain": "The element has no subdomain yet — connect «Address on the internet» on its home page first.",
+        "no-domain": "No domain is connected to the element.",
         failed: "Connecting did not finish.",
       },
     },
@@ -142,6 +146,8 @@ const DICT: Record<string, ElementSettingsUi> = {
       attaching: "Подключаю…",
       detach: "Отключить",
       detaching: "Отключаю…",
+      primaryTitle: "Главный адрес",
+      primaryNote: "Сайт отдаётся на {primary} и называет себя этим адресом (canonical, sitemap, hreflang); второй адрес отвечает 301 на него.",
       empty: "У узла пока нет дополнительных доменов — добавьте домен на «Активации домена».",
       add: "Добавить домен",
       loadFailed: "Список доменов не загрузился.",
@@ -165,6 +171,8 @@ const DICT: Record<string, ElementSettingsUi> = {
         "tunnel-failed": "Cloudflare не принял маршрут туннеля.",
         "dns-failed": "Cloudflare не принял запись DNS.",
         "no-port": "У элемента нет порта на этом узле.",
+        "no-subdomain": "У элемента ещё нет поддомена — сначала подключите «Адрес в интернете» на его главной странице.",
+        "no-domain": "К элементу не подключён домен.",
         failed: "Подключение не завершилось.",
       },
     },

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireRoles } from "@/lib/auth/require-roles"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
 import { isBornElement } from "@/lib/agi-items/element-delete"
-import { attachDomain, checkDomain, detachDomain, domainOf } from "@/lib/agi-items/element-domain"
+import { attachDomain, checkDomain, detachDomain, domainOf, setPrimary } from "@/lib/agi-items/element-domain"
 
 // «СВОЙ ДОМЕН» ЭЛЕМЕНТА (324-1). GET `?name=` — форма имени по правилам DNS, занятость другим элементом, зона в аккаунте
 // Cloudflare узла и её статус (серверы имён — если зона ждёт их у регистратора). Ничего не пишет. Подключение — 324-2.
@@ -45,5 +45,19 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   if (denied) return denied
   if (!isBornElement(id)) return NextResponse.json({ ok: false, error: "not-a-born-element" }, { status: 404 })
   const r = await detachDomain(id)
+  return NextResponse.json(r, { status: r.ok ? 200 : 400, ...noStore })
+}
+
+// 324-5: PATCH `{ primary: "domain" | "subdomain" }` — главный адрес элемента: кто раздаёт сайт, кто переадресует 301.
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  if (isTemporaryPublicAddress(req)) return NextResponse.json({ ok: false, error: "temporary-address" }, { status: 403 })
+  const denied = await requireRoles(req, ROLES)
+  if (denied) return denied
+  if (!isBornElement(id)) return NextResponse.json({ ok: false, error: "not-a-born-element" }, { status: 404 })
+  let primary: unknown
+  try { primary = ((await req.json()) as { primary?: unknown }).primary } catch { return NextResponse.json({ ok: false, error: "bad-request" }, { status: 400 }) }
+  if (primary !== "domain" && primary !== "subdomain") return NextResponse.json({ ok: false, error: "bad-request" }, { status: 400 })
+  const r = await setPrimary(id, primary)
   return NextResponse.json(r, { status: r.ok ? 200 : 400, ...noStore })
 }

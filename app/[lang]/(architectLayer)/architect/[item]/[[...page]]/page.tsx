@@ -26,7 +26,7 @@ import { elementSettingsUi } from '../../../_i18n/element-settings.i18n'
 import { ElementDescribe } from '../../../_components/element-describe.client'
 import { ElementAddress } from '../../../_components/element-address.client'
 import { ElementDomain } from '../../../_components/element-domain.client'
-import { domainOf } from '@/lib/agi-items/element-domain'
+import { domainRecord } from '@/lib/agi-items/element-domain'
 import { addressOf, idOfAddress } from '@/lib/agi-items/element-address'
 import { registryDescription, TASK as DESCRIBE_TASK } from '@/lib/agi-items/element-describe'
 import { terminalLink } from '@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/client/terminal-paste.mjs'
@@ -196,7 +196,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
           describe: <ElementDescribe id={item} lang={lang} ui={sui} current={registryDescription(item)} terminalHref={terminalLink({ lang, service: `${slug}/build`, text: DESCRIBE_TASK })} />,
           address: <ElementAddress id={item} lang={lang} ui={sui} current={slug} internet={address} />,
           // 324: главное зеркало — второй собственный домен в корне элемента.
-          mirror: <ElementDomain id={item} lang={lang} ui={sui} current={domainOf(item)} />,
+          mirror: <ElementDomain id={item} lang={lang} ui={sui} current={domainRecord(item)} />,
           remove: <DeleteElementButton lang={lang} id={item} address={address} ui={sui} dialogUi={appDialogUi(lang)} />,
         }} />
       : <p className="my-4 text-sm text-muted-foreground">{sui.notBorn}</p>)

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { ElementSettingsUi } from "../_i18n/element-settings.i18n"
+import type { ElementDomainRecord, Primary } from "@/lib/agi-items/element-domain"
 
 // «ГЛАВНОЕ ЗЕРКАЛО» — ВЫБОР ИЗ ДОМЕНОВ УЗЛА (324-3). Слово владельца 2026-09-27: «вместо того чтобы вводить свой домен я тебя
 // просил сделать выпадающий список и указать какие домены уже прикреплены а какие ещё свободны и какие я могу привязать к
@@ -18,7 +19,8 @@ const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 type Listed = { name: string; state: string; holder: string | null }
 type Kind = "ready" | "waiting" | "taken" | "current"
 
-export function ElementDomain({ id, lang, ui, current }: { id: string; lang: string; ui: ElementSettingsUi; current: string | null }) {
+export function ElementDomain({ id, lang, ui, current: record }: { id: string; lang: string; ui: ElementSettingsUi; current: ElementDomainRecord | null }) {
+  const current = record?.domain ?? null
   const w = ui.mirrorCard
   const router = useRouter()
   const [list, setList] = useState<Listed[] | null>(null)
@@ -64,6 +66,19 @@ export function ElementDomain({ id, lang, ui, current }: { id: string; lang: str
     setBusy(false)
   }
 
+  // 324-5: главный адрес — кто раздаёт сайт и кем элемент себя называет (canonical); второй отвечает 301.
+  async function choose(primary: Primary) {
+    setBusy(true)
+    setError(null)
+    try {
+      const r = await fetch(`${BASE}/api/architect/items/${id}/domain`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ primary }) })
+      const j = (await r.json().catch(() => null)) as { ok?: boolean; error?: string } | null
+      if (j?.ok) { router.refresh(); setBusy(false); return }
+      setError(w.errors[j?.error ?? ""] ?? `${w.errors.failed} ${j?.error ?? r.status}`)
+    } catch { setError(w.errors.failed) }
+    setBusy(false)
+  }
+
   return (
     <div className="flex flex-col gap-2" data-element-domain={current ?? ""}>
       {current && (
@@ -72,6 +87,22 @@ export function ElementDomain({ id, lang, ui, current }: { id: string; lang: str
           <Button type="button" variant="outline" size="sm" onClick={detach} disabled={busy} data-domain-detach>
             {busy ? w.detaching : w.detach}
           </Button>
+        </div>
+      )}
+      {record && (
+        <div className="flex flex-col gap-1.5 rounded-md border p-3" data-domain-primary={record.primary}>
+          <p className="text-sm font-medium text-foreground">{w.primaryTitle}</p>
+          <div className="flex flex-wrap gap-2">
+            {record.subdomain && (
+              <Button type="button" size="sm" variant={record.primary === "subdomain" ? "default" : "outline"} disabled={busy || record.primary === "subdomain"} onClick={() => choose("subdomain")} data-primary-subdomain>
+                <span className="font-mono">{record.subdomain}</span>
+              </Button>
+            )}
+            <Button type="button" size="sm" variant={record.primary === "domain" ? "default" : "outline"} disabled={busy || record.primary === "domain"} onClick={() => choose("domain")} data-primary-domain>
+              <span className="font-mono">{record.domain}</span>
+            </Button>
+          </div>
+          <p className="text-[length:var(--fs-small)] text-muted-foreground">{w.primaryNote.replace("{primary}", record.url.replace("https://", ""))}</p>
         </div>
       )}
       {loadFailed && <p className="text-sm text-destructive">{w.loadFailed}</p>}

@@ -5,7 +5,7 @@ import { requireRoles } from "@/lib/auth/require-roles"
 import { serviceUrl } from "@/lib/microservices/registry"
 import { publicAuth } from "@/lib/domain/public-auth.cjs"
 import { addressOf } from "@/lib/agi-items/address-file.mjs"
-import { domainOf } from "@/lib/agi-items/element-domain"
+import { domainRecord } from "@/lib/agi-items/element-domain"
 
 // АДРЕС ДЛЯ ПРОСМОТРА ЭЛЕМЕНТА (страница Preview, слово владельца 2026-09-24).
 //
@@ -50,9 +50,9 @@ export async function GET(req: NextRequest) {
   // пустоту. Проверка — DNS Cloudflare (DoH, мимо кэша машины, как у /api/node/reach): записи нет — петля машины и
   // `public: false`. DNS не ответил — «не знаю», оставляем прежний адрес.
   if (base && id !== "root" && (await hasPublicName(new URL(base).hostname)) === false) base = null
-  // 324-4: у элемента подключён свой домен — Preview показывает сайт на нём (прежний поддомен переадресует туда же).
-  const own = domainOf(id)
-  if (own) base = `https://${own}`
+  // 324-4/324-5: у элемента подключён свой домен — Preview показывает его главный адрес (второй переадресует туда же).
+  const own = domainRecord(id)?.url
+  if (own) base = own
   const url = `${(base ?? local).replace(/\/+$/, "")}/${lang}`
   return NextResponse.json({ ok: true, url, public: !!base }, { headers: { "Cache-Control": "no-store" } })
 }
