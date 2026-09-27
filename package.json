@@ -57,6 +57,7 @@
     "check:seo-html": "node scripts/check-seo-html.mjs",
     "check:microservices": "node scripts/check-microservices.mjs",
     "services:install": "node scripts/services-install.mjs",
+    "items:birth": "node scripts/item-birth.mjs",
     "check:lang-delivery": "node scripts/check-lang-delivery.mjs",
     "check:case": "node scripts/check-case.mjs",
     "agent-kit:add": "node \"app/[lang]/(architectLayer)/architect/kits/_agent-kit/install.mjs\"",
