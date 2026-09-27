@@ -33,7 +33,7 @@ export type WorkspaceShellItem = {
   icon?: string
   href?: string
   active?: boolean
-  /** Разделы пункта — раскрывающееся подменю. Закон и цена — у поля `children` вида `workspace`. */
+  /** Разделы пункта — раскрывающееся подменю; у раздела — свои страницы, третий уровень (320). Закон — у поля `children` вида `workspace`. */
   children?: WorkspaceShellItem[]
   /** Подменю раскрыто. Отдельно от `active` — см. закон у поля `open` вида `workspace`. */
   open?: boolean
@@ -274,6 +274,51 @@ export function WorkspaceShell({
                   <ul className="mt-1 ml-[9px] flex flex-col gap-1 border-l border-border pl-[9px]">
                     {item.children.map((sub, j) => (
                       <li key={`${id}-m-${i}-${j}`}>
+                        {sub.children && sub.children.length > 0 ? (
+                          /* 🔒 ТРЕТИЙ УРОВЕНЬ (320, слово владельца 2026-09-27: «добавь в него ещё один раскрывающийся
+                             уровень»). Тот же серверный `<details>`, что у второго: работает без JavaScript; заголовок —
+                             ссылка на страницу раздела с тем же подчёркиванием «вы здесь», стрелка — переключатель; открыт,
+                             когда человек внутри раздела. */
+                          <details open={sub.open ?? sub.active} className="group/sub3">
+                            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 py-1 [&::-webkit-details-marker]:hidden">
+                              {sub.href ? (
+                                <Link
+                                  href={sub.href}
+                                  aria-current={sub.active ? 'page' : undefined}
+                                  className={
+                                    'block w-fit max-w-full truncate whitespace-nowrap border-b-2 px-0.5 text-[length:var(--fs-small)] transition-colors' +
+                                    (sub.active
+                                      ? ' border-primary font-medium text-foreground'
+                                      : (sub.open ? ' border-transparent font-medium text-foreground' : ' border-transparent text-muted-foreground hover:border-border hover:text-foreground'))
+                                  }
+                                >
+                                  {sub.label}
+                                </Link>
+                              ) : (
+                                <span className="truncate whitespace-nowrap px-0.5 text-[length:var(--fs-small)] text-muted-foreground">{sub.label}</span>
+                              )}
+                              <ChevronDown
+                                size={14}
+                                aria-hidden
+                                className="shrink-0 text-muted-foreground transition-transform duration-200 group-open/sub3:rotate-180"
+                              />
+                            </summary>
+                            <ul className="mt-1 ml-[5px] flex flex-col gap-0.5 border-l border-border pl-[9px]">
+                              {sub.children.map((leaf, k) => (
+                                <li key={`${id}-m-${i}-${j}-${k}`}>
+                                  <Item
+                                    item={leaf}
+                                    closes={drawer}
+                                    base="block w-fit max-w-full truncate whitespace-nowrap border-b-2 px-0.5 py-0.5 text-[length:var(--fs-small)] transition-colors"
+                                    activeClass=" border-primary font-medium text-foreground"
+                                    idleClass=" border-transparent text-muted-foreground hover:border-border hover:text-foreground"
+                                  />
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
+                        ) : (
+                        <>
                         {/* 🔒 АКТИВНЫЙ ПУНКТ ПОДМЕНЮ — НИЖНЯЯ ЛИНИЯ, А НЕ ЗАЛИВКА
                             (решение владельца 2026-09-19: «выпадающие вкладки
                             активные страницы лучше выделять не круговым
@@ -292,6 +337,8 @@ export function WorkspaceShell({
                           activeClass=" border-primary font-medium text-foreground"
                           idleClass=" border-transparent text-muted-foreground hover:border-border hover:text-foreground"
                         />
+                        </>
+                        )}
                       </li>
                     ))}
                   </ul>
