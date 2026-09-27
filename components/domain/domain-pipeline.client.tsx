@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -48,6 +48,17 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
   const [noPermission, setNoPermission] = useState(false)
   const [note, setNote] = useState<string | null>(null)
   const [key, setKey] = useState("")
+  // Ключ дверь принимает только с машины узла (259-2). Открыта страница по публичному адресу — поле не показывается, вместо
+  // него ссылка на эту же страницу на localhost (порт спрашивается у узла, не помнится). ✗ оплачено 2026-09-27: владелец
+  // вставил ключ на throughsongs.com и получил голое «not-owner».
+  const [remote, setRemote] = useState<{ nodeUrl: string | null } | null>(null)
+  useEffect(() => {
+    if (["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname)) return
+    fetch(`${BASE}/api/domain/state`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j: { nodeUrl?: string | null }) => setRemote({ nodeUrl: j.nodeUrl ?? null }))
+      .catch(() => setRemote({ nodeUrl: null }))
+  }, [])
 
   const time = (iso?: string) => iso ? new Date(iso).toLocaleTimeString(lang === "ru" ? "ru-RU" : "en-GB") : ""
 
@@ -90,6 +101,7 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
     try {
       const r = await fetch(`${BASE}/api/domain/key`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: key.trim() }) })
       const j = (await r.json().catch(() => null)) as { ok?: boolean; reason?: string } | null
+      if (j?.reason === "not-owner" || j?.reason === "temporary-address") { setRemote({ nodeUrl: null }); setBusy(null); return }
       if (!j?.ok) { setError(`${w.key.failed} ${j?.reason ?? r.status}`); setBusy(null); return }
       setKey("")
     } catch { setError(w.key.failed); setBusy(null); return }
@@ -113,13 +125,26 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
               <div className="flex flex-col gap-2 rounded-md border border-destructive bg-destructive/5 p-3" data-pipe-no-permission>
                 <p className="text-sm text-foreground">{p.noPermission}</p>
                 <TokenHowTo words={ladderWords} />
-                <Label htmlFor={`pipe-key-${d.name}`}>{w.key.label}</Label>
-                <div className="flex flex-wrap gap-2">
-                  <Input id={`pipe-key-${d.name}`} type="password" className="max-w-80 font-mono" value={key} onChange={(e) => setKey(e.target.value)} autoComplete="off" spellCheck={false} />
-                  <Button type="button" size="sm" onClick={saveKeyAndCreate} disabled={!key.trim() || busy !== null} data-pipe-key-save>
-                    {busy === "key" ? w.key.saving : p.keySaveAndCreate}
-                  </Button>
-                </div>
+                {remote ? (
+                  <div className="flex flex-col gap-1" data-pipe-key-remote>
+                    <p className="text-sm text-foreground">{p.keyRemote}</p>
+                    {remote.nodeUrl && (
+                      <a className="w-fit font-mono text-sm underline" href={`${remote.nodeUrl}${window.location.pathname}`}>
+                        {`${remote.nodeUrl}${window.location.pathname}`}
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <Label htmlFor={`pipe-key-${d.name}`}>{w.key.label}</Label>
+                    <div className="flex flex-wrap gap-2">
+                      <Input id={`pipe-key-${d.name}`} type="password" className="max-w-80 font-mono" value={key} onChange={(e) => setKey(e.target.value)} autoComplete="off" spellCheck={false} />
+                      <Button type="button" size="sm" onClick={saveKeyAndCreate} disabled={!key.trim() || busy !== null} data-pipe-key-save>
+                        {busy === "key" ? w.key.saving : p.keySaveAndCreate}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </>
