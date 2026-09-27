@@ -9,6 +9,9 @@ import { DeleteDraftButton } from '../../../_components/delete-draft-button.clie
 import { appDialogUi } from '@/components/dialog/app-dialog.i18n'
 import { draftAddress, getDraft } from '@/lib/agi-items/drafts'
 import { findTreePage, treeLang } from '@/lib/agi-items/item-tree'
+import { serviceUrl } from '@/lib/microservices/registry'
+import { ElementPreview } from '@/components/preview/element-preview.client'
+import { elementPreviewWords } from '@/sections/blocks/element-preview.server'
 
 // ОДНА СТРАНИЦА НА ВСЕ АДРЕСА ВСЕХ ЧЕРНОВИКОВ (314-1): `/architect/<id>`, `/architect/<id>/<раздел>`,
 // `/architect/<id>/<раздел>/<страница>`. Дерево — `lib/agi-items/item-tree.ts`, черновики — `data/agi-drafts.json`.
@@ -98,6 +101,12 @@ export default async function Page({ params }: { params: Promise<Params> }) {
     </nav>
   ) : null
 
+  // 319-2: РОДИВШИЙСЯ элемент (он уже в реестре узла) показывает в Preview свой сайт — тот же просмотр, что у служб, с
+  // подсветкой и «Найти блок». Черновик, ещё не родившийся, — только заголовок раздела: показывать нечего.
+  const preview = section.slug === 'preview' && !page && serviceUrl(item)
+    ? <ElementPreview serviceId={item} lang={lang} words={elementPreviewWords(lang)} />
+    : null
+
   return (
     <ArchitectPage
       lang={lang}
@@ -105,7 +114,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       title={words.title}
       lead={words.lead}
       pageTitle={address}
-      widget={<>{bar}{list}</>}
+      widget={<>{bar}{list}{preview}</>}
     />
   )
 }

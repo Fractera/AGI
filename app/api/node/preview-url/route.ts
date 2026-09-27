@@ -14,6 +14,21 @@ import { publicAuth } from "@/lib/domain/public-auth.cjs"
 export const dynamic = "force-dynamic"
 
 
+/** Есть ли у имени запись A в DNS Cloudflare: true / false, или null — DNS не ответил. */
+async function hasPublicName(host: string): Promise<boolean | null> {
+  try {
+    const r = await fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(host)}&type=A`, {
+      headers: { accept: "application/dns-json" },
+      signal: AbortSignal.timeout(3000),
+      cache: "no-store",
+    })
+    const j = (await r.json()) as { Answer?: Array<{ type: number }> }
+    return Boolean(j.Answer?.some((a) => a.type === 1))
+  } catch {
+    return null
+  }
+}
+
 export async function GET(req: NextRequest) {
   const denied = await requireRoles(req, ["architect", "admin"])
   if (denied) return denied
@@ -28,6 +43,11 @@ export async function GET(req: NextRequest) {
   // фрейм не грузит. Формула та же, что у установщика (SERVICE_PUBLIC_URL) и двери /api/node/reach: root — корень зоны,
   // любой другой — <id>.<зона>.
   if (pub) base = id === "root" ? `https://${pub.siteHost}` : `https://${id}.${pub.zone}`
+  // 🔒 ИМЯ ЭЛЕМЕНТА ОБЯЗАНО СУЩЕСТВОВАТЬ, А НЕ ВЫВОДИТЬСЯ ФОРМУЛОЙ (319-2). Рождённому элементу поддомен выдаётся отдельной
+  // кнопкой «Адрес в интернете»; до неё формула давала `https://<id>.<зона>`, которого нет (NXDOMAIN), и Preview показывал
+  // пустоту. Проверка — DNS Cloudflare (DoH, мимо кэша машины, как у /api/node/reach): записи нет — петля машины и
+  // `public: false`. DNS не ответил — «не знаю», оставляем прежний адрес.
+  if (base && id !== "root" && (await hasPublicName(new URL(base).hostname)) === false) base = null
   const url = `${(base ?? local).replace(/\/+$/, "")}/${lang}`
   return NextResponse.json({ ok: true, url, public: !!base }, { headers: { "Cache-Control": "no-store" } })
 }

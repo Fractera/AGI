@@ -55,6 +55,9 @@ const WORDS: Record<string, ElementPreviewWords> = {
   },
 }
 
+/** Слова просмотра — одни на все места, где он стоит (разделы служб и рождённые элементы, 319-2). */
+export const elementPreviewWords = (lang: string): ElementPreviewWords => WORDS[lang] ?? WORDS.en
+
 export const elementPreview: SectionRenderer<'elementPreview'> = (b, { key: k }) => (
-  <ElementPreview key={k} serviceId={b.serviceId} lang={b.lang} words={WORDS[b.lang] ?? WORDS.en} />
+  <ElementPreview key={k} serviceId={b.serviceId} lang={b.lang} words={elementPreviewWords(b.lang)} />
 )
