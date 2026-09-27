@@ -2,7 +2,8 @@ import "server-only"
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import paths from "@/lib/agi-items/paths.cjs"
-import { listDrafts } from "@/lib/agi-items/drafts"
+import { listDrafts, RESERVED_NAMES } from "@/lib/agi-items/drafts"
+import { isElementAddress } from "@/lib/agi-items/dns-label.mjs"
 import { ARCHITECT_PATHS } from "@/app/[lang]/(architectLayer)/_lib/architect-menu"
 
 // АДРЕС AGI ЭЛЕМЕНТА В ЯДРЕ ПРИ НЕИЗМЕННОМ id (325-3). Решения владельца 2026-09-27: «Адрес, id неизменен» и «Только ядро» —
@@ -15,8 +16,9 @@ import { ARCHITECT_PATHS } from "@/app/[lang]/(architectLayer)/_lib/architect-me
 // 🔒 СВОБОДНО = не занято ничем, что ядро отдаёт по тому же пути: разделом слоя (папка с точным именем важнее — Next отдал бы
 // раздел, а не элемент), id или адресом другого элемента или черновика, записью реестра, служебным путём.
 
-export const ADDRESS = /^[a-z][a-z0-9-]{3,23}$/
-const RESERVED = ["architect", "api", "login", "register", "guest-login", "logout", "account", "admin"]
+// 325-7: форма имени — метка DNS по RFC 1035/1123/5891 и политика узла (`dns-label.mjs`, сторож `check-dns-label`).
+// Запретные имена — общий список с черновиками плюс пути ядра, которые не являются разделами.
+const CORE_PATHS = ["architect", "api", "login", "register", "guest-login", "logout", "account"]
 
 const DATA = join(process.cwd(), "data", "services")
 const fileOf = (id: string) => join(DATA, id, "address.json")
@@ -27,7 +29,7 @@ export type AddressCheck = { ok: true } | { ok: false; reason: "bad-shape" | "ta
 export function addressOf(id: string): string {
   try {
     const a = (JSON.parse(readFileSync(fileOf(id), "utf8")) as { address?: unknown }).address
-    return typeof a === "string" && ADDRESS.test(a) ? a : id
+    return typeof a === "string" && isElementAddress(a) ? a : id
   } catch { return id }
 }
 
@@ -45,13 +47,13 @@ export function idOfAddress(segment: string): string | null {
 
 function taken(name: string, forId: string): boolean {
   if (name === forId) return false
-  if (RESERVED.includes(name)) return true
+  if (RESERVED_NAMES.has(name) || CORE_PATHS.includes(name)) return true
   if (ARCHITECT_PATHS.some((p) => p.split("/")[2] === name)) return true
   if (registryIds().includes(name)) return true
   return listDrafts().some((d) => d.id === name || (d.id !== forId && addressOf(d.id) === name))
 }
 
-const wellFormed = (name: string) => ADDRESS.test(name) && !name.endsWith("-") && !name.includes("--")
+const wellFormed = (name: string) => isElementAddress(name)
 
 /** Свободно ли имя для элемента `forId`; занято — до трёх свободных вариантов рядом. */
 export function checkAddress(name: string, forId: string): AddressCheck {

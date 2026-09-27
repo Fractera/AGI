@@ -26,7 +26,8 @@ const FILE = join(process.cwd(), "data", "agi-drafts.json")
 // перекрывает динамический маршрут. Поэтому имя сверяется с реестром служб, разделами слоя, служебными поддоменами и
 // черновиками. Прежние 24-значные имена (первые часы 314-1) читаются по-прежнему.
 const ID_LENGTH = 5
-const RESERVED = new Set([
+// 325-7: ОДИН список на черновики и адреса элементов (`element-address.ts`) — имена, занятые узлом как поддомены и разделы.
+export const RESERVED_NAMES: ReadonlySet<string> = new Set([
   "auth", "blocks", "build", "config", "data", "design", "hosting", "kits", "passport", "root",
   "admin", "architect", "api", "www", "mail", "memory", "telegram", "store", "items",
 ])
@@ -50,7 +51,7 @@ function randomId(): string {
 
 /** Свободное имя: не занято реестром, разделом, служебным поддоменом или другим черновиком. */
 export function newDraftId(taken: string[]): string {
-  const busy = new Set([...RESERVED, ...registryIds(), ...taken])
+  const busy = new Set([...RESERVED_NAMES, ...registryIds(), ...taken])
   for (let i = 0; i < 100; i++) {
     const id = randomId()
     if (!busy.has(id)) return id
