@@ -71,7 +71,7 @@ export async function listZones(token: string) {
 }
 
 
-type Method = "GET" | "POST" | "PUT"
+type Method = "GET" | "POST" | "PUT" | "DELETE"
 
 async function send<T>(method: Method, path: string, token: string, body?: unknown): Promise<{ ok: true; result: T } | CfFailure> {
   let res: Response
@@ -246,4 +246,20 @@ export async function hasDnsRecord(token: string, zoneId: string, name: string) 
   )
   if (!r.ok) return r
   return { ok: true as const, result: r.result.length > 0 }
+}
+
+/**
+ * Снять все DNS-записи с этим именем (325-5: удаление элемента снимает его поддомен). Возвращает, сколько снято. Имени нет —
+ * 0 и ok: снимать нечего — это не отказ.
+ */
+export async function deleteDnsRecords(token: string, zoneId: string, name: string) {
+  const list = await send<Array<{ id: string }>>("GET", `/zones/${zoneId}/dns_records?name=${encodeURIComponent(name)}`, token)
+  if (!list.ok) return list
+  let removed = 0
+  for (const rec of list.result) {
+    const r = await send<{ id: string }>("DELETE", `/zones/${zoneId}/dns_records/${rec.id}`, token)
+    if (!r.ok) return r
+    removed += 1
+  }
+  return { ok: true as const, result: removed }
 }

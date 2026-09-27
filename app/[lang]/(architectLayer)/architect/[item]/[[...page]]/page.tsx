@@ -20,6 +20,9 @@ import { elementDeploymentsUi } from '../../../_i18n/element-deployments.i18n'
 import { elementVersions } from '@/lib/agi-items/element-versions'
 import type { Block } from '@/lib/content/blocks/types'
 import { RotateCcw } from 'lucide-react'
+import { ElementDangerZone } from '../../../_components/element-danger-zone'
+import { DeleteElementButton } from '../../../_components/delete-element-button.client'
+import { elementSettingsUi } from '../../../_i18n/element-settings.i18n'
 import { Button } from '@/components/ui/button'
 import { ElementPreview } from '@/components/preview/element-preview.client'
 import { elementPreviewWords } from '@/sections/blocks/element-preview.server'
@@ -160,6 +163,14 @@ export default async function Page({ params }: { params: Promise<Params> }) {
         ]),
       }]
     : []
+  // 325: «Настройки» — Danger zone рождённого элемента; у черновика — объяснение.
+  const sui = elementSettingsUi(lang)
+  const settings = section.slug === 'settings' && !page
+    ? (entry
+      ? <ElementDangerZone ui={sui} actions={{ remove: <DeleteElementButton lang={lang} id={item} address={address} ui={sui} dialogUi={appDialogUi(lang)} /> }} />
+      : <p className="my-4 text-sm text-muted-foreground">{sui.notBorn}</p>)
+    : null
+
   // 321, дополнение (слово владельца: «на кнопку нарисуй по дефолту чтобы она пока не нажималась»): откат — шаг 322;
   // кнопка видна и неактивна, причина написана рядом, а не спрятана.
   const deploymentsNote = isDeployments
@@ -183,7 +194,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       title={words.title}
       lead={words.lead}
       pageTitle={address}
-      widget={<>{bar}{list}{preview}{github}{deploymentsNote}</>}
+      widget={<>{bar}{list}{preview}{github}{deploymentsNote}{settings}</>}
       children={tables}
     />
   )
