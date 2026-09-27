@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
 import { requireRoles } from "@/lib/auth/require-roles"
 import { deleteDraft, draftAddress, getDraft } from "@/lib/agi-items/drafts"
+import { getService } from "@/lib/microservices/registry"
 
 // УДАЛЕНИЕ ЧЕРНОВИКА (314-1). Тело `{ confirm }` обязано совпасть с адресом черновика `<id>.<зона>` буква в букву —
 // та же проверка, что в окне, но здесь она не обходится запросом мимо окна. Не совпало — 409, ничего не удалено.
@@ -16,6 +17,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   if (denied) return denied
   const { id } = await params
   if (!getDraft(id)) return NextResponse.json({ ok: false, reason: "not-found" }, { status: 404 })
+  // 319-3: РОДИВШИЙСЯ ЭЛЕМЕНТ ЧЕРНОВИКОМ НЕ УДАЛЯЕТСЯ. Снять запись черновика значило бы оставить работающий элемент (pm2,
+  // порт, реестр, папка) без страницы в ядре. Удаление элемента целиком — отдельный шаг.
+  if (getService(id)) return NextResponse.json({ ok: false, reason: "born" }, { status: 409 })
   const body = (await req.json().catch(() => null)) as { confirm?: unknown } | null
   if (typeof body?.confirm !== "string" || body.confirm.trim() !== draftAddress(id)) {
     return NextResponse.json({ ok: false, reason: "confirm-mismatch" }, { status: 409 })
