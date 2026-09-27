@@ -9,7 +9,8 @@
 //   4. паспорт `OWN-SERVICE-PROPS.json` получает `id` элемента — все имена элемент читает оттуда;
 //   5. запись реестра с полем `born`: установщик и `serve.mjs` такую папку не клонируют и не переводят на тег (иначе
 //      следующая установка стёрла бы работу агента); `repo`/`version` — правда о происхождении (их требует сторож реестра);
-//   6. дальше — ТОТ ЖЕ путь, что установка службы: `services-install.mjs --only <id>` (порт, `.env`, сборка, pm2, сторож).
+//   6. дальше — ТОТ ЖЕ путь, что установка службы: `services-install.mjs --only <id>` (порт, `.env`, сборка);
+//   7. запуск службы и сторожа в pm2 + `pm2 save` (установщик новые службы не поднимает) и ожидание `/api/health` по факту.
 //
 // 🔒 Процессы — `windowsHide: true` (закон 2026-09-18). Ничего не делается само: прибор запускает человек (или кнопка 319-3).
 // 🔒 Отказ до записи реестра не оставляет следов; отказ сборки оставляет папку и запись — повтор одной командой (печатается).
@@ -104,5 +105,38 @@ if (install.status !== 0) {
   process.exit(1)
 }
 const port = JSON.parse(readFileSync(REGISTRY_FILE, 'utf8')).services.find((s) => s.id === id)?.port ?? null
-stage(`родился: порт ${port}`)
+
+// 7. Запуск. 🛑 Установщик перезапускает только то, что уже жило в pm2 (закон «Настройки и дизайн на лету»: новые службы он
+// не поднимает) — рождённый элемент запускается здесь: служба и её сторож из `ecosystem.config.cjs`, затем `pm2 save`,
+// чтобы элемент пережил перезагрузку машины. `.cmd` на Windows — только через оболочку и с постоянными аргументами
+// (закон CVE-2024-27980); `id` уже сверен с образцом выше.
+const IS_WIN = process.platform === 'win32'
+const pm2 = (args) => spawnSync(IS_WIN ? 'pm2.cmd' : 'pm2', args, { cwd: ROOT, encoding: 'utf8', shell: IS_WIN, windowsHide: true })
+for (const name of [`fractera-svc-${id}`, `fractera-svc-${id}-watch`]) {
+  const r = pm2(['start', 'ecosystem.config.cjs', '--only', name])
+  if (r.status !== 0) {
+    say(`запуск ${name} не удался — повтор: pm2 start ecosystem.config.cjs --only ${name}`)
+    say(`===BIRTH_FAILED=== запуск «${id}»`)
+    process.exit(1)
+  }
+}
+pm2(['save'])
+stage('запущен в pm2, жду ответа элемента')
+
+// Ждём ответ по ФАКТУ, а не паузой (закон «после pm2 reload ждать порт по факту»).
+const health = JSON.parse(readFileSync(join(dir, 'OWN-SERVICE-PROPS.json'), 'utf8')).health?.path ?? '/'
+let answered = 0
+for (let i = 0; i < 60 && !answered; i++) {
+  try {
+    const r = await fetch(`http://localhost:${port}${health}`, { signal: AbortSignal.timeout(3000) })
+    if (r.ok) answered = r.status
+  } catch { /* ещё поднимается */ }
+  if (!answered) await new Promise((res) => setTimeout(res, 1000))
+}
+if (!answered) {
+  say(`элемент запущен, но за минуту не ответил на ${health} — журнал: logs/svc-${id}-err.log`)
+  say(`===BIRTH_FAILED=== «${id}» не отвечает`)
+  process.exit(1)
+}
+stage(`родился: порт ${port}, ${health} → ${answered}`)
 say(`===BIRTH_OK=== ${id} port ${port}`)
