@@ -23,6 +23,7 @@ import { RotateCcw } from 'lucide-react'
 import { ElementDangerZone } from '../../../_components/element-danger-zone'
 import { DeleteElementButton } from '../../../_components/delete-element-button.client'
 import { elementSettingsUi } from '../../../_i18n/element-settings.i18n'
+import { agentKitWidget, type AgentKitPage } from '../_agent-kit/widgets'
 import { Button } from '@/components/ui/button'
 import { ElementPreview } from '@/components/preview/element-preview.client'
 import { elementPreviewWords } from '@/sections/blocks/element-preview.server'
@@ -37,6 +38,9 @@ import { elementPreviewWords } from '@/sections/blocks/element-preview.server'
 // 🔒 В ПОИСК НЕ ИДЁТ: черновик — рабочее место, а не страница продукта.
 
 type Params = { lang: string; item: string; page?: string[] }
+
+// 326-3: страница дерева «Строительство» → вид острова комплекта агента (имя шаблона комплекта).
+const AGENT_PAGES: Record<string, AgentKitPage | undefined> = { subscription: 'claude-code', terminal: 'terminal', telegram: 'telegram' }
 
 function resolve(p: Params) {
   const draft = getDraft(p.item)
@@ -139,6 +143,13 @@ export default async function Page({ params }: { params: Promise<Params> }) {
     ? <ElementPreview serviceId={item} lang={lang} words={elementPreviewWords(lang)} />
     : null
 
+  // 326-3: «Подписка Claude Code», «Терминал», «Telegram бот» — острова ОБЩЕЙ копии комплекта агента (`../_agent-kit`, 326-1);
+  // Claude Code живёт в папке элемента `AGI-ITEMS/user/<id>`. У черновика — объяснение.
+  const kitPage = section.slug === 'build' && page ? AGENT_PAGES[page.slug] : undefined
+  const agent = kitPage
+    ? (entry ? agentKitWidget(kitPage, item, lang) : <p className="my-4 text-sm text-muted-foreground">{elementSettingsUi(lang).agentNotBorn}</p>)
+    : null
+
   // 319-5: страница GitHub — связь элемента с репозиторием владельца и выгрузка кнопкой; у нерождённого — объяснение.
   const github = section.slug === 'build' && page?.slug === 'github'
     ? (entry
@@ -194,7 +205,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       title={words.title}
       lead={words.lead}
       pageTitle={address}
-      widget={<>{bar}{list}{preview}{github}{deploymentsNote}{settings}</>}
+      widget={<>{bar}{list}{preview}{github}{deploymentsNote}{settings}{agent}</>}
       children={tables}
     />
   )

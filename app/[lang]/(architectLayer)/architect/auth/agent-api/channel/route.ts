@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { requireRoles } from "@/lib/auth/require-roles"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
-import { activationLink, channelState, isService, saveMessages, saveToken } from "../../_agent-kit/server/telegram.cjs"
+import { activationLink, channelState, isService, saveMessages, saveToken, startIdlePoller } from "../../_agent-kit/server/telegram.cjs"
 import { isBornItem } from "../../_agent-kit/server/workspace.cjs"
 
 // БОТ TELEGRAM АГЕНТА СЛУЖБЫ (267-3; в маршруте службы — 271).
@@ -52,8 +52,13 @@ export async function POST(req: NextRequest, ctx: Ctx) {
   if (!service || !isService(service)) return unknown()
   const body = (await req.json().catch(() => null)) as { action?: string; token?: string; messages?: unknown } | null
   switch (body?.action) {
-    case "token":
-      return NextResponse.json(await saveToken(service, body.token), noStore)
+    case "token": {
+      const saved = await saveToken(service, body.token)
+      // 326: у общей копии опрос бота элемента, рождённого после старта узла, начинается здесь — по действию человека
+      // (сохранил токен). Повторный вызов безвреден: опрос один на службу.
+      if (INSTALLED === "__BORN__" && (saved as { ok?: boolean })?.ok) startIdlePoller(service)
+      return NextResponse.json(saved, noStore)
+    }
     case "activation-link":
       return NextResponse.json(activationLink(service), noStore)
     case "messages":
