@@ -5,6 +5,7 @@ import { shouldBypassAuthEdge } from "@/lib/auth/auth-bypass.edge";
 import { isOwnerAtMachine } from "@/lib/auth/owner-at-machine";
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address";
 import { isShowcaseRequest } from "@/lib/showcase";
+import { mirrorTarget } from "@/lib/domain/mirror-redirect";
 import { getSession } from "@/lib/auth/get-session";
 import { authBaseFromHost, connectedDomainAuthBase, projectsBaseFromHost, publicAuthBaseFor } from "@/lib/auth-base-server";
 import { authUrl as nodeAuthUrl } from "@/lib/microservices/urls";
@@ -343,6 +344,15 @@ function languageRouter(request: NextRequest): NextResponse {
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
+
+  // ── Job −2: ГЛАВНОЕ ЗЕРКАЛО ЭЛЕМЕНТА — 301 НА ЕГО ДОМЕН (324-4) ─────────────
+  // `www.<домен>` и прежний поддомен элемента туннель ведёт сюда, а не на элемент; здесь они уходят на `https://<домен>`
+  // с тем же путём и запросом. Раньше всего остального: этот хост не страница ядра. Не GET/HEAD — 308, чтобы не потерять тело.
+  const mirror = mirrorTarget(request.headers.get("host"));
+  if (mirror) {
+    const to = `https://${mirror}${pathname}${request.nextUrl.search}`;
+    return NextResponse.redirect(to, request.method === "GET" || request.method === "HEAD" ? 301 : 308);
+  }
 
   // ── Job −1: ВИТРИНА НЕ ПРИНИМАЕТ ЗАПИСЬ (256-3) ──────────────────────────
   //

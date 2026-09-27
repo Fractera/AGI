@@ -8,7 +8,7 @@ export type ElementSettingsUi = {
   agentNotBorn: string
   describe: Card
   mirrorCard: {
-    current: string; label: string; placeholder: string; attach: string; attaching: string; empty: string; add: string; loadFailed: string; note: string
+    current: string; label: string; placeholder: string; attach: string; attaching: string; detach: string; detaching: string; empty: string; add: string; loadFailed: string; note: string
     kinds: Record<"ready" | "waiting" | "taken" | "current", string>; errors: Record<string, string>
   }
   addressCard: { current: string; label: string; free: string; "bad-shape": string; taken: string; suggest: string; renaming: string; failed: string; note: string }
@@ -36,6 +36,8 @@ const DICT: Record<string, ElementSettingsUi> = {
       placeholder: "Choose a domain",
       attach: "Connect",
       attaching: "Connecting…",
+      detach: "Disconnect",
+      detaching: "Disconnecting…",
       empty: "The node has no extra domains yet — add one on «Domain activation».",
       add: "Add a domain",
       loadFailed: "The list of domains did not load.",
@@ -54,6 +56,11 @@ const DICT: Record<string, ElementSettingsUi> = {
         "no-key": "The node has no Cloudflare key.",
         "cloudflare-error": "Cloudflare did not answer.",
         "write-failed": "The node could not save the choice.",
+        "no-tunnel": "The node has no tunnel of its own yet — connect the main domain first (Domain activation).",
+        "other-account": "This domain is in another Cloudflare account than the node — the node tunnel cannot serve it.",
+        "tunnel-failed": "Cloudflare did not accept the tunnel route.",
+        "dns-failed": "Cloudflare did not accept the DNS record.",
+        "no-port": "The element has no port on this node.",
         failed: "Connecting did not finish.",
       },
     },
@@ -133,6 +140,8 @@ const DICT: Record<string, ElementSettingsUi> = {
       placeholder: "Выберите домен",
       attach: "Подключить",
       attaching: "Подключаю…",
+      detach: "Отключить",
+      detaching: "Отключаю…",
       empty: "У узла пока нет дополнительных доменов — добавьте домен на «Активации домена».",
       add: "Добавить домен",
       loadFailed: "Список доменов не загрузился.",
@@ -151,6 +160,11 @@ const DICT: Record<string, ElementSettingsUi> = {
         "no-key": "У узла нет ключа Cloudflare.",
         "cloudflare-error": "Cloudflare не ответил.",
         "write-failed": "Узел не смог сохранить выбор.",
+        "no-tunnel": "У узла ещё нет своего туннеля — сначала подключите основной домен (Активация домена).",
+        "other-account": "Домен в другом аккаунте Cloudflare, чем узел, — туннель узла не может его обслужить.",
+        "tunnel-failed": "Cloudflare не принял маршрут туннеля.",
+        "dns-failed": "Cloudflare не принял запись DNS.",
+        "no-port": "У элемента нет порта на этом узле.",
         failed: "Подключение не завершилось.",
       },
     },

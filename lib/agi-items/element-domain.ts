@@ -1,10 +1,12 @@
 import "server-only"
-import { mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
+import { mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { isDnsLabel } from "@/lib/agi-items/dns-label.mjs"
 import { envValue } from "@/lib/agi-items/element-delete"
 import { nodeZone } from "@/lib/agi-items/drafts"
-import { zoneByName } from "@/lib/domain/cloudflare"
+import { accountOfZone, deleteAddressRecords, deleteTunnelRecord, getIngress, listZones, setIngress, upsertTunnelRecord, zoneByName, type IngressRule } from "@/lib/domain/cloudflare"
+import { serviceUrl } from "@/lib/microservices/registry"
+import { addressOf } from "@/lib/agi-items/address-file.mjs"
 import { extraDomains } from "@/lib/domain/node-domains"
 
 // ВТОРОЙ СОБСТВЕННЫЙ ДОМЕН В КОРНЕ AGI ЭЛЕМЕНТА (шаг 324). Слово владельца 2026-09-27: «подключение второго своего
@@ -79,21 +81,110 @@ export async function checkDomain(input: string, forId: string): Promise<DomainS
 
 // «ПОДКЛЮЧИТЬ» — ВЫБОР ИЗ СПИСКА ДОМЕНОВ УЗЛА (324-3). Слово владельца 2026-09-27: «вместо того чтобы вводить свой домен я
 // тебя просил сделать выпадающий список и указать какие домены уже прикреплены а какие ещё свободны». Домен добавляется и
-// доводится до активной зоны на странице «Активация домена»; здесь — только выбор.
+// доводится до активной зоны на странице «Активация домена»; здесь — выбор и маршрут.
 // 🔒 ЗАМЕР В МОМЕНТ НАЖАТИЯ: список показывает последнее, что узел видел; подключение спрашивает Cloudflare заново и берёт
-// только свободный домен с активной зоной. Раздача сайта элемента на домене и 301 со старого поддомена — 324-4.
-// Выбор другого домена заменяет прежний: у элемента один главный домен.
-export async function attachDomain(id: string, input: string): Promise<{ ok: true; domain: string } | { ok: false; error: string }> {
-  const name = normalizeDomain(input)
-  if (!extraDomains().some((d) => d.name === name)) return { ok: false, error: "not-in-list" }
-  const s = await checkDomain(name, id)
-  if (s.state !== "ready") return { ok: false, error: s.state }
+// только свободный домен с активной зоной.
+// 🔒 МАРШРУТ — ТЕМ ЖЕ ТУННЕЛЕМ УЗЛА (план 324: второй аккаунт = второй туннель, здесь не строится): правило `<домен>` → порт
+// элемента; `www.<домен>` и прежний поддомен элемента → ядро, которое отвечает 301 на `https://<домен>` (324-4, proxy.ts);
+// записи DNS `<домен>` и `www.<домен>` — CNAME на туннель в зоне домена. PUT правил заменяет список целиком — правила
+// дописываются к прочитанным. Запись `domain.json` — только после того, как маршрут принят: нет маршрута — нет «подключён».
+// Выбор другого домена сначала снимает прежний: у элемента один главный домен.
+
+type NodeTunnel = { key: string; zone: string; tunnelId: string; core: string; accountId: string }
+type Fail = { ok: false; error: string }
+
+function readNodeDomain(): { zone?: string; tunnelId?: string; service?: string } | null {
+  try { return JSON.parse(readFileSync(join(process.cwd(), "logs", "domain.json"), "utf8")) } catch { return null }
+}
+
+async function nodeTunnel(): Promise<NodeTunnel | Fail> {
+  const key = envValue("CLOUDFLARE_API_TOKEN")
+  if (!key) return { ok: false, error: "no-key" }
+  const d = readNodeDomain()
+  if (!d?.zone || !d.tunnelId || !d.service) return { ok: false, error: "no-tunnel" }
+  const zones = await listZones(key)
+  if (!zones.ok) return { ok: false, error: "cloudflare-error" }
+  const primary = zones.result.find((z) => z.name === d.zone)
+  if (!primary) return { ok: false, error: "no-tunnel" }
+  const account = await accountOfZone(key, primary.id)
+  if (!account.ok) return { ok: false, error: "cloudflare-error" }
+  return { key, zone: d.zone, tunnelId: d.tunnelId, core: d.service, accountId: account.result }
+}
+
+/** Правила туннеля: убрать всё о `drop`, дописать `add` впереди. */
+async function putRules(t: NodeTunnel, drop: Set<string>, add: IngressRule[]): Promise<boolean> {
+  const rules = await getIngress(t.key, t.accountId, t.tunnelId)
+  if (!rules.ok) return false
+  const put = await setIngress(t.key, t.accountId, t.tunnelId, [...add, ...rules.result.filter((r) => !drop.has(r.hostname))])
+  return put.ok
+}
+
+/** Прежний поддомен элемента (`<адрес>.<зона узла>`) — если у элемента он есть в правилах туннеля. */
+async function oldSubdomain(t: NodeTunnel, id: string): Promise<string | null> {
+  const host = `${addressOf(id)}.${t.zone}`
+  const rules = await getIngress(t.key, t.accountId, t.tunnelId)
+  return rules.ok && rules.result.some((r) => r.hostname === host) ? host : null
+}
+
+function writeDomainFile(id: string, name: string): boolean {
   const file = join(DATA, id, "domain.json")
   const tmp = `${file}.${process.pid}.${Date.now()}.tmp`
   try {
     mkdirSync(join(DATA, id), { recursive: true })
     writeFileSync(tmp, JSON.stringify({ domain: name, attachedAt: new Date().toISOString() }, null, 2) + "\n", "utf8")
     renameSync(tmp, file)
-  } catch { return { ok: false, error: "write-failed" } }
-  return { ok: true, domain: name }
+    return true
+  } catch { return false }
+}
+
+export async function attachDomain(id: string, input: string): Promise<{ ok: true; domain: string } | Fail> {
+  const name = normalizeDomain(input)
+  if (!extraDomains().some((d) => d.name === name)) return { ok: false, error: "not-in-list" }
+  const s = await checkDomain(name, id)
+  if (s.state !== "ready") return { ok: false, error: s.state }
+  const element = serviceUrl(id)
+  if (!element) return { ok: false, error: "no-port" }
+  const t = await nodeTunnel()
+  if ("error" in t) return t
+  const previous = domainOf(id)
+  if (previous && previous !== name) {
+    const off = await detachDomain(id)
+    if (!off.ok) return off
+  }
+  const zone = await zoneByName(t.key, name)
+  if (!zone.ok || !zone.result) return { ok: false, error: "cloudflare-error" }
+  const zoneAccount = await accountOfZone(t.key, zone.result.id)
+  if (!zoneAccount.ok || zoneAccount.result !== t.accountId) return { ok: false, error: "other-account" }
+  const old = await oldSubdomain(t, id)
+  const www = `www.${name}`
+  const add: IngressRule[] = [{ hostname: name, service: element }, { hostname: www, service: t.core }]
+  if (old) add.push({ hostname: old, service: t.core })
+  if (!(await putRules(t, new Set([name, www, ...(old ? [old] : [])]), add))) return { ok: false, error: "tunnel-failed" }
+  for (const host of [name, www]) {
+    const clear = await deleteAddressRecords(t.key, zone.result.id, host)
+    if (!clear.ok) return { ok: false, error: "dns-failed" }
+    const rec = await upsertTunnelRecord(t.key, zone.result.id, host, t.tunnelId)
+    if (!rec.ok) return { ok: false, error: "dns-failed" }
+  }
+  return writeDomainFile(id, name) ? { ok: true, domain: name } : { ok: false, error: "write-failed" }
+}
+
+/** «Отключить»: имя домена и www уходят из туннеля и DNS, прежний поддомен снова ведёт на элемент, запись стирается. */
+export async function detachDomain(id: string): Promise<{ ok: true } | Fail> {
+  const name = domainOf(id)
+  if (!name) return { ok: true }
+  const element = serviceUrl(id)
+  const t = await nodeTunnel()
+  if ("error" in t) return t
+  const www = `www.${name}`
+  const host = `${addressOf(id)}.${t.zone}`
+  const rules = await getIngress(t.key, t.accountId, t.tunnelId)
+  if (!rules.ok) return { ok: false, error: "tunnel-failed" }
+  const hadOld = rules.result.some((r) => r.hostname === host)
+  const add: IngressRule[] = hadOld && element ? [{ hostname: host, service: element }] : []
+  if (!(await putRules(t, new Set([name, www, host]), add))) return { ok: false, error: "tunnel-failed" }
+  const zone = await zoneByName(t.key, name)
+  if (zone.ok && zone.result) for (const h of [name, www]) await deleteTunnelRecord(t.key, zone.result.id, h, t.tunnelId)
+  try { rmSync(join(DATA, id, "domain.json"), { force: true }) } catch { return { ok: false, error: "write-failed" } }
+  return { ok: true }
 }

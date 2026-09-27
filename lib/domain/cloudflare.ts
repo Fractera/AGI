@@ -295,3 +295,38 @@ export async function deleteDnsRecords(token: string, zoneId: string, name: stri
   }
   return { ok: true as const, result: removed }
 }
+
+// ── АДРЕСНЫЕ ЗАПИСИ ИМЕНИ, ПОДКЛЮЧАЕМОГО К ЭЛЕМЕНТУ (324-3) ─────────────────
+//
+// 🔒 СНИМАЕТСЯ ТОЛЬКО ТО, ЧТО НАПРАВЛЯЕТ ИМЯ: A и AAAA на подключаемом имени мешают CNAME туннеля (Cloudflare не держит их
+// рядом). Почта (MX), TXT и всё прочее на этом имени — данные человека и не трогаются. При отключении снимается только
+// наша CNAME на туннель узла — не «все записи имени», как у удаления поддомена элемента (325-5): на корне домена рядом
+// живут почтовые и проверочные записи.
+
+/** Снять записи A и AAAA с этим именем — перед заведением CNAME туннеля. */
+export async function deleteAddressRecords(token: string, zoneId: string, name: string) {
+  let removed = 0
+  for (const type of ["A", "AAAA"]) {
+    const list = await send<Array<{ id: string }>>("GET", `/zones/${zoneId}/dns_records?name=${encodeURIComponent(name)}&type=${type}`, token)
+    if (!list.ok) return list
+    for (const rec of list.result) {
+      const r = await send<{ id: string }>("DELETE", `/zones/${zoneId}/dns_records/${rec.id}`, token)
+      if (!r.ok) return r
+      removed += 1
+    }
+  }
+  return { ok: true as const, result: removed }
+}
+
+/** Снять только CNAME этого имени, ведущую на туннель узла. */
+export async function deleteTunnelRecord(token: string, zoneId: string, name: string, tunnelId: string) {
+  const list = await send<Array<{ id: string; content: string }>>("GET", `/zones/${zoneId}/dns_records?name=${encodeURIComponent(name)}&type=CNAME`, token)
+  if (!list.ok) return list
+  let removed = 0
+  for (const rec of list.result.filter((x) => x.content === `${tunnelId}.cfargotunnel.com`)) {
+    const r = await send<{ id: string }>("DELETE", `/zones/${zoneId}/dns_records/${rec.id}`, token)
+    if (!r.ok) return r
+    removed += 1
+  }
+  return { ok: true as const, result: removed }
+}
