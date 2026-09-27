@@ -122,7 +122,7 @@ export function ElementGithub({ id, lang, ui }: { id: string; lang: string; ui: 
           </li>
           <li>
             {ui.step2}{" "}
-            <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline underline-offset-2">{ui.step2Link}</a>
+            <a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline underline-offset-2">{ui.step2Link}</a>
             <ol className="mt-1 flex list-[lower-alpha] flex-col gap-1 pl-5 text-muted-foreground" data-element-github-step2>
               {ui.step2Sub.map((line, i) => <li key={i}>{line}</li>)}
             </ol>
