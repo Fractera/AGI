@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import { revalidatePath } from "next/cache"
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs"
 import { join } from "node:path"
-import { isOwnerAtMachine } from "@/lib/auth/owner-at-machine"
+import { getSession } from "@/lib/auth/get-session"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
 import {
   accountOfZone, createTunnel, findTunnel, listZones, setIngress, tunnelToken, upsertTunnelRecord,
@@ -76,7 +76,9 @@ export async function POST(req: NextRequest) {
   // Отказ, называющий неверную причину, дороже отказа без причины: он уводит в
   // сторону, и человек ищет несуществующую поломку.
   if (isTemporaryPublicAddress(req)) return fail("temporary-address", 403)
-  if (!isOwnerAtMachine(req)) return fail("not-owner", 403)
+  // 🔒 ВОШЕДШИЙ АРХИТЕКТОР, А НЕ «ЗАПРОС С ЭТОЙ МАШИНЫ» (324-1, решение владельца 2026-09-27). На собственном домене слой
+  // закрыт входом; хозяин за клавиатурой проходит по-прежнему — `getSession` даёт ему роль.
+  if (!(await getSession(req))?.roles.includes("architect")) return fail("not-owner", 403)
 
   const key = envValue(KEY_NAME)
   if (!key) return fail("no-key")

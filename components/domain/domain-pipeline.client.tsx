@@ -102,7 +102,12 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
       const r = await fetch(`${BASE}/api/domain/key`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: key.trim() }) })
       const j = (await r.json().catch(() => null)) as { ok?: boolean; reason?: string } | null
       if (j?.reason === "not-owner" || j?.reason === "temporary-address") { setRemote({ nodeUrl: null }); setBusy(null); return }
-      if (!j?.ok) { setError(`${w.key.failed} ${j?.reason ?? r.status}`); setBusy(null); return }
+      if (!j?.ok) {
+        const why = j?.reason === "not-owner" ? ladderWords.reasonNotOwner
+          : j?.reason === "temporary-address" ? ladderWords.reasonTemporary
+          : `${w.key.failed} ${j?.reason ?? r.status}`
+        setError(why); setBusy(null); return
+      }
       setKey("")
     } catch { setError(w.key.failed); setBusy(null); return }
     setBusy(null)

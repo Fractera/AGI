@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import { readFileSync, writeFileSync, existsSync } from "node:fs"
 import { join } from "node:path"
 import { verifyToken, listZones } from "@/lib/domain/cloudflare"
-import { isOwnerAtMachine } from "@/lib/auth/owner-at-machine"
+import { getSession } from "@/lib/auth/get-session"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
 
 // ДВЕРЬ КЛЮЧА CLOUDFLARE (259-2).
@@ -51,7 +51,9 @@ export async function POST(req: NextRequest) {
   if (isTemporaryPublicAddress(req)) {
     return NextResponse.json({ ok: false, reason: "temporary-address" }, { status: 403 })
   }
-  if (!isOwnerAtMachine(req)) {
+  // 🔒 ВОШЕДШИЙ АРХИТЕКТОР, А НЕ «ЗАПРОС С ЭТОЙ МАШИНЫ» (324-1, решение владельца 2026-09-27). На собственном домене слой
+  // закрыт входом; хозяин за клавиатурой проходит по-прежнему — `getSession` даёт ему роль.
+  if (!(await getSession(req))?.roles.includes("architect")) {
     return NextResponse.json({ ok: false, reason: "not-owner" }, { status: 403 })
   }
 
