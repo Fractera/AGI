@@ -7,7 +7,7 @@
 Имя маршрута — то, чем его находят: 6–12 слов, глагол первым. Правило проверяется `npm run check:api`,
 который стоит в `prebuild` — маршрут без имени роняет сборку.
 
-Всего маршрутов: **37**
+Всего маршрутов: **38**
 
 | Адрес | Методы | Что делает | Продукт |
 |---|---|---|---|
@@ -18,6 +18,7 @@
 | `/api/architect/items/[id]` | GET, DELETE | delete a born AGI element after its address is typed back | — |
 | `/api/architect/items/[id]/address` | GET, POST | check and set the core address of a born AGI element | — |
 | `/api/architect/items/[id]/describe` | POST | take the agent-written element description into the core registry | — |
+| `/api/architect/items/[id]/domain` | GET | check an own second domain for a born element root | — |
 | `/api/architect/items/[id]/github` | GET, POST, DELETE | connect a born element to its owner's GitHub repository | — |
 | `/api/architect/items/[id]/github/push` | POST | export a born element's folder to its connected GitHub repository | — |
 | `/api/auth/providers/google` | GET, POST, DELETE | read and set the Google sign-in keys of this node's auth service | — |

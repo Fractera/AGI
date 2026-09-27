@@ -7,6 +7,7 @@ export type ElementSettingsUi = {
   notBorn: string
   agentNotBorn: string
   describe: Card
+  mirrorCard: { current: string; label: string; check: string; checking: string; note: string; docsAddSite: string; docsToken: string; states: Record<string, string> }
   addressCard: { current: string; label: string; free: string; "bad-shape": string; taken: string; suggest: string; renaming: string; failed: string; note: string }
   describeCard: { empty: string; take: string; taking: string; taken: string; takenAt: string; how: string; errors: Record<string, string> }
   address: Card
@@ -25,6 +26,27 @@ const DICT: Record<string, ElementSettingsUi> = {
       text: "The element's agent reads its code and writes what the element can do; the node then keeps it as the element's record in the core.",
       action: "Generate the description",
       pending: "Being built (step 325-2).",
+    },
+    mirrorCard: {
+      current: "Connected:",
+      label: "Your domain (the root, without www)",
+      check: "Check",
+      checking: "Checking…",
+      note: "The domain must be a zone in the same Cloudflare account as the node. www.<domain> will lead to the root; the old subdomain will lead to the domain.",
+      docsAddSite: "How to add a domain to Cloudflare",
+      docsToken: "Which zones the API token can reach",
+      states: {
+        ready: "The zone {zone} is active in Cloudflare — the domain can be connected.",
+        pending: "The zone {zone} is in Cloudflare but not active yet (status: {status}). At your registrar, set these name servers and wait (minutes to a day):",
+        "not-visible": "The node's Cloudflare key does not see this zone: either the domain is not added to the account, or the key is limited to other zones.",
+        "no-key": "The node has no Cloudflare key: connect the node's own domain first (Hosting → Domain).",
+        taken: "This domain is already connected to the element {by}.",
+        "bad-shape": "Not a domain name: labels of Latin letters, digits and hyphens joined by dots, for example mybrand.com.",
+        "with-www": "Type the root of the domain without www — www will lead to it.",
+        "node-zone": "This is the node's own domain; its subdomains are given out by the node. Type your second domain.",
+        "cloudflare-error": "Cloudflare did not answer: {reason}",
+        failed: "The check did not finish.",
+      },
     },
     addressCard: {
       current: "Address in the core:",
@@ -95,6 +117,27 @@ const DICT: Record<string, ElementSettingsUi> = {
       text: "Агент элемента читает его код и пишет, что элемент умеет; узел хранит это как запись элемента в ядре.",
       action: "Сгенерировать описание",
       pending: "В работе (подшаг 325-2).",
+    },
+    mirrorCard: {
+      current: "Подключён:",
+      label: "Ваш домен (корень, без www)",
+      check: "Проверить",
+      checking: "Проверяю…",
+      note: "Домен должен быть зоной в том же аккаунте Cloudflare, что и узел. www.<домен> будет вести на корень; старый поддомен — на домен.",
+      docsAddSite: "Как добавить домен в Cloudflare",
+      docsToken: "Какие зоны видит ключ API",
+      states: {
+        ready: "Зона {zone} активна в Cloudflare — домен можно подключать.",
+        pending: "Зона {zone} есть в Cloudflare, но ещё не активна (статус: {status}). У регистратора поставьте эти серверы имён и подождите (от минут до суток):",
+        "not-visible": "Ключ Cloudflare узла не видит эту зону: либо домен не добавлен в аккаунт, либо ключ ограничен другими зонами.",
+        "no-key": "У узла нет ключа Cloudflare: сначала подключите собственный домен узла (Хостинг → Домен).",
+        taken: "Этот домен уже подключён к элементу {by}.",
+        "bad-shape": "Это не имя домена: метки из латинских букв, цифр и дефисов через точку, например mybrand.com.",
+        "with-www": "Введите корень домена без www — www будет вести на него.",
+        "node-zone": "Это собственный домен узла, его поддомены раздаёт узел. Введите ваш второй домен.",
+        "cloudflare-error": "Cloudflare не ответил: {reason}",
+        failed: "Проверка не завершилась.",
+      },
     },
     addressCard: {
       current: "Адрес в ядре:",

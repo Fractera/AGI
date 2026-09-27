@@ -33,7 +33,8 @@ type Step = { step: string; ok: boolean; detail?: string }
 const TRASH_DIR = join(paths.ITEMS_DIR, ".trash")
 const pause = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
-function envValue(name: string): string | null {
+/** Значение из `.env.local`/`.env` узла (ключ Cloudflare и т. п.); 324 зовёт его отсюда же. */
+export function envValue(name: string): string | null {
   for (const file of [".env.local", ".env"]) {
     const p = join(ROOT, file)
     if (!existsSync(p)) continue

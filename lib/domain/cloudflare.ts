@@ -71,6 +71,22 @@ export async function listZones(token: string) {
 }
 
 
+export type CfZoneDetails = CfZone & { name_servers?: string[] }
+
+/**
+ * Зона по точному имени (324-1) — `GET /zones?name=<имя>`. Нет зоны — `result: null`.
+ *
+ * 🔒 ЗАМЕРЕНО 2026-09-27 на ответе API: у зоны есть `status` и `name_servers` (серверы имён, которые Cloudflare назначил
+ * зоне и которые человек ставит у регистратора); чужое имя — пустой список, а не отказ. Пустой список значит «ключ этой
+ * зоны не видит»: зоны нет в аккаунте ИЛИ ключ ограничен выбранными зонами (developers.cloudflare.com, «Create API token»:
+ * доступ к зоне example.com даёт доступ «only for that specific zone») — различить можно только в панели владельца.
+ */
+export async function zoneByName(token: string, name: string) {
+  const r = await call<CfZoneDetails[]>(`/zones?name=${encodeURIComponent(name)}`, token)
+  if (!r.ok) return r
+  return { ok: true as const, result: r.result.find((z) => z.name === name) ?? null }
+}
+
 type Method = "GET" | "POST" | "PUT" | "DELETE"
 
 async function send<T>(method: Method, path: string, token: string, body?: unknown): Promise<{ ok: true; result: T } | CfFailure> {
