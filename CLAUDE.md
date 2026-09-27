@@ -473,6 +473,23 @@ the element's island is alive (the message is resent every 300 ms until an answe
 the element's `<html>` has `scroll-smooth`, which never reached the block there — `behavior: "instant"`. Elements not built
 from the template answer nothing, and the field says so.
 
+## Element birth — a draft becomes a running element (node step 319)
+
+**Create a microservice** → draft `<id>` (`data/agi-drafts.json`) → **Give birth to the element** (the draft's home;
+`POST /api/architect/drafts/<id>/birth` runs `scripts/item-birth.mjs <id>` detached, progress from `logs/birth-<id>.log`;
+CLI: `npm run items:birth -- <id>`). The birth clones `fractera-item-starter` at the tag in
+`AGI-ITEMS-CONFIG/item-template.json` (owner: from the Fractera repository), cuts the template's history (own `main`, first
+commit «born from …», no `origin`), writes the passport id, adds a registry entry with `born: { from, version, at }`, runs the
+usual `services-install.mjs --only <id>`, starts the service and its watch in pm2 and waits for `/api/health` by fact.
+🛑 **`services-install.mjs` never clones, fetches or checks out a `born` entry** — its code is the element agent's work; its
+version for rebuild decisions is `<template tag>+<element commit>`.
+The element's pages (`architect/[item]/[[...page]]`): home = `ServicePort` (live port + «Address on the internet»), Preview =
+`ElementPreview`, `build/github` = the element's own GitHub: repository + a **classic key with `repo` and `workflow`**
+(the template carries `.github/workflows`), saved in `data/services/<id>/github/` (0600, 4-char tail shown) only after a real
+`git push --dry-run` passes — 🛑 the repo API's `permissions.push` is the account's role, not the key's (measured). Export only
+by button; uncommitted changes → refusal or «Commit and send» (`export <date>`); build traces (`tsconfig.json`) are not changes.
+A born element is not deleted as a draft (409). Not built yet: deleting an element, birth in seconds.
+
 ## Every page folder has a README.md — and two sections in it are mandatory (owner's decision 2026-09-24)
 
 The owner, verbatim: «при создании этого файла писать требования … которые должны позволить избежать длительной
