@@ -1,6 +1,7 @@
 import "server-only"
 import type { WorkspaceItem } from '@/lib/content/blocks/types'
 import { listDrafts } from '@/lib/agi-items/drafts'
+import { addressOf } from '@/lib/agi-items/element-address'
 import { ITEM_TREE, treeLang } from '@/lib/agi-items/item-tree'
 import { agiDraftsUi } from '../_i18n/agi-drafts.i18n'
 import { CreateDraftButton } from '../_components/create-draft-button.client'
@@ -28,7 +29,9 @@ export function withDrafts(menu: WorkspaceItem[], lang: string, currentPath: str
   }
 
   const drafts: WorkspaceItem[] = listDrafts().map((d) => {
-    const dir = `${ARCHITECT_HOME}/${d.id}`
+    // 325-3: пункт и пути — по адресу элемента в ядре (нет своего — id).
+    const slug = addressOf(d.id)
+    const dir = `${ARCHITECT_HOME}/${slug}`
     // 320: раздел со страницами раскрывается третьим уровнем (слово владельца 2026-09-27). Раздел «активен» только на
     // своей странице, «открыт» — пока человек на любой его странице: отметка «вы здесь» не стоит в двух местах.
     const children = ITEM_TREE.map((s) => {
@@ -43,7 +46,7 @@ export function withDrafts(menu: WorkspaceItem[], lang: string, currentPath: str
         : { label: s.words[l].title, href: at(path), active: path === currentPath || inside }
     })
     return {
-      label: d.id,
+      label: slug,
       icon: 'box',
       href: at(dir),
       active: currentPath === dir,

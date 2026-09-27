@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { ArchitectPage } from '../../../_lib/architect-page'
 import { ARCHITECT_HOME } from '../../../_lib/architect-menu'
 import { agiDraftsUi } from '../../../_i18n/agi-drafts.i18n'
@@ -24,6 +24,8 @@ import { ElementDangerZone } from '../../../_components/element-danger-zone'
 import { DeleteElementButton } from '../../../_components/delete-element-button.client'
 import { elementSettingsUi } from '../../../_i18n/element-settings.i18n'
 import { ElementDescribe } from '../../../_components/element-describe.client'
+import { ElementAddress } from '../../../_components/element-address.client'
+import { addressOf, idOfAddress } from '@/lib/agi-items/element-address'
 import { registryDescription, TASK as DESCRIBE_TASK } from '@/lib/agi-items/element-describe'
 import { terminalLink } from '@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/client/terminal-paste.mjs'
 import { agentKitWidget, type AgentKitPage } from '../_agent-kit/widgets'
@@ -45,8 +47,10 @@ type Params = { lang: string; item: string; page?: string[] }
 // 326-3: страница дерева «Строительство» → вид острова комплекта агента (имя шаблона комплекта).
 const AGENT_PAGES: Record<string, AgentKitPage | undefined> = { subscription: 'claude-code', terminal: 'terminal', telegram: 'telegram' }
 
+// 325-3: сегмент пути — адрес элемента в ядре или его id (id неизменен; адрес — слой над ним, `lib/agi-items/element-address.ts`).
 function resolve(p: Params) {
-  const draft = getDraft(p.item)
+  const id = idOfAddress(p.item)
+  const draft = id ? getDraft(id) : null
   if (!draft) return null
   const path = p.page ?? []
   if (path.length === 0) return { draft, found: null }
@@ -71,11 +75,15 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   const r = resolve(p)
   if (!r) notFound()
 
-  const { lang, item } = p
+  const { lang } = p
+  const item = r.draft.id
+  // 325-3: у элемента свой адрес — прежний путь по id (и любой, кроме текущего) переадресует на него с той же страницей.
+  const slug = addressOf(item)
+  if (p.item !== slug) redirect(`/${lang}${ARCHITECT_HOME}/${[slug, ...(p.page ?? [])].join('/')}`)
   const l = treeLang(lang)
   const ui = agiDraftsUi(lang)
   const address = draftAddress(item)
-  const dir = `${ARCHITECT_HOME}/${item}`
+  const dir = `${ARCHITECT_HOME}/${slug}`
 
   // 319-3: РОДИВШИЙСЯ ЭЛЕМЕНТ — тот, что уже в реестре узла. У него значок «Элемент», настоящий порт в карточке и нет кнопки
   // «Удалить»: она сняла бы только запись черновика, а работающий элемент остался бы без страницы (дверь тоже отвечает 409).
@@ -183,7 +191,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
     ? (entry
       ? <ElementDangerZone ui={sui} actions={{
           // 325-2: задание агенту — в окно вставки терминала элемента (`<id>/build/terminal`), отправляет человек.
-          describe: <ElementDescribe id={item} lang={lang} ui={sui} current={registryDescription(item)} terminalHref={terminalLink({ lang, service: `${item}/build`, text: DESCRIBE_TASK })} />,
+          describe: <ElementDescribe id={item} lang={lang} ui={sui} current={registryDescription(item)} terminalHref={terminalLink({ lang, service: `${slug}/build`, text: DESCRIBE_TASK })} />,
+          address: <ElementAddress id={item} lang={lang} ui={sui} current={slug} internet={address} />,
           remove: <DeleteElementButton lang={lang} id={item} address={address} ui={sui} dialogUi={appDialogUi(lang)} />,
         }} />
       : <p className="my-4 text-sm text-muted-foreground">{sui.notBorn}</p>)

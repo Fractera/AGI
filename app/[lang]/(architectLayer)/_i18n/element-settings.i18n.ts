@@ -7,6 +7,7 @@ export type ElementSettingsUi = {
   notBorn: string
   agentNotBorn: string
   describe: Card
+  addressCard: { current: string; label: string; free: string; "bad-shape": string; taken: string; suggest: string; renaming: string; failed: string; note: string }
   describeCard: { empty: string; take: string; taking: string; taken: string; takenAt: string; how: string; errors: Record<string, string> }
   address: Card
   mirror: Card
@@ -24,6 +25,17 @@ const DICT: Record<string, ElementSettingsUi> = {
       text: "The element's agent reads its code and writes what the element can do; the node then keeps it as the element's record in the core.",
       action: "Generate the description",
       pending: "Being built (step 325-2).",
+    },
+    addressCard: {
+      current: "Address in the core:",
+      label: "New address",
+      free: "The name is free.",
+      "bad-shape": "4-24 characters: lowercase Latin letters, digits and single hyphens, starting with a letter.",
+      taken: "The name is taken — by a section of the core, another element or a service.",
+      suggest: "Free:",
+      renaming: "Renaming…",
+      failed: "The address was not changed:",
+      note: "The inner name {id} stays: the folder, the process and the data do not move. The address on the internet stays {internet}.",
     },
     describeCard: {
       empty: "The core has no description of this element yet.",
@@ -44,7 +56,7 @@ const DICT: Record<string, ElementSettingsUi> = {
     },
     address: {
       title: "Element address",
-      text: "Rename the address of the element — in the core and on the internet — with a check that the new name is free. The inner name stays the same.",
+      text: "Rename the address of the element's pages in the core, with a check that the new name is free. The inner name (id) stays the same; the old address leads to the new one.",
       action: "Rename the address",
       pending: "Being built (step 325-3).",
     },
@@ -84,6 +96,17 @@ const DICT: Record<string, ElementSettingsUi> = {
       action: "Сгенерировать описание",
       pending: "В работе (подшаг 325-2).",
     },
+    addressCard: {
+      current: "Адрес в ядре:",
+      label: "Новый адрес",
+      free: "Имя свободно.",
+      "bad-shape": "4–24 символа: строчные латинские буквы, цифры и одиночные дефисы, первая — буква.",
+      taken: "Имя занято — разделом ядра, другим элементом или службой.",
+      suggest: "Свободны:",
+      renaming: "Переименовываю…",
+      failed: "Адрес не изменён:",
+      note: "Внутреннее имя {id} остаётся: папка, процесс и данные не переезжают. Адрес в интернете остаётся прежним — {internet}.",
+    },
     describeCard: {
       empty: "В ядре пока нет описания этого элемента.",
       take: "Забрать в ядро",
@@ -103,7 +126,7 @@ const DICT: Record<string, ElementSettingsUi> = {
     },
     address: {
       title: "Адрес элемента",
-      text: "Переименовать адрес элемента — в ядре и в интернете — с проверкой, что новое имя свободно. Внутреннее имя не меняется.",
+      text: "Переименовать адрес страниц элемента в ядре с проверкой, что новое имя свободно. Внутреннее имя (id) не меняется; прежний адрес ведёт на новый.",
       action: "Переименовать адрес",
       pending: "В работе (подшаг 325-3).",
     },

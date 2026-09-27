@@ -1,0 +1,81 @@
+import "server-only"
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { join } from "node:path"
+import paths from "@/lib/agi-items/paths.cjs"
+import { listDrafts } from "@/lib/agi-items/drafts"
+import { ARCHITECT_PATHS } from "@/app/[lang]/(architectLayer)/_lib/architect-menu"
+
+// АДРЕС AGI ЭЛЕМЕНТА В ЯДРЕ ПРИ НЕИЗМЕННОМ id (325-3). Решения владельца 2026-09-27: «Адрес, id неизменен» и «Только ядро» —
+// поддомен в интернете не трогается (временное решение, будет перенесено).
+//
+// 🔒 id НЕ МЕНЯЕТСЯ НИКОГДА: папка, реестр, pm2, данные, двери агента, терминал — всё по id. Адрес — слой над ним: имя в меню и
+// путь страниц `/<lang>/<адрес>`; прежний путь `/<lang>/<id>` переадресует на новый (страница элемента).
+// 🔒 АДРЕС ЛЕЖИТ У САМОГО ЭЛЕМЕНТА — `data/services/<id>/address.json`: удаление элемента (325-5) стирает эту папку, и адрес
+// освобождается без отдельного шага. Нет файла — адрес равен id.
+// 🔒 СВОБОДНО = не занято ничем, что ядро отдаёт по тому же пути: разделом слоя (папка с точным именем важнее — Next отдал бы
+// раздел, а не элемент), id или адресом другого элемента или черновика, записью реестра, служебным путём.
+
+export const ADDRESS = /^[a-z][a-z0-9-]{3,23}$/
+const RESERVED = ["architect", "api", "login", "register", "guest-login", "logout", "account", "admin"]
+
+const DATA = join(process.cwd(), "data", "services")
+const fileOf = (id: string) => join(DATA, id, "address.json")
+
+export type AddressCheck = { ok: true } | { ok: false; reason: "bad-shape" | "taken"; suggestions: string[] }
+
+/** Адрес элемента в ядре (нет своего — id). */
+export function addressOf(id: string): string {
+  try {
+    const a = (JSON.parse(readFileSync(fileOf(id), "utf8")) as { address?: unknown }).address
+    return typeof a === "string" && ADDRESS.test(a) ? a : id
+  } catch { return id }
+}
+
+function registryIds(): string[] {
+  try {
+    return (JSON.parse(readFileSync(paths.REGISTRY_FILE, "utf8")) as { services: Array<{ id: string }> }).services.map((s) => s.id)
+  } catch { return [] }
+}
+
+/** id элемента или черновика по сегменту пути: адресом или самим id. Не найден — null. */
+export function idOfAddress(segment: string): string | null {
+  const ids = listDrafts().map((d) => d.id)
+  return ids.find((id) => addressOf(id) === segment) ?? (ids.includes(segment) ? segment : null)
+}
+
+function taken(name: string, forId: string): boolean {
+  if (name === forId) return false
+  if (RESERVED.includes(name)) return true
+  if (ARCHITECT_PATHS.some((p) => p.split("/")[2] === name)) return true
+  if (registryIds().includes(name)) return true
+  return listDrafts().some((d) => d.id === name || (d.id !== forId && addressOf(d.id) === name))
+}
+
+const wellFormed = (name: string) => ADDRESS.test(name) && !name.endsWith("-") && !name.includes("--")
+
+/** Свободно ли имя для элемента `forId`; занято — до трёх свободных вариантов рядом. */
+export function checkAddress(name: string, forId: string): AddressCheck {
+  if (!wellFormed(name)) return { ok: false, reason: "bad-shape", suggestions: [] }
+  if (!taken(name, forId)) return { ok: true }
+  const suggestions: string[] = []
+  const base = name.slice(0, 20)
+  for (let n = 2; n < 100 && suggestions.length < 3; n++) {
+    const s = `${base}-${n}`
+    if (wellFormed(s) && !taken(s, forId)) suggestions.push(s)
+  }
+  return { ok: false, reason: "taken", suggestions }
+}
+
+/** Записать адрес (равный id — снять свой адрес). Проверка — внутри, повторно. */
+export function setAddress(id: string, name: string): AddressCheck & { previous?: string } {
+  const check = checkAddress(name, id)
+  if (!check.ok) return check
+  const previous = addressOf(id)
+  if (name === id) {
+    rmSync(fileOf(id), { force: true })
+  } else {
+    if (!existsSync(join(DATA, id))) mkdirSync(join(DATA, id), { recursive: true })
+    writeFileSync(fileOf(id), JSON.stringify({ address: name, at: new Date().toISOString(), previous }, null, 2) + "\n", "utf8")
+  }
+  return { ok: true, previous }
+}
