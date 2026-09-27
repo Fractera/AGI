@@ -7,5 +7,5 @@ import { servicePortWords } from '@/components/services/service-port.i18n'
 // и публичный адрес, в меню группы — предпросмотр и три страницы агента (комплект `_agent-kit`, папка элемента).
 // 🛑 Число порта сюда не пишется: островок спрашивает его у двери `/api/services` (страница предрендерена).
 export function content(lang: string): Block[] {
-  return [{ kind: 'servicePort', serviceId: 'blocks', words: servicePortWords(lang) }]
+  return [{ kind: 'servicePort', serviceId: 'blocks', words: servicePortWords(lang, 'blocks') }]
 }
