@@ -9,6 +9,7 @@ export type ElementSettingsUi = {
   address: Card
   mirror: Card
   remove: Card
+  removeDialog: { title: string; text: string; label: string; confirm: string; deleting: string; cancel: string; mismatch: string; failed: string; riskNever: string; riskAhead: string; riskNone: string }
 }
 
 const DICT: Record<string, ElementSettingsUi> = {
@@ -39,6 +40,19 @@ const DICT: Record<string, ElementSettingsUi> = {
       action: "Delete the element",
       pending: "Being built (step 325-5).",
     },
+    removeDialog: {
+      title: "Delete this AGI element for good?",
+      text: "Its process stops, its address on the internet and its record in the node disappear, and its folder with the code is erased. This cannot be undone. Type its address to confirm:",
+      label: "Address",
+      confirm: "Delete for good",
+      deleting: "Deleting…",
+      cancel: "Cancel",
+      mismatch: "The address does not match — nothing was deleted.",
+      failed: "The deletion did not finish at:",
+      riskNever: "The element was never sent to GitHub: all {n} of its commits will be lost.",
+      riskAhead: "{n} commit(s) of the element are not in GitHub — they will be lost.",
+      riskNone: "Everything the element has is already in GitHub.",
+    },
   },
   ru: {
     badge: "Опасная зона",
@@ -66,6 +80,19 @@ const DICT: Record<string, ElementSettingsUi> = {
       text: "Удаляет элемент насовсем: его процесс, запись в узле, адрес в интернете и папку с кодом. Ваш репозиторий на GitHub не трогается.",
       action: "Удалить элемент",
       pending: "В работе (подшаг 325-5).",
+    },
+    removeDialog: {
+      title: "Удалить этот AGI элемент насовсем?",
+      text: "Его процесс остановится, адрес в интернете и запись в узле исчезнут, папка с кодом будет стёрта. Отменить это нельзя. Для подтверждения введите его адрес:",
+      label: "Адрес",
+      confirm: "Удалить навсегда",
+      deleting: "Удаляю…",
+      cancel: "Отмена",
+      mismatch: "Адрес не совпал — ничего не удалено.",
+      failed: "Удаление не закончилось на этапах:",
+      riskNever: "Элемент ни разу не выгружался в GitHub: все его коммиты ({n}) будут потеряны.",
+      riskAhead: "Коммитов, которых нет в GitHub: {n} — они будут потеряны.",
+      riskNone: "Всё, что есть у элемента, уже лежит в GitHub.",
     },
   },
 }
