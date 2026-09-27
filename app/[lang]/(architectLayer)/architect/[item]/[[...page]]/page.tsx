@@ -90,7 +90,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
           {/* 319-4: родившийся и работающий элемент получает ТОТ ЖЕ блок, что root и службы, — порт по факту и «Адрес в
               интернете» с кнопкой подключения поддомена (289). Черновик и упавшее рождение — свои карточки. */}
           {port !== null
-            ? <ServicePort serviceId={item} words={servicePortWords(lang)} />
+            ? <ServicePort serviceId={item} words={servicePortWords(lang, item)} />
             : <DraftCards address={address} ui={ui} port={port} />}
           {(!entry || brokenBirth) && <BirthButton id={item} ui={ui} dialogUi={appDialogUi(lang)} born={!!entry} />}
         </>}
