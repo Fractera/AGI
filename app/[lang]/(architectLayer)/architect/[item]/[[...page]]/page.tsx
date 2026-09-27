@@ -16,6 +16,9 @@ import { ServicePort } from '@/components/services/service-port.client'
 import { servicePortWords } from '@/components/services/service-port.i18n'
 import { ElementGithub } from '../../../_components/element-github.client'
 import { elementGithubUi } from '../../../_i18n/element-github.i18n'
+import { elementDeploymentsUi } from '../../../_i18n/element-deployments.i18n'
+import { elementVersions } from '@/lib/agi-items/element-versions'
+import type { Block } from '@/lib/content/blocks/types'
 import { ElementPreview } from '@/components/preview/element-preview.client'
 import { elementPreviewWords } from '@/sections/blocks/element-preview.server'
 
@@ -138,6 +141,27 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       : <p className="my-4 text-sm text-muted-foreground">{elementGithubUi(lang).notBorn}</p>)
     : null
 
+  // 321: «Развёртывания» — версии элемента стандартной таблицей каталога (`table`: поиск сверху, страницы снизу, 262).
+  const isDeployments = section.slug === 'build' && page?.slug === 'deployments'
+  const versions = isDeployments && entry ? elementVersions(item) : null
+  const dui = elementDeploymentsUi(lang)
+  const tables: Block[] = versions
+    ? [{
+        kind: 'table',
+        caption: dui.caption,
+        headers: [...dui.headers],
+        rows: versions.map((v) => [
+          new Date(v.at).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-GB', { dateStyle: 'short', timeStyle: 'short' }),
+          v.hash,
+          v.subject,
+          [v.running ? dui.running : '', v.exported ? dui.exported : ''].filter(Boolean).join(' · '),
+        ]),
+      }]
+    : []
+  const deploymentsNote = isDeployments && !entry
+    ? <p className="my-4 text-sm text-muted-foreground">{dui.notBorn}</p>
+    : null
+
   return (
     <ArchitectPage
       lang={lang}
@@ -145,7 +169,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       title={words.title}
       lead={words.lead}
       pageTitle={address}
-      widget={<>{bar}{list}{preview}{github}</>}
+      widget={<>{bar}{list}{preview}{github}{deploymentsNote}</>}
+      children={tables}
     />
   )
 }
