@@ -11,6 +11,7 @@ import { draftAddress, getDraft } from '@/lib/agi-items/drafts'
 import { findTreePage, treeLang } from '@/lib/agi-items/item-tree'
 import { getService, serviceUrl } from '@/lib/microservices/registry'
 import { BirthButton } from '../../../_components/birth-button.client'
+import { birthState } from '@/lib/agi-items/birth'
 import { ElementPreview } from '@/components/preview/element-preview.client'
 import { elementPreviewWords } from '@/sections/blocks/element-preview.server'
 
@@ -60,7 +61,11 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   // 319-3: РОДИВШИЙСЯ ЭЛЕМЕНТ — тот, что уже в реестре узла. У него значок «Элемент», настоящий порт в карточке и нет кнопки
   // «Удалить»: она сняла бы только запись черновика, а работающий элемент остался бы без страницы (дверь тоже отвечает 409).
   const entry = getService(item)
-  const port = entry && typeof entry.port === 'number' ? entry.port : null
+  // Рождение дошло до реестра и упало позже (сборка, память): элемент записан, но его процесса нет — карточка порта не
+  // утверждает, что он отвечает, а под карточками стоит отказ с подсказкой повторить установку.
+  const birth = birthState(item).state
+  const brokenBirth = !!entry && (birth === 'failed' || birth === 'running')
+  const port = entry && !brokenBirth && typeof entry.port === 'number' ? entry.port : null
   const bar = (
     <div className="mb-4 flex items-center justify-between gap-3">
       <span className="rounded-md border border-border px-2 py-0.5 text-[length:var(--fs-small)] text-muted-foreground" data-item-badge={entry ? 'element' : 'draft'}>
@@ -78,7 +83,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
         path={dir}
         title={address}
         pageTitle={address}
-        widget={<>{bar}<DraftCards address={address} ui={ui} port={port} />{!entry && <BirthButton id={item} ui={ui} dialogUi={appDialogUi(lang)} />}</>}
+        widget={<>{bar}<DraftCards address={address} ui={ui} port={port} />{(!entry || brokenBirth) && <BirthButton id={item} ui={ui} dialogUi={appDialogUi(lang)} born={!!entry} />}</>}
       />
     )
   }

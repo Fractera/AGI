@@ -21,7 +21,9 @@ const EVERY_MS = 2000
 
 type State = { state: "idle" | "running" | "done" | "failed"; lines: string[]; reason?: string; port?: number }
 
-export function BirthButton({ id, ui, dialogUi }: { id: string; ui: AgiDraftsUi; dialogUi: AppDialogUi }) {
+// `born` — элемент уже в реестре узла (рождение дошло до записи и упало позже): кнопки нет, подсказка — повтор установки.
+// Иначе упавшее рождение ничего не записало, и подсказка — нажать кнопку снова.
+export function BirthButton({ id, ui, dialogUi, born = false }: { id: string; ui: AgiDraftsUi; dialogUi: AppDialogUi; born?: boolean }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [starting, setStarting] = useState(false)
@@ -64,7 +66,7 @@ export function BirthButton({ id, ui, dialogUi }: { id: string; ui: AgiDraftsUi;
 
   return (
     <div className="my-4 flex flex-col gap-3" data-birth data-birth-state={s.state}>
-      {!running && s.state !== "done" && (
+      {!born && !running && s.state !== "done" && (
         <Button onClick={() => setOpen(true)} className="w-fit gap-1.5" data-birth-start>
           <Sprout className="size-4" aria-hidden />
           {ui.birth}
@@ -81,7 +83,9 @@ export function BirthButton({ id, ui, dialogUi }: { id: string; ui: AgiDraftsUi;
               {s.lines.join("\n")}
             </pre>
           )}
-          {failed && <p className="text-sm text-muted-foreground">{ui.birthRepeat} <code className="font-mono">{id}</code></p>}
+          {failed && (born
+            ? <p className="text-sm text-muted-foreground">{ui.birthRepeat} <code className="font-mono">{id}</code></p>
+            : <p className="text-sm text-muted-foreground">{ui.birthRetry}</p>)}
         </div>
       )}
       <AppDialog

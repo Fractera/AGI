@@ -34,6 +34,7 @@ export type AgiDraftsUi = {
   birthFailed: string
   birthInterrupted: string
   birthRepeat: string
+  birthRetry: string
 }
 
 const DICT: Record<string, AgiDraftsUi> = {
@@ -69,7 +70,8 @@ const DICT: Record<string, AgiDraftsUi> = {
     birthDone: "The element is born.",
     birthFailed: "The birth stopped:",
     birthInterrupted: "The birth process ended without a result (the node restarted or ran out of memory).",
-    birthRepeat: "Nothing of the draft is lost. To repeat the installation run in the node folder: npm run services:install -- --only",
+    birthRepeat: "The element is already written into the node, its installation did not finish. To repeat it run in the node folder: npm run services:install -- --only",
+    birthRetry: "The draft is intact and nothing was written into the node — press «Give birth to the element» to try again.",
   },
   ru: {
     create: "Создать микросервис",
@@ -103,7 +105,8 @@ const DICT: Record<string, AgiDraftsUi> = {
     birthDone: "Элемент родился.",
     birthFailed: "Рождение остановилось:",
     birthInterrupted: "Процесс рождения закончился без результата (узел перезапускался или не хватило памяти).",
-    birthRepeat: "Черновик цел. Повторить установку можно в папке узла: npm run services:install -- --only",
+    birthRepeat: "Элемент уже записан в узел, но его установка не закончилась. Повторить её можно в папке узла: npm run services:install -- --only",
+    birthRetry: "Черновик цел, в узел ничего не записано — нажмите «Родить элемент», чтобы попробовать снова.",
   },
 }
 
