@@ -125,6 +125,7 @@ export function ElementGithub({ id, lang, ui }: { id: string; lang: string; ui: 
             <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline underline-offset-2">{ui.step2Link}</a>
           </li>
           <li>{ui.step3}</li>
+          <li>{ui.step4}</li>
         </ol>
         <form className="flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); connect() }} data-element-github-connect>
           <div className="flex flex-col gap-1.5">

@@ -7,6 +7,7 @@ export type ElementGithubUi = {
   step2: string
   step2Link: string
   step3: string
+  step4: string
   repoLabel: string
   repoPlaceholder: string
   tokenLabel: string
@@ -43,6 +44,7 @@ const DICT: Record<string, ElementGithubUi> = {
     step2: "Create a fine-grained key: Repository access → Only select repositories → this repository; Permissions → Contents: Read and write.",
     step2Link: "Create a fine-grained key",
     step3: "Paste the repository and the key below and press «Check and save».",
+    step4: "Already connected, but sending answers 403? The key has no Contents: Read and write — create a new key by the link in step 2 with that permission, paste it below and press «Check and save»: it replaces the old one.",
     repoLabel: "Repository",
     repoPlaceholder: "owner/name or https://github.com/owner/name",
     tokenLabel: "GitHub key",
@@ -92,6 +94,7 @@ const DICT: Record<string, ElementGithubUi> = {
     step2: "Создайте тонкий ключ: Repository access → Only select repositories → этот репозиторий; Permissions → Contents: Read and write.",
     step2Link: "Создать тонкий ключ",
     step3: "Вставьте репозиторий и ключ ниже и нажмите «Проверить и сохранить».",
+    step4: "Уже подключили, а отправка отвечает 403? У ключа нет Contents: Read and write — создайте новый ключ по ссылке из шага 2 с этим правом, вставьте его ниже и нажмите «Проверить и сохранить»: он заменит старый.",
     repoLabel: "Репозиторий",
     repoPlaceholder: "владелец/имя или https://github.com/владелец/имя",
     tokenLabel: "Ключ GitHub",
