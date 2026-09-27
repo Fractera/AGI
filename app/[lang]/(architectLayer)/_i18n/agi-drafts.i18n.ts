@@ -21,6 +21,20 @@ export type AgiDraftsUi = {
   deleteMismatch: string
   deleteFailed: string
   cancel: string
+  elementBadge: string
+  portLineBorn: string
+  noteBorn: string
+  birth: string
+  birthTitle: string
+  birthText: string
+  birthConfirm: string
+  birthStarting: string
+  birthRunning: string
+  birthDone: string
+  birthFailed: string
+  birthInterrupted: string
+  birthRepeat: string
+  birthRetry: string
 }
 
 const DICT: Record<string, AgiDraftsUi> = {
@@ -44,6 +58,20 @@ const DICT: Record<string, AgiDraftsUi> = {
     deleteMismatch: "The address does not match — nothing was deleted.",
     deleteFailed: "Nothing was deleted: the node refused.",
     cancel: "Cancel",
+    elementBadge: "Element",
+    portLineBorn: "The element's own process answers on this port.",
+    noteBorn: "The element is born from the item template and lives as its own project. Its subdomain is connected with «Address on the internet».",
+    birth: "Give birth to the element",
+    birthTitle: "Give birth to this element?",
+    birthText: "The node downloads the item template, gives this draft its own copy, a port, a build and a process. It takes about three minutes and a lot of memory; the page may be closed — the birth goes on.",
+    birthConfirm: "Give birth",
+    birthStarting: "Starting…",
+    birthRunning: "The element is being born:",
+    birthDone: "The element is born.",
+    birthFailed: "The birth stopped:",
+    birthInterrupted: "The birth process ended without a result (the node restarted or ran out of memory).",
+    birthRepeat: "The element is already written into the node, its installation did not finish. To repeat it run in the node folder: npm run services:install -- --only",
+    birthRetry: "The draft is intact and nothing was written into the node — press «Give birth to the element» to try again.",
   },
   ru: {
     create: "Создать микросервис",
@@ -65,6 +93,20 @@ const DICT: Record<string, AgiDraftsUi> = {
     deleteMismatch: "Адрес не совпал — ничего не удалено.",
     deleteFailed: "Ничего не удалено: узел отказал.",
     cancel: "Отмена",
+    elementBadge: "Элемент",
+    portLineBorn: "На этом порту отвечает собственный процесс элемента.",
+    noteBorn: "Элемент рождён из шаблона и живёт самостоятельным проектом. Поддомен подключается кнопкой «Адрес в интернете».",
+    birth: "Родить элемент",
+    birthTitle: "Родить этот элемент?",
+    birthText: "Узел скачает шаблон элемента и даст черновику свою копию, порт, сборку и процесс. Это около трёх минут и много памяти; страницу можно закрыть — рождение продолжится.",
+    birthConfirm: "Родить",
+    birthStarting: "Запускаю…",
+    birthRunning: "Элемент рождается:",
+    birthDone: "Элемент родился.",
+    birthFailed: "Рождение остановилось:",
+    birthInterrupted: "Процесс рождения закончился без результата (узел перезапускался или не хватило памяти).",
+    birthRepeat: "Элемент уже записан в узел, но его установка не закончилась. Повторить её можно в папке узла: npm run services:install -- --only",
+    birthRetry: "Черновик цел, в узел ничего не записано — нажмите «Родить элемент», чтобы попробовать снова.",
   },
 }
 

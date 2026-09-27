@@ -1,0 +1,107 @@
+"use client"
+
+import { useCallback, useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
+import { Sprout } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { AppDialog } from "@/components/dialog/app-dialog.client"
+import type { AppDialogUi } from "@/components/dialog/app-dialog.i18n"
+import type { AgiDraftsUi } from "../_i18n/agi-drafts.i18n"
+
+// «РОДИТЬ ЭЛЕМЕНТ» (узел, шаг 319-3). Кнопка → окно подтверждения (что произойдёт и сколько займёт) → дверь
+// `POST /api/architect/drafts/<id>/birth` запускает рождение отдельным процессом → экран хода по журналу.
+//
+// 🔒 ОПРОС ДВЕРИ — ТОЛЬКО ПОКА ЭТОТ ЭКРАН ОТКРЫТ И РОЖДЕНИЕ ИДЁТ (план 319-3, подтверждён владельцем): начинается нажатием
+// или тем, что человек открыл страницу идущего рождения; закончилось рождение или закрыта вкладка — опроса нет. Процесс
+// рождения от этого не зависит: закрытая вкладка его не останавливает.
+// По окончании — `router.refresh()`: страница перерисовывается уже как страница элемента (значок, порт, Preview).
+
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
+const EVERY_MS = 2000
+
+type State = { state: "idle" | "running" | "done" | "failed"; lines: string[]; reason?: string; port?: number }
+
+// `born` — элемент уже в реестре узла (рождение дошло до записи и упало позже): кнопки нет, подсказка — повтор установки.
+// Иначе упавшее рождение ничего не записало, и подсказка — нажать кнопку снова.
+export function BirthButton({ id, ui, dialogUi, born = false }: { id: string; ui: AgiDraftsUi; dialogUi: AppDialogUi; born?: boolean }) {
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
+  const [starting, setStarting] = useState(false)
+  const [s, setS] = useState<State>({ state: "idle", lines: [] })
+  const timer = useRef<number | null>(null)
+
+  const poll = useCallback(async () => {
+    try {
+      const r = await fetch(`${BASE}/api/architect/drafts/${id}/birth`, { cache: "no-store" })
+      if (!r.ok) return
+      const next = (await r.json()) as State
+      setS(next)
+      if (next.state === "running") timer.current = window.setTimeout(poll, EVERY_MS)
+      else if (next.state === "done") router.refresh()
+    } catch {
+      timer.current = window.setTimeout(poll, EVERY_MS)
+    }
+  }, [id, router])
+
+  // Страница открыта во время идущего рождения — показать, где оно (один запрос; дальше — только если идёт).
+  useEffect(() => {
+    poll()
+    return () => { if (timer.current) window.clearTimeout(timer.current) }
+  }, [poll])
+
+  async function start() {
+    setStarting(true)
+    try {
+      const r = await fetch(`${BASE}/api/architect/drafts/${id}/birth`, { method: "POST" })
+      setOpen(false)
+      if (r.ok || r.status === 409) await poll()
+      else setS({ state: "failed", lines: [], reason: String(r.status) })
+    } finally {
+      setStarting(false)
+    }
+  }
+
+  const running = s.state === "running"
+  const failed = s.state === "failed"
+
+  return (
+    <div className="my-4 flex flex-col gap-3" data-birth data-birth-state={s.state}>
+      {!born && !running && s.state !== "done" && (
+        <Button onClick={() => setOpen(true)} className="w-fit gap-1.5" data-birth-start>
+          <Sprout className="size-4" aria-hidden />
+          {ui.birth}
+        </Button>
+      )}
+      {(running || failed || s.state === "done") && (
+        <div className="flex flex-col gap-2 rounded-lg border border-border p-3" role="status">
+          <p className={`text-sm font-medium ${failed ? "text-destructive" : "text-foreground"}`}>
+            {running ? ui.birthRunning : failed ? ui.birthFailed : ui.birthDone}
+            {failed && s.reason ? ` ${s.reason === "interrupted" ? ui.birthInterrupted : s.reason}` : ""}
+          </p>
+          {s.lines.length > 0 && (
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-all font-mono text-xs text-muted-foreground" data-birth-lines>
+              {s.lines.join("\n")}
+            </pre>
+          )}
+          {failed && (born
+            ? <p className="text-sm text-muted-foreground">{ui.birthRepeat} <code className="font-mono">{id}</code></p>
+            : <p className="text-sm text-muted-foreground">{ui.birthRetry}</p>)}
+        </div>
+      )}
+      <AppDialog
+        open={open}
+        onOpenChange={(v) => !starting && setOpen(v)}
+        title={ui.birthTitle}
+        description={ui.birthText}
+        ui={dialogUi}
+        size="sm"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setOpen(false)} disabled={starting}>{ui.cancel}</Button>
+            <Button onClick={start} disabled={starting} data-birth-confirm>{starting ? ui.birthStarting : ui.birthConfirm}</Button>
+          </>
+        }
+      />
+    </div>
+  )
+}
