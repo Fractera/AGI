@@ -25,6 +25,7 @@ export function CollectionPage({
   page,
   content,
   widget,
+  hideTopics = false,
 }: {
   lang: string
   /** Адрес папки-родителя без языка, например `/architect/tools`. */
@@ -47,11 +48,17 @@ export function CollectionPage({
    * (комплект агента службы). Есть островок — третье состояние «скоро будет построено» не наступает.
    */
   widget?: ReactNode
+  /**
+   * Скрыть темы страницы и их ряд вкладок (324-1). Слово владельца 2026-09-27 о «Что меняет постоянный адрес» на «Активации
+   * домена»: «он актуален до того как подключён первый домен сразу подключению скрывает этот текст он только путает».
+   * Решает страница по состоянию узла; ряд вкладок скрывается вместе с темами — иначе он вёл бы на якоря, которых нет.
+   */
+  hideTopics?: boolean
 }) {
   const ui = architectLayerUi(lang)
   const words = wordsOf(page, lang)
   const path = `${dir}/${page.meta.slug}`
-  const topics = words.topics ?? []
+  const topics = hideTopics ? [] : words.topics ?? []
 
   // Темы страницы: заголовок третьего уровня с явным якорем, текст, список.
   // Темы из `_data` — текст, который пишут словами.

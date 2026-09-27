@@ -45,6 +45,11 @@ export function primaryDomain(): { name: string; status: string | null } | null 
   } catch { return null }
 }
 
+/** Основной домен подключён лестницей до конца (`activatedAt` в `logs/domain.json`): тексты «как получить домен» больше не нужны. */
+export function primaryConnected(): boolean {
+  try { return typeof (JSON.parse(readFileSync(PRIMARY_FILE, "utf8")) as { activatedAt?: unknown }).activatedAt === "string" } catch { return false }
+}
+
 function readList(): NodeDomain[] {
   try {
     const raw = JSON.parse(readFileSync(FILE, "utf8")) as { domains?: unknown }

@@ -1,5 +1,6 @@
 // @api create the named tunnel and the DNS record, then remember what happened
 import { NextResponse, type NextRequest } from "next/server"
+import { revalidatePath } from "next/cache"
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs"
 import { join } from "node:path"
 import { isOwnerAtMachine } from "@/lib/auth/owner-at-machine"
@@ -199,6 +200,8 @@ export async function POST(req: NextRequest) {
   // `logs/domain.json`, а житель туннеля — только что записанный токен.
   const auth = authHostname ? applyDomainToAuth() : { files: 0, restarted: false, reason: "no-auth-service" }
   const resident = startDomainResident()
+  // 324-1: страница «Активация домена» скрывает тексты «как получить домен», когда он подключён — перерисовать слой.
+  revalidatePath("/[lang]", "layout")
 
   return NextResponse.json({
     ok: true, hostname, zone: zone.name, tunnel: name, siteUrlWritten, authHostname, architectHostname, auth, resident,
