@@ -96,6 +96,9 @@ export type DomainLadderWords = {
   tokenPermsRows: string[][]
   tokenPermsWhy: string[]
   tokenTail: string[]
+  tokenTemplateButton: string
+  tokenTemplateSteps: string[]
+  tokenManualToggle: string
 }
 
 const W: Record<string, DomainLadderWords> = {
@@ -190,6 +193,13 @@ const W: Record<string, DomainLadderWords> = {
     nsUnknown: "The internet does not know this name yet. Either it was just registered, or there is a typo.",
     nsCurrent: "Right now it answers with",
     fastPath: "Buying at Cloudflare skips steps 2 and 3 entirely.",
+    tokenTemplateButton: "Create the key in Cloudflare",
+    tokenTemplateSteps: [
+      "The button opens the Cloudflare token form already filled in: Zone · Edit and DNS · Edit for all zones of your account.",
+      "Add one row with Add more: Account · Cloudflare Tunnel · Edit.",
+      "Continue to summary → Create Token. The key is shown ONCE — copy it and paste it below.",
+    ],
+    tokenManualToggle: "The form did not fill in — do it by hand",
     tokenHowToggle: "How to create this token — step by step",
     tokenHowSteps: [
       "In Cloudflare: My Profile → API Tokens → Create Token → Create Custom Token.",
@@ -308,6 +318,13 @@ const W: Record<string, DomainLadderWords> = {
     nsUnknown: "Интернет ещё не знает этого имени. Либо оно только что зарегистрировано, либо в нём опечатка.",
     nsCurrent: "Сейчас он отвечает",
     fastPath: "Покупка в Cloudflare пропускает шаги 2 и 3 целиком.",
+    tokenTemplateButton: "Создать ключ в Cloudflare",
+    tokenTemplateSteps: [
+      "Кнопка откроет форму токена Cloudflare уже заполненной: Zone · Edit и DNS · Edit на все зоны вашего аккаунта.",
+      "Добавьте одну строку кнопкой Add more: Account · Cloudflare Tunnel · Edit.",
+      "Continue to summary → Create Token. Ключ покажут ОДИН раз — скопируйте и вставьте ниже.",
+    ],
+    tokenManualToggle: "Форма не заполнилась — вручную",
     tokenHowToggle: "Как создать этот токен — по шагам",
     tokenHowSteps: [
       "В Cloudflare: My Profile → API Tokens → Create Token → Create Custom Token.",

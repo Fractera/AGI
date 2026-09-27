@@ -3,7 +3,11 @@
 import { useState } from "react"
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import type { DomainListWords } from "./domain-list.i18n"
+import type { DomainLadderWords } from "./domain-ladder.i18n"
+import { TokenHowTo } from "./token-how-to.client"
 
 // КОНВЕЙЕР ДОПОЛНИТЕЛЬНОГО ДОМЕНА (324-1). Слово владельца 2026-09-27: «если … у нас есть доступ к API … просто иди и подключай
 // этот домен через API если это невозможно то значит создавай нормальный конвейер с пошаговым подключением».
@@ -31,10 +35,11 @@ function Step({ title, done, children }: { title: string; done: boolean; childre
   )
 }
 
-export function DomainPipeline({ lang, domain: d, words: w, onChanged }: {
+export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChanged }: {
   lang: string
   domain: PipelineDomain
   words: DomainListWords
+  ladderWords: DomainLadderWords
   onChanged: () => Promise<void>
 }) {
   const p = w.pipe
@@ -42,6 +47,7 @@ export function DomainPipeline({ lang, domain: d, words: w, onChanged }: {
   const [error, setError] = useState<string | null>(null)
   const [noPermission, setNoPermission] = useState(false)
   const [note, setNote] = useState<string | null>(null)
+  const [key, setKey] = useState("")
 
   const time = (iso?: string) => iso ? new Date(iso).toLocaleTimeString(lang === "ru" ? "ru-RU" : "en-GB") : ""
 
@@ -77,6 +83,20 @@ export function DomainPipeline({ lang, domain: d, words: w, onChanged }: {
     if (x) { setNoPermission(false); setNote(p.lastCheck.replace("{time}", time(x.checkedAt)).replace("{what}", p.step1Done)) }
   }
 
+  // Отказ ключа выясняется в момент действия и чинится здесь же: ключ → дверь лестницы → узел повторяет «Создать зону».
+  async function saveKeyAndCreate() {
+    setBusy("key")
+    setError(null)
+    try {
+      const r = await fetch(`${BASE}/api/domain/key`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: key.trim() }) })
+      const j = (await r.json().catch(() => null)) as { ok?: boolean; reason?: string } | null
+      if (!j?.ok) { setError(`${w.key.failed} ${j?.reason ?? r.status}`); setBusy(null); return }
+      setKey("")
+    } catch { setError(w.key.failed); setBusy(null); return }
+    setBusy(null)
+    await createZone()
+  }
+
   const zoneReady = d.state === "pending" || d.state === "active"
   const nsReady = zoneReady && (d.state === "active" || !!d.nsMatch)
 
@@ -89,7 +109,19 @@ export function DomainPipeline({ lang, domain: d, words: w, onChanged }: {
             <Button type="button" size="sm" className="w-fit" onClick={createZone} disabled={busy !== null} data-pipe-create-zone>
               {busy === "zone" ? p.creating : p.createZone}
             </Button>
-            {noPermission && <p className="text-sm text-destructive" data-pipe-no-permission>{p.noPermission}</p>}
+            {noPermission && (
+              <div className="flex flex-col gap-2 rounded-md border border-destructive bg-destructive/5 p-3" data-pipe-no-permission>
+                <p className="text-sm text-foreground">{p.noPermission}</p>
+                <TokenHowTo words={ladderWords} />
+                <Label htmlFor={`pipe-key-${d.name}`}>{w.key.label}</Label>
+                <div className="flex flex-wrap gap-2">
+                  <Input id={`pipe-key-${d.name}`} type="password" className="max-w-80 font-mono" value={key} onChange={(e) => setKey(e.target.value)} autoComplete="off" spellCheck={false} />
+                  <Button type="button" size="sm" onClick={saveKeyAndCreate} disabled={!key.trim() || busy !== null} data-pipe-key-save>
+                    {busy === "key" ? w.key.saving : p.keySaveAndCreate}
+                  </Button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </Step>

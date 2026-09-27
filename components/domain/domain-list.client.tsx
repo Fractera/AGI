@@ -73,7 +73,7 @@ export function DomainList({ lang, words: w, ladderWords, ladder }: { lang: stri
     <div className="flex flex-col gap-2" data-domain-list={list ? list.extra.length + 1 : 0}>
       {/* Слово владельца 2026-09-27: текст о поддоменах и собственных доменах элементов — на этой странице, виден всегда. */}
       <p className="text-sm text-foreground" data-domain-intro>{w.intro}</p>
-      <DomainKey lang={lang} state={list?.key ?? null} words={w} ladderWords={ladderWords} onChanged={load} />
+      <DomainKey state={list?.key ?? null} words={w} ladderWords={ladderWords} onChanged={load} />
       {failed && <p className="text-sm text-destructive" role="alert">{w.loadFailed}</p>}
       <Accordion type="single" collapsible value={open} onValueChange={setOpen} className="rounded-lg border border-border px-3">
         <AccordionItem value="primary" data-domain-card="primary">
@@ -98,7 +98,7 @@ export function DomainList({ lang, words: w, ladderWords, ladder }: { lang: stri
               </span>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-2">
-              <DomainPipeline lang={lang} domain={d} words={w} onChanged={load} />
+              <DomainPipeline lang={lang} domain={d} words={w} ladderWords={ladderWords} onChanged={load} />
               {d.holder && <p className="text-sm text-foreground">{w.attachedTo} <span className="font-mono">{d.holder}</span></p>}
               <Button type="button" variant="ghost" size="sm" className="w-fit" onClick={() => act("DELETE", d.name, d.name)} disabled={busy !== null || !!d.holder} data-domain-remove>
                 {w.remove}

@@ -2,7 +2,7 @@ import "server-only"
 import { mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { isDnsLabel } from "@/lib/agi-items/dns-label.mjs"
-import { accountOfZone, activationCheck, createZone, listZones, zoneByName } from "@/lib/domain/cloudflare"
+import { accountOfZone, activationCheck, createZone, verifyToken, zoneByName } from "@/lib/domain/cloudflare"
 import { envValue } from "@/lib/agi-items/element-delete"
 
 // ДОМЕНЫ УЗЛА — СПИСОК, А НЕ ОДИН (шаг 324-1). Слово владельца 2026-09-27: «нужно все то что сделано там превратить в карточке
@@ -172,41 +172,19 @@ export async function createDomainZone(name: string): Promise<{ ok: true; domain
   const account = await accountOfZone(key, main.result.id)
   if (!account.ok) return { ok: false, error: `cloudflare:${account.reason}` }
   const created = await createZone(key, account.result, name)
-  if (!created.ok) {
-    const denied = /zone\.create/.test(created.reason)
-    if (denied) rememberZoneCreate(key, "denied")
-    return { ok: false, error: denied ? "no-zone-permission" : created.reason }
-  }
-  rememberZoneCreate(key, "allowed")
+  if (!created.ok) return { ok: false, error: /zone\.create/.test(created.reason) ? "no-zone-permission" : created.reason }
   return checkDomain(name)
 }
 
-// КЛЮЧ УЗЛА — СВОЙСТВО УЗЛА, А НЕ ДОМЕНА (324-1). Может ли ключ создавать зоны, Cloudflare не говорит заранее (у ключа нет
-// права читать свои права); узел узнаёт это первой попыткой создать зону и помнит ответ для ЭТОГО ключа (по хвосту): новый
-// ключ — снова «ещё не проверено». Файл — `data/node/key-state.json`, сам ключ туда не пишется.
-const KEY_STATE = join(ROOT, "data", "node", "key-state.json")
-type ZoneCreate = "allowed" | "denied" | "unknown"
-
-function rememberZoneCreate(key: string, zoneCreate: Exclude<ZoneCreate, "unknown">) {
-  try {
-    mkdirSync(dirname(KEY_STATE), { recursive: true })
-    writeFileSync(KEY_STATE, JSON.stringify({ tail: key.slice(-4), zoneCreate, at: new Date().toISOString() }, null, 2) + "\n", "utf8")
-  } catch { /* не записалось — строка покажет «ещё не проверено» */ }
-}
-
-/** Строка «Ключ узла»: есть ли ключ, хвост, сколько зон видит, может ли создавать зоны (по последней попытке). */
-export async function nodeKeyState(): Promise<{ present: false } | { present: true; tail: string; zones: number | null; zoneCreate: ZoneCreate; checkedAt: string | null }> {
+// КЛЮЧ УЗЛА — ТРЕВОГА ТОЛЬКО ПО ЗАМЕРУ (324-1, решение владельца 2026-09-27 «go» после разбора: постоянная строка ключа и
+// красная карточка по ЗАПОМНЕННОМУ отказу делались под один узел — у пользователя с ключом по исправленной инструкции их не
+// бывает). Замеряется каждый раз: есть ли ключ и его статус у Cloudflare (`/user/tokens/verify`: active · disabled · expired).
+// Нехватка права создавать зоны — не тревога страницы: она выясняется в момент «Создать зону» и показывается там же.
+export async function nodeKeyState(): Promise<{ present: false } | { present: true; tail: string; status: string | null }> {
   const key = envValue("CLOUDFLARE_API_TOKEN")
   if (!key) return { present: false }
-  const tail = key.slice(-4)
-  const zones = await listZones(key)
-  let zoneCreate: ZoneCreate = "unknown"
-  let checkedAt: string | null = null
-  try {
-    const s = JSON.parse(readFileSync(KEY_STATE, "utf8")) as { tail?: string; zoneCreate?: ZoneCreate; at?: string }
-    if (s.tail === tail && (s.zoneCreate === "allowed" || s.zoneCreate === "denied")) { zoneCreate = s.zoneCreate; checkedAt = s.at ?? null }
-  } catch { /* не проверялось */ }
-  return { present: true, tail, zones: zones.ok ? zones.result.length : null, zoneCreate, checkedAt }
+  const v = await verifyToken(key)
+  return { present: true, tail: key.slice(-4), status: v.ok ? v.result.status : null }
 }
 
 /** Убрать дополнительный домен из списка — только если он не подключён к элементу. Зона в Cloudflare не трогается. */
