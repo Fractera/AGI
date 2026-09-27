@@ -45,6 +45,7 @@ const DICT: Record<string, ElementGithubUi> = {
     step2: "Sign in to GitHub as the account that owns the repository and create a classic key:",
     step2Link: "Create a classic key",
     step2Sub: [
+      "If a list of keys opens, press «Generate new token» and choose «Generate new token (classic)» — not the fine-grained one.",
       "Note — any name, e.g. «fractera element»; Expiration — the term you want.",
       "Tick two boxes: «repo» (writing to your repositories) and «workflow» (the element carries GitHub Actions files in .github/workflows — without this box GitHub refuses them). Nothing else is needed.",
       "Press «Generate token» at the bottom and copy the key — it starts with ghp_.",
@@ -101,6 +102,7 @@ const DICT: Record<string, ElementGithubUi> = {
     step2: "Войдите в GitHub под тем аккаунтом, которому принадлежит репозиторий, и создайте классический ключ:",
     step2Link: "Создать классический ключ",
     step2Sub: [
+      "Если открылся список ключей, нажмите «Generate new token» и выберите «Generate new token (classic)» — не тонкий ключ.",
       "Note — любое имя, например «fractera element»; Expiration — нужный срок.",
       "Отметьте две галочки: «repo» (запись в ваши репозитории) и «workflow» (в элементе есть файлы GitHub Actions в .github/workflows — без этой галочки GitHub их не примет). Больше ничего не нужно.",
       "Внизу нажмите «Generate token» и скопируйте ключ — он начинается с ghp_.",
