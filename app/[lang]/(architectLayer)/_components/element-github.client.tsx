@@ -60,21 +60,34 @@ export function ElementGithub({ id, lang, ui }: { id: string; lang: string; ui: 
   useEffect(() => { load() }, [load])
 
   const err = (code: unknown) => ui.errors[String(code)] ?? ui.errors["push-failed"]
+  // Слово владельца 2026-09-27: «попытайся какие-то читаемые ошибки показать». Ответ не JSON или запрос оборвался — тоже
+  // слова и код, а не тишина: раньше такой сбой не показывался вовсе.
+  async function call(input: string, init: RequestInit): Promise<{ status: number; body: Record<string, unknown> | null }> {
+    try {
+      const r = await fetch(input, init)
+      const body = (await r.json().catch(() => null)) as Record<string, unknown> | null
+      return { status: r.status, body }
+    } catch {
+      return { status: 0, body: null }
+    }
+  }
+  const network = (status: number) => ui.network.replace("{code}", status ? String(status) : "—")
 
   async function connect() {
     setBusy("connect")
     setMessage(null)
     try {
-      const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ repo, token }) })
-      const d = await r.json()
-      if (d.ok) { setS(d); setToken(""); setMessage({ tone: "ok", text: ui.connected }) }
+      const { status, body: d } = await call(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ repo, token }) })
+      if (!d) setMessage({ tone: "error", text: network(status) })
+      else if (d.ok) { setS(d as unknown as State); setToken(""); setMessage({ tone: "ok", text: ui.nextStep }) }
       else setMessage({ tone: "error", text: err(d.error) })
     } finally { setBusy(null) }
   }
 
   async function forget() {
-    const r = await fetch(url, { method: "DELETE" })
-    if (r.ok) setS(await r.json())
+    const { status, body } = await call(url, { method: "DELETE" })
+    if (body?.ok) setS(body as unknown as State)
+    else setMessage({ tone: "error", text: body ? err(body.error) : network(status) })
   }
 
   async function push(commit: boolean) {
@@ -82,11 +95,11 @@ export function ElementGithub({ id, lang, ui }: { id: string; lang: string; ui: 
     setMessage(null)
     setDirtyBlock(null)
     try {
-      const r = await fetch(`${url}/push`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ commit }) })
-      const d = await r.json()
-      setS(d)
-      if (d.ok) setMessage({ tone: "ok", text: ui.pushed.replace("{commit}", d.commit ?? "") })
-      else if (d.error === "dirty") setDirtyBlock(d.dirty ?? 0)
+      const { status, body: d } = await call(`${url}/push`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ commit }) })
+      if (!d) { setMessage({ tone: "error", text: network(status) }); return }
+      if ("repo" in d) setS(d as unknown as State)
+      if (d.ok) setMessage({ tone: "ok", text: ui.pushed.replace("{commit}", String(d.commit ?? "")) })
+      else if (d.error === "dirty") setDirtyBlock(Number(d.dirty ?? 0))
       else setMessage({ tone: "error", text: err(d.error) })
     } finally { setBusy(null) }
   }
@@ -140,6 +153,9 @@ export function ElementGithub({ id, lang, ui }: { id: string; lang: string; ui: 
             {row(ui.lastPush, s.lastPushedAt ? `${when(s.lastPushedAt)} · ${s.lastCommit}` : ui.neverPushed)}
             <Button type="button" variant="ghost" size="sm" className="mt-1 w-fit" onClick={forget}>{ui.forget}</Button>
           </div>
+        )}
+        {s?.repo && s.tokenTail && !s.lastPushedAt && (
+          <p className="text-sm font-medium text-foreground" data-element-github-next>{ui.nextStep}</p>
         )}
 
         {s?.repo && s.tokenTail && (

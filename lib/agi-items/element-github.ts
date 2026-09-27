@@ -65,7 +65,11 @@ function changes(dir: string): string[] {
 }
 
 function git(dir: string, args: string[]) {
-  const r = spawnSync("git", ["-C", dir, ...args], { encoding: "utf8", windowsHide: true, timeout: 120_000 })
+  // `credential.helper=` и без запроса в терминал: ключ приходит только адресом, а менеджер учётных данных Windows не должен
+  // ни подставлять свой, ни открывать окно входа поверх экрана человека.
+  const r = spawnSync("git", ["-C", dir, "-c", "credential.helper=", ...args], {
+    encoding: "utf8", windowsHide: true, timeout: 120_000, env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
+  })
   return { rc: r.status ?? 1, out: `${r.stdout ?? ""}${r.stderr ?? ""}` }
 }
 
@@ -108,8 +112,20 @@ export async function connectElementGithub(id: string, rawRepo: string, rawToken
   if (!SHAPE.test(token)) return { ok: false as const, error: "bad-token-shape" }
   const access = await checkAccess(token, where.owner, where.repo)
   if (!access.ok) return { ok: false as const, error: access.error ?? "github-refused" }
-  if (access.canWrite !== true) {
-    return { ok: false as const, error: access.canRead ? "no-write" : "repo-not-visible", login: access.login ?? null }
+  if (!access.canRead) return { ok: false as const, error: "repo-not-visible", login: access.login ?? null }
+  // 🛑 `permissions.push` ИЗ ОТВЕТА О РЕПОЗИТОРИИ — ПРАВА АККАУНТА, А НЕ КЛЮЧА (замерено 319-5 на ключе владельца: GitHub
+  // ответил push: true, а `git push` того же ключа — «Permission … denied, 403»: у тонкого ключа не было Contents: write).
+  // Поэтому право записи проверяется НАСТОЯЩЕЙ пробной отправкой `git push --dry-run` — она проходит проверку прав GitHub и
+  // ничего не пишет.
+  const dir = elementDir(id)
+  if (dir) {
+    const probe = spawnSync("git", ["-C", dir, "-c", "credential.helper=", "push", "--dry-run", `https://x-access-token:${token}@github.com/${where.owner}/${where.repo}.git`, "HEAD:main"], {
+      encoding: "utf8", windowsHide: true, timeout: 60_000, env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
+    })
+    if (probe.status !== 0) {
+      const out = `${probe.stdout ?? ""}${probe.stderr ?? ""}`
+      return { ok: false as const, error: /403|denied/i.test(out) ? "no-write" : /non-fast-forward|fetch first|rejected/i.test(out) ? "rejected" : "push-failed", login: access.login ?? null }
+    }
   }
   mkdirSync(dataDir(id), { recursive: true })
   writeFileSync(tokenFile(id), `${KEY}${token}\n`, { mode: 0o600 })

@@ -30,6 +30,8 @@ export type ElementGithubUi = {
   commitPush: string
   commitPushHelp: string
   pushed: string
+  nextStep: string
+  network: string
   errors: Record<string, string>
 }
 
@@ -64,17 +66,19 @@ const DICT: Record<string, ElementGithubUi> = {
     commitPush: "Commit and send",
     commitPushHelp: "The node commits every uncommitted change itself as «export <date>» and sends. Use it when you do not want to wait for the agent; the commit message says nothing about what changed.",
     pushed: "Sent: commit {commit}.",
+    nextStep: "Connected. Next step — press «Send to GitHub».",
+    network: "The node did not answer as expected (code {code}). Reload the page and try again; if it repeats, the reason is in the node log.",
     errors: {
       "bad-repo": "Write the repository as owner/name or as its GitHub address.",
       "bad-token-shape": "This does not look like a GitHub key (github_pat_… or ghp_…).",
       "token-rejected": "GitHub does not accept this key.",
-      "no-write": "The key can read the repository but cannot write to it — give it Contents: read and write.",
+      "no-write": "The key can read the repository but cannot write to it (GitHub answered 403 to a trial push). Open the key on GitHub → Repository permissions → Contents → Read and write → Update, then press the button again.",
       "repo-not-visible": "The key does not see this repository — check the name and the key's repository access.",
       "github-unreachable": "GitHub did not answer — check the internet connection.",
       "github-refused": "GitHub refused the check.",
       "not-connected": "Connect the repository first.",
       "rejected": "GitHub rejected the export: the repository holds a different history. Use an empty repository or this element's own.",
-      "auth-failed": "GitHub rejected the key while sending — check it again.",
+      "auth-failed": "GitHub rejected the key while sending (403): usually the key has no Contents: Read and write. Open the key on GitHub → Repository permissions → Contents → Read and write → Update, then send again.",
       "repo-not-found": "GitHub does not find the repository.",
       "commit-failed": "The node could not commit the changes.",
       "push-failed": "The export did not go through.",
@@ -111,17 +115,19 @@ const DICT: Record<string, ElementGithubUi> = {
     commitPush: "Закоммитить и отправить",
     commitPushHelp: "Узел сам закоммитит все незакоммиченные правки как «export <дата>» и отправит. Для случая, когда ждать агента не хочется; подпись коммита ничего не говорит о том, что изменилось.",
     pushed: "Отправлено: коммит {commit}.",
+    nextStep: "Подключено. Следующий шаг — нажмите «Отправить в GitHub».",
+    network: "Узел ответил не так, как ожидалось (код {code}). Обновите страницу и повторите; если повторится — причина в журнале узла.",
     errors: {
       "bad-repo": "Укажите репозиторий как владелец/имя или его адресом на GitHub.",
       "bad-token-shape": "Это не похоже на ключ GitHub (github_pat_… или ghp_…).",
       "token-rejected": "GitHub не принимает этот ключ.",
-      "no-write": "Ключ видит репозиторий, но писать в него не может — дайте ему Contents: read and write.",
+      "no-write": "Ключ видит репозиторий, но писать в него не может (GitHub ответил 403 на пробную отправку). Откройте ключ на GitHub → Repository permissions → Contents → Read and write → Update и нажмите кнопку снова.",
       "repo-not-visible": "Ключ не видит этот репозиторий — проверьте имя и доступ ключа к репозиториям.",
       "github-unreachable": "GitHub не ответил — проверьте подключение к интернету.",
       "github-refused": "GitHub отказал в проверке.",
       "not-connected": "Сначала подключите репозиторий.",
       "rejected": "GitHub отклонил выгрузку: в репозитории другая история. Возьмите пустой репозиторий или собственный этого элемента.",
-      "auth-failed": "GitHub отклонил ключ при отправке — проверьте его ещё раз.",
+      "auth-failed": "GitHub отклонил ключ при отправке (403): обычно у ключа нет Contents: Read and write. Откройте ключ на GitHub → Repository permissions → Contents → Read and write → Update и отправьте снова.",
       "repo-not-found": "GitHub не находит репозиторий.",
       "commit-failed": "Узел не смог закоммитить правки.",
       "push-failed": "Выгрузка не прошла.",
