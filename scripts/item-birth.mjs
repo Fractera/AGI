@@ -73,6 +73,9 @@ if (!existsSync(propsFile)) fail('в шаблоне нет OWN-SERVICE-PROPS.jso
 const props = JSON.parse(readFileSync(propsFile, 'utf8'))
 props.id = id
 props.name = id
+// 325-1: СВОЁ ОПИСАНИЕ, А НЕ ШАБЛОННОЕ. ✗ Замерено: рождённый `as8kp` описывал себя словами шаблона («The template of a node
+// element…»). Первичная запись говорит, кто это и откуда; что элемент умеет, пишет его агент (Настройки → Описание, 325-2).
+props.summary = `AGI element ${id}, born from ${template.from} ${template.version} on ${new Date().toISOString().slice(0, 10)}. Its capabilities are written by its agent from Settings → Capabilities description.`
 writeFileSync(propsFile, JSON.stringify(props, null, 2) + '\n', 'utf8')
 
 const ident = ['-c', 'user.name=Fractera node', '-c', 'user.email=node@fractera.local']
