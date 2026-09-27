@@ -124,7 +124,7 @@ export async function connectElementGithub(id: string, rawRepo: string, rawToken
     })
     if (probe.status !== 0) {
       const out = `${probe.stdout ?? ""}${probe.stderr ?? ""}`
-      return { ok: false as const, error: /403|denied/i.test(out) ? "no-write" : /non-fast-forward|fetch first|rejected/i.test(out) ? "rejected" : "push-failed", login: access.login ?? null }
+      return { ok: false as const, error: /403|denied/i.test(out) ? "no-write" : /without `?workflow`? scope/i.test(out) ? "needs-workflow" : /non-fast-forward|fetch first/i.test(out) ? "rejected" : "push-failed", login: access.login ?? null }
     }
   }
   mkdirSync(dataDir(id), { recursive: true })
@@ -163,7 +163,10 @@ export function pushElement(id: string, commit: boolean) {
   const r = git(dir, ["push", url, "HEAD:main"])
   if (r.rc !== 0) {
     // Причина — машинным словом; сам вывод остаётся здесь, в нём адрес с ключом.
-    const error = /non-fast-forward|fetch first|rejected/i.test(r.out) ? "rejected"
+    // 🛑 `[remote rejected]` — общее слово GitHub для ЛЮБОГО отказа; «другая история» — только non-fast-forward / fetch first
+    // (замерено 319-5: пустой репозиторий, отказ из-за файла .github/workflows был ошибочно назван «другой историей»).
+    const error = /without `?workflow`? scope/i.test(r.out) ? "needs-workflow"
+      : /non-fast-forward|fetch first/i.test(r.out) ? "rejected"
       : /Authentication failed|403|could not read Username/i.test(r.out) ? "auth-failed"
       : /not found/i.test(r.out) ? "repo-not-found" : "push-failed"
     return { ok: false as const, error }

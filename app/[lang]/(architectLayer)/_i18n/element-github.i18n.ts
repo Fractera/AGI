@@ -46,7 +46,7 @@ const DICT: Record<string, ElementGithubUi> = {
     step2Link: "Create a classic key",
     step2Sub: [
       "Note — any name, e.g. «fractera element»; Expiration — the term you want.",
-      "Tick the «repo» box (full access to your repositories, writing included). Nothing else is needed.",
+      "Tick two boxes: «repo» (writing to your repositories) and «workflow» (the element carries GitHub Actions files in .github/workflows — without this box GitHub refuses them). Nothing else is needed.",
       "Press «Generate token» at the bottom and copy the key — it starts with ghp_.",
     ],
     step3: "Paste the repository and the key below and press «Check and save».",
@@ -88,6 +88,7 @@ const DICT: Record<string, ElementGithubUi> = {
       "rejected": "GitHub rejected the export: the repository holds a different history. Use an empty repository or this element's own.",
       "auth-failed": "GitHub rejected the key while sending (403): the key has no «repo» box or belongs to another account. Create a new one by point 2 and paste it.",
       "repo-not-found": "GitHub does not find the repository.",
+      "needs-workflow": "GitHub refused the files in .github/workflows: the key has no «workflow» box. Create a key with «repo» and «workflow» (point 2), paste it and send again.",
       "commit-failed": "The node could not commit the changes.",
       "push-failed": "The export did not go through.",
       "temporary-address": "Keys are not handled on a temporary public address — open the node on its own domain or on this computer.",
@@ -101,7 +102,7 @@ const DICT: Record<string, ElementGithubUi> = {
     step2Link: "Создать классический ключ",
     step2Sub: [
       "Note — любое имя, например «fractera element»; Expiration — нужный срок.",
-      "Отметьте галочку «repo» (полный доступ к вашим репозиториям, включая запись). Больше ничего не нужно.",
+      "Отметьте две галочки: «repo» (запись в ваши репозитории) и «workflow» (в элементе есть файлы GitHub Actions в .github/workflows — без этой галочки GitHub их не примет). Больше ничего не нужно.",
       "Внизу нажмите «Generate token» и скопируйте ключ — он начинается с ghp_.",
     ],
     step3: "Вставьте репозиторий и ключ ниже и нажмите «Проверить и сохранить».",
@@ -143,6 +144,7 @@ const DICT: Record<string, ElementGithubUi> = {
       "rejected": "GitHub отклонил выгрузку: в репозитории другая история. Возьмите пустой репозиторий или собственный этого элемента.",
       "auth-failed": "GitHub отклонил ключ при отправке (403): у ключа нет галочки «repo» или он создан под другим аккаунтом. Создайте новый по пункту 2 и вставьте его.",
       "repo-not-found": "GitHub не находит репозиторий.",
+      "needs-workflow": "GitHub не принял файлы .github/workflows: у ключа нет галочки «workflow». Создайте ключ с галочками «repo» и «workflow» (пункт 2), вставьте и отправьте снова.",
       "commit-failed": "Узел не смог закоммитить правки.",
       "push-failed": "Выгрузка не прошла.",
       "temporary-address": "На временном публичном адресе ключи не принимаются — откройте узел на его домене или на этом компьютере.",
