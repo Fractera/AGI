@@ -201,16 +201,16 @@ const W: Record<string, DomainLadderWords> = {
     tokenPermsRows: [
       ["Account", "Cloudflare Tunnel", "Edit"],
       ["Zone", "DNS", "Edit"],
-      ["Zone", "Zone", "Read"],
+      ["Zone", "Zone", "Edit"],
     ],
     tokenPermsWhy: [
       "Cloudflare Tunnel · Edit — the node creates the tunnel, takes its run token and sets the routing.",
       "DNS · Edit — it writes the record that points your name at that tunnel.",
-      "Zone · Read — it finds your zone by the domain name and learns which account owns it.",
+      "Zone · Edit — it finds your zone by the domain name, learns which account owns it, and adds the zone of every next domain of yours by itself.",
     ],
     tokenTail: [
       "Account Resources: leave Include / All accounts.",
-      "Zone Resources: appears once you add the Zone rows — choose Include → Specific zone → your domain.",
+      "Zone Resources: appears once you add the Zone rows — choose Include → All zones (not one zone: then every next domain is connected by the node itself).",
       "Client IP Address Filtering: leave empty.",
       "TTL: leave it. A token with an end date dies one day, and the site stops updating its record without explaining why.",
       "Continue to summary → Create Token. The token is shown ONCE — copy it straight away.",
@@ -319,16 +319,16 @@ const W: Record<string, DomainLadderWords> = {
     tokenPermsRows: [
       ["Account", "Cloudflare Tunnel", "Edit"],
       ["Zone", "DNS", "Edit"],
-      ["Zone", "Zone", "Read"],
+      ["Zone", "Zone", "Edit"],
     ],
     tokenPermsWhy: [
       "Cloudflare Tunnel · Edit — узел создаёт туннель, забирает его токен запуска и задаёт правила входа.",
       "DNS · Edit — заводит запись, которая ведёт ваше имя на этот туннель.",
-      "Zone · Read — находит вашу зону по имени домена и узнаёт, какой учётной записи она принадлежит.",
+      "Zone · Edit — находит вашу зону по имени домена, узнаёт её учётную запись и сам заводит зону каждого следующего вашего домена.",
     ],
     tokenTail: [
       "Account Resources: оставьте Include / All accounts.",
-      "Zone Resources: появится, как только добавите строки со Zone — выберите Include → Specific zone → ваш домен.",
+      "Zone Resources: появится, как только добавите строки со Zone — выберите Include → All zones (не одну зону: тогда каждый следующий домен узел подключает сам).",
       "Client IP Address Filtering: оставьте пустым.",
       "TTL: не трогайте. Токен с датой окончания однажды умрёт, и сайт перестанет обновлять запись без объяснения.",
       "Continue to summary → Create Token. Токен покажут ОДИН раз — скопируйте сразу.",

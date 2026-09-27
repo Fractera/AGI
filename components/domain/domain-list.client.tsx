@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { DomainListWords } from "./domain-list.i18n"
+import type { DomainLadderWords } from "./domain-ladder.i18n"
 import { DomainPipeline, type PipelineDomain } from "./domain-pipeline.client"
 import { DomainKey, type NodeKey } from "./domain-key.client"
 
@@ -26,7 +27,7 @@ const BADGE: Record<string, string> = {
   pending: "border-border text-muted-foreground",
 }
 
-export function DomainList({ lang, words: w, ladder }: { lang: string; words: DomainListWords; ladder: ReactNode }) {
+export function DomainList({ lang, words: w, ladderWords, ladder }: { lang: string; words: DomainListWords; ladderWords: DomainLadderWords; ladder: ReactNode }) {
   const [list, setList] = useState<List | null>(null)
   const [failed, setFailed] = useState(false)
   const [open, setOpen] = useState("primary")
@@ -72,7 +73,7 @@ export function DomainList({ lang, words: w, ladder }: { lang: string; words: Do
     <div className="flex flex-col gap-2" data-domain-list={list ? list.extra.length + 1 : 0}>
       {/* Слово владельца 2026-09-27: текст о поддоменах и собственных доменах элементов — на этой странице, виден всегда. */}
       <p className="text-sm text-foreground" data-domain-intro>{w.intro}</p>
-      <DomainKey lang={lang} state={list?.key ?? null} words={w} onChanged={load} />
+      <DomainKey lang={lang} state={list?.key ?? null} words={w} ladderWords={ladderWords} onChanged={load} />
       {failed && <p className="text-sm text-destructive" role="alert">{w.loadFailed}</p>}
       <Accordion type="single" collapsible value={open} onValueChange={setOpen} className="rounded-lg border border-border px-3">
         <AccordionItem value="primary" data-domain-card="primary">

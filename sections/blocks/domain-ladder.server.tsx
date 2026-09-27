@@ -15,5 +15,5 @@ import { domainListWords } from '@/components/domain/domain-list.i18n'
 // 324-1: ДОМЕНЫ УЗЛА СПИСКОМ — лестница стала первой карточкой аккордеона (основной домен), за ней дополнительные домены и
 // «Добавить домен». Вид блока тот же: второй вид ради одной обёртки завёл бы вторую точку входа того же знания.
 export const domainLadder: SectionRenderer<'domainLadder'> = (b, { key: k }) => (
-  <DomainList key={k} lang={b.lang} words={domainListWords(b.lang)} ladder={<DomainLadder lang={b.lang} words={b.words} />} />
+  <DomainList key={k} lang={b.lang} words={domainListWords(b.lang)} ladderWords={b.words} ladder={<DomainLadder lang={b.lang} words={b.words} />} />
 )

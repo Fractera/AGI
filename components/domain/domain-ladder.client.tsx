@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { H3, Small } from "@/components/ui/typography"
 import { isTemporaryHostname } from "@/lib/auth/temporary-address"
 import type { DomainLadderWords } from "@/components/domain/domain-ladder.i18n"
+import { TokenHowTo } from "./token-how-to.client"
 
 // ЛЕСТНИЦА ПОДКЛЮЧЕНИЯ СВОЕГО ДОМЕНА (259-1).
 //
@@ -109,7 +110,6 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
   const [registrars, setRegistrars] = useState(false)
   // 🔒 СВЁРНУТО ПО ТОЙ ЖЕ ПРИЧИНЕ, ЧТО И РЕГИСТРАТОРЫ: человек, у которого токен
   // уже есть, не должен продираться через инструкцию его создания.
-  const [tokenHow, setTokenHow] = useState(false)
   // 🔒 ПРЕДУПРЕЖДАЕМ ДО ВВОДА, А НЕ ПОСЛЕ ОТКАЗА. ✗ оплачено 2026-09-21: владелец
   // сидел за этим самым компьютером, вставил токен и получил «это можно сделать
   // только на том компьютере, где работает узел» — неправду. Он смотрел сайт по
@@ -462,59 +462,7 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
                 {words.dashOpen}
                 <ExternalLink className="size-3" aria-hidden />
               </a>
-              <div className="rounded-md border border-border bg-muted/40 p-3" data-token-how>
-                <button
-                  aria-expanded={tokenHow}
-                  className="flex w-full items-center justify-between gap-2 text-left"
-                  onClick={() => setTokenHow((v) => !v)}
-                  type="button"
-                >
-                  <Small className="font-semibold text-foreground">{words.tokenHowToggle}</Small>
-                  <ChevronDown className={`size-4 shrink-0 text-muted-foreground transition-transform ${tokenHow ? "rotate-180" : ""}`} aria-hidden />
-                </button>
-                {tokenHow ? (
-                  <>
-                    <ol className="mt-2 flex list-decimal flex-col gap-1 pl-5 text-foreground text-sm">
-                      {words.tokenHowSteps.map((line) => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ol>
-                    <Small className="mt-3 block font-semibold text-foreground">{words.tokenPermsTitle}</Small>
-                    {/* 🛑 Таблица в своей прокрутке: на телефоне три столбца шире экрана,
-                        а страница целиком горизонтально ездить не должна. */}
-                    <div className="mt-1 overflow-x-auto">
-                      <table className="w-full min-w-[20rem] border-collapse text-sm">
-                        <thead>
-                          <tr>
-                            {words.tokenPermsHead.map((h) => (
-                              <th className="border border-border bg-muted px-2 py-1 text-left font-semibold" key={h} scope="col">{h}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {words.tokenPermsRows.map((row) => (
-                            <tr key={row.join("-")}>
-                              {row.map((cell) => (
-                                <td className="border border-border px-2 py-1 font-mono" key={cell}>{cell}</td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-muted-foreground text-sm">
-                      {words.tokenPermsWhy.map((line) => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ul>
-                    <ul className="mt-3 flex list-disc flex-col gap-1 pl-5 text-foreground text-sm">
-                      {words.tokenTail.map((line) => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ul>
-                  </>
-                ) : null}
-              </div>
+              <TokenHowTo words={words} />
               <div className="flex flex-wrap gap-2">
                 <input
                   autoComplete="off"
