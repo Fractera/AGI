@@ -103,7 +103,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   const sectionPath = `${dir}/${section.slug}`
   const path = page ? `${sectionPath}/${page.slug}` : sectionPath
 
-  // Страница раздела перечисляет свои страницы: третьего уровня в левом меню нет (закон вложенности меню).
+  // Страница раздела перечисляет свои страницы и справа — вместе с третьим уровнем левого меню (320).
   const list = !page && section.pages && section.pages.length > 0 ? (
     <nav aria-label={ui.sectionPages} className="flex flex-col gap-2">
       <p className="text-[length:var(--fs-small)] font-medium text-muted-foreground">{ui.sectionPages}</p>

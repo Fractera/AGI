@@ -29,9 +29,18 @@ export function withDrafts(menu: WorkspaceItem[], lang: string, currentPath: str
 
   const drafts: WorkspaceItem[] = listDrafts().map((d) => {
     const dir = `${ARCHITECT_HOME}/${d.id}`
+    // 320: раздел со страницами раскрывается третьим уровнем (слово владельца 2026-09-27). Раздел «активен» только на
+    // своей странице, «открыт» — пока человек на любой его странице: отметка «вы здесь» не стоит в двух местах.
     const children = ITEM_TREE.map((s) => {
       const path = `${dir}/${s.slug}`
-      return { label: s.words[l].title, href: at(path), active: path === currentPath || currentPath.startsWith(`${path}/`) }
+      const inside = currentPath.startsWith(`${path}/`)
+      const pages = (s.pages ?? []).map((p) => {
+        const pagePath = `${path}/${p.slug}`
+        return { label: p.words[l].title, href: at(pagePath), active: pagePath === currentPath }
+      })
+      return pages.length > 0
+        ? { label: s.words[l].title, href: at(path), active: path === currentPath, open: path === currentPath || inside, children: pages }
+        : { label: s.words[l].title, href: at(path), active: path === currentPath || inside }
     })
     return {
       label: d.id,
