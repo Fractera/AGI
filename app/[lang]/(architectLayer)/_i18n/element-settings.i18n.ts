@@ -15,6 +15,10 @@ export type ElementSettingsUi = {
   describeCard: { empty: string; take: string; taking: string; taken: string; takenAt: string; how: string; errors: Record<string, string> }
   address: Card
   mirror: Card
+  config: Card
+  design: Card
+  blocks: Card
+  linkCard: { on: string; off: string; turnOn: string; turnOff: string; busy: string; failed: string }
   remove: Card
   removeDialog: { title: string; text: string; label: string; confirm: string; deleting: string; cancel: string; mismatch: string; failed: string; riskNever: string; riskAhead: string; riskNone: string }
 }
@@ -102,6 +106,22 @@ const DICT: Record<string, ElementSettingsUi> = {
       action: "Rename the address",
       pending: "Being built (step 325-3).",
     },
+    config: {
+      title: "Sync with CONFIG",
+      text: "Project settings (name, description, SEO, icons, languages) come from the CONFIG element. Turned off, the element keeps the last settings it got as its own and changes them only on its own settings page.",
+      action: "", pending: "",
+    },
+    design: {
+      title: "Sync with Design",
+      text: "Colours, fonts and shapes come from the Design element when it is saved. Turned off, the element keeps the last design it got.",
+      action: "", pending: "",
+    },
+    blocks: {
+      title: "Sync with Blocks",
+      text: "The element's agent takes ready blocks from the Blocks registry. Turned off, the registry is removed from components.json; blocks already taken stay in the element's code.",
+      action: "", pending: "",
+    },
+    linkCard: { on: "Connected", off: "Disconnected — the element lives on its own", turnOn: "Connect", turnOff: "Disconnect", busy: "Saving…", failed: "Not saved:" },
     mirror: {
       title: "Main mirror",
       text: "Connect your own second domain to the root of this element; the current subdomain then redirects to it.",
@@ -210,6 +230,22 @@ const DICT: Record<string, ElementSettingsUi> = {
       action: "Переименовать адрес",
       pending: "В работе (подшаг 325-3).",
     },
+    config: {
+      title: "Синхронизация с CONFIG",
+      text: "Настройки проекта (название, описание, SEO, иконки, языки) приходят от элемента CONFIG. Отключите — элемент оставит себе последние полученные настройки и дальше меняет их только на своей странице настроек.",
+      action: "", pending: "",
+    },
+    design: {
+      title: "Синхронизация с Дизайном",
+      text: "Цвета, шрифты и формы приходят от элемента «Дизайн» после сохранения. Отключите — элемент оставит последнее полученное оформление.",
+      action: "", pending: "",
+    },
+    blocks: {
+      title: "Синхронизация с Блоками",
+      text: "Агент элемента берёт готовые блоки из реестра «Блоков». Отключите — реестр уберётся из components.json; уже взятые блоки останутся в коде элемента.",
+      action: "", pending: "",
+    },
+    linkCard: { on: "Подключено", off: "Отключено — элемент живёт самостоятельно", turnOn: "Подключить", turnOff: "Отключить", busy: "Сохраняю…", failed: "Не сохранено:" },
     mirror: {
       title: "Главное зеркало",
       text: "Подключить второй собственный домен к корню этого элемента; текущий поддомен будет переадресовывать на него.",

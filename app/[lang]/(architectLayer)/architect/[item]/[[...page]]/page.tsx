@@ -27,6 +27,8 @@ import { ElementDescribe } from '../../../_components/element-describe.client'
 import { ElementAddress } from '../../../_components/element-address.client'
 import { ElementDomain } from '../../../_components/element-domain.client'
 import { domainRecord } from '@/lib/agi-items/element-domain'
+import { readLinks } from '@/lib/agi-items/element-links'
+import { ElementLink } from '../../../_components/element-link.client'
 import { addressOf, idOfAddress } from '@/lib/agi-items/element-address'
 import { registryDescription, TASK as DESCRIBE_TASK } from '@/lib/agi-items/element-describe'
 import { terminalLink } from '@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/client/terminal-paste.mjs'
@@ -197,6 +199,10 @@ export default async function Page({ params }: { params: Promise<Params> }) {
           address: <ElementAddress id={item} lang={lang} ui={sui} current={slug} internet={address} />,
           // 324: главное зеркало — второй собственный домен в корне элемента.
           mirror: <ElementDomain id={item} lang={lang} ui={sui} current={domainRecord(item)} />,
+          // 324-7: связи с узлом — CONFIG, Дизайн, Блоки.
+          config: <ElementLink id={item} kind="config" on={readLinks(item).config} ui={sui} />,
+          design: <ElementLink id={item} kind="design" on={readLinks(item).design} ui={sui} />,
+          blocks: <ElementLink id={item} kind="blocks" on={readLinks(item).blocks} ui={sui} />,
           remove: <DeleteElementButton lang={lang} id={item} address={address} ui={sui} dialogUi={appDialogUi(lang)} />,
         }} />
       : <p className="my-4 text-sm text-muted-foreground">{sui.notBorn}</p>)
