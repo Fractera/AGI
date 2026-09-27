@@ -488,7 +488,23 @@ The element's pages (`architect/[item]/[[...page]]`): home = `ServicePort` (live
 (the template carries `.github/workflows`), saved in `data/services/<id>/github/` (0600, 4-char tail shown) only after a real
 `git push --dry-run` passes — 🛑 the repo API's `permissions.push` is the account's role, not the key's (measured). Export only
 by button; uncommitted changes → refusal or «Commit and send» (`export <date>`); build traces (`tsconfig.json`) are not changes.
-A born element is not deleted as a draft (409). Not built yet: deleting an element, birth in seconds.
+A born element is not deleted as a draft (409). Not built yet: birth in seconds.
+
+**Settings — the Danger zone (node step 325)**, the last section of the element tree (`_components/element-danger-zone.tsx`):
+- **Capabilities description** — «Generate» opens `<address>/build/terminal?paste=<task>` (the element's own Claude Code, 326);
+  the agent writes `summary` and `provides` into its `OWN-SERVICE-PROPS.json` and commits; a person sends the task.
+  «Take into the core» — `POST /api/architect/items/<id>/describe` (`lib/agi-items/element-describe.ts`) checks the shape
+  (template or birth summary, empty or malformed `provides` → 422 with a word, registry untouched) and writes
+  `summary`/`provides`/`described {at, commit}` into the registry entry (working file, like the birth).
+- **Address** — the core address over the unchanged id (`lib/agi-items/element-address.ts`, `data/services/<id>/address.json`):
+  menu and pages by address, `/<lang>/<id>` redirects to it; `GET|POST /api/architect/items/<id>/address` checks
+  (sections, registry ids, drafts, other addresses, service paths → taken + 3 suggestions). 🔒 Owner: «Только ядро» — the
+  subdomain is not renamed. Doors, pty, folder, pm2 stay by id. Only the id path redirects, not earlier addresses.
+- **Main mirror** — inactive, step 324.
+- **Delete** — `DELETE /api/architect/items/<id>` with the address typed back (`lib/agi-items/element-delete.ts`): pm2 →
+  tunnel route and DNS → registry → draft → `data/services/<id>` (address, GitHub key) → birth and pm2 logs → the folder.
+  🛑 Nothing in the door may block the server: pm2 async, the folder is RENAMED into `AGI-ITEMS/.trash/` and erased without
+  waiting. ✗ 325-6: sync `rmSync` of ~1 GB froze the core, the core watch restarted it mid-deletion — half a folder left.
 
 ## Every page folder has a README.md — and two sections in it are mandatory (owner's decision 2026-09-24)
 
