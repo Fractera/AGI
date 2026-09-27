@@ -1,10 +1,11 @@
 import "server-only"
-import { readdirSync, readFileSync } from "node:fs"
+import { mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { isDnsLabel } from "@/lib/agi-items/dns-label.mjs"
 import { envValue } from "@/lib/agi-items/element-delete"
 import { nodeZone } from "@/lib/agi-items/drafts"
 import { zoneByName } from "@/lib/domain/cloudflare"
+import { extraDomains } from "@/lib/domain/node-domains"
 
 // ВТОРОЙ СОБСТВЕННЫЙ ДОМЕН В КОРНЕ AGI ЭЛЕМЕНТА (шаг 324). Слово владельца 2026-09-27: «подключение второго своего
 // собственного домена который у меня куплен … второй основной домен который подключается к корню … с редиректом на основной
@@ -74,4 +75,25 @@ export async function checkDomain(input: string, forId: string): Promise<DomainS
   return z.result.status === "active"
     ? { state: "ready", zone: z.result.name, nameServers, name }
     : { state: "pending", zone: z.result.name, status: z.result.status, nameServers, name }
+}
+
+// «ПОДКЛЮЧИТЬ» — ВЫБОР ИЗ СПИСКА ДОМЕНОВ УЗЛА (324-3). Слово владельца 2026-09-27: «вместо того чтобы вводить свой домен я
+// тебя просил сделать выпадающий список и указать какие домены уже прикреплены а какие ещё свободны». Домен добавляется и
+// доводится до активной зоны на странице «Активация домена»; здесь — только выбор.
+// 🔒 ЗАМЕР В МОМЕНТ НАЖАТИЯ: список показывает последнее, что узел видел; подключение спрашивает Cloudflare заново и берёт
+// только свободный домен с активной зоной. Раздача сайта элемента на домене и 301 со старого поддомена — 324-4.
+// Выбор другого домена заменяет прежний: у элемента один главный домен.
+export async function attachDomain(id: string, input: string): Promise<{ ok: true; domain: string } | { ok: false; error: string }> {
+  const name = normalizeDomain(input)
+  if (!extraDomains().some((d) => d.name === name)) return { ok: false, error: "not-in-list" }
+  const s = await checkDomain(name, id)
+  if (s.state !== "ready") return { ok: false, error: s.state }
+  const file = join(DATA, id, "domain.json")
+  const tmp = `${file}.${process.pid}.${Date.now()}.tmp`
+  try {
+    mkdirSync(join(DATA, id), { recursive: true })
+    writeFileSync(tmp, JSON.stringify({ domain: name, attachedAt: new Date().toISOString() }, null, 2) + "\n", "utf8")
+    renameSync(tmp, file)
+  } catch { return { ok: false, error: "write-failed" } }
+  return { ok: true, domain: name }
 }

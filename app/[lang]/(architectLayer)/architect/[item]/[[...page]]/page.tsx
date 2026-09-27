@@ -196,7 +196,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
           describe: <ElementDescribe id={item} lang={lang} ui={sui} current={registryDescription(item)} terminalHref={terminalLink({ lang, service: `${slug}/build`, text: DESCRIBE_TASK })} />,
           address: <ElementAddress id={item} lang={lang} ui={sui} current={slug} internet={address} />,
           // 324: главное зеркало — второй собственный домен в корне элемента.
-          mirror: <ElementDomain id={item} ui={sui} current={domainOf(item)} />,
+          mirror: <ElementDomain id={item} lang={lang} ui={sui} current={domainOf(item)} />,
           remove: <DeleteElementButton lang={lang} id={item} address={address} ui={sui} dialogUi={appDialogUi(lang)} />,
         }} />
       : <p className="my-4 text-sm text-muted-foreground">{sui.notBorn}</p>)

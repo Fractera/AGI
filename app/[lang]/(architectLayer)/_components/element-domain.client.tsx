@@ -1,78 +1,88 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { ElementSettingsUi } from "../_i18n/element-settings.i18n"
 
-// «ГЛАВНОЕ ЗЕРКАЛО» — СВОЙ ДОМЕН В КОРНЕ ЭЛЕМЕНТА (324-1). Поле домена и «Проверить» (по кнопке: проверка ходит в Cloudflare,
-// на каждую букву её не зовём). Ответ — словами и следующим шагом: зона готова / ждёт серверов имён у регистратора (список
-// серверов) / ключ узла её не видит (две причины и ссылки на документацию Cloudflare). Подключение — 324-2.
+// «ГЛАВНОЕ ЗЕРКАЛО» — ВЫБОР ИЗ ДОМЕНОВ УЗЛА (324-3). Слово владельца 2026-09-27: «вместо того чтобы вводить свой домен я тебя
+// просил сделать выпадающий список и указать какие домены уже прикреплены а какие ещё свободны и какие я могу привязать к
+// проекту». Список — та же дверь, что рисует карточки «Активации домена» (`/api/domain/list`): второго списка нет. Выбрать
+// можно только свободный домен с активной зоной; ждущий серверов имён и подключённый к другому элементу видны, но закрыты.
+// Нужного нет — «Добавить домен» ведёт на «Активацию домена». Подключение по кнопке замеряет зону заново (дверь элемента).
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
-const DOCS_ADD_SITE = "https://developers.cloudflare.com/fundamentals/manage-domains/add-site/"
-const DOCS_TOKEN = "https://developers.cloudflare.com/fundamentals/api/get-started/create-token/"
+type Listed = { name: string; state: string; holder: string | null }
+type Kind = "ready" | "waiting" | "taken" | "current"
 
-type Result = { state: string; name?: string; zone?: string; status?: string; nameServers?: string[]; by?: string; reason?: string }
-
-export function ElementDomain({ id, ui, current }: { id: string; ui: ElementSettingsUi; current: string | null }) {
+export function ElementDomain({ id, lang, ui, current }: { id: string; lang: string; ui: ElementSettingsUi; current: string | null }) {
   const w = ui.mirrorCard
-  const [name, setName] = useState("")
+  const router = useRouter()
+  const [list, setList] = useState<Listed[] | null>(null)
+  const [loadFailed, setLoadFailed] = useState(false)
+  const [picked, setPicked] = useState("")
   const [busy, setBusy] = useState(false)
-  const [result, setResult] = useState<Result | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  async function check() {
-    setBusy(true)
-    setResult(null)
-    try {
-      const r = await fetch(`${BASE}/api/architect/items/${id}/domain?name=${encodeURIComponent(name)}`, { cache: "no-store" })
-      setResult(((await r.json().catch(() => null)) as Result | null) ?? { state: "failed" })
-    } catch {
-      setResult({ state: "failed" })
-    }
-    setBusy(false)
+  useEffect(() => {
+    fetch(`${BASE}/api/domain/list`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j: { ok?: boolean; extra?: Listed[] }) => { if (j.ok && Array.isArray(j.extra)) setList(j.extra); else setLoadFailed(true) })
+      .catch(() => setLoadFailed(true))
+  }, [])
+
+  function kind(d: Listed): Kind {
+    if (d.name === current || d.holder === id) return "current"
+    if (d.holder) return "taken"
+    return d.state === "active" ? "ready" : "waiting"
   }
 
-  const line = result ? (w.states[result.state] ?? w.states.failed).replace("{zone}", result.zone ?? result.name ?? "").replace("{status}", result.status ?? "").replace("{by}", result.by ?? "").replace("{reason}", result.reason ?? "") : null
-  const bad = result && result.state !== "ready"
+  async function attach() {
+    setBusy(true)
+    setError(null)
+    try {
+      const r = await fetch(`${BASE}/api/architect/items/${id}/domain`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: picked }) })
+      const j = (await r.json().catch(() => null)) as { ok?: boolean; error?: string } | null
+      if (j?.ok) { setPicked(""); router.refresh(); setBusy(false); return }
+      setError(w.errors[j?.error ?? ""] ?? `${w.errors.failed} ${j?.error ?? r.status}`)
+    } catch { setError(w.errors.failed) }
+    setBusy(false)
+  }
 
   return (
     <div className="flex flex-col gap-2" data-element-domain={current ?? ""}>
       {current && <p className="text-sm text-foreground">{w.current} <span className="font-mono">{current}</span></p>}
-      <Label htmlFor={`element-domain-${id}`}>{w.label}</Label>
-      <div className="flex flex-wrap gap-2">
-        <Input
-          id={`element-domain-${id}`}
-          className="max-w-72 font-mono"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="mybrand.com"
-          autoComplete="off"
-          spellCheck={false}
-        />
-        <Button type="button" variant="outline" size="sm" onClick={check} disabled={!name.trim() || busy} data-domain-check>
-          {busy ? w.checking : w.check}
-        </Button>
-      </div>
-      {line && (
-        <div className="flex flex-col gap-1.5" data-domain-state={result?.state}>
-          <p className={bad ? "text-sm text-destructive" : "text-sm text-foreground"}>{line}</p>
-          {result?.state === "pending" && result.nameServers && result.nameServers.length > 0 && (
-            <ul className="font-mono text-sm text-foreground">
-              {result.nameServers.map((ns) => <li key={ns}>{ns}</li>)}
-            </ul>
-          )}
-          {result?.state === "not-visible" && (
-            <p className="text-[length:var(--fs-small)] text-muted-foreground">
-              <a className="underline" href={DOCS_ADD_SITE} target="_blank" rel="noopener noreferrer">{w.docsAddSite}</a>
-              {" · "}
-              <a className="underline" href={DOCS_TOKEN} target="_blank" rel="noopener noreferrer">{w.docsToken}</a>
-            </p>
-          )}
-        </div>
+      {loadFailed && <p className="text-sm text-destructive">{w.loadFailed}</p>}
+      {list && list.length === 0 && <p className="text-sm text-muted-foreground" data-domain-empty>{w.empty}</p>}
+      {list && list.length > 0 && (
+        <>
+          <Label htmlFor={`element-domain-${id}`}>{w.label}</Label>
+          <Select value={picked} onValueChange={setPicked}>
+            <SelectTrigger id={`element-domain-${id}`} className="w-full max-w-md" data-domain-select>
+              <SelectValue placeholder={w.placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {list.map((d) => {
+                const k = kind(d)
+                return (
+                  <SelectItem key={d.name} value={d.name} disabled={k !== "ready"} data-domain-option={k}>
+                    <span className="font-mono">{d.name}</span>
+                    <span className="text-muted-foreground">— {w.kinds[k].replace("{by}", d.holder ?? "")}</span>
+                  </SelectItem>
+                )
+              })}
+            </SelectContent>
+          </Select>
+          <Button type="button" className="w-fit" onClick={attach} disabled={!picked || busy} data-domain-attach>
+            {busy ? w.attaching : w.attach}
+          </Button>
+        </>
       )}
+      {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+      <a className="w-fit text-sm underline" href={`/${lang}/architect/hosting/domain`} data-domain-add>{w.add}</a>
       <p className="text-[length:var(--fs-small)] text-muted-foreground">{w.note}</p>
     </div>
   )
