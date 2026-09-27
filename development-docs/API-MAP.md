@@ -7,7 +7,7 @@
 Имя маршрута — то, чем его находят: 6–12 слов, глагол первым. Правило проверяется `npm run check:api`,
 который стоит в `prebuild` — маршрут без имени роняет сборку.
 
-Всего маршрутов: **38**
+Всего маршрутов: **39**
 
 | Адрес | Методы | Что делает | Продукт |
 |---|---|---|---|
@@ -27,6 +27,7 @@
 | `/api/domain/activate` | POST | create the named tunnel and the DNS record, then remember what happened | — |
 | `/api/domain/check` | POST | check publicly whether the domain already points at Cloudflare nameservers | — |
 | `/api/domain/key` | POST | accept the Cloudflare API token and remember it on the node | — |
+| `/api/domain/list` | GET, POST, PUT, DELETE | list add recheck and remove the node's own domains | — |
 | `/api/domain/records` | GET, POST | add mail-service DNS records to the node's own Cloudflare zone, never overwriting | — |
 | `/api/domain/state` | GET | state of the own-domain connection: what is done and what is next | — |
 | `/api/health` | GET | report liveness and which build of this application answers | — |

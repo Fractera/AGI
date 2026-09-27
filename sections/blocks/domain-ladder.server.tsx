@@ -1,5 +1,7 @@
 import type { SectionRenderer } from '@/sections/contract'
 import { DomainLadder } from '@/components/domain/domain-ladder.client'
+import { DomainList } from '@/components/domain/domain-list.client'
+import { domainListWords } from '@/components/domain/domain-list.i18n'
 
 // Лестница подключения своего домена (259-1).
 //
@@ -10,6 +12,8 @@ import { DomainLadder } from '@/components/domain/domain-ladder.client'
 //
 // 🔒 СЛОВА ПРИХОДЯТ В БЛОКЕ, А НЕ БЕРУТСЯ ЗДЕСЬ: рисовальщик серверный, язык
 // известен странице, и словарь остаётся на сервере целиком.
+// 324-1: ДОМЕНЫ УЗЛА СПИСКОМ — лестница стала первой карточкой аккордеона (основной домен), за ней дополнительные домены и
+// «Добавить домен». Вид блока тот же: второй вид ради одной обёртки завёл бы вторую точку входа того же знания.
 export const domainLadder: SectionRenderer<'domainLadder'> = (b, { key: k }) => (
-  <DomainLadder key={k} lang={b.lang} words={b.words} />
+  <DomainList key={k} lang={b.lang} words={domainListWords(b.lang)} ladder={<DomainLadder lang={b.lang} words={b.words} />} />
 )
