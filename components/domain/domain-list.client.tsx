@@ -69,6 +69,8 @@ export function DomainList({ lang, words: w, ladder }: { lang: string; words: Do
 
   return (
     <div className="flex flex-col gap-2" data-domain-list={list ? list.extra.length + 1 : 0}>
+      {/* Слово владельца 2026-09-27: текст о поддоменах и собственных доменах элементов — на этой странице, виден всегда. */}
+      <p className="text-sm text-foreground" data-domain-intro>{w.intro}</p>
       {failed && <p className="text-sm text-destructive" role="alert">{w.loadFailed}</p>}
       <Accordion type="single" collapsible value={open} onValueChange={setOpen} className="rounded-lg border border-border px-3">
         <AccordionItem value="primary" data-domain-card="primary">

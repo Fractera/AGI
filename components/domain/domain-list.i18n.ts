@@ -1,6 +1,7 @@
 // СЛОВА СПИСКА ДОМЕНОВ УЗЛА (324-1). `en` основа, `ru` перевод; строки выбирает сервер (рисовальщик блока `domainLadder`).
 
 export type DomainListWords = {
+  intro: string
   primaryTitle: string
   primaryNone: string
   addTitle: string
@@ -23,6 +24,7 @@ export type DomainListWords = {
 
 const DICT: Record<string, DomainListWords> = {
   en: {
+    intro: "Every AGI element of this project opens on a subdomain of the main domain. Any of them can also become a standalone resource on a domain of its own: add the domain here, then connect it on the element's page — Settings → Main mirror.",
     primaryTitle: "Main domain",
     primaryNone: "not connected yet",
     addTitle: "Add a domain",
@@ -88,6 +90,7 @@ const DICT: Record<string, DomainListWords> = {
     },
   },
   ru: {
+    intro: "Каждый AGI элемент этого проекта открывается на поддомене основного домена. Любой из них можно сделать и самостоятельным ресурсом на собственном домене: добавьте домен здесь, а затем подключите его на странице элемента — «Настройки» → «Главное зеркало».",
     primaryTitle: "Основной домен",
     primaryNone: "ещё не подключён",
     addTitle: "Добавить домен",
