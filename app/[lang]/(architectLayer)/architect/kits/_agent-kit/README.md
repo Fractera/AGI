@@ -80,6 +80,7 @@ process, while there are as many kit copies as services. The mount knows no serv
 ```
 npm run agent-kit:add -- <group>                          install into a service
 npm run agent-kit:add -- <group> --node                   install for the node itself (agent in the node root)
+npm run agent-kit:add -- [item] --born                    ONE shared copy for every born AGI element (see below)
 npm run agent-kit:add -- <group> --page <tpl>=<name>[:<order>]   name a page your own way (repeatable)
 npm run agent-kit:add -- <group> --force                  reinstall over an existing copy
 npm run agent-kit:update -- <group>                       copy the current master into an installed group
@@ -113,6 +114,25 @@ of its own.
    «messages from plugin:telegram… inject directly in this session». Stop → `running: false`, `bun` gone.
 3. Negative control: a second service started at the same time has its own `pid` and folder, and
    stopping one does not touch the other.
+
+## Born AGI elements — one shared copy (node step 326)
+
+A born element (registry `kind: user` + `born`, step 319) has no page group of its own: all its pages are ONE dynamic page
+`architect/[item]/[[...page]]`. A usual install would create `architect/<id>/`, and a folder with an exact name beats the
+dynamic page — the element's other pages would stop opening, and every birth would need a core rebuild. So born elements share
+one copy:
+
+- `npm run agent-kit:add -- [item] --born` → `architect/[item]/_agent-kit/` + `architect/[item]/agent-api/*`, manifest
+  `workspace: born-items`, no pages (the element tree draws `build/subscription|terminal|telegram` with `agentKitWidget`).
+- The doors carry the mark `__BORN__` instead of a service name and take the element from the ADDRESS (`params.item`);
+  `isBornItem(id)` (`core/server/workspace.cjs`) lets only born elements through — built-in services get 404 here.
+- `lib/agent-kit/mount.cjs` serves `/pty/<id>` with this copy for any id that is born AT CONNECTION TIME — an element born
+  after the node started gets its terminal without a restart. Bots of born elements are polled from start, or from the moment
+  a person saves the bot token (channel door).
+- Update after a master change: `npm run agent-kit:update -- [item]` (the group name alone selects born mode).
+
+Proven (326): `/ru/as8kp/agent-api/session` → `running:false`, `agentDir` = `AGI-ITEMS/user/as8kp`; start → `running:true`,
+`cwd` = that folder; `as8kp` and `dso94` at once — different pids, stopping one leaves the other; `/pty/nope` and a draft — refused.
 
 ## First run in a new service
 

@@ -65,6 +65,17 @@ function serviceDir(service) {
   return existsSync(dir) ? dir : null
 }
 
+/**
+ * Рождённый ли это AGI элемент (узел 326): запись реестра `kind: user` с `born` и папка на диске. Только таких обслуживает
+ * ОБЩАЯ копия комплекта (`architect/[item]`) — встроенные службы узла через неё агента не получают.
+ */
+function isBornItem(service) {
+  const id = String(service ?? '')
+  if (!ID_SHAPE.test(id)) return false
+  const entry = registered().find((s) => s.id === id)
+  return !!entry && entry.kind === 'user' && !!entry.born && existsSync(itemDir(id, 'user'))
+}
+
 /** Группы, у которых комплект установлен и папка агента существует. Список — обходом, не перечнем. */
 function agentServices() {
   let names = []
@@ -76,4 +87,4 @@ function agentServices() {
   return names.filter((id) => manifest(id) !== null && serviceDir(id) !== null)
 }
 
-module.exports = { serviceDir, agentServices }
+module.exports = { serviceDir, agentServices, isBornItem }

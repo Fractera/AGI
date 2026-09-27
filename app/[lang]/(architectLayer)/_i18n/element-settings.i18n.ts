@@ -5,6 +5,7 @@ type Card = { title: string; text: string; action: string; pending: string }
 export type ElementSettingsUi = {
   badge: string
   notBorn: string
+  agentNotBorn: string
   describe: Card
   address: Card
   mirror: Card
@@ -16,6 +17,7 @@ const DICT: Record<string, ElementSettingsUi> = {
   en: {
     badge: "Danger zone",
     notBorn: "The element is not born yet: give birth to it on its home page — its settings appear after that.",
+    agentNotBorn: "The element is not born yet: give birth to it on its home page — then its agent, Claude Code, can be started here.",
     describe: {
       title: "Capabilities description",
       text: "The element's agent reads its code and writes what the element can do; the node then keeps it as the element's record in the core.",
@@ -57,6 +59,7 @@ const DICT: Record<string, ElementSettingsUi> = {
   ru: {
     badge: "Опасная зона",
     notBorn: "Элемент ещё не рождён: родите его на главной — настройки появятся после этого.",
+    agentNotBorn: "Элемент ещё не рождён: родите его на главной — тогда здесь можно будет запустить его агента, Claude Code.",
     describe: {
       title: "Описание возможностей",
       text: "Агент элемента читает его код и пишет, что элемент умеет; узел хранит это как запись элемента в ядре.",
