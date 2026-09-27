@@ -53,6 +53,17 @@ function readToken(id: string): string | null {
   } catch { return null }
 }
 
+// 🛑 СЛЕД СБОРКИ — НЕ ПРАВКА АГЕНТА (закон 295-1, замерено 319-5): Next при каждой сборке переписывает `tsconfig.json`
+// (дописывает .next-a/.next-b) и `next-env.d.ts`. Без этого исключения у каждого рождённого элемента всегда была бы
+// «1 незакоммиченная правка», и выгрузка требовала бы автокоммита шума сборки.
+const BUILD_OWNED = /(^|\/)(tsconfig\.json|next-env\.d\.ts)$/
+
+/** Незакоммиченные правки, кроме следа сборки. */
+function changes(dir: string): string[] {
+  return git(dir, ["status", "--porcelain"]).out.split(/\r?\n/).filter(Boolean)
+    .map((l) => l.slice(3).trim()).filter((f) => !BUILD_OWNED.test(f))
+}
+
 function git(dir: string, args: string[]) {
   const r = spawnSync("git", ["-C", dir, ...args], { encoding: "utf8", windowsHide: true, timeout: 120_000 })
   return { rc: r.status ?? 1, out: `${r.stdout ?? ""}${r.stderr ?? ""}` }
@@ -75,7 +86,7 @@ export function elementGithubState(id: string): ElementGithubState {
   const st = readStored(id)
   const token = readToken(id)
   const dir = elementDir(id)
-  const dirty = dir ? git(dir, ["status", "--porcelain"]).out.split(/\r?\n/).filter(Boolean).length : 0
+  const dirty = dir ? changes(dir).length : 0
   const commit = dir ? git(dir, ["rev-parse", "--short", "HEAD"]).out.trim() || null : null
   return {
     repo: st.repo ?? null,
@@ -118,11 +129,16 @@ export function pushElement(id: string, commit: boolean) {
   const token = readToken(id)
   const repo = readStored(id).repo
   if (!token || !repo) return { ok: false as const, error: "not-connected" }
-  const dirty = git(dir, ["status", "--porcelain"]).out.split(/\r?\n/).filter(Boolean).length
+  const pending = changes(dir)
+  const dirty = pending.length
   if (dirty > 0 && !commit) return { ok: false as const, error: "dirty", dirty }
   if (dirty > 0) {
     const ident = ["-c", "user.name=Fractera node", "-c", "user.email=node@fractera.local"]
-    if (git(dir, ["add", "-A"]).rc !== 0) return { ok: false as const, error: "commit-failed" }
+    // Коммитятся правки, но не след сборки (он остаётся незакоммиченным, как и был). 🛑 `next-env.d.ts` в пути НЕ
+    // называть: он в `.gitignore` элемента, и одно его упоминание делает `git add` кодом 1 (замерено 319-5).
+    if (git(dir, ["add", "-A", "--", ".", ":(exclude)tsconfig.json"]).rc !== 0) {
+      return { ok: false as const, error: "commit-failed" }
+    }
     if (git(dir, [...ident, "commit", "--quiet", "-m", `export ${new Date().toISOString()}`]).rc !== 0) {
       return { ok: false as const, error: "commit-failed" }
     }
