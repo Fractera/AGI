@@ -500,6 +500,8 @@ A born element is not deleted as a draft (409). Not built yet: birth in seconds.
   menu and pages by address, `/<lang>/<id>` redirects to it; `GET|POST /api/architect/items/<id>/address` checks
   (sections, registry ids, drafts, other addresses, service paths → taken + 3 suggestions). 🔒 Owner: «Только ядро» — the
   subdomain is not renamed. Doors, pty, folder, pm2 stay by id. Only the id path redirects, not earlier addresses.
+  Shape = a DNS label (RFC 1035/1123/5890/5891) plus the node policy — one module `lib/agi-items/dns-label.mjs`, sentinel
+  `scripts/check-dns-label.mjs` in prebuild (325-7); reserved names are one list with drafts (`RESERVED_NAMES`).
 - **Main mirror** — inactive, step 324.
 - **Delete** — `DELETE /api/architect/items/<id>` with the address typed back (`lib/agi-items/element-delete.ts`): pm2 →
   tunnel route and DNS → registry → draft → `data/services/<id>` (address, GitHub key) → birth and pm2 logs → the folder.
