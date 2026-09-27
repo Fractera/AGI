@@ -43,7 +43,7 @@ const DICT: Record<string, DomainListWords> = {
     state: {
       active: "Ready: the zone is active in Cloudflare and the node's key sees it. It can be connected to an element (Settings → Main mirror).",
       pending: "The zone is in Cloudflare but not active yet (status: {status}). At your registrar, set these name servers, wait (minutes to a day) and check again:",
-      "not-visible": "The node's Cloudflare key does not see this zone. Either add the domain to the same Cloudflare account as the main domain, or — if it is there — give the node's key access to this zone too (the resources the token is authorized to access — see the link below). Then check again.",
+      "not-visible": "There is no zone for this domain in the node's Cloudflare account yet — the node creates it at step 1.",
       unknown: "Not checked yet.",
     },
     pipe: {
@@ -121,7 +121,7 @@ const DICT: Record<string, DomainListWords> = {
     state: {
       active: "Готов: зона активна в Cloudflare, и ключ узла её видит. Можно подключать к элементу (Настройки → Главное зеркало).",
       pending: "Зона есть в Cloudflare, но ещё не активна (статус: {status}). У регистратора поставьте эти серверы имён, подождите (от минут до суток) и проверьте снова:",
-      "not-visible": "Ключ Cloudflare узла не видит эту зону. Либо добавьте домен в тот же аккаунт Cloudflare, где основной домен, либо — если он там — дайте ключу узла доступ и к этой зоне (ресурсы, к которым у токена есть доступ, — по ссылке ниже). Затем проверьте снова.",
+      "not-visible": "Зоны этого домена в аккаунте Cloudflare узла пока нет — её создаёт узел на ступени 1.",
       unknown: "Ещё не проверялся.",
     },
     pipe: {
