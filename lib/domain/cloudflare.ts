@@ -112,6 +112,22 @@ async function send<T>(method: Method, path: string, token: string, body?: unkno
 }
 
 /**
+ * Создать зону в аккаунте (324-1) — `POST /zones` `{ name, account: { id }, type: "full" }`.
+ *
+ * 🔒 ЗАМЕРЕНО 2026-09-27: ключ, выданный лестницей 259 на одну зону, получает отказ дословно «Requires permission
+ * "com.cloudflare.api.account.zone.create" to create zones for the selected account». В документации Cloudflare («API token
+ * permissions») право зовётся «Zone Edit / Zone Write — Grants write access to zone management». Отказ возвращается как есть.
+ */
+export async function createZone(token: string, accountId: string, name: string) {
+  return send<CfZoneDetails>("POST", "/zones", token, { name, account: { id: accountId }, type: "full" })
+}
+
+/** Перезапустить проверку активации зоны (docs: «Rerun the Activation Check», `/zones/{zone_id}/activation_check`). */
+export async function activationCheck(token: string, zoneId: string) {
+  return send<{ id: string }>("PUT", `/zones/${zoneId}/activation_check`, token)
+}
+
+/**
  * Учётная запись, которой принадлежит зона.
  *
  * 🔒 СПРАШИВАЕТСЯ У ЗОНЫ, А НЕ У СПИСКА АККАУНТОВ. Токен может видеть несколько

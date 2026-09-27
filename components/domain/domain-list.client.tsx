@@ -6,19 +6,18 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { DomainListWords } from "./domain-list.i18n"
+import { DomainPipeline, type PipelineDomain } from "./domain-pipeline.client"
 
 // ДОМЕНЫ УЗЛА АККОРДЕОНОМ (324-1). Слово владельца 2026-09-27: «превратить в карточке аккордеона … показывают только одну
 // активную карточку … первую карточку … первого домена … подключать больше доменов сколько угодно».
 //
 // 🔒 ОТКРЫТА ОДНА КАРТОЧКА (`type="single"`), первая — основной домен: внутри неё лестница 259 БЕЗ ИЗМЕНЕНИЙ (`ladder`).
 // 🔒 СПИСОК СПРАШИВАЕТСЯ У УЗЛА (`/api/domain/list`), а не помнится: страница предрендерена.
-// 🔒 ВСЁ ПО КНОПКЕ: добавить, проверить снова, убрать. Опросов нет.
+// 🔒 ВСЁ ПО КНОПКЕ: добавить, убрать; карточка дополнительного домена — конвейер (`domain-pipeline.client.tsx`). Опросов нет.
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
-const DOCS_ADD_SITE = "https://developers.cloudflare.com/fundamentals/manage-domains/add-site/"
-const DOCS_TOKEN = "https://developers.cloudflare.com/fundamentals/api/get-started/create-token/"
 
-type Extra = { name: string; state: string; status?: string; nameServers?: string[]; checkedAt?: string; holder: string | null }
+type Extra = PipelineDomain & { holder: string | null }
 type List = { primary: { name: string; status: string | null } | null; extra: Extra[] }
 
 const BADGE: Record<string, string> = {
@@ -45,7 +44,7 @@ export function DomainList({ lang, words: w, ladder }: { lang: string; words: Do
 
   useEffect(() => { void load() }, [load])
 
-  async function act(method: "POST" | "PUT" | "DELETE", domain: string, slot: string) {
+  async function act(method: "POST" | "DELETE", domain: string, slot: string) {
     setBusy(slot)
     setError((e) => ({ ...e, [slot]: "" }))
     try {
@@ -67,8 +66,6 @@ export function DomainList({ lang, words: w, ladder }: { lang: string; words: Do
     }
     setBusy(null)
   }
-
-  const when = (iso?: string) => iso ? new Date(iso).toLocaleString(lang === "ru" ? "ru-RU" : "en-GB", { dateStyle: "short", timeStyle: "short" }) : ""
 
   return (
     <div className="flex flex-col gap-2" data-domain-list={list ? list.extra.length + 1 : 0}>
@@ -96,27 +93,11 @@ export function DomainList({ lang, words: w, ladder }: { lang: string; words: Do
               </span>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-2">
-              <p className="text-sm text-foreground">{(w.state[d.state] ?? w.state.unknown).replace("{status}", d.status ?? "")}</p>
-              {d.state === "pending" && d.nameServers && d.nameServers.length > 0 && (
-                <ul className="font-mono text-sm text-foreground">{d.nameServers.map((ns) => <li key={ns}>{ns}</li>)}</ul>
-              )}
-              {d.state === "not-visible" && (
-                <p className="text-[length:var(--fs-small)] text-muted-foreground">
-                  <a className="underline" href={DOCS_ADD_SITE} target="_blank" rel="noopener noreferrer">{w.docsAddSite}</a>
-                  {" · "}
-                  <a className="underline" href={DOCS_TOKEN} target="_blank" rel="noopener noreferrer">{w.docsToken}</a>
-                </p>
-              )}
+              <DomainPipeline lang={lang} domain={d} words={w} onChanged={load} />
               {d.holder && <p className="text-sm text-foreground">{w.attachedTo} <span className="font-mono">{d.holder}</span></p>}
-              {d.checkedAt && <p className="text-[length:var(--fs-small)] text-muted-foreground">{w.checkedAt} {when(d.checkedAt)}</p>}
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => act("PUT", d.name, d.name)} disabled={busy !== null} data-domain-recheck>
-                  {busy === d.name ? w.rechecking : w.recheck}
-                </Button>
-                <Button type="button" variant="ghost" size="sm" onClick={() => act("DELETE", d.name, d.name)} disabled={busy !== null || !!d.holder} data-domain-remove>
-                  {w.remove}
-                </Button>
-              </div>
+              <Button type="button" variant="ghost" size="sm" className="w-fit" onClick={() => act("DELETE", d.name, d.name)} disabled={busy !== null || !!d.holder} data-domain-remove>
+                {w.remove}
+              </Button>
               {error[d.name] && <p className="text-sm text-destructive" role="alert">{error[d.name]}</p>}
             </AccordionContent>
           </AccordionItem>

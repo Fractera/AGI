@@ -1,0 +1,165 @@
+"use client"
+
+import { useState } from "react"
+import { Check } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import type { DomainListWords } from "./domain-list.i18n"
+
+// КОНВЕЙЕР ДОПОЛНИТЕЛЬНОГО ДОМЕНА (324-1). Слово владельца 2026-09-27: «если … у нас есть доступ к API … просто иди и подключай
+// этот домен через API если это невозможно то значит создавай нормальный конвейер с пошаговым подключением».
+// Устройство лестницы 259: ступень открывается после предыдущей, на месте закрытой — серая строка «откроется после…»,
+// у каждого действия виден ответ. 1 — узел создаёт зону сам (нет права у ключа — ключ вставляется здесь же, дверью лестницы
+// `/api/domain/key`); 2 — серверы имён: назначенные и замеренные у регистратора рядом; 3 — активна (совпали — узел сам просит
+// Cloudflare перепроверить). Всё по кнопке.
+
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
+const DASH = "https://dash.cloudflare.com/"
+const DOCS_TOKEN = "https://developers.cloudflare.com/fundamentals/api/get-started/create-token/"
+
+export type PipelineDomain = {
+  name: string; state: string; status?: string; nameServers?: string[]; registrarNs?: string[]; nsMatch?: boolean
+  activationAsked?: boolean; checkedAt?: string
+}
+
+function Step({ title, done, children }: { title: string; done: boolean; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1.5 rounded-md border border-border p-3" data-pipe-step={done ? "done" : "open"}>
+      <p className="flex items-center gap-1.5 font-medium text-foreground">
+        {done && <Check className="size-4" aria-hidden />}
+        {title}
+      </p>
+      {children}
+    </div>
+  )
+}
+
+export function DomainPipeline({ lang, domain: d, words: w, onChanged }: {
+  lang: string
+  domain: PipelineDomain
+  words: DomainListWords
+  onChanged: () => Promise<void>
+}) {
+  const p = w.pipe
+  const [busy, setBusy] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [noPermission, setNoPermission] = useState(false)
+  const [key, setKey] = useState("")
+  const [note, setNote] = useState<string | null>(null)
+
+  const time = (iso?: string) => iso ? new Date(iso).toLocaleTimeString(lang === "ru" ? "ru-RU" : "en-GB") : ""
+
+  async function call(method: "POST" | "PUT", body: Record<string, string>, slot: string): Promise<PipelineDomain | null> {
+    setBusy(slot)
+    setError(null)
+    try {
+      const r = await fetch(`${BASE}/api/domain/list`, { method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
+      const j = (await r.json().catch(() => null)) as { ok?: boolean; error?: string; domain?: PipelineDomain } | null
+      if (j?.ok && j.domain) { await onChanged(); setBusy(null); return j.domain }
+      const code = j?.error ?? String(r.status)
+      if (code === "no-zone-permission") setNoPermission(true)
+      setError(w.errors[code] ?? `${w.errors.unknown} ${code}`)
+    } catch { setError(w.errors.unknown) }
+    setBusy(null)
+    return null
+  }
+
+  function describe(x: PipelineDomain): string {
+    if (x.state === "active") return p.step3Done
+    if (x.state === "not-visible") return w.state["not-visible"]
+    if (x.nsMatch) return x.activationAsked ? p.step3Asked : p.match
+    return p.noMatch
+  }
+
+  async function check() {
+    const x = await call("PUT", { name: d.name }, "check")
+    if (x) setNote(p.lastCheck.replace("{time}", time(x.checkedAt)).replace("{what}", describe(x)))
+  }
+
+  async function createZone() {
+    const x = await call("POST", { name: d.name, action: "create-zone" }, "zone")
+    if (x) { setNoPermission(false); setNote(p.lastCheck.replace("{time}", time(x.checkedAt)).replace("{what}", p.step1Done)) }
+  }
+
+  async function saveKeyAndCreate() {
+    setBusy("key")
+    setError(null)
+    try {
+      const r = await fetch(`${BASE}/api/domain/key`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: key.trim() }) })
+      const j = (await r.json().catch(() => null)) as { ok?: boolean; reason?: string } | null
+      if (!j?.ok) { setError(`${w.errors.unknown} ${j?.reason ?? r.status}`); setBusy(null); return }
+      setKey("")
+    } catch { setError(w.errors.unknown); setBusy(null); return }
+    setBusy(null)
+    await createZone()
+  }
+
+  const zoneReady = d.state === "pending" || d.state === "active"
+  const nsReady = zoneReady && (d.state === "active" || !!d.nsMatch)
+
+  return (
+    <div className="flex flex-col gap-2" data-domain-pipeline={d.name}>
+      <Step title={p.step1} done={zoneReady}>
+        {zoneReady ? <p className="text-sm text-muted-foreground">{p.step1Done}</p> : (
+          <>
+            <p className="text-sm text-foreground">{p.step1Todo}</p>
+            <Button type="button" size="sm" className="w-fit" onClick={createZone} disabled={busy !== null} data-pipe-create-zone>
+              {busy === "zone" ? p.creating : p.createZone}
+            </Button>
+            {noPermission && (
+              <div className="flex flex-col gap-1.5" data-pipe-key>
+                <p className="text-sm text-foreground">{p.noPermission}</p>
+                <ul className="list-disc pl-5 font-mono text-sm text-foreground">{w.keyPerms.map((x) => <li key={x}>{x}</li>)}</ul>
+                <p className="text-sm">
+                  <a className="underline" href={DASH} target="_blank" rel="noopener noreferrer">{p.keyOpen}</a>
+                  {" · "}
+                  <a className="underline" href={DOCS_TOKEN} target="_blank" rel="noopener noreferrer">{p.keyDocs}</a>
+                </p>
+                <Label htmlFor={`pipe-key-${d.name}`}>{p.keyLabel}</Label>
+                <div className="flex flex-wrap gap-2">
+                  <Input id={`pipe-key-${d.name}`} type="password" className="max-w-80 font-mono" value={key} onChange={(e) => setKey(e.target.value)} autoComplete="off" spellCheck={false} />
+                  <Button type="button" size="sm" onClick={saveKeyAndCreate} disabled={!key.trim() || busy !== null} data-pipe-key-save>
+                    {busy === "key" ? p.keySaving : p.keySave}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </Step>
+
+      <Step title={p.step2} done={nsReady}>
+        {!zoneReady ? <p className="text-sm text-muted-foreground">{p.step2Wait}</p> : (
+          <>
+            {d.state !== "active" && <p className="text-sm text-foreground">{p.step2Text}</p>}
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div>
+                <p className="text-[length:var(--fs-small)] text-muted-foreground">{p.assigned}</p>
+                <ul className="font-mono text-sm text-foreground select-all">{(d.nameServers ?? []).map((n) => <li key={n}>{n}</li>)}</ul>
+              </div>
+              <div>
+                <p className="text-[length:var(--fs-small)] text-muted-foreground">{p.atRegistrar}</p>
+                {d.registrarNs && d.registrarNs.length > 0
+                  ? <ul className="font-mono text-sm text-foreground">{d.registrarNs.map((n) => <li key={n}>{n}</li>)}</ul>
+                  : <p className="text-sm text-muted-foreground">{p.nothingYet}</p>}
+              </div>
+            </div>
+            <p className="text-sm text-foreground" data-pipe-ns-match={d.nsMatch ? "yes" : "no"}>{d.state === "active" || d.nsMatch ? p.match : p.noMatch}</p>
+          </>
+        )}
+      </Step>
+
+      <Step title={p.step3} done={d.state === "active"}>
+        {!nsReady ? <p className="text-sm text-muted-foreground">{p.step3Wait}</p>
+          : <p className="text-sm text-foreground">{d.state === "active" ? p.step3Done : p.step3Asked}</p>}
+      </Step>
+
+      <Button type="button" variant="outline" size="sm" className="w-fit" onClick={check} disabled={busy !== null} data-pipe-check>
+        {busy === "check" ? p.checking : p.check}
+      </Button>
+      {note && <p className="text-sm text-foreground" role="status" data-pipe-note>{note}</p>}
+      {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+    </div>
+  )
+}

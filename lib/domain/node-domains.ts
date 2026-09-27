@@ -2,7 +2,7 @@ import "server-only"
 import { mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { isDnsLabel } from "@/lib/agi-items/dns-label.mjs"
-import { zoneByName } from "@/lib/domain/cloudflare"
+import { accountOfZone, activationCheck, createZone, zoneByName } from "@/lib/domain/cloudflare"
 import { envValue } from "@/lib/agi-items/element-delete"
 
 // ДОМЕНЫ УЗЛА — СПИСОК, А НЕ ОДИН (шаг 324-1). Слово владельца 2026-09-27: «нужно все то что сделано там превратить в карточке
@@ -17,6 +17,13 @@ import { envValue } from "@/lib/agi-items/element-delete"
 // 🔒 ГОТОВ = ЗОНА АКТИВНА И КЛЮЧ УЗЛА ЕЁ ВИДИТ. Не видит — запись остаётся карточкой со следующим шагом, а не пропадает:
 // человек идёт в Cloudflare и возвращается нажать «Проверить снова». Ничего не проверяется само.
 // 🔒 КЛЮЧ ЧИТАЕТСЯ ИЗ ОКРУЖЕНИЯ УЗЛА И НИКУДА НЕ ОТДАЁТСЯ.
+// 🔒 КОНВЕЙЕР, А НЕ ИНСТРУКЦИЯ (слово владельца 2026-09-27: «если мы уже прошли этот конвейер и у нас есть доступ к API … просто
+// иди и подключай этот домен через API если это невозможно то значит создавай нормальный конвейер с пошаговым подключением»):
+//   1. зону создаёт узел сам (`createZone` в аккаунте основного домена); ключу не хватает права — ступень ключа;
+//   2. серверы имён: узел показывает, какие назначил Cloudflare, и ЗАМЕРЯЕТ, какие сейчас у регистратора (DoH) — меняет их
+//      только человек, это единственный шаг вне узла;
+//   3. совпали — узел сам просит Cloudflare перепроверить зону (`activationCheck`), итог — «активна».
+// Каждая проверка по кнопке возвращает, что увидено и когда, — «ничего не изменилось» тоже ответ.
 
 const ROOT = process.cwd()
 const FILE = join(ROOT, "data", "node", "domains.json")
@@ -24,7 +31,10 @@ const PRIMARY_FILE = join(ROOT, "logs", "domain.json")
 const SERVICES = join(ROOT, "data", "services")
 
 export type ZoneState = "active" | "pending" | "not-visible" | "unknown"
-export type NodeDomain = { name: string; state: ZoneState; status?: string; nameServers?: string[]; addedAt: string; checkedAt?: string }
+export type NodeDomain = {
+  name: string; state: ZoneState; status?: string; zoneId?: string; nameServers?: string[]
+  registrarNs?: string[]; nsMatch?: boolean; activationAsked?: boolean; addedAt: string; checkedAt?: string
+}
 export type Shape = "ok" | "bad-shape" | "with-www" | "primary" | "exists"
 
 /** Основной домен узла (зона лестницы 259) или `null`. */
@@ -89,37 +99,76 @@ export function domainHolder(name: string): string | null {
   return null
 }
 
-async function zoneState(name: string): Promise<Pick<NodeDomain, "state" | "status" | "nameServers"> | { error: string }> {
-  const key = envValue("CLOUDFLARE_API_TOKEN")
-  if (!key) return { error: "no-key" }
-  const z = await zoneByName(key, name)
-  if (!z.ok) return { error: `cloudflare:${z.reason}` }
-  if (!z.result) return { state: "not-visible" }
-  return { state: z.result.status === "active" ? "active" : "pending", status: z.result.status, nameServers: z.result.name_servers ?? [] }
+const DOH = "https://cloudflare-dns.com/dns-query"
+
+/** Серверы имён, которые домен отдаёт сейчас в интернете (их ставит регистратор). Пусто — не удалось спросить. */
+async function registrarNs(name: string): Promise<string[]> {
+  try {
+    const r = await fetch(`${DOH}?name=${encodeURIComponent(name)}&type=NS`, { headers: { accept: "application/dns-json" }, cache: "no-store", signal: AbortSignal.timeout(8000) })
+    const j = (await r.json()) as { Answer?: Array<{ type: number; data: string }> }
+    return (j.Answer ?? []).filter((x) => x.type === 2).map((x) => x.data.toLowerCase().replace(/\.$/, "")).sort()
+  } catch { return [] }
 }
 
-/** «Добавить домен»: форма → запись → состояние зоны. Не видит ключ — запись всё равно остаётся карточкой. */
+type Observed = Pick<NodeDomain, "state" | "status" | "zoneId" | "nameServers" | "registrarNs" | "nsMatch" | "activationAsked">
+
+/** Всё, что узел может узнать о домене сейчас: зона, её серверы имён, серверы у регистратора; совпали — просит активацию. */
+async function observe(name: string): Promise<Observed | { error: string }> {
+  const key = envValue("CLOUDFLARE_API_TOKEN")
+  if (!key) return { error: "no-key" }
+  const [z, reg] = await Promise.all([zoneByName(key, name), registrarNs(name)])
+  if (!z.ok) return { error: `cloudflare:${z.reason}` }
+  if (!z.result) return { state: "not-visible", registrarNs: reg }
+  const assigned = (z.result.name_servers ?? []).map((n) => n.toLowerCase()).sort()
+  const nsMatch = assigned.length > 0 && assigned.every((n) => reg.includes(n))
+  const active = z.result.status === "active"
+  let activationAsked = false
+  if (!active && nsMatch) activationAsked = (await activationCheck(key, z.result.id)).ok
+  return { state: active ? "active" : "pending", status: z.result.status, zoneId: z.result.id, nameServers: assigned, registrarNs: reg, nsMatch, activationAsked }
+}
+
+function save(name: string, patch: Partial<NodeDomain>): NodeDomain | null {
+  const list = readList()
+  const i = list.findIndex((d) => d.name === name)
+  if (i < 0) return null
+  list[i] = { ...list[i], ...patch, checkedAt: new Date().toISOString() }
+  return writeList(list) ? list[i] : null
+}
+
+/** «Добавить домен»: форма → запись (`unknown`) → сразу первый замер. */
 export async function addDomain(input: string): Promise<{ ok: true; domain: NodeDomain } | { ok: false; error: string }> {
   const name = normalizeDomain(input)
   const shape = domainShape(name)
   if (shape !== "ok") return { ok: false, error: shape }
-  const z = await zoneState(name)
-  if ("error" in z) return { ok: false, error: z.error }
-  const now = new Date().toISOString()
-  const domain: NodeDomain = { name, ...z, addedAt: now, checkedAt: now }
-  if (domainShape(name) !== "ok") return { ok: false, error: "exists" }
-  return writeList([...readList(), domain]) ? { ok: true, domain } : { ok: false, error: "write-failed" }
+  if (!writeList([...readList(), { name, state: "unknown", addedAt: new Date().toISOString() }])) return { ok: false, error: "write-failed" }
+  return checkDomain(name)
 }
 
-/** «Проверить снова»: спросить Cloudflare о зоне ещё раз. */
-export async function recheckDomain(name: string): Promise<{ ok: true; domain: NodeDomain } | { ok: false; error: string }> {
-  const list = readList()
-  const i = list.findIndex((d) => d.name === name)
-  if (i < 0) return { ok: false, error: "not-found" }
-  const z = await zoneState(name)
-  if ("error" in z) return { ok: false, error: z.error }
-  list[i] = { ...list[i], state: z.state, status: z.status, nameServers: z.nameServers, checkedAt: new Date().toISOString() }
-  return writeList(list) ? { ok: true, domain: list[i] } : { ok: false, error: "write-failed" }
+/** «Проверить»: замерить заново и записать, что увидено. */
+export async function checkDomain(name: string): Promise<{ ok: true; domain: NodeDomain } | { ok: false; error: string }> {
+  if (!readList().some((d) => d.name === name)) return { ok: false, error: "not-found" }
+  const o = await observe(name)
+  if ("error" in o) return { ok: false, error: o.error }
+  const d = save(name, o)
+  return d ? { ok: true, domain: d } : { ok: false, error: "write-failed" }
+}
+
+/** «Создать зону»: узел заводит зону в аккаунте основного домена сам. Уже видна — просто замер. */
+export async function createDomainZone(name: string): Promise<{ ok: true; domain: NodeDomain } | { ok: false; error: string }> {
+  if (!readList().some((d) => d.name === name)) return { ok: false, error: "not-found" }
+  const key = envValue("CLOUDFLARE_API_TOKEN")
+  if (!key) return { ok: false, error: "no-key" }
+  const seen = await zoneByName(key, name)
+  if (seen.ok && seen.result) return checkDomain(name)
+  const primary = primaryDomain()
+  if (!primary) return { ok: false, error: "no-primary" }
+  const main = await zoneByName(key, primary.name)
+  if (!main.ok || !main.result) return { ok: false, error: "primary-not-visible" }
+  const account = await accountOfZone(key, main.result.id)
+  if (!account.ok) return { ok: false, error: `cloudflare:${account.reason}` }
+  const created = await createZone(key, account.result, name)
+  if (!created.ok) return { ok: false, error: /zone\.create/.test(created.reason) ? "no-zone-permission" : created.reason }
+  return checkDomain(name)
 }
 
 /** Убрать дополнительный домен из списка — только если он не подключён к элементу. Зона в Cloudflare не трогается. */
