@@ -7,6 +7,7 @@ export type ElementSettingsUi = {
   notBorn: string
   agentNotBorn: string
   describe: Card
+  describeCard: { empty: string; take: string; taking: string; taken: string; takenAt: string; how: string; errors: Record<string, string> }
   address: Card
   mirror: Card
   remove: Card
@@ -23,6 +24,23 @@ const DICT: Record<string, ElementSettingsUi> = {
       text: "The element's agent reads its code and writes what the element can do; the node then keeps it as the element's record in the core.",
       action: "Generate the description",
       pending: "Being built (step 325-2).",
+    },
+    describeCard: {
+      empty: "The core has no description of this element yet.",
+      take: "Take into the core",
+      taking: "Taking…",
+      taken: "The description is now the element's record in the core.",
+      takenAt: "Taken into the core:",
+      how: "1. Generate — the element's terminal opens with the task; start the agent and send it. 2. When the agent has written and committed the description — take it into the core.",
+      errors: {
+        "passport-unreadable": "The element's passport OWN-SERVICE-PROPS.json cannot be read.",
+        "summary-missing": "The passport has no summary — the agent has not written it yet.",
+        "summary-not-written": "The summary in the passport is still the template's or the birth's one — the agent has not written its own yet.",
+        "provides-missing": "The passport names no capabilities (provides is empty).",
+        "provides-bad-shape": "The capability names in provides have the wrong shape: 1-20 unique names, lowercase words joined by hyphens.",
+        "registry-failed": "The node's registry could not be written.",
+        unknown: "The description was not taken:",
+      },
     },
     address: {
       title: "Element address",
@@ -65,6 +83,23 @@ const DICT: Record<string, ElementSettingsUi> = {
       text: "Агент элемента читает его код и пишет, что элемент умеет; узел хранит это как запись элемента в ядре.",
       action: "Сгенерировать описание",
       pending: "В работе (подшаг 325-2).",
+    },
+    describeCard: {
+      empty: "В ядре пока нет описания этого элемента.",
+      take: "Забрать в ядро",
+      taking: "Забираю…",
+      taken: "Описание стало записью элемента в ядре.",
+      takenAt: "Забрано в ядро:",
+      how: "1. «Сгенерировать» — откроется терминал элемента с заданием; запустите агента и отправьте его. 2. Когда агент напишет и закоммитит описание — заберите его в ядро.",
+      errors: {
+        "passport-unreadable": "Паспорт элемента OWN-SERVICE-PROPS.json не читается.",
+        "summary-missing": "В паспорте нет описания (summary) — агент его ещё не написал.",
+        "summary-not-written": "Описание в паспорте всё ещё шаблонное или записанное при рождении — агент своё ещё не написал.",
+        "provides-missing": "В паспорте не названо ни одной возможности (provides пуст).",
+        "provides-bad-shape": "Имена возможностей в provides неверной формы: 1–20 разных имён, строчные слова через дефис.",
+        "registry-failed": "Не удалось записать реестр узла.",
+        unknown: "Описание не забрано:",
+      },
     },
     address: {
       title: "Адрес элемента",

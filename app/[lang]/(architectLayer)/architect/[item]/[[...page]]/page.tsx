@@ -23,6 +23,9 @@ import { RotateCcw } from 'lucide-react'
 import { ElementDangerZone } from '../../../_components/element-danger-zone'
 import { DeleteElementButton } from '../../../_components/delete-element-button.client'
 import { elementSettingsUi } from '../../../_i18n/element-settings.i18n'
+import { ElementDescribe } from '../../../_components/element-describe.client'
+import { registryDescription, TASK as DESCRIBE_TASK } from '@/lib/agi-items/element-describe'
+import { terminalLink } from '@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/client/terminal-paste.mjs'
 import { agentKitWidget, type AgentKitPage } from '../_agent-kit/widgets'
 import { Button } from '@/components/ui/button'
 import { ElementPreview } from '@/components/preview/element-preview.client'
@@ -178,7 +181,11 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   const sui = elementSettingsUi(lang)
   const settings = section.slug === 'settings' && !page
     ? (entry
-      ? <ElementDangerZone ui={sui} actions={{ remove: <DeleteElementButton lang={lang} id={item} address={address} ui={sui} dialogUi={appDialogUi(lang)} /> }} />
+      ? <ElementDangerZone ui={sui} actions={{
+          // 325-2: задание агенту — в окно вставки терминала элемента (`<id>/build/terminal`), отправляет человек.
+          describe: <ElementDescribe id={item} lang={lang} ui={sui} current={registryDescription(item)} terminalHref={terminalLink({ lang, service: `${item}/build`, text: DESCRIBE_TASK })} />,
+          remove: <DeleteElementButton lang={lang} id={item} address={address} ui={sui} dialogUi={appDialogUi(lang)} />,
+        }} />
       : <p className="my-4 text-sm text-muted-foreground">{sui.notBorn}</p>)
     : null
 
