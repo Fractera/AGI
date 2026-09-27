@@ -12,6 +12,8 @@ import { findTreePage, treeLang } from '@/lib/agi-items/item-tree'
 import { getService, serviceUrl } from '@/lib/microservices/registry'
 import { BirthButton } from '../../../_components/birth-button.client'
 import { birthState } from '@/lib/agi-items/birth'
+import { ServicePort } from '@/components/services/service-port.client'
+import { servicePortWords } from '@/components/services/service-port.i18n'
 import { ElementPreview } from '@/components/preview/element-preview.client'
 import { elementPreviewWords } from '@/sections/blocks/element-preview.server'
 
@@ -83,7 +85,15 @@ export default async function Page({ params }: { params: Promise<Params> }) {
         path={dir}
         title={address}
         pageTitle={address}
-        widget={<>{bar}<DraftCards address={address} ui={ui} port={port} />{(!entry || brokenBirth) && <BirthButton id={item} ui={ui} dialogUi={appDialogUi(lang)} born={!!entry} />}</>}
+        widget={<>
+          {bar}
+          {/* 319-4: родившийся и работающий элемент получает ТОТ ЖЕ блок, что root и службы, — порт по факту и «Адрес в
+              интернете» с кнопкой подключения поддомена (289). Черновик и упавшее рождение — свои карточки. */}
+          {port !== null
+            ? <ServicePort serviceId={item} words={servicePortWords(lang)} />
+            : <DraftCards address={address} ui={ui} port={port} />}
+          {(!entry || brokenBirth) && <BirthButton id={item} ui={ui} dialogUi={appDialogUi(lang)} born={!!entry} />}
+        </>}
       />
     )
   }
