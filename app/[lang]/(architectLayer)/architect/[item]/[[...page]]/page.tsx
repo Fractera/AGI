@@ -19,6 +19,8 @@ import { elementGithubUi } from '../../../_i18n/element-github.i18n'
 import { elementDeploymentsUi } from '../../../_i18n/element-deployments.i18n'
 import { elementVersions } from '@/lib/agi-items/element-versions'
 import type { Block } from '@/lib/content/blocks/types'
+import { RotateCcw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { ElementPreview } from '@/components/preview/element-preview.client'
 import { elementPreviewWords } from '@/sections/blocks/element-preview.server'
 
@@ -158,8 +160,20 @@ export default async function Page({ params }: { params: Promise<Params> }) {
         ]),
       }]
     : []
-  const deploymentsNote = isDeployments && !entry
-    ? <p className="my-4 text-sm text-muted-foreground">{dui.notBorn}</p>
+  // 321, дополнение (слово владельца: «на кнопку нарисуй по дефолту чтобы она пока не нажималась»): откат — шаг 322;
+  // кнопка видна и неактивна, причина написана рядом, а не спрятана.
+  const deploymentsNote = isDeployments
+    ? (entry
+      ? (
+        <div className="my-4 flex flex-col gap-1.5" data-element-rollback="planned">
+          <Button type="button" variant="outline" size="sm" className="w-fit gap-1.5" disabled aria-disabled="true">
+            <RotateCcw className="size-4" aria-hidden />
+            {dui.rollback}
+          </Button>
+          <p className="text-sm text-muted-foreground">{dui.rollbackSoon}</p>
+        </div>
+      )
+      : <p className="my-4 text-sm text-muted-foreground">{dui.notBorn}</p>)
     : null
 
   return (

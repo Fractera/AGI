@@ -6,6 +6,8 @@ export type ElementDeploymentsUi = {
   headers: [string, string, string, string]
   running: string
   exported: string
+  rollback: string
+  rollbackSoon: string
 }
 
 const DICT: Record<string, ElementDeploymentsUi> = {
@@ -15,6 +17,8 @@ const DICT: Record<string, ElementDeploymentsUi> = {
     headers: ["Date", "Commit", "Description", "State"],
     running: "running",
     exported: "in GitHub",
+    rollback: "Roll back to a version",
+    rollbackSoon: "Rolling back to a chosen version is planned (step 322): the button is shown but does not work yet.",
   },
   ru: {
     notBorn: "Элемент ещё не рождён: родите его на главной — тогда здесь появятся его версии.",
@@ -22,6 +26,8 @@ const DICT: Record<string, ElementDeploymentsUi> = {
     headers: ["Дата", "Коммит", "Описание", "Состояние"],
     running: "работает",
     exported: "в GitHub",
+    rollback: "Откатить к версии",
+    rollbackSoon: "Откат к выбранной версии запланирован (шаг 322): кнопка показана, но пока не работает.",
   },
 }
 
