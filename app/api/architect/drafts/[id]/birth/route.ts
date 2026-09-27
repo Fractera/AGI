@@ -1,4 +1,4 @@
-// @api start the birth of a microservice draft into an element (POST) and tell how it goes (GET)
+// @api start a draft's birth into an element and report its progress
 import { revalidatePath } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
 import { requireRoles } from "@/lib/auth/require-roles"
