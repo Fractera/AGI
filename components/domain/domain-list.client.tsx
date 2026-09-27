@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { DomainListWords } from "./domain-list.i18n"
 import { DomainPipeline, type PipelineDomain } from "./domain-pipeline.client"
+import { DomainKey, type NodeKey } from "./domain-key.client"
 
 // ДОМЕНЫ УЗЛА АККОРДЕОНОМ (324-1). Слово владельца 2026-09-27: «превратить в карточке аккордеона … показывают только одну
 // активную карточку … первую карточку … первого домена … подключать больше доменов сколько угодно».
@@ -18,7 +19,7 @@ import { DomainPipeline, type PipelineDomain } from "./domain-pipeline.client"
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
 type Extra = PipelineDomain & { holder: string | null }
-type List = { primary: { name: string; status: string | null } | null; extra: Extra[] }
+type List = { key: NodeKey; primary: { name: string; status: string | null } | null; extra: Extra[] }
 
 const BADGE: Record<string, string> = {
   active: "border-border text-foreground",
@@ -71,6 +72,7 @@ export function DomainList({ lang, words: w, ladder }: { lang: string; words: Do
     <div className="flex flex-col gap-2" data-domain-list={list ? list.extra.length + 1 : 0}>
       {/* Слово владельца 2026-09-27: текст о поддоменах и собственных доменах элементов — на этой странице, виден всегда. */}
       <p className="text-sm text-foreground" data-domain-intro>{w.intro}</p>
+      <DomainKey lang={lang} state={list?.key ?? null} words={w} onChanged={load} />
       {failed && <p className="text-sm text-destructive" role="alert">{w.loadFailed}</p>}
       <Accordion type="single" collapsible value={open} onValueChange={setOpen} className="rounded-lg border border-border px-3">
         <AccordionItem value="primary" data-domain-card="primary">

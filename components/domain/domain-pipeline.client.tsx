@@ -3,20 +3,16 @@
 import { useState } from "react"
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import type { DomainListWords } from "./domain-list.i18n"
 
 // КОНВЕЙЕР ДОПОЛНИТЕЛЬНОГО ДОМЕНА (324-1). Слово владельца 2026-09-27: «если … у нас есть доступ к API … просто иди и подключай
 // этот домен через API если это невозможно то значит создавай нормальный конвейер с пошаговым подключением».
 // Устройство лестницы 259: ступень открывается после предыдущей, на месте закрытой — серая строка «откроется после…»,
-// у каждого действия виден ответ. 1 — узел создаёт зону сам (нет права у ключа — ключ вставляется здесь же, дверью лестницы
-// `/api/domain/key`); 2 — серверы имён: назначенные и замеренные у регистратора рядом; 3 — активна (совпали — узел сам просит
+// у каждого действия виден ответ. 1 — узел создаёт зону сам (нет права у ключа — замена ключа в строке «Ключ узла» над
+// списком, 324-1: ключ — свойство узла, а не домена); 2 — серверы имён: назначенные и замеренные у регистратора рядом; 3 — активна (совпали — узел сам просит
 // Cloudflare перепроверить). Всё по кнопке.
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
-const DASH = "https://dash.cloudflare.com/"
-const DOCS_TOKEN = "https://developers.cloudflare.com/fundamentals/api/get-started/create-token/"
 
 export type PipelineDomain = {
   name: string; state: string; status?: string; nameServers?: string[]; registrarNs?: string[]; nsMatch?: boolean
@@ -45,7 +41,6 @@ export function DomainPipeline({ lang, domain: d, words: w, onChanged }: {
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [noPermission, setNoPermission] = useState(false)
-  const [key, setKey] = useState("")
   const [note, setNote] = useState<string | null>(null)
 
   const time = (iso?: string) => iso ? new Date(iso).toLocaleTimeString(lang === "ru" ? "ru-RU" : "en-GB") : ""
@@ -58,7 +53,7 @@ export function DomainPipeline({ lang, domain: d, words: w, onChanged }: {
       const j = (await r.json().catch(() => null)) as { ok?: boolean; error?: string; domain?: PipelineDomain } | null
       if (j?.ok && j.domain) { await onChanged(); setBusy(null); return j.domain }
       const code = j?.error ?? String(r.status)
-      if (code === "no-zone-permission") setNoPermission(true)
+      if (code === "no-zone-permission") { setNoPermission(true); await onChanged() }
       setError(w.errors[code] ?? `${w.errors.unknown} ${code}`)
     } catch { setError(w.errors.unknown) }
     setBusy(null)
@@ -82,19 +77,6 @@ export function DomainPipeline({ lang, domain: d, words: w, onChanged }: {
     if (x) { setNoPermission(false); setNote(p.lastCheck.replace("{time}", time(x.checkedAt)).replace("{what}", p.step1Done)) }
   }
 
-  async function saveKeyAndCreate() {
-    setBusy("key")
-    setError(null)
-    try {
-      const r = await fetch(`${BASE}/api/domain/key`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: key.trim() }) })
-      const j = (await r.json().catch(() => null)) as { ok?: boolean; reason?: string } | null
-      if (!j?.ok) { setError(`${w.errors.unknown} ${j?.reason ?? r.status}`); setBusy(null); return }
-      setKey("")
-    } catch { setError(w.errors.unknown); setBusy(null); return }
-    setBusy(null)
-    await createZone()
-  }
-
   const zoneReady = d.state === "pending" || d.state === "active"
   const nsReady = zoneReady && (d.state === "active" || !!d.nsMatch)
 
@@ -107,24 +89,7 @@ export function DomainPipeline({ lang, domain: d, words: w, onChanged }: {
             <Button type="button" size="sm" className="w-fit" onClick={createZone} disabled={busy !== null} data-pipe-create-zone>
               {busy === "zone" ? p.creating : p.createZone}
             </Button>
-            {noPermission && (
-              <div className="flex flex-col gap-1.5" data-pipe-key>
-                <p className="text-sm text-foreground">{p.noPermission}</p>
-                <ul className="list-disc pl-5 font-mono text-sm text-foreground">{w.keyPerms.map((x) => <li key={x}>{x}</li>)}</ul>
-                <p className="text-sm">
-                  <a className="underline" href={DASH} target="_blank" rel="noopener noreferrer">{p.keyOpen}</a>
-                  {" · "}
-                  <a className="underline" href={DOCS_TOKEN} target="_blank" rel="noopener noreferrer">{p.keyDocs}</a>
-                </p>
-                <Label htmlFor={`pipe-key-${d.name}`}>{p.keyLabel}</Label>
-                <div className="flex flex-wrap gap-2">
-                  <Input id={`pipe-key-${d.name}`} type="password" className="max-w-80 font-mono" value={key} onChange={(e) => setKey(e.target.value)} autoComplete="off" spellCheck={false} />
-                  <Button type="button" size="sm" onClick={saveKeyAndCreate} disabled={!key.trim() || busy !== null} data-pipe-key-save>
-                    {busy === "key" ? p.keySaving : p.keySave}
-                  </Button>
-                </div>
-              </div>
-            )}
+            {noPermission && <p className="text-sm text-destructive" data-pipe-no-permission>{p.noPermission}</p>}
           </>
         )}
       </Step>

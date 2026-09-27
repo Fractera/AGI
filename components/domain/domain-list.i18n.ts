@@ -19,6 +19,7 @@ export type DomainListWords = {
   state: Record<string, string>
   pipe: Record<string, string>
   keyPerms: string[]
+  key: Record<string, string>
   errors: Record<string, string>
 }
 
@@ -51,7 +52,7 @@ const DICT: Record<string, DomainListWords> = {
       step1Todo: "The node creates the zone in the Cloudflare account of the main domain itself.",
       createZone: "Create the zone",
       creating: "Creating…",
-      noPermission: "The node's Cloudflare key has no right to create zones. Create a new key once — with the rights below, for all zones of the account — and paste it here; the node checks it and creates the zone.",
+      noPermission: "The node's key cannot create zones. Replace it once in the «Node key» row above — then press «Create the zone» again.",
       keyLabel: "New Cloudflare key",
       keySave: "Save the key and create the zone",
       keySaving: "Saving…",
@@ -73,7 +74,26 @@ const DICT: Record<string, DomainListWords> = {
       step3Done: "The zone is active — the domain is ready to be connected to an element (Settings → Main mirror).",
       lastCheck: "Checked at {time}: {what}",
     },
-    keyPerms: ["Zone Edit (Zone Write)", "DNS Write", "Cloudflare Tunnel Edit", "access to all zones of the account"],
+    keyPerms: ["Zone Edit (Zone Write)", "DNS Write", "Cloudflare Tunnel Edit"],
+    key: {
+      title: "Node key (Cloudflare)",
+      none: "No key yet. The node needs one key for the whole Cloudflare account — every domain is then connected by the node itself.",
+      has: "Key …{tail}: sees {zones} zone(s).",
+      allowed: "Creates zones — checked {time}.",
+      denied: "Cannot create zones — found {time} when the node tried to create a zone. Replace the key with one that has the rights below.",
+      unknown: "Whether it can create zones becomes known on the node's first attempt to create a zone.",
+      rights: "The key needs (names as in the Cloudflare docs), for the whole account:",
+      replace: "Replace the key",
+      give: "Give the key",
+      label: "Cloudflare API key",
+      save: "Save",
+      saving: "Checking and saving…",
+      cancel: "Cancel",
+      docs: "Create API token — Cloudflare docs",
+      perms: "API token permissions — Cloudflare docs",
+      dash: "Open the Cloudflare dashboard",
+      failed: "The key was not accepted:",
+    },
     errors: {
       "bad-shape": "Not a domain name: labels of Latin letters, digits and hyphens joined by dots, for example mybrand.com.",
       "with-www": "Type the root of the domain without www.",
@@ -117,7 +137,7 @@ const DICT: Record<string, DomainListWords> = {
       step1Todo: "Узел сам создаёт зону в аккаунте Cloudflare основного домена.",
       createZone: "Создать зону",
       creating: "Создаю…",
-      noPermission: "У ключа Cloudflare узла нет права создавать зоны. Один раз создайте новый ключ — с правами ниже, на все зоны аккаунта — и вставьте сюда; узел проверит его и создаст зону.",
+      noPermission: "Ключ узла не может создавать зоны. Замените его один раз в строке «Ключ узла» выше — затем снова нажмите «Создать зону».",
       keyLabel: "Новый ключ Cloudflare",
       keySave: "Сохранить ключ и создать зону",
       keySaving: "Сохраняю…",
@@ -139,7 +159,26 @@ const DICT: Record<string, DomainListWords> = {
       step3Done: "Зона активна — домен готов к подключению к элементу (Настройки → Главное зеркало).",
       lastCheck: "Проверено в {time}: {what}",
     },
-    keyPerms: ["Zone Edit (Zone Write)", "DNS Write", "Cloudflare Tunnel Edit", "доступ ко всем зонам аккаунта"],
+    keyPerms: ["Zone Edit (Zone Write)", "DNS Write", "Cloudflare Tunnel Edit"],
+    key: {
+      title: "Ключ узла (Cloudflare)",
+      none: "Ключа ещё нет. Узлу нужен один ключ на весь аккаунт Cloudflare — дальше каждый домен узел подключает сам.",
+      has: "Ключ …{tail}: видит зон — {zones}.",
+      allowed: "Создаёт зоны — проверено {time}.",
+      denied: "Не может создавать зоны — выяснилось {time}, когда узел попробовал создать зону. Замените ключ на ключ с правами ниже.",
+      unknown: "Может ли он создавать зоны, станет известно при первой попытке узла создать зону.",
+      rights: "Ключу нужны (названия — как в документации Cloudflare), на весь аккаунт:",
+      replace: "Заменить ключ",
+      give: "Дать ключ",
+      label: "Ключ API Cloudflare",
+      save: "Сохранить",
+      saving: "Проверяю и сохраняю…",
+      cancel: "Отмена",
+      docs: "Create API token — документация Cloudflare",
+      perms: "API token permissions — документация Cloudflare",
+      dash: "Открыть панель Cloudflare",
+      failed: "Ключ не принят:",
+    },
     errors: {
       "bad-shape": "Это не имя домена: метки из латинских букв, цифр и дефисов через точку, например mybrand.com.",
       "with-www": "Введите корень домена без www.",

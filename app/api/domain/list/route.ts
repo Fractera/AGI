@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireRoles } from "@/lib/auth/require-roles"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
-import { addDomain, checkDomain, createDomainZone, domainHolder, extraDomains, primaryDomain, removeDomain } from "@/lib/domain/node-domains"
+import { addDomain, checkDomain, createDomainZone, domainHolder, extraDomains, nodeKeyState, primaryDomain, removeDomain } from "@/lib/domain/node-domains"
 
 // ДОМЕНЫ УЗЛА (324-1): «Хостинг → Домен» списком. GET — основной (из лестницы 259) и дополнительные с тем, к какому элементу
 // каждый подключён; POST `{ name }` — добавить, POST `{ name, action: "create-zone" }` — узел создаёт зону сам (конвейер);
@@ -28,7 +28,8 @@ export async function GET(req: NextRequest) {
   const g = await gate(req)
   if (g) return g
   const extra = extraDomains().map((d) => ({ ...d, holder: domainHolder(d.name) }))
-  return NextResponse.json({ ok: true, primary: primaryDomain(), extra }, noStore)
+  // 324-1: строка «Ключ узла» — свойство узла, приходит вместе со списком.
+  return NextResponse.json({ ok: true, key: await nodeKeyState(), primary: primaryDomain(), extra }, noStore)
 }
 
 export async function POST(req: NextRequest) {
