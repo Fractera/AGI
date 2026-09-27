@@ -2,6 +2,11 @@
 
 export type ElementGithubUi = {
   notBorn: string
+  step1: string
+  step1Link: string
+  step2: string
+  step2Link: string
+  step3: string
   repoLabel: string
   repoPlaceholder: string
   tokenLabel: string
@@ -31,6 +36,11 @@ export type ElementGithubUi = {
 const DICT: Record<string, ElementGithubUi> = {
   en: {
     notBorn: "The element is not born yet: give birth to it on its home page — then its folder can go to GitHub.",
+    step1: "Create an empty repository on your GitHub — without a README, or GitHub will reject the export.",
+    step1Link: "Create a repository",
+    step2: "Create a fine-grained key: Repository access → Only select repositories → this repository; Permissions → Contents: Read and write.",
+    step2Link: "Create a fine-grained key",
+    step3: "Paste the repository and the key below and press «Check and save».",
     repoLabel: "Repository",
     repoPlaceholder: "owner/name or https://github.com/owner/name",
     tokenLabel: "GitHub key",
@@ -73,6 +83,11 @@ const DICT: Record<string, ElementGithubUi> = {
   },
   ru: {
     notBorn: "Элемент ещё не рождён: родите его на главной — тогда его папку можно отправить в GitHub.",
+    step1: "Создайте на своём GitHub пустой репозиторий — без README, иначе GitHub отклонит выгрузку.",
+    step1Link: "Создать репозиторий",
+    step2: "Создайте тонкий ключ: Repository access → Only select repositories → этот репозиторий; Permissions → Contents: Read and write.",
+    step2Link: "Создать тонкий ключ",
+    step3: "Вставьте репозиторий и ключ ниже и нажмите «Проверить и сохранить».",
     repoLabel: "Репозиторий",
     repoPlaceholder: "владелец/имя или https://github.com/владелец/имя",
     tokenLabel: "Ключ GitHub",

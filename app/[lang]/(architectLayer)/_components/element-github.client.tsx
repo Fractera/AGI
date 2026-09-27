@@ -99,6 +99,20 @@ export function ElementGithub({ id, lang, ui }: { id: string; lang: string; ui: 
   return (
     <TooltipProvider>
       <div className="my-4 flex flex-col gap-6" data-element-github={id}>
+        {/* Слово владельца 2026-09-27: «две три строчки описание и ссылка … стандартом наших моделей управления всегда было
+            наличие ссылки по которым может пользователь перейти чтобы сделать это действие». Адрес ключа — из документации
+            GitHub («Managing your personal access tokens»): github.com/settings/personal-access-tokens/new. */}
+        <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-sm text-foreground" data-element-github-steps>
+          <li>
+            {ui.step1}{" "}
+            <a href="https://github.com/new" target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline underline-offset-2">{ui.step1Link}</a>
+          </li>
+          <li>
+            {ui.step2}{" "}
+            <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline underline-offset-2">{ui.step2Link}</a>
+          </li>
+          <li>{ui.step3}</li>
+        </ol>
         <form className="flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); connect() }} data-element-github-connect>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor={`gh-repo-${id}`}>{ui.repoLabel}</Label>
