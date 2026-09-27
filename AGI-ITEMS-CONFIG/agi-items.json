@@ -58,7 +58,7 @@
     {
       "id": "config",
       "repo": "https://github.com/Fractera/fractera-config-starter.git",
-      "version": "v0.2.22",
+      "version": "v0.2.23",
       "provides": [
         "project-settings"
       ],
@@ -70,7 +70,7 @@
     {
       "id": "design",
       "repo": "https://github.com/Fractera/fractera-design-starter.git",
-      "version": "v0.1.3",
+      "version": "v0.1.4",
       "provides": [
         "project-design"
       ],
@@ -94,7 +94,7 @@
     {
       "id": "blocks",
       "repo": "https://github.com/Fractera/fractera-blocks-starter.git",
-      "version": "v0.5.20",
+      "version": "v0.5.21",
       "provides": [
         "page-blocks"
       ],
