@@ -152,9 +152,12 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
           : <p className="text-sm text-foreground">{d.state === "active" ? p.step3Done : p.step3Asked}</p>}
       </Step>
 
-      <Button type="button" variant="outline" size="sm" className="w-fit" onClick={check} disabled={busy !== null} data-pipe-check>
+      {/* Кнопка на всю ширину (слово владельца: «сделай её больше шире … всю ширину»); до ступени 1 проверять нечего —
+          зоны нет, и ключ, который её создаст, ещё не сохранён. */}
+      <Button type="button" size="lg" className="w-full" onClick={check} disabled={!zoneReady || busy !== null} data-pipe-check>
         {busy === "check" ? p.checking : p.check}
       </Button>
+      {!zoneReady && <p className="text-sm text-muted-foreground" data-pipe-check-locked>{p.checkLocked}</p>}
       {note && <p className="text-sm text-foreground" role="status" data-pipe-note>{note}</p>}
       {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
     </div>
