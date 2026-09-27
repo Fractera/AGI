@@ -4,6 +4,9 @@
 //   npm run agent-kit:add -- <группа> --node             установить самому узлу (агент живёт в корне)
 //   npm run agent-kit:add -- <группа> --page <шаблон>=<имя>[:<порядок>]   назвать страницу по-своему
 //   npm run agent-kit:add -- <группа> --force            переустановить поверх
+//   npm run agent-kit:add -- [item] --born               ОДНА общая копия для всех рождённых AGI элементов (326):
+//                                                        `architect/[item]/_agent-kit` + двери с именем элемента из адреса;
+//                                                        страниц не ставит — их рисует дерево элемента `[[...page]]`
 //   npm run agent-kit:update -- <группа>                 повторить установку с ТЕМИ ЖЕ параметрами
 //
 // 🔒 КОПИЯ МАСТЕРА ЦЕЛИКОМ, А НЕ ССЫЛКА НА НЕГО (решение владельца 2026-09-22, вариант А): группа получает
@@ -45,12 +48,15 @@ const TEMPLATES = {
   telegram: { slug: 'telegram', order: 50 },
 }
 const ID_SHAPE = /^[a-z][a-z0-9-]{0,39}$/
+const BORN_GROUP = '[item]'
 
 const args = process.argv.slice(2)
 const service = args.find((a) => !a.startsWith('--'))
 const update = args.includes('--update')
 const force = args.includes('--force') || update
 const asNode = args.includes('--node')
+// 326: группа `[item]` — всегда общая копия для рождённых (и при `agent-kit:update -- [item]`).
+const asBorn = args.includes('--born') || service === BORN_GROUP
 
 function fail(why) {
   console.error(`agent-kit: ${why}`)
@@ -95,7 +101,10 @@ function pagesFromArgs() {
 }
 
 function stamp(text, page) {
-  let out = text.split('__SERVICE__').join(service)
+  // 326: у общей копии имени службы нет — в коде метка `__BORN__` (дверь возьмёт имя из адреса), в словах — «born AGI element».
+  let out = asBorn
+    ? text.split('"__SERVICE__"').join('"__BORN__"').split('__SERVICE__').join('born AGI element')
+    : text.split('__SERVICE__').join(service)
   if (page) out = out.split('__SLUG__').join(page.slug).split('__ORDER__').join(String(page.order))
   return out
 }
@@ -111,11 +120,12 @@ function copyTemplate(from, to, page) {
 }
 
 if (!service) fail('назовите группу: npm run agent-kit:add -- <группа>')
-if (!ID_SHAPE.test(service)) fail(`«${service}» — не имя группы (латиница, цифры, дефис)`)
+if (!asBorn && !ID_SHAPE.test(service)) fail(`«${service}» — не имя группы (латиница, цифры, дефис)`)
+if (asBorn && service !== BORN_GROUP) fail(`--born ставится только в группу ${BORN_GROUP}`)
 if (service === 'kits') fail('«kits» — витрина готовых решений, а не группа с агентом')
 
 const group = join(ARCHITECT, service)
-if (!existsSync(join(group, '_data', 'index.ts'))) fail(`нет группы страниц architect/${service}/ — сначала заведите её`)
+if (asBorn ? !existsSync(join(group, '[[...page]]', 'page.tsx')) : !existsSync(join(group, '_data', 'index.ts'))) fail(`нет группы страниц architect/${service}/ — сначала заведите её`)
 
 const manifestPath = join(group, 'agent-kit.json')
 const previous = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : null
@@ -123,8 +133,8 @@ const previous = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath
 // 🔒 `--update` ПОВТОРЯЕТ ПРЕЖНЮЮ УСТАНОВКУ, А НЕ СТАВИТ ЗАНОВО ПО УМОЛЧАНИЯМ. Иначе обновление мастера
 // молча переименовало бы страницы узла обратно в `claude-code` и сломало адреса, которые уже раздали.
 const namedPages = args.includes('--page')
-const workspace = asNode || (update && previous?.workspace === 'node') ? 'node' : 'agi-item'
-const pages = update && !namedPages && Array.isArray(previous?.pages) && previous.pages.length ? previous.pages : pagesFromArgs()
+const workspace = asBorn ? 'born-items' : asNode || (update && previous?.workspace === 'node') ? 'node' : 'agi-item'
+const pages = asBorn ? [] : update && !namedPages && Array.isArray(previous?.pages) && previous.pages.length ? previous.pages : pagesFromArgs()
 
 if (workspace === 'agi-item') {
   const reg = JSON.parse(readFileSync(join(ROOT, 'AGI-ITEMS-CONFIG', 'agi-items.json'), 'utf8'))
@@ -169,7 +179,7 @@ writeFileSync(
   )}\n`,
 )
 
-const where = workspace === 'node' ? 'корень узла' : `AGI-ITEMS/<kind>/${service}`
+const where = workspace === 'node' ? 'корень узла' : workspace === 'born-items' ? 'AGI-ITEMS/user/<id> каждого рождённого элемента' : `AGI-ITEMS/<kind>/${service}`
 console.log(`agent-kit: architect/${service}/ — _agent-kit (версия ${version}), страницы ${pages.map((p) => p.slug).join(', ')}, agent-api/{${DOORS.join(',')}}`)
 console.log(`agent-kit: рабочая папка агента — ${where}`)
 console.log(`===AGENT_KIT_OK=== группа «${service}» ${update ? 'обновлена' : 'получила комплект'}. Пересоберите узел: npm run serve:rebuild`)
