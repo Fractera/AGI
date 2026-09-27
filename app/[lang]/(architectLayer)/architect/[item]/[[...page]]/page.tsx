@@ -14,6 +14,8 @@ import { BirthButton } from '../../../_components/birth-button.client'
 import { birthState } from '@/lib/agi-items/birth'
 import { ServicePort } from '@/components/services/service-port.client'
 import { servicePortWords } from '@/components/services/service-port.i18n'
+import { ElementGithub } from '../../../_components/element-github.client'
+import { elementGithubUi } from '../../../_i18n/element-github.i18n'
 import { ElementPreview } from '@/components/preview/element-preview.client'
 import { elementPreviewWords } from '@/sections/blocks/element-preview.server'
 
@@ -129,6 +131,13 @@ export default async function Page({ params }: { params: Promise<Params> }) {
     ? <ElementPreview serviceId={item} lang={lang} words={elementPreviewWords(lang)} />
     : null
 
+  // 319-5: страница GitHub — связь элемента с репозиторием владельца и выгрузка кнопкой; у нерождённого — объяснение.
+  const github = section.slug === 'build' && page?.slug === 'github'
+    ? (entry
+      ? <ElementGithub id={item} lang={lang} ui={elementGithubUi(lang)} />
+      : <p className="my-4 text-sm text-muted-foreground">{elementGithubUi(lang).notBorn}</p>)
+    : null
+
   return (
     <ArchitectPage
       lang={lang}
@@ -136,7 +145,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       title={words.title}
       lead={words.lead}
       pageTitle={address}
-      widget={<>{bar}{list}{preview}</>}
+      widget={<>{bar}{list}{preview}{github}</>}
     />
   )
 }
