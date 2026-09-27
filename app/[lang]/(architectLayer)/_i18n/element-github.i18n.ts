@@ -6,6 +6,7 @@ export type ElementGithubUi = {
   step1Link: string
   step2: string
   step2Link: string
+  step2Sub: string[]
   step3: string
   step4: string
   repoLabel: string
@@ -43,8 +44,14 @@ const DICT: Record<string, ElementGithubUi> = {
     step1Link: "Create a repository",
     step2: "Create a fine-grained key: Repository access → Only select repositories → this repository; Permissions → Contents: Read and write.",
     step2Link: "Create a fine-grained key",
+    step2Sub: [
+      "Repository access — choose «Only select repositories», press «Select repositories» and tick this repository.",
+      "Permissions — a «Repositories» block appears above «Account». Press its «+ Add permissions» (not the one of Account: those are your profile rights).",
+      "Tick «Contents» and set its access to «Read and write». Metadata is added by GitHub itself, read-only.",
+      "Press «Generate token» (or «Update» when editing an existing key) and copy the key.",
+    ],
     step3: "Paste the repository and the key below and press «Check and save».",
-    step4: "Already connected, but sending answers 403? The key has no Contents: Read and write — create a new key by the link in step 2 with that permission, paste it below and press «Check and save»: it replaces the old one.",
+    step4: "Already connected, but sending answers 403? The key cannot write. Open it on GitHub (Settings → Developer settings → Fine-grained tokens → the key) and repeat the steps of point 2, then «Update» — the key stays the same, no need to paste it again.",
     repoLabel: "Repository",
     repoPlaceholder: "owner/name or https://github.com/owner/name",
     tokenLabel: "GitHub key",
@@ -93,8 +100,14 @@ const DICT: Record<string, ElementGithubUi> = {
     step1Link: "Создать репозиторий",
     step2: "Создайте тонкий ключ: Repository access → Only select repositories → этот репозиторий; Permissions → Contents: Read and write.",
     step2Link: "Создать тонкий ключ",
+    step2Sub: [
+      "Repository access — выберите «Only select repositories», нажмите «Select repositories» и отметьте этот репозиторий.",
+      "Permissions — над блоком «Account» появится блок «Repositories». Нажмите его «+ Add permissions» (не тот, что у Account: там права профиля).",
+      "Отметьте «Contents» и поставьте доступ «Read and write». Metadata GitHub добавит сам, только для чтения.",
+      "Нажмите «Generate token» (или «Update», если правите существующий ключ) и скопируйте ключ.",
+    ],
     step3: "Вставьте репозиторий и ключ ниже и нажмите «Проверить и сохранить».",
-    step4: "Уже подключили, а отправка отвечает 403? У ключа нет Contents: Read and write — создайте новый ключ по ссылке из шага 2 с этим правом, вставьте его ниже и нажмите «Проверить и сохранить»: он заменит старый.",
+    step4: "Уже подключили, а отправка отвечает 403? Ключ не может писать. Откройте его на GitHub (Settings → Developer settings → Fine-grained tokens → ключ) и повторите действия пункта 2, затем «Update» — ключ тот же, вставлять заново не нужно.",
     repoLabel: "Репозиторий",
     repoPlaceholder: "владелец/имя или https://github.com/владелец/имя",
     tokenLabel: "Ключ GitHub",
