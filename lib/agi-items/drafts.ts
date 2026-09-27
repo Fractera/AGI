@@ -2,6 +2,7 @@ import "server-only"
 import { randomBytes } from "node:crypto"
 import { readFileSync, writeFileSync, renameSync, mkdirSync, existsSync, unlinkSync } from "node:fs"
 import { join, dirname } from "node:path"
+import { addressOf } from "@/lib/agi-items/address-file.mjs"
 
 // ЧЕРНОВИКИ ЭЛЕМЕНТОВ УЗЛА (шаг 314-1, слово владельца 2026-09-26: «кнопку создать новый микро servis который генерирует
 // новую группу страниц на вкладке архитектора … название этого микро сервиса будет CUID.<domain> эти страницы сразу должны
@@ -125,8 +126,9 @@ export function nodeZone(): string | null {
   }
 }
 
-/** Адрес, который человек вводит для удаления: `<id>.<зона>`, без зоны — сам `<id>`. */
+/** Адрес элемента в интернете (его же вводят для удаления): `<адрес>.<зона>`, без зоны — сам адрес. 325-8: по адресу, не по id. */
 export function draftAddress(id: string): string {
   const zone = nodeZone()
-  return zone ? `${id}.${zone}` : id
+  const name = addressOf(id)
+  return zone ? `${name}.${zone}` : name
 }

@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireRoles } from "@/lib/auth/require-roles"
 import { getService, serviceUrl } from "@/lib/microservices/registry"
 import { accountOfZone, getIngress, hasDnsRecord, listZones, setIngress, upsertTunnelRecord } from "@/lib/domain/cloudflare"
+import { addressOf } from "@/lib/agi-items/address-file.mjs"
 
 // АДРЕС СЛУЖБЫ В ИНТЕРНЕТЕ (шаг 289-2).
 //
@@ -40,7 +41,8 @@ function readDomain(): Domain | null {
   try { return JSON.parse(readFileSync(join(ROOT, "logs", "domain.json"), "utf8")) as Domain } catch { return null }
 }
 
-const hostnameFor = (id: string, d: Domain) => (id === "root" ? d.hostname ?? d.zone ?? "" : `${id}.${d.zone}`)
+// 325-8: поддомен элемента = его адрес (`address-file.mjs`), а не внутренний id.
+const hostnameFor = (id: string, d: Domain) => (id === "root" ? d.hostname ?? d.zone ?? "" : `${addressOf(id)}.${d.zone}`)
 
 // 🔒 ОТВЕЧАЕТ ЛИ АДРЕС — ИЗМЕРЯЕТСЯ МИМО DNS ЭТОЙ МАШИНЫ (289-6). ✗ Измерено: сразу после подключения имени DNS машины
 // ещё помнил прежний ответ «имени нет» (отрицательный кэш), и дверь показала «адрес не отвечает», хотя из интернета он

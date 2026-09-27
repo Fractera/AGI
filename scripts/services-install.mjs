@@ -40,6 +40,7 @@ import { spawnSync, spawn } from 'node:child_process'
 import { randomBytes, createHash } from 'node:crypto'
 import { createRequire } from 'node:module'
 import paths from '../lib/agi-items/paths.cjs'
+import { addressOf } from '../lib/agi-items/address-file.mjs'
 
 const require = createRequire(import.meta.url)
 const { isFree, PORT_BLOCK_START, PORT_BLOCK_END } = require('../lib/server-port.cjs')
@@ -257,7 +258,7 @@ function derivedValue(name, ctx) {
     // `<id>.<зона>` (публичная главная любого AGI ITEM индексируется: canonical и hreflang нужен настоящий адрес).
     case 'SERVICE_PUBLIC_URL': {
       const pub = publicAuth(ROOT)
-      if (pub) return id === 'root' ? `https://${pub.siteHost}` : `https://${id}.${pub.zone}`
+      if (pub) return id === 'root' ? `https://${pub.siteHost}` : `https://${addressOf(id)}.${pub.zone}` // 325-8: по адресу элемента
       return self
     }
     case 'COOKIE_DOMAIN': return ''            // host-only: одна машина

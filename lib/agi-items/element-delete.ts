@@ -5,6 +5,7 @@ import { rename, rm } from "node:fs/promises"
 import { join } from "node:path"
 import paths from "@/lib/agi-items/paths.cjs"
 import { deleteDraft } from "@/lib/agi-items/drafts"
+import { addressOf } from "@/lib/agi-items/address-file.mjs"
 import { accountOfZone, deleteDnsRecords, getIngress, listZones, setIngress } from "@/lib/domain/cloudflare"
 
 // УДАЛЕНИЕ РОЖДЁННОГО AGI ЭЛЕМЕНТА НАСОВСЕМ (узел, шаг 325-5). Решение владельца 2026-09-27: «Удалить насовсем».
@@ -89,7 +90,10 @@ export async function deleteElement(id: string): Promise<{ ok: boolean; steps: S
   try { domain = JSON.parse(readFileSync(join(ROOT, "logs", "domain.json"), "utf8")) } catch { /* узел без домена */ }
   const key = envValue("CLOUDFLARE_API_TOKEN")
   if (domain?.zone && domain.tunnelId && key) {
-    const hostname = `${id}.${domain.zone}`
+    // 325-8: имён у элемента может быть несколько — по id (до переименования) и по адресу; снимаются оба и всякое правило,
+    // ведущее на порт элемента (так уходят и промежуточные имена после нескольких переименований).
+    const names = new Set([`${id}.${domain.zone}`, `${addressOf(id)}.${domain.zone}`])
+    const port = (() => { try { return readRegistry().services.find((s) => s.id === id)?.port ?? null } catch { return null } })()
     const zones = await listZones(key)
     const zone = zones.ok ? zones.result.find((z) => z.name === domain!.zone) : null
     const account = zone ? await accountOfZone(key, zone.id) : null
@@ -97,14 +101,24 @@ export async function deleteElement(id: string): Promise<{ ok: boolean; steps: S
       steps.push({ step: "tunnel", ok: false, detail: "cloudflare-unreachable" })
     } else {
       const rules = await getIngress(key, account.result, domain.tunnelId)
-      if (rules.ok && rules.result.some((r) => r.hostname === hostname)) {
-        const put = await setIngress(key, account.result, domain.tunnelId, rules.result.filter((r) => r.hostname !== hostname))
-        steps.push({ step: "tunnel", ok: put.ok, detail: put.ok ? hostname : put.reason })
+      const ours = (r: { hostname?: string; service?: string }) =>
+        (!!r.hostname && names.has(r.hostname)) || (port !== null && !!r.hostname && /:(\d+)\/?$/.exec(r.service ?? "")?.[1] === String(port))
+      if (rules.ok) for (const r of rules.result) if (ours(r) && r.hostname) names.add(r.hostname)
+      if (rules.ok && rules.result.some(ours)) {
+        const put = await setIngress(key, account.result, domain.tunnelId, rules.result.filter((r) => !ours(r)))
+        steps.push({ step: "tunnel", ok: put.ok, detail: put.ok ? [...names].join(",") : put.reason })
       } else {
         steps.push({ step: "tunnel", ok: rules.ok, detail: rules.ok ? "no-route" : rules.reason })
       }
-      const dns = await deleteDnsRecords(key, zone.id, hostname)
-      steps.push({ step: "dns", ok: dns.ok, detail: dns.ok ? `removed:${dns.result}` : dns.reason })
+      let removed = 0
+      let dnsOk = true
+      for (const n of names) {
+        if (!n.endsWith(`.${domain.zone}`)) continue
+        const dns = await deleteDnsRecords(key, zone.id, n)
+        if (dns.ok) removed += Number(dns.result) || 0
+        else dnsOk = false
+      }
+      steps.push({ step: "dns", ok: dnsOk, detail: `removed:${removed}` })
     }
   } else {
     steps.push({ step: "tunnel", ok: true, detail: "no-domain" })

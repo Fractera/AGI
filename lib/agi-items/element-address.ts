@@ -4,6 +4,7 @@ import { join } from "node:path"
 import paths from "@/lib/agi-items/paths.cjs"
 import { listDrafts, RESERVED_NAMES } from "@/lib/agi-items/drafts"
 import { isElementAddress } from "@/lib/agi-items/dns-label.mjs"
+import { addressOf } from "@/lib/agi-items/address-file.mjs"
 import { ARCHITECT_PATHS } from "@/app/[lang]/(architectLayer)/_lib/architect-menu"
 
 // АДРЕС AGI ЭЛЕМЕНТА В ЯДРЕ ПРИ НЕИЗМЕННОМ id (325-3). Решения владельца 2026-09-27: «Адрес, id неизменен» и «Только ядро» —
@@ -25,13 +26,8 @@ const fileOf = (id: string) => join(DATA, id, "address.json")
 
 export type AddressCheck = { ok: true } | { ok: false; reason: "bad-shape" | "taken"; suggestions: string[] }
 
-/** Адрес элемента в ядре (нет своего — id). */
-export function addressOf(id: string): string {
-  try {
-    const a = (JSON.parse(readFileSync(fileOf(id), "utf8")) as { address?: unknown }).address
-    return typeof a === "string" && isElementAddress(a) ? a : id
-  } catch { return id }
-}
+// 325-8: чтение адреса — одно место на ядро и установщик (`address-file.mjs`).
+export { addressOf }
 
 function registryIds(): string[] {
   try {

@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireRoles } from "@/lib/auth/require-roles"
 import { serviceUrl } from "@/lib/microservices/registry"
 import { publicAuth } from "@/lib/domain/public-auth.cjs"
+import { addressOf } from "@/lib/agi-items/address-file.mjs"
 
 // АДРЕС ДЛЯ ПРОСМОТРА ЭЛЕМЕНТА (страница Preview, слово владельца 2026-09-24).
 //
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
   // поимённо только root и auth — остальные получали http://127.0.0.1:<порт>, а страница ядра на https такой адрес во
   // фрейм не грузит. Формула та же, что у установщика (SERVICE_PUBLIC_URL) и двери /api/node/reach: root — корень зоны,
   // любой другой — <id>.<зона>.
-  if (pub) base = id === "root" ? `https://${pub.siteHost}` : `https://${id}.${pub.zone}`
+  if (pub) base = id === "root" ? `https://${pub.siteHost}` : `https://${addressOf(id)}.${pub.zone}` // 325-8: по адресу элемента
   // 🔒 ИМЯ ЭЛЕМЕНТА ОБЯЗАНО СУЩЕСТВОВАТЬ, А НЕ ВЫВОДИТЬСЯ ФОРМУЛОЙ (319-2). Рождённому элементу поддомен выдаётся отдельной
   // кнопкой «Адрес в интернете»; до неё формула давала `https://<id>.<зона>`, которого нет (NXDOMAIN), и Preview показывал
   // пустоту. Проверка — DNS Cloudflare (DoH, мимо кэша машины, как у /api/node/reach): записи нет — петля машины и
