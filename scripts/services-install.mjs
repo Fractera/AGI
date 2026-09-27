@@ -471,42 +471,58 @@ for (const entry of registry.services) {
   if (ONLY && entry.id !== ONLY) continue
   let builtDist = null
   const dir = entryDir(entry)
-  say(`\n── ${entry.id} — ${entry.version}`)
+  say(`\n── ${entry.id} — ${entry.born ? 'рождённый' : entry.version}`)
 
-  // 1. Привести репозиторий к ЗАКРЕПЛЁННОЙ версии.
-  if (!existsSync(join(dir, '.git'))) {
-    if (existsSync(dir)) rmSync(dir, { recursive: true, force: true })
-    const c = run('git', ['clone', '--quiet', '--branch', entry.version, '--depth', '1', entry.repo, dir], ROOT)
-    if (c.rc !== 0) {
-      say(`  ОШИБКА клона: ${c.out.trim().split('\n').slice(-2).join(' ')}`)
+  // 🔒 РОЖДЁННЫЙ ЭЛЕМЕНТ (319-1) — САМОСТОЯТЕЛЬНЫЙ ПРОЕКТ, А НЕ КОПИЯ НА ТЕГЕ FRACTERA. Его код пишет агент элемента, и
+  // установщик его НЕ клонирует, НЕ тянет и НЕ переводит на тег: иначе следующая установка (или `serve.mjs ensureElements`)
+  // стёрла бы эту работу молча. Версия для правил «пересобрать ли» — тег шаблона плюс текущий коммит элемента: правка
+  // агента, закоммиченная в его папке, даёт новую версию и новую сборку.
+  let version = entry.version
+  if (entry.born) {
+    if (!existsSync(join(dir, '.git'))) {
+      say('  ОШИБКА: папки рождённого элемента нет — его код существовал только здесь, восстановить его неоткуда')
       failed += 1
       continue
     }
-    say('  клонирован')
+    const commit = run('git', ['rev-parse', '--short', 'HEAD'], dir).out.trim()
+    version = `${entry.born.version ?? 'born'}+${commit || 'no-commit'}`
+    say(`  рождён из ${entry.born.from ?? 'шаблона'} ${entry.born.version ?? ''} — код элемента не трогаю, версия ${version}`)
   } else {
-    run('git', ['fetch', '--quiet', '--tags', 'origin'], dir)
-    // 🛑 СБОРКА NEXT САМА ПРАВИТ `tsconfig.json` (дописывает .next-a/.next-b) и `next-env.d.ts` (295-1, измерено):
-    // выпуск, меняющий эти же файлы, git отказывался ставить («Aborting»). Они — след сборки, а не чья-то работа:
-    // возвращаем ТОЛЬКО их; любая другая локальная правка по-прежнему останавливает переход.
-    const nextOwned = run('git', ['ls-files', '-m'], dir).out.split('\n').map((l) => l.trim())
-      .filter((f) => /(^|\/)(tsconfig\.json|next-env\.d\.ts)$/.test(f))
-    if (nextOwned.length) run('git', ['checkout', '--quiet', '--', ...nextOwned], dir)
-    const co = run('git', ['checkout', '--quiet', `tags/${entry.version}`], dir)
-    if (co.rc !== 0) {
-      say(`  ОШИБКА перехода на ${entry.version}: ${co.out.trim().split('\n').slice(-1)[0]}`)
+    // 1. Привести репозиторий к ЗАКРЕПЛЁННОЙ версии.
+    if (!existsSync(join(dir, '.git'))) {
+      if (existsSync(dir)) rmSync(dir, { recursive: true, force: true })
+      const c = run('git', ['clone', '--quiet', '--branch', entry.version, '--depth', '1', entry.repo, dir], ROOT)
+      if (c.rc !== 0) {
+        say(`  ОШИБКА клона: ${c.out.trim().split('\n').slice(-2).join(' ')}`)
+        failed += 1
+        continue
+      }
+      say('  клонирован')
+    } else {
+      run('git', ['fetch', '--quiet', '--tags', 'origin'], dir)
+      // 🛑 СБОРКА NEXT САМА ПРАВИТ `tsconfig.json` (дописывает .next-a/.next-b) и `next-env.d.ts` (295-1, измерено):
+      // выпуск, меняющий эти же файлы, git отказывался ставить («Aborting»). Они — след сборки, а не чья-то работа:
+      // возвращаем ТОЛЬКО их; любая другая локальная правка по-прежнему останавливает переход.
+      const nextOwned = run('git', ['ls-files', '-m'], dir).out.split('\n').map((l) => l.trim())
+        .filter((f) => /(^|\/)(tsconfig\.json|next-env\.d\.ts)$/.test(f))
+      if (nextOwned.length) run('git', ['checkout', '--quiet', '--', ...nextOwned], dir)
+      const co = run('git', ['checkout', '--quiet', `tags/${entry.version}`], dir)
+      if (co.rc !== 0) {
+        say(`  ОШИБКА перехода на ${entry.version}: ${co.out.trim().split('\n').slice(-1)[0]}`)
+        failed += 1
+        continue
+      }
+      say('  обновлён до закреплённой версии')
+    }
+
+    // 🔒 Сверяем ФАКТ, а не код возврата: версия, на которой мы стоим, обязана
+    // совпасть с реестром. Иначе «поставили v1.0.1» — это обещание, а не факт.
+    const head = run('git', ['describe', '--tags', '--exact-match'], dir).out.trim()
+    if (head !== entry.version) {
+      say(`  ОШИБКА: в папке версия «${head || 'без тега'}», а реестр требует «${entry.version}»`)
       failed += 1
       continue
     }
-    say('  обновлён до закреплённой версии')
-  }
-
-  // 🔒 Сверяем ФАКТ, а не код возврата: версия, на которой мы стоим, обязана
-  // совпасть с реестром. Иначе «поставили v1.0.1» — это обещание, а не факт.
-  const head = run('git', ['describe', '--tags', '--exact-match'], dir).out.trim()
-  if (head !== entry.version) {
-    say(`  ОШИБКА: в папке версия «${head || 'без тега'}», а реестр требует «${entry.version}»`)
-    failed += 1
-    continue
   }
 
   // 2. Паспорт. Только читаем.
@@ -563,7 +579,7 @@ for (const entry of registry.services) {
     } catch { return createHash('sha256').update(readFileSync(lockFile)).digest('hex') }
   })()
   const depsReady = existsSync(join(dir, 'node_modules')) &&
-    (stamp.lockHash ? stamp.lockHash === lockHash : stamp.version === entry.version)
+    (stamp.lockHash ? stamp.lockHash === lockHash : stamp.version === version)
 
   if (depsReady && !FORCE) {
     say('  зависимости на месте (тот же package-lock.json) — пропущено')
@@ -668,7 +684,7 @@ for (const entry of registry.services) {
     '# а не здесь. Исключение — чужие ключи: их вписывают сюда, потому что',
     '# установщик их не выдумывает.',
     `#`,
-    `# блок: ${entry.id} · версия: ${entry.version} · порт: ${port}`,
+    `# блок: ${entry.id} · версия: ${version} · порт: ${port}`,
     `# порождён: ${new Date().toISOString()}`,
     '',
   ]
@@ -730,7 +746,7 @@ for (const entry of registry.services) {
     // собранным и ответил «нечем запускать».
     const server = stamp.start?.args?.[0]
     const built = server ? existsSync(join(stamp.start.cwd || dir, server)) : existsSync(join(dir, '.next'))
-    if (built && !FORCE && !REBUILD && stamp.version === entry.version && stamp.env === envFingerprint) {
+    if (built && !FORCE && !REBUILD && stamp.version === version && stamp.env === envFingerprint) {
       say('  сборка на месте (версия и окружение те же) — пропущена')
     } else {
       // 🔒 СБОРКА БЕЗ ПРОСТОЯ (280-9, слово владельца 2026-09-24: «blue/green build without downtime»).
@@ -829,7 +845,7 @@ for (const entry of registry.services) {
   say(`  запуск: ${start.cmd} ${start.args.join(' ')}`)
 
   writeFileSync(stampFile, JSON.stringify({
-    version: entry.version,
+    version: version,
     env: envFingerprint,
     lockHash,
     port,
@@ -840,7 +856,7 @@ for (const entry of registry.services) {
     at: new Date().toISOString(),
   }, null, 2), 'utf8')
 
-  summary.push({ id: entry.id, version: entry.version, port, stack: props.runtime?.stack })
+  summary.push({ id: entry.id, version: version, port, stack: props.runtime?.stack })
 }
 
 // ── 6. Фактические порты — обратно в реестр ──────────────────────────────────
