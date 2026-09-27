@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,7 +24,6 @@ export function DeleteElementButton({ lang, id, address, ui, dialogUi }: {
   ui: ElementSettingsUi
   dialogUi: AppDialogUi
 }) {
-  const router = useRouter()
   const w = ui.removeDialog
   const [open, setOpen] = useState(false)
   const [typed, setTyped] = useState("")
@@ -61,9 +59,10 @@ export function DeleteElementButton({ lang, id, address, ui, dialogUi }: {
         setBusy(false)
         return
       }
+      // 325-6: ПОЛНЫЙ переход, а не `router.push`: страница удалённого элемента больше не существует, слой перерисован
+      // дверью, и мягкий переход ждал бы перерисовки под открытым окном.
       setOpen(false)
-      router.push(`/${lang}/architect`)
-      router.refresh()
+      window.location.assign(`${BASE}/${lang}/architect`)
     } catch {
       setError(`${w.failed} —`)
       setBusy(false)

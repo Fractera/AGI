@@ -1,6 +1,7 @@
 import "server-only"
-import { spawnSync } from "node:child_process"
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { execFile, spawnSync } from "node:child_process"
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { rename, rm } from "node:fs/promises"
 import { join } from "node:path"
 import paths from "@/lib/agi-items/paths.cjs"
 import { deleteDraft } from "@/lib/agi-items/drafts"
@@ -17,11 +18,20 @@ import { accountOfZone, deleteDnsRecords, getIngress, listZones, setIngress } fr
 // не трогается: удаляется копия на узле.
 // 🛑 ВТОРАЯ КОПИЯ ЧТЕНИЯ КЛЮЧА CLOUDFLARE И `logs/domain.json` — в двери `/api/node/reach` (289). Названа вслух; вынести в
 // общий модуль — отдельная правка.
+// 🛑 НИ ОДНОЙ БЛОКИРУЮЩЕЙ ОПЕРАЦИИ ДОЛЬШЕ МГНОВЕНИЯ (325-6). Дверь работает внутри сервера ядра: `spawnSync` pm2 и `rmSync`
+// папки с `node_modules` (десятки тысяч файлов) останавливали ВЕСЬ сайт — кнопка висела на «Удаляю…» ~20 с, а у dso94 стирание
+// шло дольше 90 с, сторож ядра счёл сайт мёртвым и перезапустил его посреди удаления: папка осталась стёртой наполовину.
+// Поэтому pm2 — асинхронно, папка — ПЕРЕИМЕНОВАНИЕМ в `AGI-ITEMS/.trash/` (мгновенно: элемента больше нет), а стирание корзины
+// идёт без ожидания и без блокировки (`fs/promises`, пул потоков). Корзина стирается целиком — так дочищаются и остатки
+// прерванных прежде удалений. Корзина вне git и вне проверки типов (вся `AGI-ITEMS` исключена).
 
 const ROOT = process.cwd()
 const IS_WIN = process.platform === "win32"
 
 type Step = { step: string; ok: boolean; detail?: string }
+
+const TRASH_DIR = join(paths.ITEMS_DIR, ".trash")
+const pause = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 function envValue(name: string): string | null {
   for (const file of [".env.local", ".env"]) {
@@ -64,11 +74,13 @@ export function deletionRisk(id: string): { commits: number; unexported: number 
 
 export async function deleteElement(id: string): Promise<{ ok: boolean; steps: Step[] }> {
   const steps: Step[] = []
-  const pm2 = (args: string[]) => spawnSync(IS_WIN ? "pm2.cmd" : "pm2", args, { cwd: ROOT, encoding: "utf8", shell: IS_WIN, windowsHide: true, timeout: 30_000 })
+  const pm2 = (args: string[]) => new Promise<boolean>((resolve) => {
+    execFile(IS_WIN ? "pm2.cmd" : "pm2", args, { cwd: ROOT, shell: IS_WIN, windowsHide: true, timeout: 30_000 }, (err) => resolve(!err))
+  })
 
   // 1. Процесс и сторож.
-  for (const name of [`fractera-svc-${id}`, `fractera-svc-${id}-watch`]) pm2(["delete", name])
-  pm2(["save"])
+  for (const name of [`fractera-svc-${id}`, `fractera-svc-${id}-watch`]) await pm2(["delete", name])
+  await pm2(["save"])
   steps.push({ step: "pm2", ok: true })
 
   // 2. Адрес в интернете (если узел на своём домене).
@@ -111,15 +123,22 @@ export async function deleteElement(id: string): Promise<{ ok: boolean; steps: S
   steps.push({ step: "draft", ok: deleteDraft(id) })
   rmSync(join(ROOT, "data", "services", id), { recursive: true, force: true })
   steps.push({ step: "data", ok: !existsSync(join(ROOT, "data", "services", id)) })
-  for (const f of [`birth-${id}.log`, `birth-${id}.json`]) rmSync(join(ROOT, "logs", f), { force: true })
+  // Журналы рождения и журналы процесса элемента (pm2 закрыл их на этапе 1).
+  for (const f of [`birth-${id}.log`, `birth-${id}.json`, `svc-${id}-out.log`, `svc-${id}-err.log`, `svc-${id}-watch.log`]) {
+    try { rmSync(join(ROOT, "logs", f), { force: true }) } catch { /* занят — останется строкой журнала */ }
+  }
   steps.push({ step: "logs", ok: true })
 
-  // 7. Папка с кодом — после остановки процесса; Windows может держать файлы ещё мгновение.
+  // 7. Папка с кодом — переименованием в корзину (Windows может держать файлы остановленного процесса мгновение — повторы).
   const dir = paths.itemDir(id, "user")
-  try {
-    rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 500 })
-  } catch { /* проверяется ниже */ }
+  for (let i = 0; i < 10 && existsSync(dir); i++) {
+    try {
+      mkdirSync(TRASH_DIR, { recursive: true })
+      await rename(dir, join(TRASH_DIR, `${id}-${Date.now()}`))
+    } catch { await pause(500) }
+  }
   steps.push({ step: "folder", ok: !existsSync(dir), detail: existsSync(dir) ? "busy" : undefined })
+  void rm(TRASH_DIR, { recursive: true, force: true, maxRetries: 10, retryDelay: 500 }).catch(() => { /* дочистится следующим удалением */ })
 
   return { ok: steps.every((s) => s.ok), steps }
 }
