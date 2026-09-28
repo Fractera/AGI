@@ -3,6 +3,9 @@
 
 export type AgiDraftsUi = {
   create: string
+  /** 327: подписи зон левого меню. */
+  zoneNative: string
+  zoneCustom: string
   creating: string
   createFailed: string
   draftBadge: string
@@ -39,9 +42,11 @@ export type AgiDraftsUi = {
 
 const DICT: Record<string, AgiDraftsUi> = {
   en: {
-    create: "Create a microservice",
+    create: "Create an AGI ITEM",
     creating: "Creating…",
-    createFailed: "The microservice was not created: the node could not write the draft.",
+    createFailed: "The AGI ITEM was not created: the node could not write the draft.",
+    zoneNative: "Native AGI ITEMS",
+    zoneCustom: "Custom AGI ITEMS",
     draftBadge: "Draft",
     sectionPages: "Pages of this section",
     portTitle: "Port on this machine",
@@ -74,9 +79,11 @@ const DICT: Record<string, AgiDraftsUi> = {
     birthRetry: "The draft is intact and nothing was written into the node — press «Give birth to the AGI element» to try again.",
   },
   ru: {
-    create: "Создать микросервис",
+    create: "Создать AGI ITEM",
     creating: "Создаю…",
-    createFailed: "Микросервис не создан: узел не смог записать черновик.",
+    createFailed: "AGI ITEM не создан: узел не смог записать черновик.",
+    zoneNative: "Нативные AGI ITEMS",
+    zoneCustom: "Кастомные AGI ITEMS",
     draftBadge: "Черновик",
     sectionPages: "Страницы раздела",
     portTitle: "Порт на этой машине",

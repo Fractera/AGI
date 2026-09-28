@@ -48,7 +48,7 @@ if (!id || !ID.test(id)) fail(`имя «${id ?? ''}» — не имя черно
 // 1. Черновик существует и ещё не родился.
 let drafts = []
 try { drafts = JSON.parse(readFileSync(DRAFTS_FILE, 'utf8')).drafts ?? [] } catch { /* нет файла — нет черновиков */ }
-if (!drafts.some((d) => d?.id === id)) fail(`черновика «${id}» нет — рождается только то, что заведено кнопкой «Создать микросервис»`)
+if (!drafts.some((d) => d?.id === id)) fail(`черновика «${id}» нет — рождается только то, что заведено кнопкой «Создать AGI ITEM»`)
 
 const registry = JSON.parse(readFileSync(REGISTRY_FILE, 'utf8'))
 if (registry.services.some((s) => s.id === id)) fail(`«${id}» уже есть в реестре узла — второй раз не рождается`)

@@ -16,6 +16,22 @@ import { ARCHITECT_HOME } from './architect-menu'
 // 🔒 ЯКОРЬ — ГРУППА `design`. Её нет — кнопка и черновики встают в конец, а не пропадают.
 
 const ANCHOR = 'design'
+// 327 (слово владельца 2026-09-27): «после вкладки ядро добавим горизонтальный сепаратор, под которым слева в бордюр напишем более
+// мелким шрифтом нативные AGI ITEMS. После вкладки дизайн добавим сепаратор … кастомные AGI ITEMS. Задача визуально разделить
+// меню на зоны». Якорь первой зоны — пункт «Ядро» (`build`); вторая встаёт за «Дизайном», над кнопкой создания.
+const CORE = 'build'
+
+/** Разделитель зоны меню: горизонтальная черта и мелкая подпись у левого края. */
+function zone(label: string): WorkspaceItem {
+  return {
+    label,
+    node: (
+      <div className="mt-2 border-t border-border px-[9px] pt-2 text-[length:var(--fs-small)] text-muted-foreground" data-menu-zone>
+        {label}
+      </div>
+    ),
+  }
+}
 
 /** Меню слоя с кнопкой и группами черновиков, вставленными за «Дизайном». */
 export function withDrafts(menu: WorkspaceItem[], lang: string, currentPath: string): WorkspaceItem[] {
@@ -57,5 +73,8 @@ export function withDrafts(menu: WorkspaceItem[], lang: string, currentPath: str
 
   const i = menu.findIndex((m) => m.href === at(`${ARCHITECT_HOME}/${ANCHOR}`))
   const cut = i < 0 ? menu.length : i + 1
-  return [...menu.slice(0, cut), button, ...drafts, ...menu.slice(cut)]
+  const withCustom = [...menu.slice(0, cut), zone(ui.zoneCustom), button, ...drafts, ...menu.slice(cut)]
+  // Нет пункта «Ядро» — первой зоны нет: подпись над пустотой хуже её отсутствия.
+  const c = withCustom.findIndex((m) => m.href === at(`${ARCHITECT_HOME}/${CORE}`))
+  return c < 0 ? withCustom : [...withCustom.slice(0, c + 1), zone(ui.zoneNative), ...withCustom.slice(c + 1)]
 }
