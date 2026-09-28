@@ -502,8 +502,28 @@ A born element is not deleted as a draft (409). Not built yet: birth in seconds.
   subdomain is not renamed. Doors, pty, folder, pm2 stay by id. Only the id path redirects, not earlier addresses.
   Shape = a DNS label (RFC 1035/1123/5890/5891) plus the node policy — one module `lib/agi-items/dns-label.mjs`, sentinel
   `scripts/check-dns-label.mjs` in prebuild (325-7); reserved names are one list with drafts (`RESERVED_NAMES`).
-- **Main mirror** — inactive, step 324.
-- **Delete** — `DELETE /api/architect/items/<id>` with the address typed back (`lib/agi-items/element-delete.ts`): pm2 →
+- **Main mirror** (step 324-3…5, `lib/agi-items/element-domain.ts`, `_components/element-domain.client.tsx`): a drop-down
+  of the node's domains (`/api/domain/list` — the same list as «Domain activation»; free·ready / waiting for name servers /
+  connected elsewhere). «Connect» = the node's tunnel (`<domain>` → element port, `www.<domain>` and the element subdomain →
+  core) + CNAME `<domain>`, `www.<domain>` (only A/AAAA on those names are removed; MX/TXT never) → `data/services/<id>/
+  domain.json {domain, primary, url}`. «Main address» (PATCH) swaps who serves and who answers 301; the core answers 301/308
+  by host (`lib/domain/mirror-redirect.ts`, proxy Job −2). The element calls itself by `url` from that file (template
+  `lib/own-site.ts` → `getAppConfig` url + canonicalBase) — canonical, sitemap, hreflang, og follow the main address.
+  After every click the core redraws the element by loopback (`redrawElement`). «Disconnect» (DELETE) reverses it.
+  🛑 Files with a dot in the path on the secondary name are not redirected (proxy matcher) — pages are.
+- **Links: CONFIG · Design · Blocks** (324-7, `lib/agi-items/element-links.ts`, `/api/architect/items/<id>/links`):
+  `data/services/<id>/links.json`; the element reads it (`linkOn`). CONFIG off — the last project-settings copy is adopted
+  ONCE into the element's own APP/PLATFORM/DESIGN-CONFIG and no longer laid over them; Design off — no pull; Blocks off —
+  `@fractera` removed from the element's `components.json`. The element's own «Site settings» page (template
+  `admin/_pages/site-settings`, a copy of the CONFIG editor, door `/api/settings/app`) saves only while CONFIG is off (409).
+  Languages chosen there reach the site after a rebuild (installer: APP-CONFIG `languages` → `NEXT_PUBLIC_SUPPORTED_LANGUAGES`,
+  an «own» value — the last choice sticks); rebuild = «Deployments» of the element.
+- **Preview** on any main address: the element trusts its node core origin (`/api/core-origin` ← `NODE_DOMAIN_FILE`
+  `architectHostname`); «Refresh» goes through `/api/architect/items/<id>/redraw` (core server, loopback) — the sign-in
+  cookie of the node zone does not live on the element's own domain.
+- 🛑 **The Cloudflare key door refuses a key without Cloudflare Tunnel** (probe before saving, reason `no-tunnel-permission`).
+  ✗ 2026-09-28: a key with Zone Edit only replaced the working key, and every tunnel action failed with 1001.
+- **Delete** — `DELETE /api/architect/items/<id>` with the address typed back (`lib/agi-items/element-delete.ts`): pm2 → own domain detached (324-10) →
   tunnel route and DNS → registry → draft → `data/services/<id>` (address, GitHub key) → birth and pm2 logs → the folder.
   🛑 Nothing in the door may block the server: pm2 async, the folder is RENAMED into `AGI-ITEMS/.trash/` and erased without
   waiting. ✗ 325-6: sync `rmSync` of ~1 GB froze the core, the core watch restarted it mid-deletion — half a folder left.
