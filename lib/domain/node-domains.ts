@@ -2,7 +2,7 @@ import "server-only"
 import { mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { isDnsLabel } from "@/lib/agi-items/dns-label.mjs"
-import { accountOfZone, activationCheck, createZone, verifyToken, zoneByName } from "@/lib/domain/cloudflare"
+import { accountOfZone, activationCheck, createZone, listAccounts, verifyToken, zoneByName } from "@/lib/domain/cloudflare"
 import { envValue } from "@/lib/agi-items/element-delete"
 
 // ДОМЕНЫ УЗЛА — СПИСОК, А НЕ ОДИН (шаг 324-1). Слово владельца 2026-09-27: «нужно все то что сделано там превратить в карточке
@@ -34,6 +34,8 @@ export type ZoneState = "active" | "pending" | "not-visible" | "unknown"
 export type NodeDomain = {
   name: string; state: ZoneState; status?: string; zoneId?: string; nameServers?: string[]
   registrarNs?: string[]; nsMatch?: boolean; activationAsked?: boolean; addedAt: string; checkedAt?: string
+  /** Регистратор домена по RDAP (324-2): только имя — экран чужого сервиса не описывается. `null` — RDAP не ответил. */
+  registrar?: string | null
 }
 export type Shape = "ok" | "bad-shape" | "with-www" | "primary" | "exists"
 
@@ -67,9 +69,10 @@ function writeList(domains: NodeDomain[]): boolean {
   } catch { return false }
 }
 
-/** Дополнительные домены узла. */
+/** Дополнительные домены узла. Домен, ставший основным (324-2, «Сделать основным»), из них выпадает: он живёт в лестнице. */
 export function extraDomains(): NodeDomain[] {
-  return readList()
+  const primary = primaryDomain()?.name
+  return readList().filter((d) => d.name !== primary)
 }
 
 export function normalizeDomain(input: string): string {
@@ -115,21 +118,43 @@ async function registrarNs(name: string): Promise<string[]> {
   } catch { return [] }
 }
 
-type Observed = Pick<NodeDomain, "state" | "status" | "zoneId" | "nameServers" | "registrarNs" | "nsMatch" | "activationAsked">
+// РЕГИСТРАТОР ПО RDAP (324-2). Замер 2026-09-28: реестр IANA (`data.iana.org/rdap/dns.json`) даёт сервер RDAP зоны — .dev →
+// pubapi.registry.google, .com → rdap.verisign.com; ответ называет регистратора (сущность с ролью registrar, vCard fn).
+// Список серверов читается раз за жизнь процесса. Не ответил — `null`: «регистратор неизвестен», а не ошибка карточки.
+let rdapBootstrap: Promise<Array<[string[], string[]]> | null> | null = null
+async function registrarOf(name: string): Promise<string | null> {
+  rdapBootstrap ??= fetch("https://data.iana.org/rdap/dns.json", { signal: AbortSignal.timeout(8000) })
+    .then((r) => r.json())
+    .then((j: { services?: Array<[string[], string[]]> }) => j.services ?? null)
+    .catch(() => null)
+  const services = await rdapBootstrap
+  const tld = name.split(".").pop() ?? ""
+  const base = services?.find(([tlds]) => tlds.includes(tld))?.[1]?.[0]
+  if (!base) return null
+  try {
+    const r = await fetch(`${base.endsWith("/") ? base : `${base}/`}domain/${encodeURIComponent(name)}`, { headers: { accept: "application/rdap+json" }, signal: AbortSignal.timeout(8000) })
+    const j = (await r.json()) as { entities?: Array<{ roles?: string[]; vcardArray?: [string, Array<[string, unknown, string, unknown]>] }> }
+    const reg = j.entities?.find((e) => e.roles?.includes("registrar"))
+    const fn = reg?.vcardArray?.[1]?.find((v) => v[0] === "fn")?.[3]
+    return typeof fn === "string" && fn.trim() ? fn.trim() : null
+  } catch { return null }
+}
+
+type Observed = Pick<NodeDomain, "state" | "status" | "zoneId" | "nameServers" | "registrarNs" | "nsMatch" | "activationAsked" | "registrar">
 
 /** Всё, что узел может узнать о домене сейчас: зона, её серверы имён, серверы у регистратора; совпали — просит активацию. */
 async function observe(name: string): Promise<Observed | { error: string }> {
   const key = envValue("CLOUDFLARE_API_TOKEN")
   if (!key) return { error: "no-key" }
-  const [z, reg] = await Promise.all([zoneByName(key, name), registrarNs(name)])
+  const [z, reg, registrar] = await Promise.all([zoneByName(key, name), registrarNs(name), registrarOf(name)])
   if (!z.ok) return { error: `cloudflare:${z.reason}` }
-  if (!z.result) return { state: "not-visible", registrarNs: reg }
+  if (!z.result) return { state: "not-visible", registrarNs: reg, registrar }
   const assigned = (z.result.name_servers ?? []).map((n) => n.toLowerCase()).sort()
   const nsMatch = assigned.length > 0 && assigned.every((n) => reg.includes(n))
   const active = z.result.status === "active"
   let activationAsked = false
   if (!active && nsMatch) activationAsked = (await activationCheck(key, z.result.id)).ok
-  return { state: active ? "active" : "pending", status: z.result.status, zoneId: z.result.id, nameServers: assigned, registrarNs: reg, nsMatch, activationAsked }
+  return { state: active ? "active" : "pending", status: z.result.status, zoneId: z.result.id, nameServers: assigned, registrarNs: reg, nsMatch, activationAsked, registrar }
 }
 
 function save(name: string, patch: Partial<NodeDomain>): NodeDomain | null {
@@ -158,20 +183,33 @@ export async function checkDomain(name: string): Promise<{ ok: true; domain: Nod
   return d ? { ok: true, domain: d } : { ok: false, error: "write-failed" }
 }
 
-/** «Создать зону»: узел заводит зону в аккаунте основного домена сам. Уже видна — просто замер. */
-export async function createDomainZone(name: string): Promise<{ ok: true; domain: NodeDomain } | { ok: false; error: string }> {
+/** «Создать зону»: узел заводит зону в аккаунте основного домена сам. Уже видна — просто замер.
+ *  324-2: основного домена ещё нет (первый домен узла) — аккаунт узнаётся у ключа (`/accounts`); ключ видит не ровно один
+ *  аккаунт — отказ `no-account`, и карточка просит Account ID (запасное поле по слову владельца: «если нажатие вернёт
+ *  ошибку, то подсунешь вторую кнопку и напишешь попробуй снова»). Названный аккаунт проверяет сам Cloudflare при создании. */
+export async function createDomainZone(name: string, accountId?: string): Promise<{ ok: true; domain: NodeDomain } | { ok: false; error: string }> {
   if (!readList().some((d) => d.name === name)) return { ok: false, error: "not-found" }
   const key = envValue("CLOUDFLARE_API_TOKEN")
   if (!key) return { ok: false, error: "no-key" }
   const seen = await zoneByName(key, name)
   if (seen.ok && seen.result) return checkDomain(name)
   const primary = primaryDomain()
-  if (!primary) return { ok: false, error: "no-primary" }
-  const main = await zoneByName(key, primary.name)
-  if (!main.ok || !main.result) return { ok: false, error: "primary-not-visible" }
-  const account = await accountOfZone(key, main.result.id)
-  if (!account.ok) return { ok: false, error: `cloudflare:${account.reason}` }
-  const created = await createZone(key, account.result, name)
+  let account: string
+  if (primary) {
+    const main = await zoneByName(key, primary.name)
+    if (!main.ok || !main.result) return { ok: false, error: "primary-not-visible" }
+    const acc = await accountOfZone(key, main.result.id)
+    if (!acc.ok) return { ok: false, error: `cloudflare:${acc.reason}` }
+    account = acc.result
+  } else if (accountId) {
+    if (!/^[0-9a-f]{32}$/.test(accountId)) return { ok: false, error: "bad-account-id" }
+    account = accountId
+  } else {
+    const accounts = await listAccounts(key)
+    if (!accounts.ok || accounts.result.length !== 1) return { ok: false, error: "no-account" }
+    account = accounts.result[0].id
+  }
+  const created = await createZone(key, account, name)
   if (!created.ok) return { ok: false, error: /zone\.create/.test(created.reason) ? "no-zone-permission" : created.reason }
   return checkDomain(name)
 }

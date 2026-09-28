@@ -19,9 +19,14 @@ async function gate(req: NextRequest) {
   return requireRoles(req, ROLES)
 }
 
-async function bodyOf(req: NextRequest): Promise<{ name: string; action: string }> {
-  const body = (await req.json().catch(() => null)) as { name?: unknown; action?: unknown } | null
-  return { name: typeof body?.name === "string" ? body.name : "", action: typeof body?.action === "string" ? body.action : "" }
+async function bodyOf(req: NextRequest): Promise<{ name: string; action: string; accountId?: string }> {
+  const body = (await req.json().catch(() => null)) as { name?: unknown; action?: unknown; accountId?: unknown } | null
+  return {
+    name: typeof body?.name === "string" ? body.name : "",
+    action: typeof body?.action === "string" ? body.action : "",
+    // 324-2: первый домен — Account ID, если ключ не назвал аккаунт сам.
+    accountId: typeof body?.accountId === "string" && body.accountId.trim() ? body.accountId.trim().toLowerCase() : undefined,
+  }
 }
 
 export async function GET(req: NextRequest) {
@@ -35,8 +40,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const g = await gate(req)
   if (g) return g
-  const { name, action } = await bodyOf(req)
-  const r = action === "create-zone" ? await createDomainZone(name) : await addDomain(name)
+  const { name, action, accountId } = await bodyOf(req)
+  const r = action === "create-zone" ? await createDomainZone(name, accountId) : await addDomain(name)
   return NextResponse.json(r, { status: r.ok ? 200 : 409, ...noStore })
 }
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,7 +20,7 @@ const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
 export type PipelineDomain = {
   name: string; state: string; status?: string; nameServers?: string[]; registrarNs?: string[]; nsMatch?: boolean
-  activationAsked?: boolean; checkedAt?: string
+  activationAsked?: boolean; checkedAt?: string; registrar?: string | null
 }
 
 function Step({ title, done, children }: { title: string; done: boolean; children: React.ReactNode }) {
@@ -35,9 +35,11 @@ function Step({ title, done, children }: { title: string; done: boolean; childre
   )
 }
 
-export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChanged }: {
+export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChanged, hasPrimary }: {
   lang: string
   domain: PipelineDomain
+  /** 324-2: у узла уже есть основной домен — «Сделать основным» не предлагается. */
+  hasPrimary: boolean
   words: DomainListWords
   ladderWords: DomainLadderWords
   onChanged: () => Promise<void>
@@ -48,21 +50,14 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
   const [noPermission, setNoPermission] = useState(false)
   const [note, setNote] = useState<string | null>(null)
   const [key, setKey] = useState("")
-  // Ключ дверь принимает только с машины узла (259-2). Открыта страница по публичному адресу — поле не показывается, вместо
-  // него ссылка на эту же страницу на localhost (порт спрашивается у узла, не помнится). ✗ оплачено 2026-09-27: владелец
-  // вставил ключ на throughsongs.com и получил голое «not-owner».
-  const [remote, setRemote] = useState<{ nodeUrl: string | null } | null>(null)
-  useEffect(() => {
-    if (["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname)) return
-    fetch(`${BASE}/api/domain/state`, { cache: "no-store" })
-      .then((r) => r.json())
-      .then((j: { nodeUrl?: string | null }) => setRemote({ nodeUrl: j.nodeUrl ?? null }))
-      .catch(() => setRemote({ nodeUrl: null }))
-  }, [])
+  // 324-2: первый домен — аккаунт Cloudflare узнаётся у ключа; не узнан — запасное поле (слово владельца: «если нажатие
+  // вернёт ошибку, то подсунешь вторую кнопку и напишешь попробуй снова»).
+  const [needAccount, setNeedAccount] = useState(false)
+  const [account, setAccount] = useState("")
 
   const time = (iso?: string) => iso ? new Date(iso).toLocaleTimeString(lang === "ru" ? "ru-RU" : "en-GB") : ""
 
-  async function call(method: "POST" | "PUT", body: Record<string, string>, slot: string): Promise<PipelineDomain | null> {
+  async function call(method: "POST" | "PUT", body: Record<string, string | undefined>, slot: string): Promise<PipelineDomain | null> {
     setBusy(slot)
     setError(null)
     try {
@@ -71,6 +66,7 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
       if (j?.ok && j.domain) { await onChanged(); setBusy(null); return j.domain }
       const code = j?.error ?? String(r.status)
       if (code === "no-zone-permission") { setNoPermission(true); await onChanged() }
+      if (code === "no-account" || code === "bad-account-id") setNeedAccount(true)
       setError(w.errors[code] ?? `${w.errors.unknown} ${code}`)
     } catch { setError(w.errors.unknown) }
     setBusy(null)
@@ -90,8 +86,21 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
   }
 
   async function createZone() {
-    const x = await call("POST", { name: d.name, action: "create-zone" }, "zone")
-    if (x) { setNoPermission(false); setNote(p.lastCheck.replace("{time}", time(x.checkedAt)).replace("{what}", p.step1Done)) }
+    const x = await call("POST", { name: d.name, action: "create-zone", accountId: needAccount ? account.trim() : undefined }, "zone")
+    if (x) { setNoPermission(false); setNeedAccount(false); setNote(p.lastCheck.replace("{time}", time(x.checkedAt)).replace("{what}", p.step1Done)) }
+  }
+
+  // 324-2: «Сделать основным доменом узла» — прежний шаг 5 лестницы (дверь activate): туннель, записи DNS, вход, адрес сайта.
+  async function makePrimary() {
+    setBusy("primary")
+    setError(null)
+    try {
+      const r = await fetch(`${BASE}/api/domain/activate`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ hostname: d.name }) })
+      const j = (await r.json().catch(() => null)) as { ok?: boolean; reason?: string } | null
+      if (j?.ok) { window.location.reload(); return }
+      setError(`${p.makePrimaryFailed} ${j?.reason ?? r.status}`)
+    } catch { setError(p.makePrimaryFailed) }
+    setBusy(null)
   }
 
   // Отказ ключа выясняется в момент действия и чинится здесь же: ключ → дверь лестницы → узел повторяет «Создать зону».
@@ -101,7 +110,6 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
     try {
       const r = await fetch(`${BASE}/api/domain/key`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: key.trim() }) })
       const j = (await r.json().catch(() => null)) as { ok?: boolean; reason?: string } | null
-      if (j?.reason === "not-owner" || j?.reason === "temporary-address") { setRemote({ nodeUrl: null }); setBusy(null); return }
       if (!j?.ok) {
         const why = j?.reason === "not-owner" ? ladderWords.reasonNotOwner
           : j?.reason === "no-tunnel-permission" ? ladderWords.reasonNoTunnel
@@ -127,21 +135,22 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
             <Button type="button" size="sm" className="w-fit" onClick={createZone} disabled={busy !== null} data-pipe-create-zone>
               {busy === "zone" ? p.creating : p.createZone}
             </Button>
+            {needAccount && (
+              <div className="flex flex-col gap-2 rounded-md border border-warning/50 bg-warning/10 p-3" data-pipe-need-account>
+                <p className="text-sm text-foreground">{p.accountHint}</p>
+                <Label htmlFor={`pipe-account-${d.name}`}>{p.accountLabel}</Label>
+                <div className="flex flex-wrap gap-2">
+                  <Input id={`pipe-account-${d.name}`} className="max-w-80 font-mono" value={account} onChange={(e) => setAccount(e.target.value)} placeholder="0123456789abcdef0123456789abcdef" autoComplete="off" spellCheck={false} />
+                  <Button type="button" size="sm" onClick={createZone} disabled={!/^[0-9a-fA-F]{32}$/.test(account.trim()) || busy !== null} data-pipe-account-retry>
+                    {busy === "zone" ? p.creating : p.accountRetry}
+                  </Button>
+                </div>
+              </div>
+            )}
             {noPermission && (
               <div className="flex flex-col gap-2 rounded-md border border-destructive bg-destructive/5 p-3" data-pipe-no-permission>
                 <p className="text-sm text-foreground">{p.noPermission}</p>
                 <TokenHowTo words={ladderWords} />
-                {remote ? (
-                  <div className="flex flex-col gap-1" data-pipe-key-remote>
-                    <p className="text-sm text-foreground">{p.keyRemote}</p>
-                    {remote.nodeUrl && (
-                      <a className="w-fit font-mono text-sm underline" href={`${remote.nodeUrl}${window.location.pathname}`}>
-                        {`${remote.nodeUrl}${window.location.pathname}`}
-                      </a>
-                    )}
-                  </div>
-                ) : (
-                  <>
                     <Label htmlFor={`pipe-key-${d.name}`}>{w.key.label}</Label>
                     <div className="flex flex-wrap gap-2">
                       <Input id={`pipe-key-${d.name}`} type="password" className="max-w-80 font-mono" value={key} onChange={(e) => setKey(e.target.value)} autoComplete="off" spellCheck={false} />
@@ -149,8 +158,6 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
                         {busy === "key" ? w.key.saving : p.keySaveAndCreate}
                       </Button>
                     </div>
-                  </>
-                )}
               </div>
             )}
           </>
@@ -173,6 +180,7 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
                   : <p className="text-sm text-muted-foreground">{p.nothingYet}</p>}
               </div>
             </div>
+            {d.registrar && <p className="text-sm text-foreground" data-pipe-registrar>{p.registrar} <span className="font-medium">{d.registrar}</span></p>}
             <p className="text-sm text-foreground" data-pipe-ns-match={d.nsMatch ? "yes" : "no"}>{d.state === "active" || d.nsMatch ? p.match : p.noMatch}</p>
           </>
         )}
@@ -181,6 +189,14 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
       <Step title={p.step3} done={d.state === "active"}>
         {!nsReady ? <p className="text-sm text-muted-foreground">{p.step3Wait}</p>
           : <p className="text-sm text-foreground">{d.state === "active" ? p.step3Done : p.step3Asked}</p>}
+        {d.state === "active" && !hasPrimary && (
+          <div className="mt-2 flex flex-col gap-1.5" data-pipe-make-primary>
+            <p className="text-sm text-foreground">{p.makePrimaryNote}</p>
+            <Button type="button" className="w-fit" onClick={makePrimary} disabled={busy !== null}>
+              {busy === "primary" ? p.makingPrimary : p.makePrimary}
+            </Button>
+          </div>
+        )}
       </Step>
 
       {/* Кнопка на всю ширину (слово владельца: «сделай её больше шире … всю ширину»); до ступени 1 проверять нечего —

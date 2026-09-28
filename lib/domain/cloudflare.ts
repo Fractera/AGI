@@ -330,3 +330,11 @@ export async function deleteTunnelRecord(token: string, zoneId: string, name: st
   }
   return { ok: true as const, result: removed }
 }
+
+/** Аккаунты, которые видит ключ (324-2: первый домен — зоны ещё нет, аккаунт узнаётся у ключа). Пусто — ключу не дано
+ *  право чтения аккаунта; тогда человек называет Account ID сам. */
+export async function listAccounts(token: string) {
+  const r = await send<Array<{ id: string; name: string }>>("GET", "/accounts?per_page=50", token)
+  if (!r.ok) return r
+  return { ok: true as const, result: r.result.map((a) => ({ id: a.id, name: a.name })) }
+}

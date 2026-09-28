@@ -83,7 +83,8 @@ export function DomainList({ lang, words: w, ladderWords, ladder }: { lang: stri
               <span className="font-mono text-sm text-muted-foreground">{list?.primary?.name ?? w.primaryNone}</span>
             </span>
           </AccordionTrigger>
-          <AccordionContent>{ladder}</AccordionContent>
+          {/* 324-2: основного домена нет — лестница не нужна: любой домен проходит свой путь ниже и там же становится основным. */}
+          <AccordionContent>{list && !list.primary ? <p className="text-sm text-foreground" data-primary-empty>{w.primaryEmpty}</p> : ladder}</AccordionContent>
         </AccordionItem>
 
         {list?.extra.map((d) => (
@@ -98,7 +99,7 @@ export function DomainList({ lang, words: w, ladderWords, ladder }: { lang: stri
               </span>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-2">
-              <DomainPipeline lang={lang} domain={d} words={w} ladderWords={ladderWords} onChanged={load} />
+              <DomainPipeline lang={lang} domain={d} words={w} ladderWords={ladderWords} onChanged={load} hasPrimary={!!list?.primary} />
               {d.holder && <p className="text-sm text-foreground">{w.attachedTo} <span className="font-mono">{d.holder}</span></p>}
               <Button type="button" variant="ghost" size="sm" className="w-fit" onClick={() => act("DELETE", d.name, d.name)} disabled={busy !== null || !!d.holder} data-domain-remove>
                 {w.remove}

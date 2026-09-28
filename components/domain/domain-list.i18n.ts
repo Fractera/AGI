@@ -4,6 +4,7 @@ export type DomainListWords = {
   intro: string
   primaryTitle: string
   primaryNone: string
+  primaryEmpty: string
   addTitle: string
   addLabel: string
   add: string
@@ -28,6 +29,7 @@ const DICT: Record<string, DomainListWords> = {
     intro: "Every AGI element of this project opens on a subdomain of the main domain. Any of them can also become a standalone resource on a domain of its own: add the domain here, then connect it on the element's page — Settings → Main mirror.",
     primaryTitle: "Main domain",
     primaryNone: "not connected yet",
+    primaryEmpty: "The node has no main domain yet. Add any domain below: the node takes it through its steps, and when the zone is active you make it the node's main domain right there.",
     addTitle: "Add a domain",
     addLabel: "Another domain of yours (the root, without www)",
     add: "Add",
@@ -54,7 +56,14 @@ const DICT: Record<string, DomainListWords> = {
       creating: "Creating…",
       noPermission: "The node's Cloudflare key has no right to add domains. Create a key with this right by the button below and paste it — the node will create the zone right after.",
       keySaveAndCreate: "Save the key and create the zone",
-      keyRemote: "The Cloudflare key is accepted only on the computer where the node runs — a key must not travel over a public link. Open this page there and paste the key:",
+      accountHint: "The node could not tell from its key which Cloudflare account to create the zone in. Paste the Account ID (32 characters). Cloudflare docs «Find account and zone IDs»: in the dashboard open Search (CMD/CTRL + K), type «Copy account ID» and select the result.",
+      accountLabel: "Cloudflare Account ID",
+      accountRetry: "Try again",
+      registrar: "Domain registrar:",
+      makePrimary: "Make it the node's main domain",
+      makingPrimary: "Connecting…",
+      makePrimaryNote: "The node has no main domain yet. This one can become it: the node creates its tunnel, the DNS records, sign-in on auth.<domain> and the site address — in one press.",
+      makePrimaryFailed: "The domain did not become main:",
       keyLabel: "New Cloudflare key",
       keySave: "Save the key and create the zone",
       keySaving: "Saving…",
@@ -101,6 +110,8 @@ const DICT: Record<string, DomainListWords> = {
       "no-zone-permission": "The key has no right to create zones — see step 1.",
       "no-primary": "Connect the main domain first (the first card).",
       "primary-not-visible": "The node's key does not see the main domain — the key is wrong for this node.",
+      "no-account": "The key did not name one Cloudflare account — paste the Account ID below and try again.",
+      "bad-account-id": "An Account ID is 32 characters: digits and letters a–f.",
       unknown: "It did not work:",
     },
   },
@@ -108,6 +119,7 @@ const DICT: Record<string, DomainListWords> = {
     intro: "Каждый AGI элемент этого проекта открывается на поддомене основного домена. Любой из них можно сделать и самостоятельным ресурсом на собственном домене: добавьте домен здесь, а затем подключите его на странице элемента — «Настройки» → «Главное зеркало».",
     primaryTitle: "Основной домен",
     primaryNone: "ещё не подключён",
+    primaryEmpty: "У узла пока нет основного домена. Добавьте любой домен ниже: узел проведёт его по ступеням, и когда зона станет активной, там же сделайте его основным доменом узла.",
     addTitle: "Добавить домен",
     addLabel: "Ещё один ваш домен (корень, без www)",
     add: "Добавить",
@@ -134,7 +146,14 @@ const DICT: Record<string, DomainListWords> = {
       creating: "Создаю…",
       noPermission: "У ключа Cloudflare узла нет права добавлять домены. Создайте ключ с этим правом кнопкой ниже и вставьте его — узел сразу создаст зону.",
       keySaveAndCreate: "Сохранить ключ и создать зону",
-      keyRemote: "Ключ Cloudflare принимается только на компьютере, где работает узел: по публичной ссылке ключ не должен идти. Откройте эту страницу там и вставьте ключ:",
+      accountHint: "По ключу узел не понял, в каком аккаунте Cloudflare создать зону. Вставьте Account ID (32 знака). По документации Cloudflare («Find account and zone IDs»): в панели откройте поиск (CMD/CTRL + K), наберите «Copy account ID» и выберите результат.",
+      accountLabel: "Account ID в Cloudflare",
+      accountRetry: "Попробовать снова",
+      registrar: "Регистратор домена:",
+      makePrimary: "Сделать основным доменом узла",
+      makingPrimary: "Подключаю…",
+      makePrimaryNote: "У узла пока нет основного домена. Этот может им стать: узел одним нажатием создаст туннель, записи DNS, вход на auth.<домен> и адрес сайта.",
+      makePrimaryFailed: "Домен не стал основным:",
       keyLabel: "Новый ключ Cloudflare",
       keySave: "Сохранить ключ и создать зону",
       keySaving: "Сохраняю…",
@@ -181,6 +200,8 @@ const DICT: Record<string, DomainListWords> = {
       "no-zone-permission": "У ключа нет права создавать зоны — см. ступень 1.",
       "no-primary": "Сначала подключите основной домен (первая карточка).",
       "primary-not-visible": "Ключ узла не видит основной домен — ключ не подходит этому узлу.",
+      "no-account": "Ключ не назвал один аккаунт Cloudflare — вставьте Account ID ниже и попробуйте снова.",
+      "bad-account-id": "Account ID — это 32 знака: цифры и буквы a–f.",
       unknown: "Не получилось:",
     },
   },
