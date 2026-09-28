@@ -481,6 +481,12 @@ the element's island is alive (the message is resent every 300 ms until an answe
 the element's `<html>` has `scroll-smooth`, which never reached the block there — `behavior: "instant"`. Elements not built
 from the template answer nothing, and the field says so.
 
+**The frame is the architect's screen, scaled** (node step 334, owner: «масштаб всегда, без переключателя»). The frame gets
+the core window's width as its own (`components/preview/use-screen-scale.client.ts`: width = `window.innerWidth`, scale =
+room / width, height = room / scale) and is shrunk with `transform: scale` — the element lays out as in its own tab. 🛑 Without
+it the frame was narrower than 1024 and the landing hid its chat: the architect took the tablet layout for an old version.
+`data-preview-scale` on the frame's box shows the current scale.
+
 ## Element birth — a draft becomes a running element (node step 319)
 
 **Create a microservice** → draft `<id>` (`data/agi-drafts.json`) → **Give birth to the element** (the draft's home;
