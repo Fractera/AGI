@@ -6,6 +6,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { WebPreview, WebPreviewBody, WebPreviewNavigation, WebPreviewUrl } from "@/components/ai-elements/web-preview"
+import { useScreenScale } from "./use-screen-scale.client"
 // 316: ссылка на терминал службы с адресом блока в окне вставки — одна функция мастера комплекта агента.
 import { terminalLink } from "@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/client/terminal-paste.mjs"
 
@@ -95,6 +96,8 @@ export function ElementPreview({ serviceId, lang, words }: { serviceId: string; 
   const [picked, setPicked] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const frameRef = useRef<HTMLIFrameElement | null>(null)
+  // 334: фрейм шириной окна ядра, уменьшенный до места (`use-screen-scale.client.ts`).
+  const { boxRef, fit } = useScreenScale<HTMLDivElement>()
   // «Найти блок» (318): текст поля, ход поиска, адрес, с которого просмотр открыт заново, и блок, ждущий загрузки окна.
   const [findText, setFindText] = useState("")
   const [find, setFind] = useState<FindState>("idle")
@@ -280,15 +283,19 @@ export function ElementPreview({ serviceId, lang, words }: { serviceId: string; 
             {words.highlight}
           </Button>
         </WebPreviewNavigation>
-        <WebPreviewBody
-          key={frameKey}
-          ref={frameRef}
-          allow="clipboard-write"
-          onLoad={() => {
-            if (highlight) { awaitAnswer(); sendHighlight(true) }
-            if (pendingBid.current) sendLocate()
-          }}
-        />
+        <div ref={boxRef} className="relative min-h-0 flex-1 overflow-hidden" data-preview-scale={fit ? fit.scale.toFixed(3) : undefined}>
+          <WebPreviewBody
+            key={frameKey}
+            ref={frameRef}
+            allow="clipboard-write"
+            className="absolute top-0 left-0 border-0"
+            style={fit ? { width: fit.width, height: fit.height, transform: `scale(${fit.scale})`, transformOrigin: "0 0" } : undefined}
+            onLoad={() => {
+              if (highlight) { awaitAnswer(); sendHighlight(true) }
+              if (pendingBid.current) sendLocate()
+            }}
+          />
+        </div>
       </WebPreview>
       {highlight && answer !== "waiting" && (
         <p className="text-muted-foreground text-sm" role="status" data-preview-highlight-state={answer}>
