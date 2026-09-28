@@ -90,7 +90,7 @@ const DICT: Record<string, ElementSettingsUi> = {
       taking: "Taking…",
       taken: "The description is now the element's record in the core.",
       takenAt: "Taken into the core:",
-      how: "1. Generate — the element's terminal opens with the task; start the agent and send it. 2. When the agent has written and committed the description — take it into the core.",
+      how: "1. Generate — the element's terminal opens with the task; start the agent and send it. The agent writes the description into the element's passport, commits it and hands it to the core itself (npm run describe:publish). 2. If the agent could not hand it over — take it into the core with the button.",
       errors: {
         "passport-unreadable": "The element's passport OWN-SERVICE-PROPS.json cannot be read.",
         "summary-missing": "The passport has no summary — the agent has not written it yet.",
@@ -220,7 +220,7 @@ const DICT: Record<string, ElementSettingsUi> = {
       taking: "Забираю…",
       taken: "Описание стало записью элемента в ядре.",
       takenAt: "Забрано в ядро:",
-      how: "1. «Сгенерировать» — откроется терминал элемента с заданием; запустите агента и отправьте его. 2. Когда агент напишет и закоммитит описание — заберите его в ядро.",
+      how: "1. «Сгенерировать» — откроется терминал элемента с заданием; запустите агента и отправьте его. Агент запишет описание в паспорт элемента, закоммитит и сам отдаст его в ядро (npm run describe:publish). 2. Если агент не смог отдать — заберите описание в ядро кнопкой.",
       errors: {
         "passport-unreadable": "Паспорт элемента OWN-SERVICE-PROPS.json не читается.",
         "summary-missing": "В паспорте нет описания (summary) — агент его ещё не написал.",

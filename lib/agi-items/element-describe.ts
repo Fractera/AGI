@@ -14,14 +14,20 @@ import paths from "@/lib/agi-items/paths.cjs"
 // 🔒 В РЕЕСТРЕ ОПИСАНИЕ ЗАМЕНЯЕТ `provides` РОЖДЕНИЯ (`element-site`) и получает `described` — когда и с какого коммита
 // элемента взято. Реестр — рабочий файл узла (как у рождения и удаления), в git ядра записи рождённых не попадают.
 
+// 329 (слово владельца 2026-09-28): «есть собственное описание и есть общий файл в ядре, который тоже должен быть обновлён …
+// процедура должна проходить через Claude Code, который вызывает навык внутри AGI ITEM; навык ещё не разработан». Задание
+// называет будущий навык `describe-element` (есть — агент следует ему) и кончается командой элемента `npm run describe:publish`:
+// она отдаёт паспорт в ядро той же дверью, что и кнопка «Забрать в ядро» (кнопка остаётся запасной).
 export const TASK = [
   "Describe this AGI element for the node's core.",
+  "If the skill describe-element exists in .claude/skills of this folder, follow it; otherwise do the steps below.",
   "Read the code of this folder (pages, API routes, lib) and find out what the element does for a person.",
   "Then edit only two fields of OWN-SERVICE-PROPS.json in this folder:",
   "- \"summary\": 2-3 plain sentences: what the element does and for whom. No step numbers, no words about templates.",
   "- \"provides\": 1-20 short names of its capabilities, lowercase words joined by hyphens (for example \"order-form\", \"price-list\").",
   "Change nothing else in the file or in the folder. Commit this one file with the message \"describe: summary and provides\".",
-  "Finish by printing the two fields.",
+  "Then run: npm run describe:publish — it hands the description to the node's core registry. If it prints DESCRIBE_FAILED, fix what it names and run it again.",
+  "Finish by printing the two fields and the line the command printed.",
 ].join("\n")
 
 const TEMPLATE_SUMMARY = /^The template of a node element/i
