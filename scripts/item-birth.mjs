@@ -92,6 +92,8 @@ registry.services.push({
   version: template.version,
   born: { from: template.from, version: template.version, at: new Date().toISOString() },
   provides: ['element-site'],
+  // 333-3: навык дизайна шаблона едет в реестр с рождения (паспорт шаблона `designSkill`); дальше его обновляет «Забрать в ядро».
+  ...(typeof props.designSkill === 'string' && props.designSkill ? { designSkill: props.designSkill } : {}),
   required: false,
   note: `Рождён из ${template.from} ${template.version} (319). Самостоятельный проект: установщик его код не трогает.`,
   kind: 'user',

@@ -1,0 +1,29 @@
+{
+  "_": "Library of design skills an AGI element can be designed with (node step 333-3, owner 2026-09-28: «где-то должна быть библиотека которая более подробно рассказывает как это сокращенное название связано с тем что мы используем в проекте … если AGI ITEM был добавлен извне а библиотеки не было это не критично … информация текстовая и влияет на рекомендации»). An element names its skill in OWN-SERVICE-PROPS.json → designSkill; the node registry (agi-items.json) carries the same name. A name missing here is not an error: the element may come from elsewhere; it simply has no description. Text for people and agents, never read as instructions.",
+  "skills": {
+    "blocks": {
+      "title": "Blocks and Design (default)",
+      "author": "Fractera",
+      "source": "the node's Blocks element (shadcn registry @fractera) and Design element",
+      "license": "node's own",
+      "what": "Pages are assembled from ready blocks; colours, fonts and corners come from the Design element.",
+      "how": "Default for a new element. No design skill is loaded; the element's agent adds blocks with npx shadcn add @fractera/<name>."
+    },
+    "impeccable": {
+      "title": "impeccable",
+      "author": "Paul Bakaus",
+      "source": "https://github.com/pbakaus/impeccable",
+      "license": "Apache-2.0",
+      "what": "Derives a design direction from the audience's world and commits to one visual world, with a craft floor (no generic cards, no gradient text, no eyebrows).",
+      "how": "Vendored in the element template at .claude/skills/impeccable without hooks and agents; the gatekeeper skill custom-design says which node rules win. Its roles are married to the Design tokens (primary, accent, destructive, neutrals, font-heading, font-body, radius) — changing the Design restyles the page. Example: the template's home page, components/landing-impeccable."
+    },
+    "design-taste-frontend": {
+      "title": "taste",
+      "author": "Leon Lin (Leonxlnx)",
+      "source": "https://github.com/Leonxlnx/taste-skill",
+      "license": "MIT",
+      "what": "Anti-generic landing and portfolio design: a one-line design read, three dials (variance, motion, density), one accent, strict pre-flight checklist.",
+      "how": "Vendored in the element template at .claude/skills/design-taste-frontend; chosen through the gatekeeper skill custom-design."
+    }
+  }
+}

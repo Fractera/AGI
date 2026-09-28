@@ -33,11 +33,16 @@ export const TASK = [
 const TEMPLATE_SUMMARY = /^The template of a node element/i
 const BIRTH_SUMMARY = /^AGI element \S+, born from /i
 const CAPABILITY = /^[a-z0-9][a-z0-9-]{1,47}$/
+// 333-3: НАВЫК ДИЗАЙНА ЭЛЕМЕНТА — короткое имя (`impeccable`, `design-taste-frontend`, `blocks`). Слово владельца: «в коллекции
+// собственной информации о себе мы теперь всегда передаем название навыка дизайна … глобальный реестр … должен получать этот
+// навык». Поле необязательное; имя вне библиотеки `AGI-ITEMS-CONFIG/design-skills.json` — не ошибка (элемент мог прийти извне),
+// проверяется только форма.
+const DESIGN_SKILL = /^[a-z0-9][a-z0-9-]{0,39}$/
 
 export type Description = { summary: string; provides: string[]; at: string; commit: string | null }
-export type TakeError = "passport-unreadable" | "summary-missing" | "summary-not-written" | "provides-missing" | "provides-bad-shape" | "registry-failed"
+export type TakeError = "passport-unreadable" | "summary-missing" | "summary-not-written" | "provides-missing" | "provides-bad-shape" | "design-skill-bad-shape" | "registry-failed"
 
-type Entry = { id: string; kind?: string; born?: unknown; summary?: string; provides?: string[]; described?: { at: string; commit: string | null } }
+type Entry = { id: string; kind?: string; born?: unknown; summary?: string; provides?: string[]; designSkill?: string; described?: { at: string; commit: string | null } }
 type Registry = { services: Entry[] }
 
 const readRegistry = (): Registry => JSON.parse(readFileSync(paths.REGISTRY_FILE, "utf8")) as Registry
@@ -52,8 +57,8 @@ export function registryDescription(id: string): Description | null {
 }
 
 /** Прочитать паспорт элемента и проверить форму описания. */
-export function passportDescription(id: string): { ok: true; summary: string; provides: string[] } | { ok: false; error: TakeError } {
-  let props: { summary?: unknown; provides?: unknown }
+export function passportDescription(id: string): { ok: true; summary: string; provides: string[]; designSkill?: string } | { ok: false; error: TakeError } {
+  let props: { summary?: unknown; provides?: unknown; designSkill?: unknown }
   try {
     props = JSON.parse(readFileSync(join(paths.itemDir(id, "user"), "OWN-SERVICE-PROPS.json"), "utf8"))
   } catch { return { ok: false, error: "passport-unreadable" } }
@@ -65,7 +70,12 @@ export function passportDescription(id: string): { ok: true; summary: string; pr
   if (provides.length > 20 || provides.some((p) => !CAPABILITY.test(p)) || new Set(provides).size !== provides.length) {
     return { ok: false, error: "provides-bad-shape" }
   }
-  return { ok: true, summary: summary.slice(0, 800), provides }
+  let designSkill: string | undefined
+  if (props.designSkill !== undefined) {
+    designSkill = typeof props.designSkill === "string" ? props.designSkill.trim() : ""
+    if (!DESIGN_SKILL.test(designSkill)) return { ok: false, error: "design-skill-bad-shape" }
+  }
+  return { ok: true, summary: summary.slice(0, 800), provides, designSkill }
 }
 
 /** «Забрать в ядро»: паспорт → запись реестра. Отказ — реестр не тронут. */
@@ -81,6 +91,7 @@ export function takeDescription(id: string): { ok: true; description: Descriptio
     if (!e) return { ok: false, error: "registry-failed" }
     e.summary = read.summary
     e.provides = read.provides
+    if (read.designSkill) e.designSkill = read.designSkill
     e.described = { at, commit }
     writeFileSync(paths.REGISTRY_FILE, JSON.stringify(reg, null, 2) + "\n", "utf8")
   } catch { return { ok: false, error: "registry-failed" } }
