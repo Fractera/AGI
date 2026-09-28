@@ -85,7 +85,14 @@ export const ITEM_TREE: TreePage[] = [
   // 325 (слово владельца 2026-09-27): обязательная страница внизу — «Настройки», так называемый Danger zone. Всегда последняя.
   {
     slug: "settings",
-    words: w("Settings", "Danger zone: the element's description in the core, its address, its main mirror and deleting it.", "Настройки", "Опасная зона: описание элемента в ядре, его адрес, главное зеркало и удаление."),
+    words: w("Settings", "The element's danger zone and the settings of its own site.", "Настройки", "Опасная зона элемента и настройки его собственного сайта."),
+    // 328 (слово владельца 2026-09-28): «на вкладке настройки увидеть выпадающий список … страница настройки, которые уже
+    // существуют, и страница конфигуратора». Конфигуратор живёт в самом элементе (выбор «б» 324-8) — страница ядра открывает
+    // его на главном адресе в новой вкладке (выбор «б» 2026-09-28: во встроенном окне свой домен не получил бы билет входа).
+    pages: [
+      { slug: "danger-zone", words: w("Danger zone", "The element's description in the core, its address, its main mirror, links to the node and deleting it.", "Опасная зона", "Описание элемента в ядре, его адрес, главное зеркало, связи с узлом и удаление.") },
+      { slug: "site-settings", words: w("Site settings", "The name, texts, search settings, images and languages of the element's own site.", "Настройки сайта", "Название, тексты, настройки для поиска, картинки и языки собственного сайта элемента.") },
+    ],
   },
 ]
 

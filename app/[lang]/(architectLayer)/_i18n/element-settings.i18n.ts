@@ -18,6 +18,7 @@ export type ElementSettingsUi = {
   config: Card
   design: Card
   blocks: Card
+  siteSettings: { text: string; configOn: string; configOff: string; open: string }
   linkCard: { on: string; off: string; turnOn: string; turnOff: string; busy: string; failed: string }
   remove: Card
   removeDialog: { title: string; text: string; label: string; confirm: string; deleting: string; cancel: string; mismatch: string; failed: string; riskNever: string; riskAhead: string; riskNone: string }
@@ -120,6 +121,12 @@ const DICT: Record<string, ElementSettingsUi> = {
       title: "Sync with Blocks",
       text: "The element's agent takes ready blocks from the Blocks registry. Turned off, the registry is removed from components.json; blocks already taken stay in the element's code.",
       action: "", pending: "",
+    },
+    siteSettings: {
+      text: "The site settings of this element — name, description, search settings, images, icons and languages — live on the element's own site and open there, on its main address, where you are signed in through the node.",
+      configOn: "Sync with CONFIG is on: these settings come from the CONFIG element, and the element's own settings page shows them without saving. Turn the sync off in «Danger zone» to give the element its own settings.",
+      configOff: "Sync with CONFIG is off: the element lives by its own settings, and they are saved on its settings page.",
+      open: "Open the site settings",
     },
     linkCard: { on: "Connected", off: "Disconnected — the element lives on its own", turnOn: "Connect", turnOff: "Disconnect", busy: "Saving…", failed: "Not saved:" },
     mirror: {
@@ -244,6 +251,12 @@ const DICT: Record<string, ElementSettingsUi> = {
       title: "Синхронизация с Блоками",
       text: "Агент элемента берёт готовые блоки из реестра «Блоков». Отключите — реестр уберётся из components.json; уже взятые блоки останутся в коде элемента.",
       action: "", pending: "",
+    },
+    siteSettings: {
+      text: "Настройки сайта этого элемента — название, описание, настройки для поиска, картинки, иконки и языки — живут на собственном сайте элемента и открываются там, на его главном адресе, где вы уже вошли через узел.",
+      configOn: "Синхронизация с CONFIG включена: эти настройки приходят от элемента CONFIG, и страница настроек элемента показывает их без сохранения. Чтобы у элемента были свои, выключите синхронизацию в «Опасной зоне».",
+      configOff: "Синхронизация с CONFIG выключена: элемент живёт своими настройками, и они сохраняются на его странице настроек.",
+      open: "Открыть настройки сайта",
     },
     linkCard: { on: "Подключено", off: "Отключено — элемент живёт самостоятельно", turnOn: "Подключить", turnOff: "Отключить", busy: "Сохраняю…", failed: "Не сохранено:" },
     mirror: {

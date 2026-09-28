@@ -52,7 +52,7 @@ export function ElementAddress({ id, lang, ui, current, internet }: {
       })
       const d = (await r.json().catch(() => null)) as (Check & { address?: string }) | null
       if (d?.ok && d.address) {
-        window.location.assign(`${BASE}/${lang}/architect/${d.address}/settings`)
+        window.location.assign(`${BASE}/${lang}/architect/${d.address}/settings/danger-zone`)
         return
       }
       setCheck(d)

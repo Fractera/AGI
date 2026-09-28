@@ -29,6 +29,7 @@ import { ElementDomain } from '../../../_components/element-domain.client'
 import { domainRecord } from '@/lib/agi-items/element-domain'
 import { readLinks } from '@/lib/agi-items/element-links'
 import { ElementLink } from '../../../_components/element-link.client'
+import { ElementSiteSettings } from '../../../_components/element-site-settings'
 import { addressOf, idOfAddress } from '@/lib/agi-items/element-address'
 import { registryDescription, TASK as DESCRIBE_TASK } from '@/lib/agi-items/element-describe'
 import { terminalLink } from '@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/client/terminal-paste.mjs'
@@ -191,7 +192,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
     : []
   // 325: «Настройки» — Danger zone рождённого элемента; у черновика — объяснение.
   const sui = elementSettingsUi(lang)
-  const settings = section.slug === 'settings' && !page
+  // 328: «Настройки» раскрывается — «Опасная зона» (прежняя страница) и «Настройки сайта» (конфигуратор элемента).
+  const settings = section.slug === 'settings' && page?.slug === 'danger-zone'
     ? (entry
       ? <ElementDangerZone ui={sui} actions={{
           // 325-2: задание агенту — в окно вставки терминала элемента (`<id>/build/terminal`), отправляет человек.
@@ -206,6 +208,11 @@ export default async function Page({ params }: { params: Promise<Params> }) {
           blocks: <ElementLink id={item} kind="blocks" on={readLinks(item).blocks} ui={sui} />,
           remove: <DeleteElementButton lang={lang} id={item} address={address} ui={sui} dialogUi={appDialogUi(lang)} />,
         }} />
+      : <p className="my-4 text-sm text-muted-foreground">{sui.notBorn}</p>)
+    : null
+  const siteSettings = section.slug === 'settings' && page?.slug === 'site-settings'
+    ? (entry
+      ? <ElementSiteSettings lang={lang} ui={sui} siteUrl={domainRecord(item)?.url ?? `https://${address}`} configOn={readLinks(item).config} />
       : <p className="my-4 text-sm text-muted-foreground">{sui.notBorn}</p>)
     : null
 
@@ -232,7 +239,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       title={words.title}
       lead={words.lead}
       pageTitle={address}
-      widget={<>{bar}{list}{preview}{github}{deploymentsNote}{settings}{agent}</>}
+      widget={<>{bar}{list}{preview}{github}{deploymentsNote}{settings}{siteSettings}{agent}</>}
       children={tables}
     />
   )
