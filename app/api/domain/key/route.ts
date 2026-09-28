@@ -2,7 +2,7 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { readFileSync, writeFileSync, existsSync } from "node:fs"
 import { join } from "node:path"
-import { verifyToken, listZones } from "@/lib/domain/cloudflare"
+import { verifyToken, listZones, accountOfZone, findTunnel } from "@/lib/domain/cloudflare"
 import { getSession } from "@/lib/auth/get-session"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
 
@@ -79,6 +79,14 @@ export async function POST(req: NextRequest) {
     // зону. Это отдельная беда с отдельным лечением, и назвать её надо отдельно.
     return NextResponse.json({ ok: false, reason: "no-zones" }, { status: 400 })
   }
+
+  // 🔒 ПРАВО НА ТУННЕЛИ ПРОВЕРЯЕТСЯ ДО ЗАПИСИ (324-10). ✗ Оплачено 2026-09-28: ключ с правом создавать зоны, но без
+  // «Cloudflare Tunnel», прошёл эту дверь и заменил рабочий ключ — у узла молча перестали работать подключение доменов к
+  // элементам, «Адрес в интернете» и снятие туннеля при удалении (Cloudflare: 1001 Not authorized). Проба — чтение
+  // туннелей аккаунта первой зоны; отказ — ключ не записывается, прежний остаётся.
+  const account = await accountOfZone(token, zones.result[0].id)
+  const tunnels = account.ok ? await findTunnel(token, account.result, "fractera-permission-probe") : account
+  if (!tunnels.ok) return NextResponse.json({ ok: false, reason: "no-tunnel-permission" }, { status: 400 })
 
   putEnv(KEY_NAME, token)
   process.env[KEY_NAME] = token

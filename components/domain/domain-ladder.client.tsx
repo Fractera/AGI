@@ -154,6 +154,7 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
     if (reason === "empty") return words.reasonEmpty
     if (reason === "no-zones") return words.reasonNoZones
     if (reason === "not-owner") return words.reasonNotOwner
+    if (reason === "no-tunnel-permission") return words.reasonNoTunnel
     if (reason.startsWith("network:")) return words.reasonNetwork
     if (reason.startsWith("token-")) return words.reasonToken
     // Слова самого Cloudflare передаются как есть: они точнее нашего пересказа.
@@ -264,6 +265,7 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
     if (reason === "bad-hostname") return words.reasonBadHostname
     if (reason === "no-key") return words.reasonNoKey
     if (reason === "not-owner") return words.reasonNotOwner
+    if (reason === "no-tunnel-permission") return words.reasonNoTunnel
     if (reason.startsWith("network:")) return words.reasonNetwork
     if (reason.startsWith("cloudflare:")) return reason.slice("cloudflare:".length)
     return reason

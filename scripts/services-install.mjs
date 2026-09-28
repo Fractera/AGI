@@ -677,6 +677,16 @@ for (const entry of registry.services) {
   }
 
   const ctx = { port, id: entry.id, props, nodePort, dir }
+  /** Набор языков из APP-CONFIG элемента (`languages: { supported, default }`) или `null`. */
+  function chosenLanguages(itemDir) {
+    try {
+      const l = JSON.parse(readFileSync(join(itemDir, 'APP-CONFIG', 'app-config.json'), 'utf8')).languages
+      const supported = Array.isArray(l?.supported) ? l.supported.filter((x) => typeof x === 'string' && /^[a-z]{2,3}(-[a-z0-9]+)?$/i.test(x)) : []
+      if (supported.length === 0) return null
+      return { supported, default: supported.includes(l.default) ? l.default : supported[0] }
+    } catch { return null }
+  }
+
   const lines = [
     '# ПОРОЖДЁННЫЙ ФАЙЛ. Его пишет `npm run services:install` узла AGI.',
     '#',
@@ -695,7 +705,12 @@ for (const entry of registry.services) {
       lines.push(`${v.name}=${sharedSecret(v.name)}`)
     } else if (v.kind === 'own') {
       const kept = readEnvFile(join(dir, envName)).get(v.name)
-      lines.push(`${v.name}=${kept !== undefined ? kept : v.example}`)
+      // 324-9: набор языков, выбранный на странице «Настройки сайта» элемента (его APP-CONFIG → `languages`), сильнее
+      // прежнего значения: набор вшивается при сборке, и пересборка обязана взять выбор человека. Нет записи — как было.
+      const chosen = chosenLanguages(dir)
+      if (chosen && v.name === 'NEXT_PUBLIC_SUPPORTED_LANGUAGES') lines.push(`${v.name}=${chosen.supported.join(',')}`)
+      else if (chosen && v.name === 'NEXT_PUBLIC_DEFAULT_LOCALE') lines.push(`${v.name}=${chosen.default}`)
+      else lines.push(`${v.name}=${kept !== undefined ? kept : v.example}`)
     } else if (v.kind === 'foreign') {
       const kept = readEnvFile(join(dir, envName)).get(v.name)
       if (kept && kept.trim() !== '') {

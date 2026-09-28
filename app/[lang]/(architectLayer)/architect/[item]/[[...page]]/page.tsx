@@ -196,7 +196,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       ? <ElementDangerZone ui={sui} actions={{
           // 325-2: задание агенту — в окно вставки терминала элемента (`<id>/build/terminal`), отправляет человек.
           describe: <ElementDescribe id={item} lang={lang} ui={sui} current={registryDescription(item)} terminalHref={terminalLink({ lang, service: `${slug}/build`, text: DESCRIBE_TASK })} />,
-          address: <ElementAddress id={item} lang={lang} ui={sui} current={slug} internet={address} />,
+          // 324-10: «адрес в интернете» — главный адрес элемента (свой домен, если он главный), а не всегда поддомен.
+          address: <ElementAddress id={item} lang={lang} ui={sui} current={slug} internet={domainRecord(item)?.url.replace("https://", "") ?? address} />,
           // 324: главное зеркало — второй собственный домен в корне элемента.
           mirror: <ElementDomain id={item} lang={lang} ui={sui} current={domainRecord(item)} />,
           // 324-7: связи с узлом — CONFIG, Дизайн, Блоки.

@@ -104,6 +104,7 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
       if (j?.reason === "not-owner" || j?.reason === "temporary-address") { setRemote({ nodeUrl: null }); setBusy(null); return }
       if (!j?.ok) {
         const why = j?.reason === "not-owner" ? ladderWords.reasonNotOwner
+          : j?.reason === "no-tunnel-permission" ? ladderWords.reasonNoTunnel
           : j?.reason === "temporary-address" ? ladderWords.reasonTemporary
           : `${w.key.failed} ${j?.reason ?? r.status}`
         setError(why); setBusy(null); return

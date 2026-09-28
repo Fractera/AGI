@@ -85,6 +85,15 @@ export async function deleteElement(id: string): Promise<{ ok: boolean; steps: S
   await pm2(["save"])
   steps.push({ step: "pm2", ok: true })
 
+  // 1а. Свой домен элемента (324-10): снимается до поддомена — имя и www уходят из туннеля и DNS, переадресация исчезает с
+  // записью; домен остаётся в списке узла свободным. Импорт на месте: модуль домена сам берёт отсюда чтение ключа.
+  const { detachDomain, domainOf } = await import("@/lib/agi-items/element-domain")
+  const ownDomain = domainOf(id)
+  if (ownDomain) {
+    const off = await detachDomain(id)
+    steps.push({ step: "domain", ok: off.ok, detail: off.ok ? ownDomain : off.error })
+  }
+
   // 2. Адрес в интернете (если узел на своём домене).
   let domain: { zone?: string; tunnelId?: string } | null = null
   try { domain = JSON.parse(readFileSync(join(ROOT, "logs", "domain.json"), "utf8")) } catch { /* узел без домена */ }
