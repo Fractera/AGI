@@ -287,6 +287,10 @@ function derivedValue(name, ctx) {
     case 'APP_CONFIG_PATH': return join(ctx.dir, 'APP-CONFIG', 'app-config.json')
     case 'PLATFORM_CONFIG_PATH': return join(ctx.dir, 'PLATFORM-CONFIG', 'platform-config.json')
     case 'LEGAL_CONFIG_DIR': return join(ctx.dir, 'APP-CONFIG', 'legal')
+    // 330-3: тот же класс для ДАННЫХ СТРАНИЦ элемента (`app/**/_data`, `_pages`). ✗ Измерено 2026-09-28: `ELEMENT_DIR` не
+    // писал никто, `lib/page-tree.ts` брал `process.cwd()` — папку сборки, и правка текста не была видна даже после
+    // перерисовки (`pages:refresh` отвечал 200, страница оставалась прежней). Папка элемента — абсолютная.
+    case 'ELEMENT_DIR': return ctx.dir
     // Файл подключённого домена — у узла; собранный сервер элемента сам его не найдёт (сайт вёл «Войти» на петлю).
     case 'NODE_DOMAIN_FILE': return join(ROOT, 'logs', 'domain.json')
     // 299: реестр узла — какие элементы стоят здесь. Элемент настроек показывает по нему ссылки на все элементы перед
