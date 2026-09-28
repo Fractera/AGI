@@ -27,10 +27,13 @@ const BLOCKS_REGISTRY = "${BLOCKS_REGISTRY_URL}/r/{name}.json"
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v)
 
+// Концы строк файла сохраняются: файл элемента живёт в его git, и смена CRLF на LF была бы правкой без содержания.
 function writeJson(file: string, value: unknown): void {
   const tmp = `${file}.${process.pid}.${Date.now()}.tmp`
+  let eol = "\n"
+  try { if (readFileSync(file, "utf8").includes("\r\n")) eol = "\r\n" } catch { /* нового файла нет — LF */ }
   mkdirSync(dirname(file), { recursive: true })
-  writeFileSync(tmp, JSON.stringify(value, null, 2) + "\n", "utf8")
+  writeFileSync(tmp, (JSON.stringify(value, null, 2) + "\n").replace(/\n/g, eol), "utf8")
   renameSync(tmp, file)
 }
 
