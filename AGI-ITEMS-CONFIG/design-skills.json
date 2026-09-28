@@ -15,7 +15,7 @@
       "source": "https://github.com/pbakaus/impeccable",
       "license": "Apache-2.0",
       "what": "Derives a design direction from the audience's world and commits to one visual world, with a craft floor (no generic cards, no gradient text, no eyebrows).",
-      "how": "Vendored in the element template at .claude/skills/impeccable without hooks and agents; the gatekeeper skill custom-design says which node rules win. Its roles are married to the Design tokens (primary, accent, destructive, neutrals, font-heading, font-body, radius) — changing the Design restyles the page. Example: the template's home page, components/landing-impeccable."
+      "how": "Vendored in the element template at .claude/skills/impeccable without hooks and agents; the gatekeeper skill custom-design says which node rules win. Its roles are married to the Design tokens (primary, accent, destructive, neutrals, font-heading, font-body, radius) — changing the Design restyles the page. Example: the template's home page, components/landing-agent (built by the element agent)."
     },
     "design-taste-frontend": {
       "title": "taste",
