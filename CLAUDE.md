@@ -502,6 +502,23 @@ notes from the example file, set / not set asked in the browser (`/api/architect
 anchors (instant scroll + frame 3 s), only `OPENAI_API_KEY` editable, checked by a real OpenAI call before it is written;
 saving an element key while the core has none asks «copy to the core?». Voice without a key links there in a new tab.
 
+## Deploy and Preview on the element's own page (node step 337)
+
+Owner 2026-09-29: the element's «Deployments» page shows the commit and the state — it gets **Deploy** and **Preview**
+(`app/[lang]/(architectLayer)/_components/element-deploy.client.tsx`), the core's board stays as the overview.
+**Pending is measured by git** (`lib/agi-items/element-code-state.ts`): uncommitted code or last commit ≠ the running one
+(`+<hash>` of `.install-stamp.json`); files the node writes itself (config folders, `tsconfig.json`, `next-env.d.ts`, the
+stamp) are not changes. **Preview** — `scripts/element-preview.mjs stage|promote|discard <id>` via
+`/api/architect/items/<id>/preview`: builds into the neighbour dist folder and leaves the server on a spare port
+(`127.0.0.1`, only on the node's machine), the live version untouched; **Accept** points the stamp at that folder and
+restarts the service through pm2 (seconds, no build); **Reject** stops it and removes the folder. State:
+`data/services/<id>/preview.json` with pids, liveness measured on each read.
+🛑 **The deploy lock never lies** (`lib/deploy/deploy-lock.cjs`): the record carries `pid`; a dead process reads as
+«interrupted». ✗ 2026-09-29: a core rebuild restarted the core 51 s into a deploy of mzjce, pm2 killed the detached child,
+`running: true` stayed forever — endless spinner, dead buttons. 🛑 **`detached` does not survive pm2**: long jobs started
+by a core door go through `scripts/spawn-free.mjs` (double spawn — no living parent, outside the core's tree).
+`serve:rebuild` refuses to start while a deploy runs and waits for it before restarting the core.
+
 ## Element birth — a draft becomes a running element (node step 319)
 
 **Create a microservice** → draft `<id>` (`data/agi-drafts.json`) → **Give birth to the element** (the draft's home;
