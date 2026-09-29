@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireRoles } from "@/lib/auth/require-roles"
 import { PROTECTED_GROUP_ROLES } from "@/lib/roles"
 import { openAiKey } from "@/lib/openai-key"
+import { isBornElement } from "@/lib/agi-items/element-delete"
 import { transcribeAudio } from "@/_tools/voice-input/server/transcribe"
 
 // Дверь расшифровки речи для приложения.
@@ -26,11 +27,14 @@ export async function POST(req: NextRequest) {
   const denied = await requireRoles(req, PROTECTED_GROUP_ROLES.staff)
   if (denied) return denied
 
-  const key = openAiKey()
+  // 336-3: `?item=<id>` — работа над элементом: ключ ядра, нет — ключ элемента (слово владельца 2026-09-29).
+  const item = req.nextUrl.searchParams.get("item")
+  const key = openAiKey(item && isBornElement(item) ? item : null)
   if (!key) {
     // Отдельный код, а не общая ошибка: клиент по нему показывает подсказку,
     // где ключ добавить, вместо «что-то пошло не так».
-    return NextResponse.json({ ok: false, error: "no-key" }, { status: 503 })
+    // 🛑 336: клиент читает `reason`, а здесь стояло только `error` — вместо «нет ключа» человек видел «не удалось».
+    return NextResponse.json({ ok: false, error: "no-key", reason: "no-key" }, { status: 503 })
   }
 
   const form = await req.formData().catch(() => null)

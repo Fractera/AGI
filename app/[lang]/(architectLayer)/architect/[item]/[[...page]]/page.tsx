@@ -37,6 +37,7 @@ import { agentKitWidget, type AgentKitPage } from '../_agent-kit/widgets'
 import { Button } from '@/components/ui/button'
 import { ElementPreview } from '@/components/preview/element-preview.client'
 import { elementPreviewWords } from '@/sections/blocks/element-preview.server'
+import { EnvironmentPanel } from '@/components/environment/environment-panel'
 
 // ОДНА СТРАНИЦА НА ВСЕ АДРЕСА ВСЕХ ЧЕРНОВИКОВ (314-1): `/architect/<id>`, `/architect/<id>/<раздел>`,
 // `/architect/<id>/<раздел>/<страница>`. Дерево — `lib/agi-items/item-tree.ts`, черновики — `data/agi-drafts.json`.
@@ -173,6 +174,11 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       : <p className="my-4 text-sm text-muted-foreground">{elementGithubUi(lang).notBorn}</p>)
     : null
 
+  // 336-1: «Переменные окружения» элемента — имена и пояснения из его `.env.example`, ключ OpenAI с проверкой; у черновика — объяснение.
+  const environment = section.slug === 'build' && page?.slug === 'environment'
+    ? (entry ? <EnvironmentPanel target={item} lang={lang} /> : <p className="my-4 text-sm text-muted-foreground">{elementSettingsUi(lang).notBorn}</p>)
+    : null
+
   // 321: «Развёртывания» — версии элемента стандартной таблицей каталога (`table`: поиск сверху, страницы снизу, 262).
   const isDeployments = section.slug === 'build' && page?.slug === 'deployments'
   const versions = isDeployments && entry ? elementVersions(item) : null
@@ -239,7 +245,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       title={words.title}
       lead={words.lead}
       pageTitle={address}
-      widget={<>{bar}{list}{preview}{github}{deploymentsNote}{settings}{siteSettings}{agent}</>}
+      widget={<>{bar}{list}{preview}{github}{deploymentsNote}{environment}{settings}{siteSettings}{agent}</>}
       children={tables}
     />
   )
