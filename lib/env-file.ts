@@ -28,8 +28,10 @@ export function targetDir(target: EnvTarget): string | null {
   return entry ? paths.entryDir(entry) : null
 }
 
+// 🛑 `.env.example` ПЕРВЫМ: у элемента лежат оба, и `.env.local.example` — старый остаток шаблона Next с переменными ядра
+// (замерено 336: вкладка roman показывала AUTH_SECRET и ARCHITECT_TOKEN). Установщик читает `.env.example`; у ядра — только второй.
 function exampleFile(dir: string): string | null {
-  for (const f of [".env.local.example", ".env.example"]) if (existsSync(join(dir, f))) return join(dir, f)
+  for (const f of [".env.example", ".env.local.example"]) if (existsSync(join(dir, f))) return join(dir, f)
   return null
 }
 
@@ -60,6 +62,8 @@ export function listVars(target: EnvTarget): EnvVar[] {
     if (line.startsWith("#")) notes.push(line.replace(/^#\s?/, ""))
     else notes = []
   }
+  // Редактируемое видно всегда, даже если пример о нём молчит: иначе у подсказки голоса нет поля, куда вести.
+  for (const name of EDITABLE) if (!seen.has(name)) out.push({ name, group: "", help: "" })
   return out
 }
 
