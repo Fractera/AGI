@@ -17,6 +17,8 @@ import { servicePortWords } from '@/components/services/service-port.i18n'
 import { ElementGithub } from '../../../_components/element-github.client'
 import { elementGithubUi } from '../../../_i18n/element-github.i18n'
 import { elementDeploymentsUi } from '../../../_i18n/element-deployments.i18n'
+import { elementDeployUi } from '../../../_i18n/element-deploy.i18n'
+import { ElementDeploy } from '../../../_components/element-deploy.client'
 import { elementVersions } from '@/lib/agi-items/element-versions'
 import type { Block } from '@/lib/content/blocks/types'
 import { RotateCcw } from 'lucide-react'
@@ -222,6 +224,9 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       : <p className="my-4 text-sm text-muted-foreground">{sui.notBorn}</p>)
     : null
 
+  // 337-3/4: «Развернуть» и «Предпросмотр» — на своей странице элемента, а не только в ядре (слово владельца 2026-09-29).
+  const deployPanel = isDeployments && entry ? <ElementDeploy id={item} lang={lang} ui={elementDeployUi(lang)} /> : null
+
   // 321, дополнение (слово владельца: «на кнопку нарисуй по дефолту чтобы она пока не нажималась»): откат — шаг 322;
   // кнопка видна и неактивна, причина написана рядом, а не спрятана.
   const deploymentsNote = isDeployments
@@ -245,7 +250,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       title={words.title}
       lead={words.lead}
       pageTitle={address}
-      widget={<>{bar}{list}{preview}{github}{deploymentsNote}{environment}{settings}{siteSettings}{agent}</>}
+      widget={<>{bar}{list}{preview}{github}{deployPanel}{deploymentsNote}{environment}{settings}{siteSettings}{agent}</>}
       children={tables}
     />
   )

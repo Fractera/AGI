@@ -40,6 +40,8 @@ export type DeployBoardWords = {
   rollback: string
   /** подсказка: версия взята из истории реестра, её успех не записан */
   rollbackGit: string
+  /** 337-2: «правок кода: {n}» */
+  codeChanges: string
 }
 
 type Element = {
@@ -50,6 +52,8 @@ type Element = {
   takesSettings: boolean
   pending: boolean
   previous: { version: string; source: "history" | "git" } | null
+  /** 337-2: состояние кода элемента по git (`lib/agi-items/element-code-state.ts`). */
+  code: { head: string | null; running: string | null; changed: number; changes: string[]; pending: boolean } | null
 }
 type Deployment = {
   running: boolean
@@ -128,14 +132,18 @@ export function DeployBoard({ words, lang }: { words: DeployBoardWords; lang: st
               <span className="min-w-20 font-medium text-foreground">{e.id}</span>
               <span className="text-muted-foreground">{words.version}: {e.version ?? "—"}</span>
               <span className="text-muted-foreground">{words.built}: {when(e.builtAt, lang)}</span>
+              {/* 337-2: ожидание — и правки кода, и новый коммит, поэтому оно проверяется раньше «настроек не получает». */}
               {!e.installed ? (
                 <Badge variant="outline">{words.notInstalled}</Badge>
-              ) : !e.takesSettings ? (
-                <Badge variant="outline">{words.noSettings}</Badge>
               ) : e.pending ? (
                 <Badge variant="secondary" className="border-warning/50 bg-warning/10 text-foreground" data-pending>{words.pending}</Badge>
+              ) : !e.takesSettings ? (
+                <Badge variant="outline">{words.noSettings}</Badge>
               ) : (
                 <Badge variant="outline">{words.upToDate}</Badge>
+              )}
+              {e.code && e.code.changed > 0 && (
+                <span className="text-muted-foreground" data-code-changes={e.code.changed}>{words.codeChanges.replace("{n}", String(e.code.changed))}</span>
               )}
               {queued && <span className="text-muted-foreground">{words.queued}</span>}
               {running && dep?.current === e.id && <Spinner />}

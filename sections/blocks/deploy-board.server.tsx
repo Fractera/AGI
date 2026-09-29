@@ -29,6 +29,7 @@ const WORDS: Record<string, DeployBoardWords> = {
     busy: 'A deployment is already running — wait for it to finish.',
     rollback: 'Roll back to {version}',
     rollbackGit: 'The previous version from the registry history — whether it worked is not recorded.',
+    codeChanges: 'code changes: {n}',
   },
   ru: {
     intro: 'Развёртывание пересобирает часть проекта, чтобы она показала сохранённое: оформление, настройки, новую версию. Само сохранение того, что видят посетители, не меняет.',
@@ -55,6 +56,7 @@ const WORDS: Record<string, DeployBoardWords> = {
     busy: 'Развёртывание уже идёт — дождитесь окончания.',
     rollback: 'Вернуть {version}',
     rollbackGit: 'Предыдущая версия из истории реестра — была ли она рабочей, не записано.',
+    codeChanges: 'правок кода: {n}',
   },
 }
 

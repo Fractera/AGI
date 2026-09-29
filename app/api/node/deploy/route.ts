@@ -8,6 +8,7 @@ import { requireRoles } from "@/lib/auth/require-roles"
 import paths from "@/lib/agi-items/paths.cjs"
 import rollback from "@/lib/deploy/previous-version.cjs"
 import deployLock from "@/lib/deploy/deploy-lock.cjs"
+import { elementCodeState } from "@/lib/agi-items/element-code-state"
 
 // ДАШБОРД РАЗВЁРТЫВАНИЙ — ДВЕРЬ (280-11b).
 //
@@ -68,6 +69,8 @@ function elements() {
         if (m && (!settingsChangedAt || m > settingsChangedAt)) settingsChangedAt = m
       }
     }
+    // 337-2: правки кода и «последний коммит ≠ работающий» — тоже ожидание развёртывания, а не только настройки.
+    const code = stamp ? elementCodeState(dir) : null
     return {
       id: s.id,
       version: s.version ?? null,
@@ -75,7 +78,8 @@ function elements() {
       installed: !!stamp,
       builtAt,
       takesSettings: owns.length > 0,
-      pending: !!(settingsChangedAt && builtAt && settingsChangedAt > Date.parse(builtAt)),
+      pending: !!(settingsChangedAt && builtAt && settingsChangedAt > Date.parse(builtAt)) || !!code?.pending,
+      code,
       settingsChangedAt: settingsChangedAt ? new Date(settingsChangedAt).toISOString() : null,
       // 287: предыдущая рабочая версия — для кнопки «Вернуть»; `source: git` — успех той версии не записан.
       previous: stamp ? rollback.previousVersion(s.id) : null,
