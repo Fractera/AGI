@@ -336,7 +336,7 @@ export function ElementPreview({ serviceId, lang, words, task }: { serviceId: st
           </div>
           <p className="text-muted-foreground text-xs">{words.drawerHint}</p>
           <div className="min-h-0 flex-1 overflow-auto">
-            <AgentTerminal service={serviceId} lang={lang} words={task.terminalWords} dialogUi={task.dialogUi} initialPaste={drawerText} keyHref={task.keyHref} />
+            <AgentTerminal service={serviceId} lang={lang} words={task.terminalWords} dialogUi={task.dialogUi} initialPaste={drawerText} keyHref={task.keyHref} compact />
           </div>
         </aside>
       )}

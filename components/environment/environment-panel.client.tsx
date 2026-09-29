@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { AppDialog } from "@/components/dialog/app-dialog.client"
@@ -128,7 +129,17 @@ export function EnvironmentPanel({ target, rows, ui, dialogUi }: { target: strin
             >
               <div className="flex flex-wrap items-center gap-2">
                 <a href={`#${row.name}`} className="font-mono text-sm font-medium text-foreground hover:underline">{row.name}</a>
-                <span className={`rounded-md border px-1.5 py-0.5 text-xs ${isSet ? "border-primary/40 text-foreground" : "border-border text-muted-foreground"}`}>
+                {/* Слово владельца: «не задано» — стилем отказа (красный), «задано» — зелёная заливка с галочкой. */}
+                <span
+                  className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs font-medium ${
+                    isSet === null
+                      ? "border-border text-muted-foreground"
+                      : isSet
+                        ? "border-success bg-success text-success-foreground"
+                        : "border-destructive/50 bg-destructive/10 text-destructive"
+                  }`}
+                >
+                  {isSet && <Check className="size-3.5" aria-hidden />}
                   {isSet === null ? ui.unknown : isSet ? ui.set : ui.notSet}
                 </span>
               </div>

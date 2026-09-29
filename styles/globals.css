@@ -53,6 +53,8 @@
      верна, цвет не появляется. */
   --color-warning: var(--warning);
   --color-recording: var(--recording);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
   /* Тона смысловых групп — определены в теме проекта (config/design/*.css). */
   --color-tone-data: var(--tone-data);
   --color-tone-reach: var(--tone-reach);

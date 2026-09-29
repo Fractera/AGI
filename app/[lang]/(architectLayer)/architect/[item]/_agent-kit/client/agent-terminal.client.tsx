@@ -25,7 +25,9 @@ type State = "checking" | "sleeping" | "connecting" | "running" | "stopped" | "o
 
 // 336-4/5: `initialPaste` — готовый текст задачи (окно задачи блока в Preview): кладётся в окно вставки, окно НЕ открывается
 // само — его открывает «Вставить». `keyHref` — поле ключа OpenAI для голоса в окне вставки (элемент — его вкладка, служба — ядра).
-export function AgentTerminal({ service, lang, words, dialogUi, initialPaste, keyHref }: { service: string; lang: string; words: AgentTerminalWords; dialogUi: AppDialogUi; initialPaste?: string; keyHref?: string }) {
+// `compact` — узкий терминал (ящик рядом с Preview): «Очистить» и «Остановить» — только значок, имя в подсказке; «Вставить»
+// сохраняет значок и текст (слово владельца 2026-09-29).
+export function AgentTerminal({ service, lang, words, dialogUi, initialPaste, keyHref, compact = false }: { service: string; lang: string; words: AgentTerminalWords; dialogUi: AppDialogUi; initialPaste?: string; keyHref?: string; compact?: boolean }) {
   const api = `${BASE}/${lang}/architect/${service}/agent-api`
   const sessionUrl = `${api}/session`
   const [state, setState] = useState<State>("checking")
@@ -256,13 +258,13 @@ export function AgentTerminal({ service, lang, words, dialogUi, initialPaste, ke
                 <ClipboardPaste className="size-4" aria-hidden />
                 {words.paste}
               </Button>
-              <Button onClick={handleClear} size="sm" type="button" variant="outline">
+              <Button onClick={handleClear} size="sm" type="button" variant="outline" aria-label={words.clear} title={compact ? words.clear : undefined}>
                 <Eraser className="size-4" aria-hidden />
-                {words.clear}
+                {!compact && words.clear}
               </Button>
-              <Button onClick={handleStop} size="sm" type="button" variant="destructive" data-agent-stop>
+              <Button onClick={handleStop} size="sm" type="button" variant="destructive" aria-label={words.stop} title={compact ? words.stop : undefined} data-agent-stop>
                 <Square className="size-4" aria-hidden />
-                {words.stop}
+                {!compact && words.stop}
               </Button>
             </div>
           </div>
