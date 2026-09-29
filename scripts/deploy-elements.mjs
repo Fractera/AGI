@@ -23,7 +23,8 @@ const LOG = join(ROOT, 'logs', 'deploy.log')
 const ids = process.argv.slice(2).filter((a) => /^[a-z][a-z0-9-]{0,31}$/.test(a))
 
 mkdirSync(join(ROOT, 'logs'), { recursive: true })
-const state = { running: true, startedAt: new Date().toISOString(), finishedAt: null, queue: ids, current: null, results: [] }
+// 337-1: `pid` — по нему читающий узнаёт, жив ли этот процесс (`lib/deploy/deploy-lock.cjs`).
+const state = { running: true, pid: process.pid, startedAt: new Date().toISOString(), finishedAt: null, queue: ids, current: null, results: [] }
 const save = () => writeFileSync(STATE, JSON.stringify(state, null, 2) + '\n')
 save()
 

@@ -1,5 +1,5 @@
 // @api list node elements with pending changes and start their deployment
-import { spawn } from "node:child_process"
+import { spawnSync } from "node:child_process"
 import { existsSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { NextRequest, NextResponse } from "next/server"
@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireRoles } from "@/lib/auth/require-roles"
 import paths from "@/lib/agi-items/paths.cjs"
 import rollback from "@/lib/deploy/previous-version.cjs"
+import deployLock from "@/lib/deploy/deploy-lock.cjs"
 
 // ДАШБОРД РАЗВЁРТЫВАНИЙ — ДВЕРЬ (280-11b).
 //
@@ -22,7 +23,16 @@ export const dynamic = "force-dynamic"
 
 const ROLES = ["architect", "admin"] as const
 const ROOT = process.cwd()
-const STATE = join(ROOT, "logs", "deploy-state.json")
+
+// 337-1: скрипт запускается ВНЕ дерева процессов ядра (`scripts/spawn-free.mjs`): перезапуск ядра его больше не убивает.
+function startFree(script: string, args: string[]): void {
+  spawnSync(process.execPath, [join(ROOT, "scripts", "spawn-free.mjs"), join(ROOT, "scripts", script), ...args], {
+    cwd: ROOT,
+    windowsHide: true,
+    stdio: "ignore",
+    timeout: 10_000,
+  })
+}
 
 type Entry = { id: string; version?: string; port?: number; kind?: string }
 
@@ -81,7 +91,8 @@ export async function GET(req: NextRequest) {
       ok: true,
       core: { commit: process.env.AGI_COMMIT ?? null, builtAt: process.env.NEXT_PUBLIC_BUILT_AT ?? null },
       elements: elements(),
-      deployment: readJson(STATE),
+      // 337-1: осиротевшая запись (running, процесса нет) исправляется на «прервано» при этом же чтении.
+      deployment: deployLock.readState(),
     },
     { headers: { "Cache-Control": "no-store" } },
   )
@@ -90,8 +101,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const denied = await requireRoles(req, ROLES)
   if (denied) return denied
-  const current = readJson<{ running?: boolean }>(STATE)
-  if (current?.running) return NextResponse.json({ ok: false, reason: "already-running" }, { status: 409 })
+  if (deployLock.isRunning()) return NextResponse.json({ ok: false, reason: "already-running" }, { status: 409 })
   let body: { ids?: unknown; rollback?: unknown } = {}
   try {
     body = (await req.json()) as { ids?: unknown; rollback?: unknown }
@@ -103,23 +113,11 @@ export async function POST(req: NextRequest) {
   if (typeof body.rollback === "string") {
     if (!known.has(body.rollback)) return NextResponse.json({ ok: false, reason: "no-elements" }, { status: 400 })
     if (!rollback.previousVersion(body.rollback)) return NextResponse.json({ ok: false, reason: "no-previous" }, { status: 409 })
-    const child = spawn(process.execPath, [join(ROOT, "scripts", "deploy-rollback.mjs"), body.rollback], {
-      cwd: ROOT,
-      detached: true,
-      windowsHide: true,
-      stdio: "ignore",
-    })
-    child.unref()
+    startFree("deploy-rollback.mjs", [body.rollback])
     return NextResponse.json({ ok: true, rollback: body.rollback })
   }
   const ids = Array.isArray(body.ids) ? body.ids.filter((x): x is string => typeof x === "string" && known.has(x)) : []
   if (ids.length === 0) return NextResponse.json({ ok: false, reason: "no-elements" }, { status: 400 })
-  const child = spawn(process.execPath, [join(ROOT, "scripts", "deploy-elements.mjs"), ...ids], {
-    cwd: ROOT,
-    detached: true,
-    windowsHide: true,
-    stdio: "ignore",
-  })
-  child.unref()
+  startFree("deploy-elements.mjs", ids)
   return NextResponse.json({ ok: true, started: ids })
 }

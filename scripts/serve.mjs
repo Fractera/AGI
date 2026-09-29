@@ -15,6 +15,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import os from 'node:os'
 import paths from '../lib/agi-items/paths.cjs'
+import deployLock from '../lib/deploy/deploy-lock.cjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(here, '..')
@@ -402,7 +403,20 @@ function autostart() {
 // пересобери, иначе страница отдаёт прежнюю сборку, и это выглядит как «правка
 // не применилась». В режиме разработки пересборки не нужно, но там каждая
 // страница компилируется при заходе — ровно то, от чего мы ушли.
+// 337-1: перезапуск ядра посреди развёртывания элемента — ✗ 2026-09-29 он оборвал развёртывание mzjce и оставил вечный
+// спиннер. Развёртывание теперь живёт вне дерева ядра, но отказ на старте и ожидание перед перезапуском остаются: одна
+// тяжёлая сборка за раз на машине человека.
+function waitDeploy() {
+  if (!deployLock.isRunning()) return
+  console.log("Идёт развёртывание элемента — жду его окончания, прежде чем перезапустить сайт…")
+  while (deployLock.isRunning()) spawnSync(process.execPath, ["-e", "setTimeout(()=>{},5000)"])
+}
+
 function rebuild() {
+  if (deployLock.isRunning()) {
+    console.error("Сейчас идёт развёртывание элемента (страница «Развёртывания»). Сборка сайта не начата: дождитесь его окончания и повторите.")
+    process.exit(1)
+  }
   console.log("Собираю сайт заново. Это занимает около минуты; сайт всё это время работает.")
   const build = spawnSync(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"], {
     cwd: root,
@@ -437,6 +451,7 @@ function rebuild() {
     process.exit(1)
   }
 
+  waitDeploy()
   console.log("\nСборка готова, перезапускаю сайт…")
   pm2run(["restart", "fractera-agi"], { quiet: true })
   console.log("Готово. Проверить: npm run serve:status")
