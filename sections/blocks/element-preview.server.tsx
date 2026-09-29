@@ -1,5 +1,9 @@
 import type { SectionRenderer } from '@/sections/contract'
-import { ElementPreview, type ElementPreviewWords } from '@/components/preview/element-preview.client'
+import { ElementPreview, type ElementPreviewWords, type PreviewTaskKit } from '@/components/preview/element-preview.client'
+import { blockTaskUi } from '@/_tools/block-task/types/block-task.i18n'
+import { appDialogUi } from '@/components/dialog/app-dialog.i18n'
+import { agentTerminalWords } from '@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/words/agent-terminal.i18n'
+import { openAiKeyHref } from '@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/widgets'
 
 // ПРОСМОТР ЭЛЕМЕНТА (страницы Preview разделов Root, «Вход», «Данные» — слово владельца 2026-09-24).
 const WORDS: Record<string, ElementPreviewWords> = {
@@ -13,7 +17,7 @@ const WORDS: Record<string, ElementPreviewWords> = {
     reloaded: 'The element redrew its pages — the preview shows the current version.',
     reloadUnconfirmed: 'The element did not confirm the redraw (it may not have this door yet) — the preview was reloaded; a text change still appears within five minutes.',
     highlight: 'Highlight',
-    highlightOn: 'Highlight is on: point at a block of the page — a frame shows its address; «Copy address» sends it here.',
+    highlightOn: 'Highlight is on: point at a block of the page — a frame shows its address; «Click to update» opens a task window for it.',
     highlightNoAnswer: 'The element did not answer: it cannot highlight blocks yet (elements built from the item template can).',
     picked: 'Selected block',
     copy: 'Copy',
@@ -27,6 +31,9 @@ const WORDS: Record<string, ElementPreviewWords> = {
     findNoAnswer: 'The element did not answer: it cannot find blocks yet (elements built from the item template can).',
     findBadLink: 'This is not a block link: it must end with #block=<address>, e.g. /en/privacy#block=kns6w.',
     findForeign: 'This link points to another element: open that element\'s Preview and paste it there.',
+    drawerTitle: 'Terminal of this element',
+    drawerHint: 'Start the terminal and press «Paste» — the task is already in the window. It is the same terminal as in the left menu.',
+    drawerCollapse: 'Collapse',
   },
   ru: {
     loading: 'Спрашиваю узел, где отвечает этот элемент…',
@@ -38,7 +45,7 @@ const WORDS: Record<string, ElementPreviewWords> = {
     reloaded: 'Элемент перерисовал страницы — в просмотре текущая версия.',
     reloadUnconfirmed: 'Элемент не подтвердил перерисовку (возможно, у него ещё нет этой двери) — просмотр перезапущен; правка текста всё равно появится не позже чем через пять минут.',
     highlight: 'Подсветка',
-    highlightOn: 'Подсветка включена: наведите на блок страницы — рамка покажет его адрес; «Скопировать адрес» пришлёт его сюда.',
+    highlightOn: 'Подсветка включена: наведите на блок страницы — рамка покажет его адрес; «Нажми для обновления» откроет окно задачи.',
     highlightNoAnswer: 'Элемент не ответил: он ещё не умеет подсвечивать блоки (умеют элементы, собранные из шаблона элемента).',
     picked: 'Выбранный блок',
     copy: 'Скопировать',
@@ -52,12 +59,23 @@ const WORDS: Record<string, ElementPreviewWords> = {
     findNoAnswer: 'Элемент не ответил: он ещё не умеет находить блоки (умеют элементы, собранные из шаблона элемента).',
     findBadLink: 'Это не ссылка на блок: в конце должно стоять #block=<адрес>, например /ru/privacy#block=kns6w.',
     findForeign: 'Ссылка ведёт на другой элемент: откройте Preview того элемента и вставьте её там.',
+    drawerTitle: 'Терминал этого элемента',
+    drawerHint: 'Запустите терминал и нажмите «Вставить» — задача уже в окне. Это тот же терминал, что в левом меню.',
+    drawerCollapse: 'Свернуть',
   },
 }
 
 /** Слова просмотра — одни на все места, где он стоит (разделы служб и рождённые элементы, 319-2). */
 export const elementPreviewWords = (lang: string): ElementPreviewWords => WORDS[lang] ?? WORDS.en
 
+/** 336: окно задачи блока и ящик терминала — слова и поле ключа OpenAI этой службы. */
+export const previewTaskKit = (serviceId: string, lang: string): PreviewTaskKit => ({
+  ui: blockTaskUi(lang),
+  dialogUi: appDialogUi(lang),
+  terminalWords: agentTerminalWords(lang),
+  keyHref: openAiKeyHref(serviceId, lang),
+})
+
 export const elementPreview: SectionRenderer<'elementPreview'> = (b, { key: k }) => (
-  <ElementPreview key={k} serviceId={b.serviceId} lang={b.lang} words={elementPreviewWords(b.lang)} />
+  <ElementPreview key={k} serviceId={b.serviceId} lang={b.lang} words={elementPreviewWords(b.lang)} task={previewTaskKit(b.serviceId, b.lang)} />
 )

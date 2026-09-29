@@ -49,6 +49,7 @@ export function VoiceControl({
   inputMode,
   voice = true,
   apiUrl = "/api/transcribe",
+  keyHint,
 }: {
   id: string
   variant?: VoiceControlVariant
@@ -80,6 +81,11 @@ export function VoiceControl({
    */
   voice?: boolean
   apiUrl?: string
+  /**
+   * 336-3: куда вести, когда у двери расшифровки нет ключа OpenAI, — ссылка встаёт после строки «нет ключа» и открывается в
+   * новой вкладке (поле ключа на вкладке «Переменные окружения»). Подпись — слова вызывающего.
+   */
+  keyHint?: { href: string; label: string }
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const areaRef = useRef<HTMLTextAreaElement>(null)
@@ -223,6 +229,14 @@ export function VoiceControl({
       {failure && (
         <Small data-voice-failure className="text-warning">
           {failure}
+          {keyHint && v.note === L.noKey && (
+            <>
+              {" "}
+              <a href={keyHint.href} target="_blank" rel="noopener" className="underline" data-voice-key-link>
+                {keyHint.label}
+              </a>
+            </>
+          )}
         </Small>
       )}
     </div>

@@ -1,4 +1,4 @@
-// @api read which environment variables of the core or an element are set, and save the OpenAI key
+// @api read which environment variables are set and save the OpenAI key
 import { NextRequest, NextResponse } from "next/server"
 import { requireRoles } from "@/lib/auth/require-roles"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"

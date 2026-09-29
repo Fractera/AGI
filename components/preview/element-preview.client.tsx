@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { CircleHelp, Copy, ExternalLink, Highlighter, RefreshCw, Search, SquareTerminal } from "lucide-react"
+import { CircleHelp, Copy, ExternalLink, Highlighter, PanelRightClose, RefreshCw, Search, SquareTerminal } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -9,6 +9,12 @@ import { WebPreview, WebPreviewBody, WebPreviewNavigation, WebPreviewUrl } from 
 import { useScreenScale } from "./use-screen-scale.client"
 // 316: ссылка на терминал службы с адресом блока в окне вставки — одна функция мастера комплекта агента.
 import { terminalLink } from "@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/client/terminal-paste.mjs"
+// 336: окно задачи блока (инструмент) и терминал службы в ящике справа — тот же остров мастера комплекта, та же сессия.
+import { AgentTerminal } from "@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/client/agent-terminal.client"
+import type { AgentTerminalWords } from "@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/words/agent-terminal.i18n"
+import { BlockTask } from "@/_tools/block-task/client/block-task.client"
+import type { BlockTaskUi } from "@/_tools/block-task/types/block-task"
+import type { AppDialogUi } from "@/components/dialog/app-dialog.i18n"
 
 // ПРОСМОТР ЭЛЕМЕНТА УЗЛА ВНУТРИ ЯДРА (слово владельца 2026-09-24: «транслировалось наше корневое
 // приложение»). Компонент — WebPreview из AI Elements; адрес спрашивается у двери ядра в браузере:
@@ -58,7 +64,13 @@ export type ElementPreviewWords = {
   findNoAnswer: string
   findBadLink: string
   findForeign: string
+  drawerTitle: string
+  drawerHint: string
+  drawerCollapse: string
 }
+
+/** 336: всё, что нужно окну задачи и ящику терминала; нет — «Нажми для обновления» ничего не открывает. */
+export type PreviewTaskKit = { ui: BlockTaskUi; dialogUi: AppDialogUi; terminalWords: AgentTerminalWords; keyHref: string }
 
 type FindState = "idle" | "waiting" | "notFound" | "silent" | "bad" | "foreign"
 const LOCATE_EVERY_MS = 300
@@ -85,7 +97,7 @@ type ReloadState = "idle" | "busy" | "done" | "unconfirmed"
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
-export function ElementPreview({ serviceId, lang, words }: { serviceId: string; lang: string; words: ElementPreviewWords }) {
+export function ElementPreview({ serviceId, lang, words, task }: { serviceId: string; lang: string; words: ElementPreviewWords; task?: PreviewTaskKit }) {
   const [state, setState] = useState<{ url: string; public: boolean } | "loading" | "failed">("loading")
   // Адрес, открытый в просмотре СЕЙЧАС (человек мог перейти внутри): его и открывает кнопка «в новой вкладке».
   const [current, setCurrent] = useState<string | null>(null)
@@ -95,6 +107,12 @@ export function ElementPreview({ serviceId, lang, words }: { serviceId: string; 
   const [answer, setAnswer] = useState<"none" | "waiting" | "on" | "silent">("none")
   const [picked, setPicked] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  // 336 (слово владельца 2026-09-29): «Нажми для обновления» в рамке → окно задачи; «Отправить» → справа ящик с терминалом
+  // службы, текст задачи уже в окне вставки; «Свернуть» закрывает ящик, сессия живёт — тот же терминал, что в левом меню.
+  const [taskAddress, setTaskAddress] = useState<string | null>(null)
+  const [taskOpen, setTaskOpen] = useState(false)
+  const [drawerText, setDrawerText] = useState<string | null>(null)
+  const hasTask = Boolean(task)
   const frameRef = useRef<HTMLIFrameElement | null>(null)
   // 334: фрейм шириной окна ядра, уменьшенный до места (`use-screen-scale.client.ts`).
   const { boxRef, fit } = useScreenScale<HTMLDivElement>()
@@ -132,10 +150,11 @@ export function ElementPreview({ serviceId, lang, words }: { serviceId: string; 
         if (d.found) { setFind("idle"); setFindText("") } else setFind("notFound")
       }
       if (d?.type === "fractera:block" && typeof d.address === "string") { setPicked(d.address); setCopied(false) }
+      if (d?.type === "fractera:update" && typeof d.address === "string" && hasTask) { setTaskAddress(d.address); setTaskOpen(true) }
     }
     window.addEventListener("message", onMessage)
     return () => window.removeEventListener("message", onMessage)
-  }, [elementOrigin])
+  }, [elementOrigin, hasTask])
 
   if (state === "loading") return <p className="text-muted-foreground text-sm">{words.loading}</p>
   if (state === "failed") return <p className="text-muted-foreground text-sm">{words.unavailable}</p>
@@ -259,6 +278,8 @@ export function ElementPreview({ serviceId, lang, words }: { serviceId: string; 
           {findMessage}
         </p>
       )}
+      <div className="flex min-w-0 gap-3" data-preview-row>
+      <div className="min-w-0 flex-1">
       <WebPreview key={previewKey} defaultUrl={startUrl ?? state.url} onUrlChange={setCurrent} className="h-[70vh] min-h-[480px]">
         <WebPreviewNavigation>
           <WebPreviewUrl />
@@ -297,6 +318,37 @@ export function ElementPreview({ serviceId, lang, words }: { serviceId: string; 
           />
         </div>
       </WebPreview>
+      </div>
+      {task && drawerText !== null && (
+        <aside className="flex w-[min(640px,48%)] shrink-0 flex-col gap-2 rounded-lg border border-border p-3" data-preview-drawer>
+          <div className="flex items-center gap-2">
+            <SquareTerminal className="size-4" aria-hidden />
+            <p className="flex-1 text-sm font-medium">{words.drawerTitle}</p>
+            <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={() => setDrawerText(null)} data-preview-drawer-collapse>
+              <PanelRightClose className="size-4" aria-hidden />
+              {words.drawerCollapse}
+            </Button>
+          </div>
+          <p className="text-muted-foreground text-xs">{words.drawerHint}</p>
+          <div className="min-h-0 flex-1 overflow-auto">
+            <AgentTerminal service={serviceId} lang={lang} words={task.terminalWords} dialogUi={task.dialogUi} initialPaste={drawerText} keyHref={task.keyHref} />
+          </div>
+        </aside>
+      )}
+      </div>
+      {task && taskAddress !== null && (
+        <BlockTask
+          open={taskOpen}
+          onOpenChange={setTaskOpen}
+          address={taskAddress}
+          lang={lang}
+          ui={task.ui}
+          dialogUi={task.dialogUi}
+          voiceApiUrl={`${BASE}/api/transcribe?item=${encodeURIComponent(serviceId)}`}
+          keyHref={task.keyHref}
+          onSend={(text) => { setTaskOpen(false); setDrawerText(text) }}
+        />
+      )}
       {highlight && answer !== "waiting" && (
         <p className="text-muted-foreground text-sm" role="status" data-preview-highlight-state={answer}>
           {answer === "on" ? words.highlightOn : words.highlightNoAnswer}

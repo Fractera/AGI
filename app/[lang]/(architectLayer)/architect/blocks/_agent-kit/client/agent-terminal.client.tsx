@@ -3,10 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { AlertTriangle, ChevronDown, ClipboardPaste, Eraser, Moon, Play, Square } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { AppDialog } from "@/components/dialog/app-dialog.client"
 import type { AppDialogUi } from "@/components/dialog/app-dialog.i18n"
 import { bracketedPaste, cleanPaste, pasteFromSearch } from "./terminal-paste.mjs"
+import { TerminalPasteDialog } from "@/_tools/terminal-paste/client/terminal-paste-dialog.client"
 import type { AgentTerminalWords } from "../words/agent-terminal.i18n"
 import { createMouseFilter, MOUSE_OFF } from "./mouse-filter.mjs"
 import { type XtermHandle, XtermTerminal } from "./xterm-terminal.client"
@@ -24,7 +23,9 @@ const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
 type State = "checking" | "sleeping" | "connecting" | "running" | "stopped" | "offline" | "forbidden"
 
-export function AgentTerminal({ service, lang, words, dialogUi }: { service: string; lang: string; words: AgentTerminalWords; dialogUi: AppDialogUi }) {
+// 336-4/5: `initialPaste` — готовый текст задачи (окно задачи блока в Preview): кладётся в окно вставки, окно НЕ открывается
+// само — его открывает «Вставить». `keyHref` — поле ключа OpenAI для голоса в окне вставки (элемент — его вкладка, служба — ядра).
+export function AgentTerminal({ service, lang, words, dialogUi, initialPaste, keyHref }: { service: string; lang: string; words: AgentTerminalWords; dialogUi: AppDialogUi; initialPaste?: string; keyHref?: string }) {
   const api = `${BASE}/${lang}/architect/${service}/agent-api`
   const sessionUrl = `${api}/session`
   const [state, setState] = useState<State>("checking")
@@ -39,7 +40,9 @@ export function AgentTerminal({ service, lang, words, dialogUi }: { service: str
   // 316: окно вставки. Текст приходит кнопкой «Вставить» или ссылкой `?paste=` (адрес блока из подсветки Preview);
   // в терминал он уходит ТОЛЬКО кнопкой человека в окне.
   const [pasteOpen, setPasteOpen] = useState(false)
-  const [pasteText, setPasteText] = useState("")
+  const [pasteText, setPasteText] = useState(initialPaste ?? "")
+
+  useEffect(() => { if (initialPaste) setPasteText(initialPaste) }, [initialPaste])
 
   useEffect(() => {
     const incoming = pasteFromSearch(window.location.search)
@@ -269,36 +272,19 @@ export function AgentTerminal({ service, lang, words, dialogUi }: { service: str
         </>
       )}
 
-      <AppDialog
+      <TerminalPasteDialog
         open={pasteOpen}
         onOpenChange={setPasteOpen}
-        title={words.pasteTitle}
-        description={words.pasteText}
-        ui={dialogUi}
-        size="lg"
-        footer={
-          <>
-            <Button type="button" variant="ghost" onClick={() => setPasteOpen(false)}>{words.pasteCancel}</Button>
-            <Button type="button" variant="outline" disabled={!live || !pasteText.trim()} onClick={() => insertPaste(false)} data-agent-paste-insert>
-              {words.pasteInsert}
-            </Button>
-            <Button type="button" disabled={!live || !pasteText.trim()} onClick={() => insertPaste(true)} data-agent-paste-send>
-              {words.pasteInsertSend}
-            </Button>
-          </>
-        }
-      >
-        <div className="flex flex-col gap-2">
-          <Textarea
-            value={pasteText}
-            onChange={(e) => setPasteText(e.target.value)}
-            placeholder={words.pastePlaceholder}
-            className="min-h-40 font-mono text-xs"
-            data-agent-paste-text
-          />
-          {!live && <p className="text-muted-foreground text-sm">{words.pasteNeedsRun}</p>}
-        </div>
-      </AppDialog>
+        text={pasteText}
+        onTextChange={setPasteText}
+        live={live}
+        lang={lang}
+        words={words}
+        dialogUi={dialogUi}
+        voiceApiUrl={`${BASE}/api/transcribe?item=${encodeURIComponent(service)}`}
+        keyHref={keyHref}
+        onInsert={insertPaste}
+      />
     </div>
   )
 }

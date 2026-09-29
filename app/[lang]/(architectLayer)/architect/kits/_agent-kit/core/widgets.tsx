@@ -6,6 +6,7 @@ import { agentTerminalWords } from './words/agent-terminal.i18n'
 import { claudeSubscriptionWords } from './words/claude-subscription.i18n'
 import { telegramChannelWords } from './words/telegram-channel.i18n'
 import { appDialogUi } from '@/components/dialog/app-dialog.i18n'
+import { getService } from '@/lib/microservices/registry'
 
 // ВХОД СТРАНИЦ СЛУЖБЫ В КОПИЮ КОМПЛЕКТА АГЕНТА (271).
 //
@@ -16,12 +17,22 @@ import { appDialogUi } from '@/components/dialog/app-dialog.i18n'
 
 export type AgentKitPage = 'claude-code' | 'terminal' | 'telegram'
 
+/**
+ * 336-5: поле ключа OpenAI для голоса в окне вставки. Элемент (род `user`) — его вкладка «Переменные окружения» (ключ ядра, нет —
+ * ключ элемента: слово владельца 2026-09-29); служба ядра — вкладка ядра.
+ */
+export function openAiKeyHref(service: string, lang: string): string {
+  return getService(service)?.kind === 'user'
+    ? `/${lang}/architect/${service}/build/environment#OPENAI_API_KEY`
+    : `/${lang}/architect/build/environment#OPENAI_API_KEY`
+}
+
 export function agentKitWidget(page: AgentKitPage, service: string, lang: string): ReactNode {
   switch (page) {
     case 'claude-code':
       return <ClaudeSubscription service={service} lang={lang} words={claudeSubscriptionWords(lang)} />
     case 'terminal':
-      return <AgentTerminal service={service} lang={lang} words={agentTerminalWords(lang)} dialogUi={appDialogUi(lang)} />
+      return <AgentTerminal service={service} lang={lang} words={agentTerminalWords(lang)} dialogUi={appDialogUi(lang)} keyHref={openAiKeyHref(service, lang)} />
     case 'telegram':
       return <TelegramChannel service={service} lang={lang} words={telegramChannelWords(lang)} />
   }

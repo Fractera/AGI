@@ -36,7 +36,7 @@ import { terminalLink } from '@/app/[lang]/(architectLayer)/architect/kits/_agen
 import { agentKitWidget, type AgentKitPage } from '../_agent-kit/widgets'
 import { Button } from '@/components/ui/button'
 import { ElementPreview } from '@/components/preview/element-preview.client'
-import { elementPreviewWords } from '@/sections/blocks/element-preview.server'
+import { elementPreviewWords, previewTaskKit } from '@/sections/blocks/element-preview.server'
 import { EnvironmentPanel } from '@/components/environment/environment-panel'
 
 // ОДНА СТРАНИЦА НА ВСЕ АДРЕСА ВСЕХ ЧЕРНОВИКОВ (314-1): `/architect/<id>`, `/architect/<id>/<раздел>`,
@@ -157,7 +157,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   // 319-2: РОДИВШИЙСЯ элемент (он уже в реестре узла) показывает в Preview свой сайт — тот же просмотр, что у служб, с
   // подсветкой и «Найти блок». Черновик, ещё не родившийся, — только заголовок раздела: показывать нечего.
   const preview = section.slug === 'preview' && !page && serviceUrl(item)
-    ? <ElementPreview serviceId={item} lang={lang} words={elementPreviewWords(lang)} />
+    ? <ElementPreview serviceId={item} lang={lang} words={elementPreviewWords(lang)} task={previewTaskKit(item, lang)} />
     : null
 
   // 326-3: «Подписка Claude Code», «Терминал», «Telegram бот» — острова ОБЩЕЙ копии комплекта агента (`../_agent-kit`, 326-1);

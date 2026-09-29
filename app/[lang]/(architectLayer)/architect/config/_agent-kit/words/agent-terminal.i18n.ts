@@ -33,6 +33,7 @@ export type AgentTerminalWords = {
   pasteInsertSend: string
   pasteNeedsRun: string
   pasteCancel: string
+  pasteKeyLink: string
 }
 
 const DICT: Record<string, AgentTerminalWords> = {
@@ -68,6 +69,7 @@ const DICT: Record<string, AgentTerminalWords> = {
     pasteInsertSend: "Insert and send",
     pasteNeedsRun: "Start the agent first — the text is kept here.",
     pasteCancel: "Cancel",
+    pasteKeyLink: "Add the OpenAI key",
   },
   ru: {
     folderLabel: "Агент запускается в папке:",
@@ -101,6 +103,7 @@ const DICT: Record<string, AgentTerminalWords> = {
     pasteInsertSend: "Вставить и отправить",
     pasteNeedsRun: "Сначала запустите агента — текст останется здесь.",
     pasteCancel: "Отмена",
+    pasteKeyLink: "Добавить ключ OpenAI",
   },
 }
 

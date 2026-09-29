@@ -1,6 +1,31 @@
 {
   "tools": [
     {
+      "id": "block-task",
+      "entry": "client/block-task.client.tsx",
+      "dir": "_tools/block-task",
+      "needs": [
+        "browser",
+        "openai-key"
+      ],
+      "npmDeps": [],
+      "usedBy": [
+        "components/preview/element-preview"
+      ],
+      "en": {
+        "title": "Block task",
+        "what": "A window opened from a highlighted block: its address on top, six things to do with it (improve the design, improve the code, it works wrong, delete it, change the texts, turn it into a tool), each opening a short explanation, and a details field that takes voice. Send gives back one text: the choice, the address and the details.",
+        "how": "The window is AppDialog; the choice is a single-item accordion, so the opened item is the chosen one. Details use VoiceControl with the core's transcription door; without an OpenAI key the voice line links to the key field on the Environment variables tab, opened in a new tab. The text is built by composeBlockTask in the words file — one place for every consumer. The tool does not know where the task goes: onSend receives it.",
+        "value": "The step from seeing a block to giving its agent a precise task used to be copy, switch pages, paste and type. Here it is one click on the frame, one choice and a spoken sentence — and the same window can serve any page that shows blocks, not only the Preview."
+      },
+      "ru": {
+        "title": "Задача блоку",
+        "what": "Окно, которое открывается с подсвеченного блока: сверху его адрес, шесть действий (улучшить дизайн, улучшить код, это работает неправильно, удалить, изменить тексты, превратить в инструмент), у каждого раскрывается короткое пояснение, и поле подробностей с голосовым вводом. «Отправить» отдаёт один текст: выбор, адрес и подробности.",
+        "how": "Окно — AppDialog; выбор — аккордеон на один пункт, раскрытый пункт и есть выбранный. Подробности — VoiceControl с дверью расшифровки ядра; без ключа OpenAI строка голоса ведёт на поле ключа во вкладке «Переменные окружения», в новой вкладке. Текст собирает composeBlockTask в файле слов — одно место для всех потребителей. Куда уйдёт задача, инструмент не знает: её получает onSend.",
+        "value": "Путь от «вижу блок» до точной задачи его агенту был: скопировать, перейти на другую страницу, вставить, дописать. Здесь это один щелчок по рамке, один выбор и сказанная фраза — и то же окно годится любой странице, где видны блоки, а не только Preview."
+      }
+    },
+    {
       "id": "chat",
       "entry": "client/chat.client.tsx",
       "dir": "_tools/chat",
@@ -124,6 +149,31 @@
         "what": "Человек пишет фразу — название компании, псевдоним, строку о себе, — и инструмент предлагает несколько профилей в соцсетях, которые могут быть его. Каждый кандидат проверяется настоящим обращением к сети, и три исхода выглядят по-разному, а не оттенками одного: найден, не найден и «сеть не отвечает посторонним».",
         "how": "Модель только предлагает, выбирает человек. Автоматический выбор самого вероятного ошибётся молча — и ссылка в подвале сайта будет вести на чужой профиль, пока кто-нибудь этого не заметит. `closed` — не «профиля нет»: Instagram и LinkedIn закрываются от ботов независимо от существования профиля, и слова говорят об этом прямо.",
         "value": "Заполнение соцсетей в подвале без ручного поиска каждого адреса. Он же единственный инструмент, приехавший из панели и заметно переделанный под этот проект — по словам владельца: «он требует адаптации стилей нашим существующим стандартам этого приложения». Так и должен выглядеть перенесённый инструмент после переноса."
+      }
+    },
+    {
+      "id": "terminal-paste",
+      "entry": "client/terminal-paste-dialog.client.tsx",
+      "dir": "_tools/terminal-paste",
+      "needs": [
+        "browser",
+        "openai-key"
+      ],
+      "npmDeps": [],
+      "usedBy": [
+        "architect/kits/_agent-kit/core/client/agent-terminal"
+      ],
+      "en": {
+        "title": "Paste into the terminal",
+        "what": "The window that puts text into an agent's terminal: a large field that takes typing, pasting and voice, and two buttons — insert, or insert and send. Without a running session the buttons wait and the text stays in the window.",
+        "how": "AppDialog with VoiceControl as a textarea: dictation lands where the caret stood and adds to the text instead of replacing it; without an OpenAI key the voice line links to the key field. The window does not know the socket: its owner receives onInsert(send) and does the bracketed paste itself, so control characters and the Enter stay the terminal's business.",
+        "value": "The terminal cannot paste by itself, and a person who has just dictated a task often wants to add one more thought before sending. One window for every terminal of the node — the element's page, a service's page and the drawer beside the Preview — instead of a copy inside each."
+      },
+      "ru": {
+        "title": "Вставка в терминал",
+        "what": "Окно, которое кладёт текст в терминал агента: большое поле для набора, вставки и голоса и две кнопки — вставить или вставить и отправить. Пока сессия не запущена, кнопки ждут, а текст остаётся в окне.",
+        "how": "AppDialog с VoiceControl в виде области: надиктованное встаёт туда, где стоял курсор, и дописывается, а не заменяет; без ключа OpenAI строка голоса ведёт на поле ключа. Сокета окно не знает: его владелец получает onInsert(send) и сам делает вставку в режиме bracketed paste, поэтому управляющие символы и Enter остаются заботой терминала.",
+        "value": "Терминал сам вставлять не умеет, а человек, только что надиктовавший задачу, часто хочет добавить ещё одну мысль перед отправкой. Одно окно для всех терминалов узла — страницы элемента, страницы службы и ящика рядом с Preview — вместо копии внутри каждого."
       }
     },
     {
