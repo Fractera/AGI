@@ -119,6 +119,12 @@ export default async function Page({ params }: { params: Promise<Params> }) {
         title={address}
         pageTitle={address}
         widget={<>
+          {/* 338: вводный текст под заголовком — только пока черновик не рождается и не родился (слово владельца 2026-09-29). */}
+          {!entry && birth !== 'running' && (
+            <div className="mb-6 max-w-3xl space-y-3 text-muted-foreground" data-draft-intro>
+              {ui.draftIntro.split('\n\n').map((t) => <p key={t}>{t}</p>)}
+            </div>
+          )}
           {bar}
           {/* 319-4: родившийся и работающий элемент получает ТОТ ЖЕ блок, что root и службы, — порт по факту и «Адрес в
               интернете» с кнопкой подключения поддомена (289). Черновик и упавшее рождение — свои карточки. */}
