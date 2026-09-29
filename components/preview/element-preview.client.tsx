@@ -113,6 +113,9 @@ export function ElementPreview({ serviceId, lang, words, task }: { serviceId: st
   const [taskOpen, setTaskOpen] = useState(false)
   const [drawerText, setDrawerText] = useState<string | null>(null)
   const hasTask = Boolean(task)
+  // 336, слово владельца: «как только происходит разделение экрана на две части кнопки … потеряли свой текст но сохранили
+  // иконки» — пока открыт ящик терминала, в шапке просмотра только значки; имя кнопки — в подсказке и для чтения голосом.
+  const compact = drawerText !== null
   const frameRef = useRef<HTMLIFrameElement | null>(null)
   // 334: фрейм шириной окна ядра, уменьшенный до места (`use-screen-scale.client.ts`).
   const { boxRef, fit } = useScreenScale<HTMLDivElement>()
@@ -291,17 +294,19 @@ export function ElementPreview({ serviceId, lang, words, task }: { serviceId: st
             target="_blank"
             rel="noopener noreferrer"
             className={buttonVariants({ variant: "outline", size: "sm", className: "shrink-0 gap-1.5" })}
+            aria-label={words.openNew}
+            title={compact ? words.openNew : undefined}
           >
             <ExternalLink className="size-4" aria-hidden />
-            {words.openNew}
+            {!compact && words.openNew}
           </a>
-          <Button type="button" variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={redraw} disabled={reload === "busy"} data-preview-reload>
+          <Button type="button" variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={redraw} disabled={reload === "busy"} aria-label={words.reload} title={compact ? words.reload : undefined} data-preview-reload>
             <RefreshCw className={`size-4${reload === "busy" ? " animate-spin" : ""}`} aria-hidden />
-            {words.reload}
+            {!compact && words.reload}
           </Button>
-          <Button type="button" variant={highlight ? "default" : "outline"} size="sm" className="shrink-0 gap-1.5" onClick={toggleHighlight} aria-pressed={highlight} data-preview-highlight>
+          <Button type="button" variant={highlight ? "default" : "outline"} size="sm" className="shrink-0 gap-1.5" onClick={toggleHighlight} aria-pressed={highlight} aria-label={words.highlight} title={compact ? words.highlight : undefined} data-preview-highlight>
             <Highlighter className="size-4" aria-hidden />
-            {words.highlight}
+            {!compact && words.highlight}
           </Button>
         </WebPreviewNavigation>
         <div ref={boxRef} className="relative min-h-0 flex-1 overflow-hidden" data-preview-scale={fit ? fit.scale.toFixed(3) : undefined}>
