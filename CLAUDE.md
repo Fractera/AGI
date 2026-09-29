@@ -469,8 +469,8 @@ service agent holding only the README install, wire and extend the kit without o
 
 `components/preview/element-preview.client.tsx` shows an element in a frame. The core never reaches into the frame: it
 sends messages to the element's origin, and the element's island (`components/block-highlight/` of the item template)
-does the work. **Highlight** — `fractera:highlight {on}` → a frame over the hovered block, «Copy address» gives
-«page · file · block · link». **Find block** (owner, 2026-09-26: «вставляет специальную ссылку … открывается нужная
+does the work. **Highlight** — `fractera:highlight {on}` → a frame over the hovered block, «Click to update» (336, was
+«Copy address») sends «page · file · block · link». **Find block** (owner, 2026-09-26: «вставляет специальную ссылку … открывается нужная
 страница, она прокручивается до нужной секции … блок подсвечивается на 3 секунды а потом тухнет, адрес внутри инпут
 очищается») — the field takes `/<lang>/<path>#block=<bid>` (the link the element's agent returns after an edit), reopens the
 frame on that page and sends `fractera:locate {bid}`; the element scrolls, frames the block for 3 s, answers
@@ -486,6 +486,21 @@ the core window's width as its own (`components/preview/use-screen-scale.client.
 room / width, height = room / scale) and is shrunk with `transform: scale` — the element lays out as in its own tab. 🛑 Without
 it the frame was narrower than 1024 and the landing hid its chat: the architect took the tablet layout for an old version.
 `data-preview-scale` on the frame's box shows the current scale.
+
+**«Click to update» → task → terminal drawer** (node step 336, owner 2026-09-29). The frame's button (template v0.3.49)
+sends `fractera:update` with the block address; the Preview opens the tool `_tools/block-task` (six choices with
+explanations, details by voice) and on «Send» opens a drawer on the right with `AgentTerminal` of the same service —
+**the same session as the left menu's Terminal** (one session per service, many viewers, buffer replayed), the task already
+in its paste window (`initialPaste`; nothing reaches the agent without the person's button). «Collapse» closes the drawer,
+the session lives. The paste window is the tool `_tools/terminal-paste` (voice appends). The Preview gets all of it through
+`previewTaskKit(serviceId, lang)` (`sections/blocks/element-preview.server.tsx`); without `task` the button opens nothing.
+**OpenAI key for voice** — owner: «если в ядре уже есть ключ то его надо использовать. Если в ядре нет ключа то мы записываем
+ключ в собственный переменные окружения и одновременно спрашиваем стоит ли продублировать». `lib/env-file.ts`
+`openAiKeyFor(item)`: process env → core `.env.local` → the element's; `/api/transcribe?item=<id>`. The tab «Environment
+variables» (`components/environment/`, on `/architect/<id>/build/environment` and `/architect/build/environment`): names and
+notes from the example file, set / not set asked in the browser (`/api/architect/environment`, values never leave), `#NAME`
+anchors (instant scroll + frame 3 s), only `OPENAI_API_KEY` editable, checked by a real OpenAI call before it is written;
+saving an element key while the core has none asks «copy to the core?». Voice without a key links there in a new tab.
 
 ## Element birth — a draft becomes a running element (node step 319)
 
@@ -1463,8 +1478,9 @@ writing anything, check whether a switch already does it.
 
 ## Tools — `_tools/`
 
-**Eight** ready pieces, a folder each: `voice-input`, `image-crop`, `video-trim`, `code-view`,
-`translations-dialog`, `socials-ai`, `chat`, **`fact-draft`**. **Look here BEFORE building anything similar**
+Ready pieces, a folder each — the count is `_tools/TOOLS.json`, not this line: `voice-input`, `image-crop`, `video-trim`,
+`code-view`, `translations-dialog`, `socials-ai`, `chat`, `fact-draft`, **`block-task`** and **`terminal-paste`** (336: every
+dialog we rebuild becomes a tool, owner 2026-09-29 — «чтобы всегда можно было переиспользовать»). **Look here BEFORE building anything similar**
 → `use-tools`.
 The catalogue that shows them to a human lives at **`/{lang}/architect/design?section=tools`**, and a
 tool you are missing is **asked for from there** — a card at the bottom of the column writes a request
