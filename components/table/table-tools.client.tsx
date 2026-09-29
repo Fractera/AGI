@@ -32,6 +32,7 @@ export function TableTools({
   texts,
   columns,
   words,
+  toggles,
 }: {
   caption?: ReactNode
   head: ReactNode
@@ -41,8 +42,14 @@ export function TableTools({
   texts: string[]
   columns: number
   words: TableUi
+  /**
+   * 339: чекбоксы отбора над таблицей (необязательны — без них поведение прежнее). `match[i]` — признаёт ли чекбокс строку `i`;
+   * строка видна, если её признаёт хотя бы один отмеченный. Все отмечены на старте и после «Сбросить».
+   */
+  toggles?: { label: string; match: boolean[] }[]
 }) {
   const [ready, setReady] = useState(false)
+  const [on, setOn] = useState<boolean[]>(() => (toggles ?? []).map(() => true))
   const [draft, setDraft] = useState("")
   const [q, setQ] = useState("")
   const [per, setPer] = useState<number>(PER_PAGE[0])
@@ -52,8 +59,9 @@ export function TableTools({
 
   const matched = useMemo(() => {
     const needle = q.trim().toLowerCase()
-    return rows.map((_, i) => i).filter((i) => !needle || texts[i].toLowerCase().includes(needle))
-  }, [q, rows, texts])
+    const kept = (i: number) => !toggles?.length || toggles.some((t, ti) => on[ti] && t.match[i])
+    return rows.map((_, i) => i).filter((i) => kept(i) && (!needle || texts[i].toLowerCase().includes(needle)))
+  }, [q, rows, texts, toggles, on])
 
   const size = ready ? per : Math.max(1, matched.length)
   const pages = Math.max(1, Math.ceil(matched.length / size))
@@ -79,6 +87,7 @@ export function TableTools({
     setQ("")
     setPer(PER_PAGE[0])
     setPage(1)
+    setOn((toggles ?? []).map(() => true))
   }
 
   return (
@@ -108,6 +117,21 @@ export function TableTools({
         </form>
 
         <div className="flex flex-wrap items-center gap-2">
+          {toggles?.map((t, ti) => (
+            <label key={t.label} className="inline-flex items-center gap-2 text-[length:var(--fs-small)] text-foreground" data-table-toggle={ti}>
+              <input
+                checked={on[ti] ?? true}
+                className="size-4 accent-[var(--primary)]"
+                onChange={(e) => {
+                  const v = e.target.checked
+                  setOn((prev) => prev.map((x, i) => (i === ti ? v : x)))
+                  setPage(1)
+                }}
+                type="checkbox"
+              />
+              {t.label}
+            </label>
+          ))}
           <button
             className="ml-auto text-[length:var(--fs-small)] text-muted-foreground underline-offset-4 hover:underline"
             onClick={reset}

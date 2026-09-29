@@ -21,7 +21,7 @@
 и только карточка говорит, что он выдержит** — сколько элементов, что ломается за пределом, когда
 его не брать. Есть карточка — прочти её перед использованием.
 
-Видов: **68** · рендереров: **67** · карточек: **42**
+Видов: **69** · рендереров: **68** · карточек: **43**
 
 | Код | Вид | Семейство | Что это | Поля | Правила владельца |
 |---|---|---|---|---|---|
@@ -88,6 +88,7 @@
 | `servicePort01` | `servicePort` | Workspace | — | serviceId: string; words: import('@/components/services/service-port.i18n').ServicePortWords | — |
 | `designSection01` | `designSection` | Workspace | a design editor of the site element | lang: string; section: 'colors' \| 'fonts' \| 'type' \| 'shape' | [карточка](blocks/designSection.md) |
 | `deployBoard01` | `deployBoard` | Workspace | the deployment board of the node | lang: string | [карточка](blocks/deployBoard.md) |
+| `projectsBoard01` | `projectsBoard` | Page material | the projects table of the node | lang: string | [карточка](blocks/projectsBoard.md) |
 | `elementPreview01` | `elementPreview` | Workspace | a live preview of an element | lang: string; serviceId: string | [карточка](blocks/elementPreview.md) |
 | `authGoogleSetup01` | `authGoogleSetup` | Workspace | — | words: import('@/components/auth/google-setup.i18n').GoogleSetupWords | — |
 | `authResendSetup01` | `authResendSetup` | Workspace | — | words: import('@/components/auth/resend-setup.i18n').ResendSetupWords | — |

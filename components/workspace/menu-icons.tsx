@@ -1,5 +1,5 @@
 import {
-  AppWindow, Blocks, Box, Clock, Database, FlaskConical, Hammer, House, IdCard, KeyRound, LayoutTemplate, Package, Palette,
+  AppWindow, Blocks, Box, Clock, Database, LayoutDashboard, FlaskConical, Hammer, House, IdCard, KeyRound, LayoutTemplate, Package, Palette,
   Plus, Server, Settings, SlidersHorizontal, Store, ToggleRight, Wrench,
 } from 'lucide-react'
 
@@ -31,6 +31,8 @@ const ICONS = {
   // 314-1: черновик элемента узла и кнопка «Создать микросервис».
   box: Box,
   plus: Plus,
+  // 339-1: группа «Dashboard» после «Паспорта».
+  dashboard: LayoutDashboard,
 } as const
 
 export type MenuIconName = keyof typeof ICONS

@@ -1248,6 +1248,12 @@ export const SPECIMEN: SpecimenSection[] = [
     blocks: [{ kind: 'deployBoard', lang: 'en' }],
   },
   {
+    kind: 'projectsBoard',
+    when: 'The projects table of the node: every AGI ITEM, native and custom, with its service address, meta title and description, own domain, last commit, measured state, number of commits, a link to the site and a link to its page in the core. Filters native/custom and a search by address and description; asked in the browser, the page stays prerendered.',
+    whenRu: 'Таблица проектов узла: каждый AGI ITEM, нативный и кастомный, со служебным адресом, заголовком и описанием из мета, своим доменом, последним коммитом, измеренным состоянием, числом коммитов, ссылкой на сайт и на его страницу в ядре. Отбор нативные/кастомные и поиск по адресу и описанию; спрашивается в браузере, страница остаётся предрендеренной.',
+    blocks: [{ kind: 'projectsBoard', lang: 'en' }],
+  },
+  {
     kind: 'designSection',
     when: 'A design editor of the SITE element — colours, fonts, type or shape, chosen by `section` — carried over from fractera-next-starter. The settings belong to the site; the core reads and patches them through the site settings door and rebuilds the site. Asked in the browser: the page is prerendered and the settings change without rebuilding the core.',
     whenRu: 'Редактор оформления элемента САЙТ — цвета, шрифты, типографика или форма, раздел задаётся `section`, — перенесённый из fractera-next-starter. Настройки принадлежат сайту; ядро читает и правит их через дверь настроек сайта и пересобирает сайт. Спрашивается в браузере: страница предрендерена, а настройки меняются без пересборки ядра.',
