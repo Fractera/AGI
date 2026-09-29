@@ -519,6 +519,19 @@ restarts the service through pm2 (seconds, no build); **Reject** stops it and re
 by a core door go through `scripts/spawn-free.mjs` (double spawn — no living parent, outside the core's tree).
 `serve:rebuild` refuses to start while a deploy runs and waits for it before restarting the core.
 
+## Dashboard → Projects — every AGI ITEM in one table (node step 339)
+
+Owner 2026-09-29: «После кнопки паспорт в левом меню добавлять кнопку Dashboard … кнопку проекты … нашу стандартную таблицу».
+Group `architect/dashboard` (order 12, right after Passport) → section `projects`: one block `projectsBoard`
+(`sections/blocks/projects-board.server.tsx` words → island `components/dashboard/projects-board.client.tsx`), rows from
+`GET /api/node/projects?lang=` (architect/admin; outside without a session → 401) built by `lib/agi-items/dashboard-rows.ts`.
+Native / custom = the left menu's split (custom = drafts). **Status is measured**: the element's port answers → running,
+no answer → stopped; deploy lock / preview build / birth for the id → building; a draft never born → not born. Meta title and
+description are read from the element's own home page (3 s). The table is the standard `TableTools` — its optional `toggles`
+prop (checkboxes that keep a row if any checked one matches it) was added here and is reusable.
+🛑 «For sale in web3» and «Users online» show «—»: the node has no source (owner 2026-09-30 chose «Колонки с «—»»). Counting
+online is new system behaviour — only on his separate word. The island asks once on open: no polling was ordered.
+
 ## Element birth — a draft becomes a running element (node step 319)
 
 **Create a microservice** → draft `<id>` (`data/agi-drafts.json`) → **Give birth to the element** (the draft's home;
