@@ -30,7 +30,15 @@ const ID_SHAPE = /^[a-z][a-z0-9-]{0,39}$/
 
 // 🛑 ВТОРАЯ КОПИЯ ЗНАНИЯ О ПУТИ, И ОНА НАМЕРЕННАЯ: копия комплекта уезжает в папку службы целиком и не
 // имеет права зависеть от `lib/agi-items/paths.cjs` узла. Расхождение ловит `npm run check:agent-kits`.
-const itemDir = (id, kind) => path.join(ROOT, 'AGI-ITEMS', kind === 'user' ? 'user' : 'core', id)
+// Узел 343: папка следует адресу элемента (`data/services/<id>/address.json`); не перенесена — папка по id.
+const LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
+const itemDir = (id, kind) => {
+  const base = path.join(ROOT, 'AGI-ITEMS', kind === 'user' ? 'user' : 'core')
+  let a = null
+  try { a = JSON.parse(readFileSync(path.join(ROOT, 'data', 'services', id, 'address.json'), 'utf8')).address } catch { /* адреса нет */ }
+  if (typeof a === 'string' && LABEL.test(a) && a !== id && existsSync(path.join(base, a))) return path.join(base, a)
+  return path.join(base, id)
+}
 const ARCHITECT = path.join(ROOT, 'app', '[lang]', '(architectLayer)', 'architect')
 
 function registered() {

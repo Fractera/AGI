@@ -1,4 +1,6 @@
 // @api check and set the core address of a born AGI element
+import { spawnSync } from "node:child_process"
+import { join } from "node:path"
 import { revalidatePath } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
 import { requireRoles } from "@/lib/auth/require-roles"
@@ -13,6 +15,7 @@ export const dynamic = "force-dynamic"
 
 const ROLES = ["architect", "admin"] as const
 const noStore = { headers: { "Cache-Control": "no-store" } }
+const ROOT = process.cwd()
 
 async function gate(req: NextRequest, id: string) {
   if (isTemporaryPublicAddress(req)) return NextResponse.json({ ok: false, error: "temporary-address" }, { status: 403 })
@@ -39,5 +42,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const r = setAddress(id, name)
   if (!r.ok) return NextResponse.json(r, { status: 409, ...noStore })
   revalidatePath("/[lang]", "layout")
-  return NextResponse.json({ ...r, address: addressOf(id) }, noStore)
+  // 343 (слово владельца «Папка = адрес»): папка элемента переезжает под новый адрес — вне дерева процессов ядра, дверь не ждёт.
+  // Итог — `data/services/<id>/move.json` (отказ, например открытый терминал агента, называет, что сделать).
+  spawnSync(process.execPath, [join(ROOT, "scripts", "spawn-free.mjs"), join(ROOT, "scripts", "element-move.mjs"), id], {
+    cwd: ROOT, windowsHide: true, stdio: "ignore", timeout: 10_000,
+  })
+  return NextResponse.json({ ...r, address: addressOf(id), folder: "moving" }, noStore)
 }
