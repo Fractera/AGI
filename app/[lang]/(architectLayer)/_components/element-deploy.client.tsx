@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { Check, Eye, Rocket, X } from "lucide-react"
+import { Check, ExternalLink, Eye, Rocket, X } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Spinner } from "@/components/ui/spinner"
@@ -27,7 +27,8 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
   const [el, setEl] = useState<Element | null | "failed">(null)
   const [dep, setDep] = useState<Deployment>(null)
   const [preview, setPreview] = useState<Preview>(null)
-  const [refused, setRefused] = useState(false)
+  // 353-2: отказ двери называется причиной, а не одним «занято».
+  const [refused, setRefused] = useState<string | null>(null)
   const [accepting, setAccepting] = useState(false)
   const PREVIEW = `${BASE}/api/architect/items/${encodeURIComponent(id)}/preview`
 
@@ -47,11 +48,19 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
   }, [id, PREVIEW])
 
   useEffect(() => { void load() }, [load])
+  // 353-2 (решение агента в плане, подтверждено владельцем 2026-10-01): состояние перечитывается и при возврате на вкладку —
+  // предпросмотр, собранный из другого места, иначе не виден странице, открытой раньше. Таймера нет.
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === "visible") void load() }
+    document.addEventListener("visibilitychange", onVisible)
+    return () => document.removeEventListener("visibilitychange", onVisible)
+  }, [load])
 
   const deploying = !!dep?.running && (dep.current === id || dep.queue.includes(id))
   const building = preview?.state === "building"
   const ready = preview?.state === "ready"
   const busy = !!dep?.running || building || accepting
+  const previewPending = building || ready || accepting
 
   useEffect(() => {
     if (!busy) return
@@ -59,18 +68,27 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
     return () => clearInterval(t)
   }, [busy, load])
 
+  // 409 двери → слова: предпросмотр ждёт решения (353-1) или идёт другое развёртывание.
+  async function refusal(r: Response): Promise<string> {
+    const j = (await r.json().catch(() => ({}))) as { reason?: string }
+    return j.reason === "preview-pending" ? ui.previewWaiting : ui.busy
+  }
+
   async function deploy() {
-    setRefused(false)
+    setRefused(null)
     const r = await fetch(DEPLOY, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: [id] }) })
-    if (r.status === 409) setRefused(true)
+    if (r.status === 409) setRefused(await refusal(r))
     setTimeout(() => void load(), 800)
   }
 
   async function act(action: "stage" | "promote" | "discard") {
-    setRefused(false)
+    setRefused(null)
     if (action === "promote") setAccepting(true)
     const r = await fetch(PREVIEW, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action }) })
-    if (r.status === 409) setRefused(true)
+    if (r.status === 409) {
+      setAccepting(false)
+      setRefused(await refusal(r))
+    }
     setTimeout(() => void load(), 800)
   }
 
@@ -99,29 +117,47 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
         </details>
       )}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <Button type="button" onClick={deploy} disabled={busy || ready} data-element-deploy-go>
-          {deploying ? <Spinner className="mr-1" /> : <Rocket className="size-4" aria-hidden />}
-          {ui.deploy}
-        </Button>
-        <Button type="button" variant="outline" onClick={() => act("stage")} disabled={busy || ready} data-element-preview-stage>
-          {building ? <Spinner className="mr-1" /> : <Eye className="size-4" aria-hidden />}
-          {ui.preview}
-        </Button>
-      </div>
+      {/* 353-2 (слово владельца 2026-10-01: «до тех пор пока я не принял или отложил … мне запрещено видеть … интерфейс для запуска
+          нового развёртывания»): пока предпросмотр собирается, ждёт решения или принимается, кнопок «Развернуть» и «Предпросмотр» НЕТ
+          в разметке — не выключены, а отсутствуют. Дверь отказывает и сама (353-1). */}
+      {!previewPending && (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" onClick={deploy} disabled={busy} data-element-deploy-go>
+            {deploying ? <Spinner className="mr-1" /> : <Rocket className="size-4" aria-hidden />}
+            {ui.deploy}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => act("stage")} disabled={busy} data-element-preview-stage>
+            <Eye className="size-4" aria-hidden />
+            {ui.preview}
+          </Button>
+        </div>
+      )}
 
       {deploying && <p className="text-sm text-foreground" role="status">{ui.deploying}</p>}
       {building && <p className="text-sm text-foreground" role="status">{ui.previewBuilding}</p>}
       {accepting && <p className="text-sm text-foreground" role="status">{ui.accepting}</p>}
-      {refused && <p className="text-sm text-muted-foreground" role="status">{ui.busy}</p>}
+      {refused && <p className="text-sm text-muted-foreground" role="status">{refused}</p>}
       {preview?.state === "failed" && <p className="text-sm text-destructive" role="alert">{ui.previewFailed} {preview.note}</p>}
-      {last && <p className={last.ok ? "text-sm text-foreground" : "text-sm text-destructive"}>{last.ok ? ui.lastOk : ui.lastFailed}{last.note ? ` · ${last.note}` : ""}</p>}
+      {last && !previewPending && <p className={last.ok ? "text-sm text-foreground" : "text-sm text-destructive"}>{last.ok ? ui.lastOk : ui.lastFailed}{last.note ? ` · ${last.note}` : ""}</p>}
 
       {ready && previewUrl && !accepting && (
-        <div className="flex flex-col gap-2" data-element-preview-ready={preview?.port}>
+        <div className="flex flex-col gap-3" data-element-preview-ready={preview?.port}>
           <p className="text-sm text-foreground">{ui.previewReady}</p>
+          {/* 353-2 (владелец: «кнопка посмотреть привил должны быть оформлены как настоящая кнопка чётко и выразительно»): была
+              ссылка ghost sm — читалась как текст. Теперь главная кнопка экрана, крупная, с иконками. */}
+          <a
+            href={previewUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={buttonVariants({ size: "lg", className: "h-12 w-full gap-2 text-base font-semibold sm:w-auto sm:self-start sm:px-8" })}
+            data-element-preview-open
+          >
+            <Eye className="size-5" aria-hidden />
+            {ui.previewOpen}
+            <ExternalLink className="size-4" aria-hidden />
+          </a>
           <div className="flex flex-wrap items-center gap-2">
-            <Button type="button" onClick={() => act("promote")} data-element-preview-accept>
+            <Button type="button" variant="secondary" onClick={() => act("promote")} data-element-preview-accept>
               <Check className="size-4" aria-hidden />
               {ui.accept}
             </Button>
@@ -129,10 +165,8 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
               <X className="size-4" aria-hidden />
               {ui.reject}
             </Button>
-            <a href={previewUrl} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "ghost", size: "sm" })}>
-              {ui.previewOpen}
-            </a>
           </div>
+          <p className="text-sm text-muted-foreground" data-element-after-decision>{ui.afterDecision}</p>
           <p className="text-xs text-muted-foreground">{ui.previewOnMachine}</p>
           {/* 347 (слово владельца 2026-09-30: «вместо предпросмотра я вижу белый экран … когда я нажимаю открыть предпросмотр в
               новой вкладке то все получается очень хорошо. Давай уберём отсюда этот белый экран и даже не будем решать эту

@@ -22,6 +22,8 @@ export type ElementDeployUi = {
   lastFailed: string
   previewFailed: string
   busy: string
+  afterDecision: string
+  previewWaiting: string
   loading: string
   unavailable: string
 }
@@ -49,6 +51,8 @@ const DICT: Record<"en" | "ru", ElementDeployUi> = {
     lastFailed: "Last deployment failed — the previous version keeps serving",
     previewFailed: "Preview failed:",
     busy: "Another deployment is running — wait for it to finish.",
+    afterDecision: "A new deployment becomes available once you accept or reject this preview.",
+    previewWaiting: "A preview is waiting for your decision — accept or reject it first.",
     loading: "Asking the node about this element…",
     unavailable: "The node did not answer.",
   },
@@ -74,6 +78,8 @@ const DICT: Record<"en" | "ru", ElementDeployUi> = {
     lastFailed: "Последнее развёртывание не удалось — работает прежняя версия",
     previewFailed: "Предпросмотр не удался:",
     busy: "Идёт другое развёртывание — дождитесь окончания.",
+    afterDecision: "Новое развёртывание станет доступно, когда вы примете или отклоните этот предпросмотр.",
+    previewWaiting: "Предпросмотр ждёт вашего решения — сначала примите или отклоните его.",
     loading: "Спрашиваю узел об этом элементе…",
     unavailable: "Узел не ответил.",
   },
