@@ -577,6 +577,12 @@ A born element is not deleted as a draft (409). Not built yet: birth in seconds.
   `admin/_pages/site-settings`, a copy of the CONFIG editor, door `/api/settings/app`) saves only while CONFIG is off (409).
   Languages chosen there reach the site after a rebuild (installer: APP-CONFIG `languages` → `NEXT_PUBLIC_SUPPORTED_LANGUAGES`,
   an «own» value — the last choice sticks); rebuild = «Deployments» of the element.
+- **Languages for search engines (step 340).** People see every enabled language; search engines only English, the default
+  language and those the person unlocked on «Site settings» (APP-CONFIG `languages.indexed` → the installer writes
+  `NEXT_PUBLIC_INDEXED_LANGUAGES`). 🛑 **Preview never ran the installer**, so it built with the OLD `.env.local`; now
+  `scripts/element-preview.mjs` passes `languages` from the element's APP-CONFIG (supported · default · indexed) into the
+  preview build — Preview and Deploy build the same set. Template law and guard: the element's `CLAUDE.md` («People see
+  every language…»), `scripts/check-seo-html.mjs` rules 9–13, `npm run check:index`.
 - **Preview** on any main address: the element trusts its node core origin (`/api/core-origin` ← `NODE_DOMAIN_FILE`
   `architectHostname`); «Refresh» goes through `/api/architect/items/<id>/redraw` (core server, loopback) — the sign-in
   cookie of the node zone does not live on the element's own domain.
