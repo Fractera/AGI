@@ -41,6 +41,7 @@ import { randomBytes, createHash } from 'node:crypto'
 import { createRequire } from 'node:module'
 import paths from '../lib/agi-items/paths.cjs'
 import { addressOf } from '../lib/agi-items/address-file.mjs'
+import { elementLanguages } from '../lib/agi-items/element-languages.mjs'
 
 const require = createRequire(import.meta.url)
 const { isFree, PORT_BLOCK_START, PORT_BLOCK_END } = require('../lib/server-port.cjs')
@@ -681,17 +682,8 @@ for (const entry of registry.services) {
   }
 
   const ctx = { port, id: entry.id, props, nodePort, dir }
-  /** Набор языков из APP-CONFIG элемента (`languages: { supported, default }`) или `null`. */
-  function chosenLanguages(itemDir) {
-    try {
-      const l = JSON.parse(readFileSync(join(itemDir, 'APP-CONFIG', 'app-config.json'), 'utf8')).languages
-      const supported = Array.isArray(l?.supported) ? l.supported.filter((x) => typeof x === 'string' && /^[a-z]{2,3}(-[a-z0-9]+)?$/i.test(x)) : []
-      if (supported.length === 0) return null
-      // 340-4: языки, разблокированные для поисковиков сверх английского и языка по умолчанию (страница «Настройки сайта»).
-      const indexed = Array.isArray(l?.indexed) ? l.indexed.filter((x) => typeof x === 'string' && supported.includes(x)) : null
-      return { supported, default: supported.includes(l.default) ? l.default : supported[0], indexed }
-    } catch { return null }
-  }
+  // 340-4 / 341-1: набор языков, язык по умолчанию и разблокированные для поисковиков — `elementLanguages`: свой APP-CONFIG
+  // элемента, а у подключённого к CONFIG — поверх него копия настроек проекта.
 
   const lines = [
     '# ПОРОЖДЁННЫЙ ФАЙЛ. Его пишет `npm run services:install` узла AGI.',
@@ -713,7 +705,7 @@ for (const entry of registry.services) {
       const kept = readEnvFile(join(dir, envName)).get(v.name)
       // 324-9: набор языков, выбранный на странице «Настройки сайта» элемента (его APP-CONFIG → `languages`), сильнее
       // прежнего значения: набор вшивается при сборке, и пересборка обязана взять выбор человека. Нет записи — как было.
-      const chosen = chosenLanguages(dir)
+      const chosen = elementLanguages(dir, entry.id, ROOT)
       if (chosen && v.name === 'NEXT_PUBLIC_SUPPORTED_LANGUAGES') lines.push(`${v.name}=${chosen.supported.join(',')}`)
       else if (chosen && v.name === 'NEXT_PUBLIC_DEFAULT_LOCALE') lines.push(`${v.name}=${chosen.default}`)
       // 340-4: записи `indexed` нет — прежнее значение остаётся (как у остальных своих переменных).

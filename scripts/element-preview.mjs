@@ -19,6 +19,7 @@ import { join, relative } from 'node:path'
 import { createRequire } from 'node:module'
 import paths from '../lib/agi-items/paths.cjs'
 import deployLock from '../lib/deploy/deploy-lock.cjs'
+import { elementLanguages } from '../lib/agi-items/element-languages.mjs'
 
 const require = createRequire(import.meta.url)
 const { isFree, PORT_BLOCK_START, PORT_BLOCK_END } = require('../lib/server-port.cjs')
@@ -57,17 +58,14 @@ function run(cmd, args, env = {}) {
 // 340-4: ЯЗЫКИ ИДУТ В СБОРКУ ПРЕДПРОСМОТРА ИЗ APP-CONFIG ЭЛЕМЕНТА, А НЕ ИЗ ПРЕЖНЕГО `.env.local`.
 // «Развернуть» зовёт установщик, и тот переписывает `.env.local` из APP-CONFIG (`languages`); предпросмотр установщика не
 // зовёт — без этого он собирал сайт со СТАРЫМ набором языков, и кнопка «Запустить новое развёртывание» на «Настройках
-// сайта» вела бы к предпросмотру, в котором изменения нет. Переменные процесса у Next сильнее `.env.local`. Та же выборка,
-// что `chosenLanguages` в `services-install.mjs`; записи нет — пусто, и сборка читает `.env.local` как прежде.
+// сайта» вела бы к предпросмотру, в котором изменения нет. Переменные процесса у Next сильнее `.env.local`. Выборка одна с
+// установщиком — `lib/agi-items/element-languages.mjs` (341-1: у подключённого к CONFIG — поверх копия настроек проекта);
+// записи нет — пусто, и сборка читает `.env.local` как прежде.
 function languagesEnv() {
-  const l = readJson(join(dir, 'APP-CONFIG', 'app-config.json'))?.languages
-  const supported = Array.isArray(l?.supported) ? l.supported.filter((x) => typeof x === 'string' && /^[a-z]{2,3}(-[a-z0-9]+)?$/i.test(x)) : []
-  if (!supported.length) return {}
-  const out = {
-    NEXT_PUBLIC_SUPPORTED_LANGUAGES: supported.join(','),
-    NEXT_PUBLIC_DEFAULT_LOCALE: supported.includes(l.default) ? l.default : supported[0],
-  }
-  if (Array.isArray(l?.indexed)) out.NEXT_PUBLIC_INDEXED_LANGUAGES = l.indexed.filter((x) => typeof x === 'string' && supported.includes(x)).join(',')
+  const l = elementLanguages(dir, id, ROOT)
+  if (!l) return {}
+  const out = { NEXT_PUBLIC_SUPPORTED_LANGUAGES: l.supported.join(','), NEXT_PUBLIC_DEFAULT_LOCALE: l.default }
+  if (l.indexed) out.NEXT_PUBLIC_INDEXED_LANGUAGES = l.indexed.join(',')
   return out
 }
 
