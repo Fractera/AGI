@@ -54,6 +54,23 @@ function run(cmd, args, env = {}) {
   return { rc: r.status ?? 1, out: (r.stdout ?? '') + (r.stderr ?? '') }
 }
 
+// 340-4: ЯЗЫКИ ИДУТ В СБОРКУ ПРЕДПРОСМОТРА ИЗ APP-CONFIG ЭЛЕМЕНТА, А НЕ ИЗ ПРЕЖНЕГО `.env.local`.
+// «Развернуть» зовёт установщик, и тот переписывает `.env.local` из APP-CONFIG (`languages`); предпросмотр установщика не
+// зовёт — без этого он собирал сайт со СТАРЫМ набором языков, и кнопка «Запустить новое развёртывание» на «Настройках
+// сайта» вела бы к предпросмотру, в котором изменения нет. Переменные процесса у Next сильнее `.env.local`. Та же выборка,
+// что `chosenLanguages` в `services-install.mjs`; записи нет — пусто, и сборка читает `.env.local` как прежде.
+function languagesEnv() {
+  const l = readJson(join(dir, 'APP-CONFIG', 'app-config.json'))?.languages
+  const supported = Array.isArray(l?.supported) ? l.supported.filter((x) => typeof x === 'string' && /^[a-z]{2,3}(-[a-z0-9]+)?$/i.test(x)) : []
+  if (!supported.length) return {}
+  const out = {
+    NEXT_PUBLIC_SUPPORTED_LANGUAGES: supported.join(','),
+    NEXT_PUBLIC_DEFAULT_LOCALE: supported.includes(l.default) ? l.default : supported[0],
+  }
+  if (Array.isArray(l?.indexed)) out.NEXT_PUBLIC_INDEXED_LANGUAGES = l.indexed.filter((x) => typeof x === 'string' && supported.includes(x)).join(',')
+  return out
+}
+
 function findServer(dist) {
   const stack = [join(dir, dist, 'standalone')]
   for (let depth = 0; depth < 5 && stack.length; depth += 1) {
@@ -104,8 +121,9 @@ if (action === 'stage') {
   const t0 = Date.now()
   save({ state: 'building', pid: process.pid, target, commit, startedAt: new Date().toISOString() })
   try { rmSync(join(dir, target), { recursive: true, force: true }) } catch { /* next build очистит */ }
-  let b = run('npm', ['run', 'build'], { [distEnv]: target })
-  if (b.rc !== 0) b = run('npm', ['run', 'build'], { [distEnv]: target })
+  const buildEnv = { [distEnv]: target, ...languagesEnv() }
+  let b = run('npm', ['run', 'build'], buildEnv)
+  if (b.rc !== 0) b = run('npm', ['run', 'build'], buildEnv)
   if (b.rc !== 0) {
     try { rmSync(join(dir, target), { recursive: true, force: true }) } catch { /* пусть лежит */ }
     save({ state: 'failed', target, commit, note: 'сборка упала: ' + b.out.split('\n').filter(Boolean).slice(-3).join(' · ').slice(0, 300) })
