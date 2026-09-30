@@ -29,7 +29,10 @@ const LOG = join(ROOT, 'logs', `move-${id}.log`)
 const STATE = join(ROOT, 'data', 'services', id ?? '_', 'move.json')
 const say = (m) => { const line = `${new Date().toISOString()} ${m}`; console.log(line); try { appendFileSync(LOG, line + '\n') } catch { /* журнал не главное */ } }
 const save = (s) => { try { mkdirSync(join(ROOT, 'data', 'services', id), { recursive: true }); writeFileSync(STATE, JSON.stringify({ ...s, at: new Date().toISOString() }, null, 2) + '\n') } catch { /* состояние не главное */ } }
-const run = (args) => spawnSync(pm2, args, { cwd: ROOT, encoding: 'utf8', shell: IS_WIN, windowsHide: true })
+// 🛑 Чистое окружение для pm2: перенос зовёт дверь ядра (сервер Next), и без чистки элемент получил бы `__NEXT_PROCESSED_ENV` ядра
+// и не прочитал бы свой `.env.local` (✗ найдено 2026-09-30 на «Принять», тот же механизм).
+const cleanEnv = Object.fromEntries(Object.entries(process.env).filter(([k]) => !(k.startsWith('__NEXT') || k.startsWith('NEXT_') || k.startsWith('AGI_') || k === 'PORT' || k === 'HOSTNAME' || k === 'NODE_ENV')))
+const run = (args) => spawnSync(pm2, args, { cwd: ROOT, encoding: 'utf8', shell: IS_WIN, windowsHide: true, env: cleanEnv })
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const alive = (pid) => { try { process.kill(pid, 0); return true } catch (e) { return e?.code === 'EPERM' } }
 

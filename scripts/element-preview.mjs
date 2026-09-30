@@ -174,10 +174,13 @@ try { names = JSON.parse(listed.stdout.slice(listed.stdout.indexOf('['))).map((a
 for (const suffix of ['', '-watch']) {
   const name = `fractera-svc-${id}${suffix}`
   if (!names.includes(name)) continue
-  spawnSync(pm2, ['delete', name], { cwd: ROOT, shell: IS_WIN, windowsHide: true })
-  spawnSync(pm2, ['start', 'ecosystem.config.cjs', '--only', name], { cwd: ROOT, shell: IS_WIN, windowsHide: true })
+  // 🛑 pm2 передаёт новому процессу окружение ТОГО, КТО ЕГО ЗОВЁТ. «Принять» зовёт дверь ядра — сервер Next; без чистки элемент
+  // получал `__NEXT_PROCESSED_ENV=true` ядра и потому НЕ читал свой `.env.local` (✗ 2026-09-30: на aifa.dev «Войти» вела на
+  // несуществующий auth.aifa.dev, `/api/core-origin` отвечал null). Тот же закон, что у установщика.
+  spawnSync(pm2, ['delete', name], { cwd: ROOT, shell: IS_WIN, windowsHide: true, env: childEnv() })
+  spawnSync(pm2, ['start', 'ecosystem.config.cjs', '--only', name], { cwd: ROOT, shell: IS_WIN, windowsHide: true, env: childEnv() })
 }
-spawnSync(pm2, ['save'], { cwd: ROOT, shell: IS_WIN, windowsHide: true })
+spawnSync(pm2, ['save'], { cwd: ROOT, shell: IS_WIN, windowsHide: true, env: childEnv() })
 writeFileSync(join(ROOT, 'logs', 'deploy-history.jsonl'), JSON.stringify({ id, version: `${base}+${current.commit}`, ok: true, at: new Date().toISOString(), via: 'preview' }) + '\n', { flag: 'a' })
 rmSync(FILE, { force: true })
 // 344-3: принятая версия уходит и в копию публичных страниц в Cloudflare (только у элемента со своим доменом).
