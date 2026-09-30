@@ -452,6 +452,25 @@ own page group; with `--node` the registry is not consulted. Embedded today: `au
 🛑 Words of the kit live in `core/words/`, never a folder called `i18n/`: `check:lang-delivery` reads that
 folder name in an import path as a dictionary shipped to the browser, even for a type-only import.
 
+**Open terminals strip (step 345, owner 2026-09-30: «создать индикатор активных открытых Cloud Code терминалов … только тогда я
+смогу их закрыть … только те терминалы которые создаются через наш новый стартовый шаблон»).** All sessions are one map in the
+core process (`core/server/session.cjs`, `globalThis.__agiTerminalSessions`, `list()`); door `GET|POST /api/agents/sessions`
+(architect/admin; loopback = the owner at the machine) lists and stops the terminals of **born** elements only
+(`isBornItem`) — `{ id, name: address, since, channel }`. The strip `(architectLayer)/_components/open-terminals.client.tsx`
+sits under the header in every architect-layer page: «Terminals loading your computer:», a card per terminal (name → its
+Terminal page, «since», «Close» with an inline confirmation). No terminals — no strip. 🔒 Refreshed on page open and on tab
+return, **no timers** (owner's choice). 🛑 Rebuilding or restarting the core kills every terminal (they are its children;
+measured 2026-09-30 — no orphans remain).
+
+**Element folder = its address (step 343, owner 2026-09-30: «Папка = адрес»).** `lib/agi-items/paths.cjs` `itemDir` (and the
+kit `workspace.cjs`) returns `AGI-ITEMS/<kind>/<address>` when that folder exists, else `<id>`; the id stays inside (pm2
+`fractera-svc-<id>`, `data/services/<id>`, registry). Renaming the address runs `scripts/element-move.mjs <id>` outside the core
+tree: refuses during a deployment or an open Preview; pm2 stop → rename → absolute paths in `.env.local`,
+`.install-stamp.json` **and the build copies `.next*/standalone/.env*`** (✗ measured: the built server read the old paths and
+recreated the old folder) → Claude Code history `~/.claude/projects/<path>` → pm2 delete+start. 🛑 Windows refuses the rename
+(EPERM) while any process holds the folder — an open element terminal, or an editor/terminal outside the node; the script
+rolls back and says so (`data/services/<id>/move.json`).
+
 ---
 
 ## Every ready-made kit has a README.md next to its card (owner's decision 2026-09-24)
