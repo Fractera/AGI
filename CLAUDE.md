@@ -471,6 +471,24 @@ recreated the old folder) → Claude Code history `~/.claude/projects/<path>` �
 (EPERM) while any process holds the folder — an open element terminal, or an editor/terminal outside the node; the script
 rolls back and says so (`data/services/<id>/move.json`).
 
+**Public pages stay online while the computer is off (step 344, owner 2026-09-30).** `scripts/static-copy.mjs <id>` takes from
+the element's LIVE server (loopback) the HTML of every public page in every site language, adds the build's whole `static`
+folder and `public/`, plus an offline page, and publishes it to the Worker `fractera-copy-<id>` in the person's Cloudflare
+account (Direct Upload, three REST calls — no wrangler) with route `<main host>/*`, `request_limit_fail_open: true`,
+`html_handling: drop-trailing-slash`. Files in the copy are served by Cloudflare; anything else the Worker asks home through the
+tunnel; home down (502–504, 52x, 530) → `/_next/image` falls back to the original file, everything else → 503 «the site owner is
+offline». Measured on aifa.dev with the node tunnel stopped: public pages 200, sign-in 503. Runs by itself via
+`lib/agi-items/static-copy-start.cjs`: after Accept and Deploy, on connecting an own domain or changing the main address;
+`--remove` on detaching; `--dry` collects only. State `data/services/<id>/static-copy.json`, shown on the element's Deployments.
+🔒 **Cost: none on Workers Free** — static asset requests are free and unlimited; overflow of 100,000 Worker requests a day is a
+refusal, never a bill, and fail open sends it home. 🛑 **Cloudflare's HTML cache is not a substitute**: «Retention … is not
+configurable» and `stale-if-error` needs an origin 5xx, not a dead tunnel. 🔒 **The key's Workers rights come only through the
+screen** (owner: «категорически не приемлю подобные настройки … для реальных пользователей мы забудем»): the key card on Domain
+activation appears when the key lacks Workers Scripts/Routes and its template button pre-ticks them; the empty key field pulses.
+Domain activation also carries two collapsed cards: when home hosting fits (limits, paid Workers or a VPS) and visitors in Russia
+(throttling since 2025-06-09 per Cloudflare; a VPS for public projects). The copy is a snapshot: a text edit without a deploy
+does not reach it; live parts (sign-in, account) need the computer.
+
 ---
 
 ## Every ready-made kit has a README.md next to its card (owner's decision 2026-09-24)
