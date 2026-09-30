@@ -687,7 +687,9 @@ for (const entry of registry.services) {
       const l = JSON.parse(readFileSync(join(itemDir, 'APP-CONFIG', 'app-config.json'), 'utf8')).languages
       const supported = Array.isArray(l?.supported) ? l.supported.filter((x) => typeof x === 'string' && /^[a-z]{2,3}(-[a-z0-9]+)?$/i.test(x)) : []
       if (supported.length === 0) return null
-      return { supported, default: supported.includes(l.default) ? l.default : supported[0] }
+      // 340-4: языки, разблокированные для поисковиков сверх английского и языка по умолчанию (страница «Настройки сайта»).
+      const indexed = Array.isArray(l?.indexed) ? l.indexed.filter((x) => typeof x === 'string' && supported.includes(x)) : null
+      return { supported, default: supported.includes(l.default) ? l.default : supported[0], indexed }
     } catch { return null }
   }
 
@@ -714,6 +716,8 @@ for (const entry of registry.services) {
       const chosen = chosenLanguages(dir)
       if (chosen && v.name === 'NEXT_PUBLIC_SUPPORTED_LANGUAGES') lines.push(`${v.name}=${chosen.supported.join(',')}`)
       else if (chosen && v.name === 'NEXT_PUBLIC_DEFAULT_LOCALE') lines.push(`${v.name}=${chosen.default}`)
+      // 340-4: записи `indexed` нет — прежнее значение остаётся (как у остальных своих переменных).
+      else if (chosen?.indexed && v.name === 'NEXT_PUBLIC_INDEXED_LANGUAGES') lines.push(`${v.name}=${chosen.indexed.join(',')}`)
       else lines.push(`${v.name}=${kept !== undefined ? kept : v.example}`)
     } else if (v.kind === 'foreign') {
       const kept = readEnvFile(join(dir, envName)).get(v.name)
