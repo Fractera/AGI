@@ -134,7 +134,9 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
             </a>
           </div>
           <p className="text-xs text-muted-foreground">{ui.previewOnMachine}</p>
-          <iframe src={previewUrl} title={ui.preview} className="h-[70vh] min-h-[420px] w-full rounded-md border border-border" />
+          {/* 347 (слово владельца 2026-09-30: «вместо предпросмотра я вижу белый экран … когда я нажимаю открыть предпросмотр в
+              новой вкладке то все получается очень хорошо. Давай уберём отсюда этот белый экран и даже не будем решать эту
+              проблему»): окно предпросмотра внутри страницы снято, остаётся «Открыть в новой вкладке». */}
         </div>
       )}
     </div>
