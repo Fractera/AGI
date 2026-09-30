@@ -8,6 +8,10 @@ export type ElementDeploymentsUi = {
   exported: string
   rollback: string
   rollbackSoon: string
+  /** 344-3: копия публичных страниц в Cloudflare. */
+  copyOk: string
+  copyFailed: string
+  copyNoWorkers: string
 }
 
 const DICT: Record<string, ElementDeploymentsUi> = {
@@ -19,6 +23,9 @@ const DICT: Record<string, ElementDeploymentsUi> = {
     exported: "in GitHub",
     rollback: "Roll back to a version",
     rollbackSoon: "Rolling back to a chosen version is planned (step 322): the button is shown but does not work yet.",
+    copyOk: "Copy of the public pages in Cloudflare: {time}, {files} files. {host} stays visible while this computer is off. It is renewed by itself after «Accept» and «Deploy».",
+    copyFailed: "The copy of the public pages in Cloudflare was not renewed ({time}): {reason}. Visitors see the previous copy, if there is one.",
+    copyNoWorkers: "the node's Cloudflare key has no rights to Workers — renew the key in Domain and hosting → Domain activation",
   },
   ru: {
     notBorn: "Элемент ещё не рождён: родите его на главной — тогда здесь появятся его версии.",
@@ -28,6 +35,9 @@ const DICT: Record<string, ElementDeploymentsUi> = {
     exported: "в GitHub",
     rollback: "Откатить к версии",
     rollbackSoon: "Откат к выбранной версии запланирован (шаг 322): кнопка показана, но пока не работает.",
+    copyOk: "Копия публичных страниц в Cloudflare: {time}, файлов — {files}. {host} виден, когда этот компьютер выключен. Копия обновляется сама после «Принять» и «Развернуть».",
+    copyFailed: "Копия публичных страниц в Cloudflare не обновилась ({time}): {reason}. Посетители видят прежнюю копию, если она есть.",
+    copyNoWorkers: "у ключа Cloudflare узла нет прав на Workers — обновите ключ в «Домен и хостинг → Активация домена»",
   },
 }
 

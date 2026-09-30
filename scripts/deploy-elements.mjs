@@ -16,6 +16,8 @@ import { spawnSync } from 'node:child_process'
 import { writeFileSync, mkdirSync, appendFileSync, readFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module'
+const { startStaticCopy } = createRequire(import.meta.url)('../lib/agi-items/static-copy-start.cjs')
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const STATE = join(ROOT, 'logs', 'deploy-state.json')
@@ -51,6 +53,8 @@ for (const id of ids) {
     version = (JSON.parse(readFileSync(join(ROOT, 'AGI-ITEMS-CONFIG', 'agi-items.json'), 'utf8')).services || []).find((s) => s.id === id)?.version ?? null
   } catch { /* реестр не прочитан — версия неизвестна */ }
   appendFileSync(join(ROOT, 'logs', 'deploy-history.jsonl'), JSON.stringify({ id, version, ok, at: new Date().toISOString() }) + '\n')
+  // 344-3: развёрнутая версия уходит и в копию публичных страниц в Cloudflare (только у элемента со своим доменом).
+  if (ok) startStaticCopy(ROOT, id)
 }
 
 state.running = false

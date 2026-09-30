@@ -8,6 +8,7 @@ import { accountOfZone, deleteAddressRecords, deleteTunnelRecord, getIngress, li
 import { serviceUrl } from "@/lib/microservices/registry"
 import { addressOf } from "@/lib/agi-items/address-file.mjs"
 import { extraDomains } from "@/lib/domain/node-domains"
+import { startStaticCopy } from "@/lib/agi-items/static-copy-start.cjs"
 
 // ВТОРОЙ СОБСТВЕННЫЙ ДОМЕН В КОРНЕ AGI ЭЛЕМЕНТА (шаг 324). Слово владельца 2026-09-27: «подключение второго своего
 // собственного домена который у меня куплен … второй основной домен который подключается к корню … с редиректом на основной
@@ -203,6 +204,7 @@ export async function attachDomain(id: string, input: string): Promise<{ ok: tru
   }
   if (!writeDomainFile(id, name, "domain")) return { ok: false, error: "write-failed" }
   await redrawElement(id)
+  startStaticCopy(process.cwd(), id) // 344-3: копия публичных страниц в Cloudflare — сама, при подключении домена
   return { ok: true, domain: name }
 }
 
@@ -217,6 +219,7 @@ export async function setPrimary(id: string, primary: Primary): Promise<{ ok: tr
   if (!(await routeDomain(t, id, rec.domain, primary, sub))) return { ok: false, error: "tunnel-failed" }
   if (!writeDomainFile(id, rec.domain, primary)) return { ok: false, error: "write-failed" }
   await redrawElement(id)
+  startStaticCopy(process.cwd(), id) // 344-3: главный адрес сменился — копия переезжает на него
   return { ok: true }
 }
 
@@ -238,5 +241,6 @@ export async function detachDomain(id: string): Promise<{ ok: true } | Fail> {
   if (zone.ok && zone.result) for (const h of [name, www]) await deleteTunnelRecord(t.key, zone.result.id, h, t.tunnelId)
   try { rmSync(join(DATA, id, "domain.json"), { force: true }) } catch { return { ok: false, error: "write-failed" } }
   await redrawElement(id)
+  startStaticCopy(process.cwd(), id, ["--remove"]) // 344-3: домен отключён — копия и её маршрут снимаются
   return { ok: true }
 }

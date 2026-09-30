@@ -33,8 +33,30 @@ const say = (m) => { const l = `${new Date().toISOString()} ${m}`; console.log(l
 const save = (s) => { try { mkdirSync(join(ROOT, 'data', 'services', id), { recursive: true }); writeFileSync(STATE, JSON.stringify({ ...s, at: new Date().toISOString() }, null, 2) + '\n') } catch { /* не главное */ } }
 function fail(reason, detail = '') { say(`ОТКАЗ: ${reason} ${detail}`); save({ ok: false, reason, detail }); console.log('===COPY_FAILED==='); process.exit(1) }
 
+const envText0 = (() => { try { return readFileSync(join(ROOT, '.env.local'), 'utf8') } catch { return '' } })()
+const token0 = envText0.match(/^CLOUDFLARE_API_TOKEN=(.*)$/m)?.[1]?.trim()
+
+// `--remove` (344-3): домен отключён от элемента — снять маршрут и Worker копии, иначе Cloudflare раздавал бы старые страницы
+// отключённого домена, а всё остальное отвечало бы «не в сети». Хост и имя — из прошлой выкладки (`static-copy.json`).
+if (process.argv.includes('--remove')) {
+  const last = readJson(STATE)
+  if (!last?.host || !last?.script || !token0) { say('снимать нечего'); console.log('===COPY_REMOVED==='); process.exit(0) }
+  const h = { Authorization: `Bearer ${token0}` }
+  const zr = await (await fetch(`${API}/zones?name=${encodeURIComponent(last.host.split('.').slice(-2).join('.'))}`, { headers: h })).json().catch(() => ({}))
+  const zz = zr.result?.[0]
+  if (zz) {
+    const rr = await (await fetch(`${API}/zones/${zz.id}/workers/routes`, { headers: h })).json().catch(() => ({}))
+    for (const r of rr.result ?? []) if (r.script === last.script) await fetch(`${API}/zones/${zz.id}/workers/routes/${r.id}`, { method: 'DELETE', headers: h })
+    const del = await fetch(`${API}/accounts/${zz.account.id}/workers/scripts/${last.script}?force=true`, { method: 'DELETE', headers: h })
+    say(`копия снята: маршруты ${last.host}, Worker ${last.script} (${del.status})`)
+  }
+  save({ ok: false, removed: true, host: last.host })
+  console.log('===COPY_REMOVED===')
+  process.exit(0)
+}
+
 const entry = (readJson(paths.REGISTRY_FILE)?.services ?? []).find((s) => s.id === id)
-if (!entry) { console.error('usage: static-copy.mjs <id>'); process.exit(2) }
+if (!entry) { console.error('usage: static-copy.mjs <id> [--dry | --remove]'); process.exit(2) }
 const dir = paths.entryDir(entry)
 const stamp = readJson(join(dir, '.install-stamp.json'))
 if (!stamp?.port || !stamp?.dist) fail('not-installed')
@@ -168,6 +190,17 @@ if (!put.ok || pj.success === false) fail('script', `${put.status} ${(pj.errors 
 say(`Worker ${script} выложен`)
 
 // ── 6. Маршрут `<хост>/*`, Fail open ────────────────────────────────────────────────────────────────────────────────────────
+// Главный адрес сменился (поддомен ↔ домен) — маршрут прежнего хоста снимается: там копия больше не главная.
+const last = readJson(STATE)
+if (last?.host && last.host !== host) {
+  const oz = await cf('GET', `/zones?name=${encodeURIComponent(last.host.split('.').slice(-2).join('.'))}`)
+  const ozid = oz.result?.[0]?.id
+  const orr = ozid ? await cf('GET', `/zones/${ozid}/workers/routes`) : null
+  for (const r of orr?.result ?? []) if (r.script === script && r.pattern === `${last.host}/*`) {
+    await cf('DELETE', `/zones/${ozid}/workers/routes/${r.id}`)
+    say(`снят маршрут прежнего адреса ${r.pattern}`)
+  }
+}
 const pattern = `${host}/*`
 const routes = await cf('GET', `/zones/${z.id}/workers/routes`)
 if (!routes.ok) fail('routes-read', `${routes.status} ${routes.errors}`)

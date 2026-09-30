@@ -29,6 +29,7 @@ import { ElementDescribe } from '../../../_components/element-describe.client'
 import { ElementAddress } from '../../../_components/element-address.client'
 import { ElementDomain } from '../../../_components/element-domain.client'
 import { domainRecord } from '@/lib/agi-items/element-domain'
+import { readStaticCopy } from '@/lib/agi-items/static-copy-state'
 import { readLinks } from '@/lib/agi-items/element-links'
 import { ElementLink } from '../../../_components/element-link.client'
 import { ElementSiteSettings } from '../../../_components/element-site-settings'
@@ -232,6 +233,23 @@ export default async function Page({ params }: { params: Promise<Params> }) {
 
   // 337-3/4: «Развернуть» и «Предпросмотр» — на своей странице элемента, а не только в ядре (слово владельца 2026-09-29).
   const deployPanel = isDeployments && entry ? <ElementDeploy id={item} lang={lang} ui={elementDeployUi(lang)} /> : null
+  // 344-3: итог последней выкладки копии публичных страниц в Cloudflare (`data/services/<id>/static-copy.json`); нет своего
+  // домена или выкладок не было — строки нет.
+  const copy = isDeployments && entry ? readStaticCopy(item) : null
+  const copyReason = copy && !copy.ok
+    ? (/403|10000|Authentication|access/i.test(copy.detail ?? '') ? dui.copyNoWorkers : `${copy.reason ?? ''} ${copy.detail ?? ''}`.trim())
+    : ''
+  const copyNote = copy && !copy.removed
+    ? (
+      <p className="my-2 text-sm text-muted-foreground" data-static-copy={copy.ok ? 'ok' : 'failed'}>
+        {(copy.ok ? dui.copyOk : dui.copyFailed)
+          .replace('{time}', new Date(copy.at).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-GB', { dateStyle: 'short', timeStyle: 'short' }))
+          .replace('{files}', String(copy.files ?? ''))
+          .replace('{host}', copy.host ?? '')
+          .replace('{reason}', copyReason)}
+      </p>
+    )
+    : null
 
   // 321, дополнение (слово владельца: «на кнопку нарисуй по дефолту чтобы она пока не нажималась»): откат — шаг 322;
   // кнопка видна и неактивна, причина написана рядом, а не спрятана.
@@ -256,7 +274,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       title={words.title}
       lead={words.lead}
       pageTitle={address}
-      widget={<>{bar}{list}{preview}{github}{deployPanel}{deploymentsNote}{environment}{settings}{siteSettings}{agent}</>}
+      widget={<>{bar}{list}{preview}{github}{deployPanel}{copyNote}{deploymentsNote}{environment}{settings}{siteSettings}{agent}</>}
       children={tables}
     />
   )

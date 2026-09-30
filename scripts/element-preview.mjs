@@ -180,4 +180,6 @@ for (const suffix of ['', '-watch']) {
 spawnSync(pm2, ['save'], { cwd: ROOT, shell: IS_WIN, windowsHide: true })
 writeFileSync(join(ROOT, 'logs', 'deploy-history.jsonl'), JSON.stringify({ id, version: `${base}+${current.commit}`, ok: true, at: new Date().toISOString(), via: 'preview' }) + '\n', { flag: 'a' })
 rmSync(FILE, { force: true })
+// 344-3: принятая версия уходит и в копию публичных страниц в Cloudflare (только у элемента со своим доменом).
+require('../lib/agi-items/static-copy-start.cjs').startStaticCopy(ROOT, id)
 process.exit(0)
