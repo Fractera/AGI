@@ -1,0 +1,183 @@
+// КОПИЯ ПУБЛИЧНЫХ СТРАНИЦ ЭЛЕМЕНТА В CLOUDFLARE WORKERS (узел, шаг 344): `node scripts/static-copy.mjs <id>`.
+//
+// Слово владельца 2026-09-30: «все статические страницы отдаются через Cloud Flyer до тех пор пока пользователь не перешёл например
+// защищенный режим. Но щас получается что когда я выключаю домашний компьютер со сети интернет больше не виден». Первоисточник
+// Cloudflare (см. development-docs, шаг 344): кэш HTML не держит страницу гарантированно («Retention … is not configurable»), а
+// файлы Workers static assets хранятся постоянно и отдаются бесплатно («Requests to static assets are free and unlimited»).
+//
+// Что делает: берёт у ЖИВОГО сервера элемента (петля, `127.0.0.1:<порт>`) HTML всех публичных страниц на всех языках сайта,
+// кладёт рядом всю папку `static` текущей сборки (`/_next/static/**` — и чанки, которые островки грузят позже) и весь `public/`,
+// дописывает страницу «хозяин сайта не в сети» и выкладывает это в Worker `fractera-copy-<id>` аккаунта человека (Direct Upload,
+// три вызова REST) с маршрутом `<хост>/*` в режиме «Fail open». Как отвечает домен после этого:
+//   файл есть в копии → его отдаёт Cloudflare, компьютер не нужен;
+//   файла нет (вход, API, защищённый режим, `/_next/image`) → Worker спрашивает дом по туннелю; дом не ответил (5xx/530) →
+//   картинка — исходный файл из копии, остальное — страница «не в сети» (503);
+//   суточный лимит Worker кончился (Free: 100 000) → маршрут пропускает Worker, запрос идёт в туннель, как до шага.
+// 🔒 Денег это не стоит на Free: превышение — отказ, а не счёт (workers/platform/pricing).
+// 🛑 Копия — снимок момента выкладки: правка текста без развёртывания в неё не попадает (владелец выбрал: копия обновляется
+//   после «Принять» и «Развернуть», шаг 344-3).
+// Состояние — `data/services/<id>/static-copy.json`, журнал — `logs/static-copy-<id>.log`.
+
+import { createHash } from 'node:crypto'
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync, appendFileSync, mkdirSync } from 'node:fs'
+import { join, relative, extname } from 'node:path'
+import paths from '../lib/agi-items/paths.cjs'
+
+const ROOT = join(paths.ITEMS_DIR, '..')
+const id = process.argv[2]
+const API = 'https://api.cloudflare.com/client/v4'
+const LOG = join(ROOT, 'logs', `static-copy-${id}.log`)
+const STATE = join(ROOT, 'data', 'services', id ?? '_', 'static-copy.json')
+const readJson = (f) => { try { return JSON.parse(readFileSync(f, 'utf8')) } catch { return null } }
+const say = (m) => { const l = `${new Date().toISOString()} ${m}`; console.log(l); try { appendFileSync(LOG, l + '\n') } catch { /* журнал не главное */ } }
+const save = (s) => { try { mkdirSync(join(ROOT, 'data', 'services', id), { recursive: true }); writeFileSync(STATE, JSON.stringify({ ...s, at: new Date().toISOString() }, null, 2) + '\n') } catch { /* не главное */ } }
+function fail(reason, detail = '') { say(`ОТКАЗ: ${reason} ${detail}`); save({ ok: false, reason, detail }); console.log('===COPY_FAILED==='); process.exit(1) }
+
+const entry = (readJson(paths.REGISTRY_FILE)?.services ?? []).find((s) => s.id === id)
+if (!entry) { console.error('usage: static-copy.mjs <id>'); process.exit(2) }
+const dir = paths.entryDir(entry)
+const stamp = readJson(join(dir, '.install-stamp.json'))
+if (!stamp?.port || !stamp?.dist) fail('not-installed')
+const domain = readJson(join(ROOT, 'data', 'services', id, 'domain.json'))
+if (!domain?.url) fail('no-own-domain', 'копия нужна элементу со своим доменом')
+const host = new URL(domain.url).host
+const envText = (() => { try { return readFileSync(join(ROOT, '.env.local'), 'utf8') } catch { return '' } })()
+const token = envText.match(/^CLOUDFLARE_API_TOKEN=(.*)$/m)?.[1]?.trim()
+if (!token) fail('no-key')
+
+async function cf(method, path, body, headers = {}) {
+  const r = await fetch(`${API}${path}`, { method, headers: { Authorization: `Bearer ${token}`, ...headers }, body })
+  const j = await r.json().catch(() => ({}))
+  return { status: r.status, ok: r.ok && j.success !== false, result: j.result, errors: (j.errors ?? []).map((e) => `${e.code} ${e.message}`).join('; ') }
+}
+
+// ── 1. Страницы: корень, главная и каждая страница публичной ветки на каждом языке сайта ─────────────────────────────────────
+const envLocal = (() => { try { return readFileSync(join(dir, '.env.local'), 'utf8') } catch { return '' } })()
+const langs = (envLocal.match(/^NEXT_PUBLIC_SUPPORTED_LANGUAGES=(.*)$/m)?.[1] ?? 'en').split(',').map((s) => s.trim()).filter(Boolean)
+const pagesDir = join(dir, 'app', '[lang]', '(publicLayer)', '_pages')
+const slugs = []
+;(function walk(d, prefix) {
+  if (!existsSync(d)) return
+  for (const e of readdirSync(d, { withFileTypes: true })) {
+    if (!e.isDirectory()) continue
+    const p = join(d, e.name)
+    if (existsSync(join(p, 'meta.json'))) slugs.push(prefix + e.name)
+    walk(p, prefix + e.name + '/')
+  }
+})(pagesDir, '')
+const pagePaths = ['/', ...langs.flatMap((l) => [`/${l}`, ...slugs.map((s) => `/${l}/${s}`)])]
+const origin = `http://127.0.0.1:${stamp.port}`
+
+const files = new Map() // путь в копии → Buffer
+for (const p of pagePaths) {
+  const r = await fetch(origin + p, { redirect: 'manual', signal: AbortSignal.timeout(60_000) }).catch(() => null)
+  if (!r || r.status !== 200 || !(r.headers.get('content-type') ?? '').includes('text/html')) { say(`пропущена ${p}: ${r ? r.status : 'нет ответа'}`); continue }
+  files.set(p === '/' ? '/index.html' : `${p}.html`, Buffer.from(await r.arrayBuffer()))
+}
+if (files.size === 0) fail('no-pages', `сервер ${origin} не отдал ни одной страницы`)
+for (const f of ['/robots.txt', '/sitemap.xml', '/manifest.webmanifest', '/llms.txt']) {
+  const r = await fetch(origin + f).catch(() => null)
+  if (r?.status === 200) files.set(f, Buffer.from(await r.arrayBuffer()))
+}
+
+// ── 2. Файлы сборки и public ─────────────────────────────────────────────────────────────────────────────────────────────────
+function addTree(base, prefix) {
+  if (!existsSync(base)) return
+  ;(function walk(d) {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      const p = join(d, e.name)
+      if (e.isDirectory()) walk(p)
+      else if (statSync(p).size <= 25 * 1024 * 1024) files.set(prefix + '/' + relative(base, p).split('\\').join('/'), readFileSync(p))
+    }
+  })(base)
+}
+addTree(join(dir, stamp.dist, 'static'), '/_next/static')
+addTree(join(dir, 'public'), '')
+
+// ── 3. Страница «не в сети» ─────────────────────────────────────────────────────────────────────────────────────────────────
+files.set('/__offline.html', Buffer.from(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>${host}</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,sans-serif;background:#f6f6f7;color:#1b1b1f}
+main{max-width:34rem;padding:2rem}h1{font-size:1.4rem;margin:0 0 .6rem}p{line-height:1.55;margin:.4rem 0;color:#44444c}a{color:inherit}</style></head>
+<body><main><h1>The site owner is offline right now</h1><p>Public pages of ${host} stay open; this part needs the owner's computer and will work again when it is back online.</p>
+<p><a href="/">Home page</a></p><hr style="border:0;border-top:1px solid #ddd;margin:1.4rem 0"><h1 lang="ru">Хозяин сайта сейчас не в сети</h1>
+<p lang="ru">Публичные страницы ${host} открыты; этой части нужен компьютер хозяина, и она заработает, когда он снова будет в сети.</p><p lang="ru"><a href="/ru">Главная</a></p></main></body></html>`))
+if (files.size > 20000) fail('too-many-files', String(files.size))
+say(`копия собрана: ${files.size} файлов (страниц: ${[...files.keys()].filter((k) => k.endsWith('.html')).length - 1})`)
+// `--dry` — собрать и показать, ничего не выкладывать (проверка без ключа с правами Workers).
+if (process.argv.includes('--dry')) {
+  for (const k of [...files.keys()].filter((k) => k.endsWith('.html')).sort()) say(`  ${k} ${files.get(k).length} б`)
+  console.log('===COPY_DRY_OK===')
+  process.exit(0)
+}
+
+// ── 4. Worker: спросить дом, если файла нет в копии; дом молчит — «не в сети» ────────────────────────────────────────────────
+const WORKER = `export default {
+  async fetch(request, env) {
+    const url = new URL(request.url)
+    let res = null
+    try { res = await fetch(request) } catch { res = null }
+    // Дом не на связи — только сбои связи (502–504, 52x Cloudflare, 530 туннеля); настоящая ошибка сайта (500) идёт как есть.
+    const down = [502, 503, 504, 520, 521, 522, 523, 524, 525, 526, 530]
+    if (res && !down.includes(res.status)) return res
+    if (url.pathname === '/_next/image') {
+      const src = url.searchParams.get('url')
+      if (src && src.startsWith('/')) { const a = await env.ASSETS.fetch(new URL(src, url)); if (a.ok) return a }
+    }
+    const off = await env.ASSETS.fetch(new URL('/__offline.html', url))
+    return new Response(off.body, { status: 503, headers: { 'content-type': 'text/html; charset=utf-8', 'retry-after': '300', 'cache-control': 'no-store', 'x-fractera-copy': 'offline' } })
+  },
+}
+`
+
+// ── 5. Выкладка (Direct Upload) ─────────────────────────────────────────────────────────────────────────────────────────────
+const zone = await cf('GET', `/zones?name=${encodeURIComponent(host.split('.').slice(-2).join('.'))}`)
+const z = zone.result?.[0]
+if (!zone.ok || !z) fail('zone-not-visible', zone.errors)
+const account = z.account.id
+const script = `fractera-copy-${id}`
+const hashOf = (buf, path) => createHash('sha256').update(buf.toString('base64') + extname(path).slice(1)).digest('hex').slice(0, 32)
+const manifest = {}
+const byHash = new Map()
+for (const [p, buf] of files) { const h = hashOf(buf, p); manifest[p] = { hash: h, size: buf.length }; byHash.set(h, { p, buf }) }
+const session = await cf('POST', `/accounts/${account}/workers/scripts/${script}/assets-upload-session`, JSON.stringify({ manifest }), { 'content-type': 'application/json' })
+if (!session.ok) fail('upload-session', `${session.status} ${session.errors}`)
+let completion = session.result.jwt
+const buckets = session.result.buckets ?? []
+const MIME = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.txt': 'text/plain', '.xml': 'application/xml', '.webmanifest': 'application/manifest+json' }
+for (const bucket of buckets) {
+  const form = new FormData()
+  for (const h of bucket) { const f = byHash.get(h); form.append(h, new File([f.buf.toString('base64')], h, { type: MIME[extname(f.p)] ?? 'application/octet-stream' }), h) }
+  const r = await fetch(`${API}/accounts/${account}/workers/assets/upload?base64=true`, { method: 'POST', headers: { Authorization: `Bearer ${session.result.jwt}` }, body: form })
+  const j = await r.json().catch(() => ({}))
+  if (!r.ok || j.success === false) fail('upload', `${r.status} ${(j.errors ?? []).map((e) => e.message).join('; ')}`)
+  if (j.result?.jwt) completion = j.result.jwt
+}
+say(`загружено пачек: ${buckets.length} (новых файлов: ${buckets.flat().length})`)
+const meta = {
+  main_module: 'worker.js',
+  compatibility_date: '2026-09-01',
+  assets: { jwt: completion, config: { html_handling: 'drop-trailing-slash', not_found_handling: 'none' } },
+  bindings: [{ name: 'ASSETS', type: 'assets' }],
+}
+const form = new FormData()
+form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }))
+form.append('worker.js', new File([WORKER], 'worker.js', { type: 'application/javascript+module' }))
+const put = await fetch(`${API}/accounts/${account}/workers/scripts/${script}`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` }, body: form })
+const pj = await put.json().catch(() => ({}))
+if (!put.ok || pj.success === false) fail('script', `${put.status} ${(pj.errors ?? []).map((e) => `${e.code} ${e.message}`).join('; ')}`)
+say(`Worker ${script} выложен`)
+
+// ── 6. Маршрут `<хост>/*`, Fail open ────────────────────────────────────────────────────────────────────────────────────────
+const pattern = `${host}/*`
+const routes = await cf('GET', `/zones/${z.id}/workers/routes`)
+if (!routes.ok) fail('routes-read', `${routes.status} ${routes.errors}`)
+const same = (routes.result ?? []).find((r) => r.pattern === pattern)
+if (same && same.script !== script) fail('route-taken', `${pattern} → ${same.script}`)
+if (!same) {
+  const add = await cf('POST', `/zones/${z.id}/workers/routes`, JSON.stringify({ pattern, script, request_limit_fail_open: true }), { 'content-type': 'application/json' })
+  if (!add.ok) fail('route', `${add.status} ${add.errors}`)
+  say(`маршрут ${pattern} → ${script} (fail open: ${add.result?.request_limit_fail_open ?? 'не сообщено'})`)
+} else say(`маршрут ${pattern} уже ведёт на ${script}`)
+
+save({ ok: true, host, script, files: files.size, pages: pagePaths.length, version: stamp.version })
+console.log('===COPY_OK===')
