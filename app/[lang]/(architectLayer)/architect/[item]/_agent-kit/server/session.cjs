@@ -41,6 +41,11 @@ function status(service) {
   return { running: true, pid: s.pid, cwd: s.cwd, channel: Boolean(s.channel), clients: s.clients.size, startedAt: s.startedAt }
 }
 
+/** Все живые сессии узла (узел 345: полоса «Терминалы, которые нагружают ваш компьютер») — те же факты, что `status`. */
+function list() {
+  return [...box().keys()].map((service) => ({ service, ...status(service) }))
+}
+
 function closeAll(s, reason) {
   for (const ws of s.clients) {
     try { ws.close(1000, reason) } catch { /* уже закрыт */ }
@@ -65,4 +70,4 @@ function exited(session) {
   closeAll(session, 'exited')
 }
 
-module.exports = { current, register, remember, status, stop, exited }
+module.exports = { current, register, remember, status, list, stop, exited }

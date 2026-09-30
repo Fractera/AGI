@@ -3,6 +3,8 @@ import { coreShellWhere } from "@/lib/shell/core-shell-where"
 import { ARCHITECT_LAYER_ROLES } from "@/lib/roles"
 import { accessGateUi } from "@/components/auth/access-gate.i18n"
 import { appDialogUi } from "@/components/dialog/app-dialog.i18n"
+import { OpenTerminals } from "./_components/open-terminals.client"
+import { openTerminalsUi } from "./_i18n/open-terminals.i18n"
 
 // Дверь СЛОЯ АРХИТЕКТОРА (шаг 31-1, 2026-08-28).
 //
@@ -47,6 +49,8 @@ export default async function Layout(
       ui={accessGateUi(lang)}
       dialogUi={appDialogUi(lang)}
     >
+      {/* 345: открытые терминалы Claude Code рождённых элементов — полоса под шапкой; нет терминалов — ничего. */}
+      <OpenTerminals lang={lang} ui={openTerminalsUi(lang)} />
       {children}
     </AccessGate>
   )
