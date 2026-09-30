@@ -468,7 +468,7 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
               <div className="flex flex-wrap gap-2">
                 <input
                   autoComplete="off"
-                  className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 font-mono text-sm"
+                  className="field-pulse min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 font-mono text-sm"
                   onChange={(e) => setToken(e.target.value)}
                   placeholder={words.keyPlaceholder}
                   type="password"

@@ -153,7 +153,7 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
                 <TokenHowTo words={ladderWords} />
                     <Label htmlFor={`pipe-key-${d.name}`}>{w.key.label}</Label>
                     <div className="flex flex-wrap gap-2">
-                      <Input id={`pipe-key-${d.name}`} type="password" className="max-w-80 font-mono" value={key} onChange={(e) => setKey(e.target.value)} autoComplete="off" spellCheck={false} />
+                      <Input id={`pipe-key-${d.name}`} type="password" placeholder=" " className="field-pulse max-w-80 font-mono" value={key} onChange={(e) => setKey(e.target.value)} autoComplete="off" spellCheck={false} />
                       <Button type="button" size="sm" onClick={saveKeyAndCreate} disabled={!key.trim() || busy !== null} data-pipe-key-save>
                         {busy === "key" ? w.key.saving : p.keySaveAndCreate}
                       </Button>

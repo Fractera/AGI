@@ -1104,3 +1104,16 @@ html[data-app-width="narrow"] { --app-w: 64rem; }
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
+
+/* ПОЛЕ, КОТОРОЕ ЖДЁТ ВВОДА (узел, шаг 344; слово владельца 2026-09-30: «область ввода ключа в этой форме практически
+   незаметна … хорошо что она пульсировала бордюром чтобы можно было видеть куда вставлять текст»). Пульс — пока поле пустое;
+   цвет — `--primary` «Дизайна». Уменьшение движения — ровная рамка без пульса. */
+.field-pulse:placeholder-shown {
+  border-color: var(--primary);
+  animation: field-pulse 1.6s ease-in-out infinite;
+}
+@keyframes field-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 55%, transparent); }
+  50% { box-shadow: 0 0 0 5px color-mix(in oklab, var(--primary) 0%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) { .field-pulse:placeholder-shown { animation: none; } }

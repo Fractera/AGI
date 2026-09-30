@@ -67,7 +67,7 @@ export function DomainKey({ state, words: w, ladderWords, onChanged }: {
       <TokenHowTo words={ladderWords} />
       <Label htmlFor="node-key-token">{k.label}</Label>
       <div className="flex flex-wrap gap-2">
-        <Input id="node-key-token" type="password" className="max-w-80 font-mono" value={token} onChange={(e) => setToken(e.target.value)} autoComplete="off" spellCheck={false} />
+        <Input id="node-key-token" type="password" placeholder=" " className="field-pulse max-w-80 font-mono" value={token} onChange={(e) => setToken(e.target.value)} autoComplete="off" spellCheck={false} />
         <Button type="button" size="sm" onClick={save} disabled={!token.trim() || busy} data-node-key-save>{busy ? k.saving : k.save}</Button>
       </div>
       {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
