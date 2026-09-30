@@ -17,7 +17,12 @@ import type { DomainLadderWords } from "./domain-ladder.i18n"
 // добавляет сам, одной кнопкой; угадывать ключ права нельзя.
 // Ручная пошаговая инструкция остаётся свёрнутой — на случай, если форма не заполнилась.
 
-const TEMPLATE_PERMISSIONS = [{ key: "zone", type: "edit" }, { key: "dns", type: "edit" }]
+// 344-1: `workers_scripts` и `workers_routes` — копия публичных страниц в Workers аккаунта человека (ключи — из той же таблицы
+// «API token template URLs», проверено 2026-09-30).
+const TEMPLATE_PERMISSIONS = [
+  { key: "zone", type: "edit" }, { key: "dns", type: "edit" },
+  { key: "workers_scripts", type: "edit" }, { key: "workers_routes", type: "edit" },
+]
 
 export const TOKEN_TEMPLATE_URL =
   "https://dash.cloudflare.com/profile/api-tokens?permissionGroupKeys=" + encodeURIComponent(JSON.stringify(TEMPLATE_PERMISSIONS)) +

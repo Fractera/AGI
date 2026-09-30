@@ -174,6 +174,18 @@ export async function setIngress(token: string, accountId: string, tunnelId: str
 }
 
 /**
+ * Права ключа на Workers (узел, шаг 344): копия публичных страниц живёт в Workers аккаунта человека. Нужны Workers Scripts
+ * (аккаунт) и Workers Routes (зона). Проба — чтение списков; отказ права — `false`. 🛑 Чтение доказывает право видеть, а не
+ * править: право записи выясняется первой выкладкой копии, и она называет отказ словами.
+ * ✗ Замер 2026-09-30 на ключе узла: `workers/scripts` 200, `zones/…/workers/routes` 403.
+ */
+export async function workersAccess(token: string, accountId: string, zoneId: string) {
+  const scripts = await send<unknown[]>("GET", `/accounts/${accountId}/workers/scripts`, token)
+  const routes = await send<unknown[]>("GET", `/zones/${zoneId}/workers/routes`, token)
+  return { scripts: scripts.ok, routes: routes.ok }
+}
+
+/**
  * Туннель с этим именем, если он уже есть.
  *
  * 🔒 ПОВТОРНОЕ НАЖАТИЕ НЕ ПЛОДИТ ТУННЕЛИ (259-7). Прежде каждая активация звала

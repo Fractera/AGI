@@ -2,7 +2,7 @@ import "server-only"
 import { mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { isDnsLabel } from "@/lib/agi-items/dns-label.mjs"
-import { accountOfZone, activationCheck, createZone, listAccounts, verifyToken, zoneByName } from "@/lib/domain/cloudflare"
+import { accountOfZone, activationCheck, createZone, listAccounts, verifyToken, workersAccess, zoneByName } from "@/lib/domain/cloudflare"
 import { envValue } from "@/lib/agi-items/element-delete"
 
 // ДОМЕНЫ УЗЛА — СПИСОК, А НЕ ОДИН (шаг 324-1). Слово владельца 2026-09-27: «нужно все то что сделано там превратить в карточке
@@ -218,11 +218,21 @@ export async function createDomainZone(name: string, accountId?: string): Promis
 // красная карточка по ЗАПОМНЕННОМУ отказу делались под один узел — у пользователя с ключом по исправленной инструкции их не
 // бывает). Замеряется каждый раз: есть ли ключ и его статус у Cloudflare (`/user/tokens/verify`: active · disabled · expired).
 // Нехватка права создавать зоны — не тревога страницы: она выясняется в момент «Создать зону» и показывается там же.
-export async function nodeKeyState(): Promise<{ present: false } | { present: true; tail: string; status: string | null }> {
+export async function nodeKeyState(): Promise<
+  { present: false } | { present: true; tail: string; status: string | null; workers: { scripts: boolean; routes: boolean } | null }
+> {
   const key = envValue("CLOUDFLARE_API_TOKEN")
   if (!key) return { present: false }
   const v = await verifyToken(key)
-  return { present: true, tail: key.slice(-4), status: v.ok ? v.result.status : null }
+  // 344-1: права на Workers — копия публичных страниц в Cloudflare. Замер, а не память: зона основного домена → её аккаунт.
+  let workers: { scripts: boolean; routes: boolean } | null = null
+  const zoneName = primaryDomain()?.name
+  const zone = zoneName ? await zoneByName(key, zoneName) : null
+  if (zone?.ok && zone.result) {
+    const acct = await accountOfZone(key, zone.result.id)
+    if (acct.ok) workers = await workersAccess(key, acct.result, zone.result.id)
+  }
+  return { present: true, tail: key.slice(-4), status: v.ok ? v.result.status : null, workers }
 }
 
 /** Убрать дополнительный домен из списка — только если он не подключён к элементу. Зона в Cloudflare не трогается. */

@@ -2,7 +2,7 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { readFileSync, writeFileSync, existsSync } from "node:fs"
 import { join } from "node:path"
-import { verifyToken, listZones, accountOfZone, findTunnel } from "@/lib/domain/cloudflare"
+import { verifyToken, listZones, accountOfZone, findTunnel, workersAccess } from "@/lib/domain/cloudflare"
 import { getSession } from "@/lib/auth/get-session"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
 
@@ -91,8 +91,13 @@ export async function POST(req: NextRequest) {
   putEnv(KEY_NAME, token)
   process.env[KEY_NAME] = token
 
+  // 344-1: права на Workers — для копии публичных страниц в Cloudflare. Их нехватка ключ НЕ отклоняет: копия — дополнение,
+  // а не условие работы узла. Ответ называет, чего не хватает; экран показывает это карточкой.
+  const workers = account.ok ? await workersAccess(token, account.result, zones.result[0].id) : { scripts: false, routes: false }
+
   return NextResponse.json({
     ok: true,
+    workers,
     keyTail: token.slice(-4),
     zones: zones.result.map((z) => ({ name: z.name, status: z.status })),
   })
