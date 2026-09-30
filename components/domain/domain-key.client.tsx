@@ -16,7 +16,13 @@ import { TokenHowTo } from "./token-how-to.client"
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
-export type NodeKey = { present: false } | { present: true; tail: string; status: string | null }
+export type NodeKey =
+  | { present: false }
+  | { present: true; tail: string; status: string | null; workers?: { scripts: boolean; routes: boolean } | null }
+
+// 344 (слово владельца 2026-09-30: путь к любой настройке Cloudflare — только через экран узла с настоящими ссылками, никаких
+// шагов «из чата», иначе настоящий пользователь их никогда не узнает). Ключ исправен, но замер прав на Workers отказал —
+// та же карточка, спокойнее (не красная): объясняет, зачем права, и ведёт той же кнопкой-шаблоном к новому ключу.
 
 export function DomainKey({ state, words: w, ladderWords, onChanged }: {
   state: NodeKey | null
@@ -29,8 +35,15 @@ export function DomainKey({ state, words: w, ladderWords, onChanged }: {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  if (!state || (state.present && state.status === "active")) return null
-  const reason = !state.present ? k.none : state.status === "disabled" ? k.disabled : state.status === "expired" ? k.expired : k.unverified
+  if (!state) return null
+  const missing = state.present && state.status === "active" && state.workers
+    ? [!state.workers.scripts && "Workers Scripts · Edit", !state.workers.routes && "Workers Routes · Edit"].filter(Boolean).join(", ")
+    : ""
+  if (state.present && state.status === "active" && !missing) return null
+  const workersOnly = Boolean(missing)
+  const reason = workersOnly
+    ? k.noWorkers.replace("{missing}", missing)
+    : !state.present ? k.none : state.status === "disabled" ? k.disabled : state.status === "expired" ? k.expired : k.unverified
 
   async function save() {
     setBusy(true)
@@ -45,8 +58,11 @@ export function DomainKey({ state, words: w, ladderWords, onChanged }: {
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-destructive bg-destructive/5 p-3" data-node-key-alarm={state.present ? state.status ?? "unverified" : "none"}>
-      <p className="font-medium text-destructive">{k.title}</p>
+    <div
+      className={`flex flex-col gap-2 rounded-lg border p-3 ${workersOnly ? "border-warning bg-warning/10" : "border-destructive bg-destructive/5"}`}
+      data-node-key-alarm={workersOnly ? "no-workers" : state.present ? state.status ?? "unverified" : "none"}
+    >
+      <p className={`font-medium ${workersOnly ? "text-foreground" : "text-destructive"}`}>{workersOnly ? k.workersTitle : k.title}</p>
       <p className="text-sm text-foreground">{reason.replace("{tail}", state.present ? state.tail : "")}</p>
       <TokenHowTo words={ladderWords} />
       <Label htmlFor="node-key-token">{k.label}</Label>
