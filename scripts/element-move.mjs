@@ -38,11 +38,10 @@ if (!entry) { console.error('usage: element-move.mjs <id> — id из реест
 const base = join(paths.ITEMS_DIR, entry.kind === 'user' ? 'user' : 'core')
 const target = join(base, addressOf(id, ROOT))
 
-// Где элемент лежит сейчас: папка по id или прежнего адреса — та, чей паспорт называет этот id.
-const source = readdirSync(base, { withFileTypes: true })
-  .filter((d) => d.isDirectory())
-  .map((d) => join(base, d.name))
-  .find((d) => readJson(join(d, 'OWN-SERVICE-PROPS.json'))?.id === id || (d === join(base, id) && existsSync(d)))
+// Где элемент лежит сейчас: та папка, чей паспорт называет этот id (id-папка или прежний адрес); паспорта нет нигде — папка по id.
+const dirs = readdirSync(base, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => join(base, d.name))
+const source = dirs.find((d) => readJson(join(d, 'OWN-SERVICE-PROPS.json'))?.id === id)
+  ?? dirs.find((d) => d === join(base, id) && existsSync(join(d, '.install-stamp.json')))
 
 function fail(reason, word) {
   say(`ОТКАЗ: ${reason}`)
@@ -81,7 +80,11 @@ say('папка перенесена')
 
 // Абсолютные пути прежней папки — в обоих написаниях (обратные и прямые косые).
 const variants = (p) => [p, p.split('\\').join('/'), p.split('\\').join('\\\\')]
-for (const f of ['.env.local', '.install-stamp.json']) {
+// ✗ 343, замерено на roman-2: собранный сервер читает СВОЮ копию окружения `<сборка>/standalone/.env.local` — с прежними путями
+// он через 5 с после запуска записал оформление в `AGI-ITEMS/user/<id>/DESIGN-CONFIG` и воскресил старую папку.
+const builds = readdirSync(target, { withFileTypes: true }).filter((d) => d.isDirectory() && d.name.startsWith('.next'))
+  .flatMap((d) => ['.env.local', '.env'].map((f) => join(d.name, 'standalone', f)))
+for (const f of ['.env.local', '.install-stamp.json', ...builds]) {
   const file = join(target, f)
   if (!existsSync(file)) continue
   let s = readFileSync(file, 'utf8')
