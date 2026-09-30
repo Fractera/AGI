@@ -583,6 +583,16 @@ A born element is not deleted as a draft (409). Not built yet: birth in seconds.
   `scripts/element-preview.mjs` passes `languages` from the element's APP-CONFIG (supported · default · indexed) into the
   preview build — Preview and Deploy build the same set. Template law and guard: the element's `CLAUDE.md` («People see
   every language…»), `scripts/check-seo-html.mjs` rules 9–13, `npm run check:index`.
+- **The same block in CONFIG (step 341).** CONFIG v0.2.25 (`/<lang>/architect/languages`) carries «Languages for search
+  engines» under its language set: it writes the CONFIG patch `languages.indexed`, and below it lists the elements that take
+  their languages from CONFIG (door `/api/language-followers`, architect only: `.env.example` declares
+  `NEXT_PUBLIC_SUPPORTED_LANGUAGES`, CONFIG link not off), each linking to its Deployments — a born element to its own page,
+  the node site (root) to the node board `/architect/build/deployments` (`/root/build/deployments` is 404). An element on an
+  older template is marked: its code shows search engines every language. 🔒 **The build reads the same source as the running
+  element**: `lib/agi-items/element-languages.mjs` (installer + Preview) lays `data/services/<id>/project-settings.json`
+  `patches.app.languages` over the element's own APP-CONFIG unless `links.json` says `config: false`. ✗ Before 341 the build
+  read only the own APP-CONFIG: languages chosen in CONFIG (en,ru,fr since 2026-09-26) never reached root or xbmpu (built en,ru)
+  — their next Deploy adds fr.
 - **Preview** on any main address: the element trusts its node core origin (`/api/core-origin` ← `NODE_DOMAIN_FILE`
   `architectHostname`); «Refresh» goes through `/api/architect/items/<id>/redraw` (core server, loopback) — the sign-in
   cookie of the node zone does not live on the element's own domain.
