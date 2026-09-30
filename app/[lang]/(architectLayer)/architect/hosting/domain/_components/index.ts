@@ -1,5 +1,6 @@
 import type { Block } from '@/lib/content/blocks/types'
 import { domainLadderWords } from '@/components/domain/domain-ladder.i18n'
+import { homeHostingNotes } from './home-hosting-notes.i18n'
 
 // СОДЕРЖИМОЕ СТРАНИЦЫ «Domain activation» (259-1).
 //
@@ -13,5 +14,14 @@ import { domainLadderWords } from '@/components/domain/domain-ladder.i18n'
 // мы островку весь словарь — он уехал бы в браузер целиком, и это поймал бы
 // сторож `check:lang-delivery`.
 export function content(lang: string): Block[] {
-  return [{ kind: 'domainLadder', lang, words: domainLadderWords(lang) }]
+  const n = homeHostingNotes(lang)
+  const item = (x: { summary: string; text: string[] }): Block => ({
+    kind: 'accordionItem', summary: x.summary, children: x.text.map((text): Block => ({ kind: 'p', text })),
+  })
+  return [
+    { kind: 'domainLadder', lang, words: domainLadderWords(lang) },
+    // 344-5: когда подходит сайт с домашнего компьютера и что делать при посетителях из России — свёрнуто по умолчанию
+    // (слово владельца: «По умолчанию эти карточки должны быть закрыты … пусть нажимает раскрыть если ему интересно»).
+    { kind: 'accordion', title: n.title, cards: true, children: [item(n.home), item(n.russia)] },
+  ]
 }
