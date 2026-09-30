@@ -76,6 +76,10 @@ export function deletionRisk(id: string): { commits: number; unexported: number 
 
 export async function deleteElement(id: string): Promise<{ ok: boolean; steps: Step[] }> {
   const steps: Step[] = []
+  // 🔒 ПАПКА ВЫЧИСЛЯЕТСЯ ДО ЭТАПА 5 (узел, 2026-10-01). С 343 папка = адрес, а адрес живёт в `data/services/<id>/address.json`,
+  // который этап 5 стирает. ✗ Замерено на roman-2 (hea7z): вычисленная после этапа 5 папка шла по id (`user/hea7z`, её нет) —
+  // этап 7 отчитывался «ok», а настоящая `user/roman-2` оставалась на диске целиком.
+  const dir = paths.itemDir(id, "user")
   const pm2 = (args: string[]) => new Promise<boolean>((resolve) => {
     execFile(IS_WIN ? "pm2.cmd" : "pm2", args, { cwd: ROOT, shell: IS_WIN, windowsHide: true, timeout: 30_000 }, (err) => resolve(!err))
   })
@@ -154,7 +158,6 @@ export async function deleteElement(id: string): Promise<{ ok: boolean; steps: S
   steps.push({ step: "logs", ok: true })
 
   // 7. Папка с кодом — переименованием в корзину (Windows может держать файлы остановленного процесса мгновение — повторы).
-  const dir = paths.itemDir(id, "user")
   for (let i = 0; i < 10 && existsSync(dir); i++) {
     try {
       mkdirSync(TRASH_DIR, { recursive: true })
