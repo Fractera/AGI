@@ -630,6 +630,9 @@ A born element is not deleted as a draft (409). Not built yet: birth in seconds.
   `patches.app.languages` over the element's own APP-CONFIG unless `links.json` says `config: false`. ✗ Before 341 the build
   read only the own APP-CONFIG: languages chosen in CONFIG (en,ru,fr since 2026-09-26) never reached root or xbmpu (built en,ru)
   — their next Deploy adds fr.
+- 🛑 **Accept and the folder move call pm2 with a CLEAN environment** (step 351): both are started by a core door (the Next
+  server); an inherited `__NEXT_PROCESSED_ENV` made the element skip its own `.env.local` — aifa.dev sign-in went to a non-existent
+  `auth.aifa.dev`. Any new script that a core door may call and that runs pm2 strips `__NEXT*`, `NEXT_*`, `AGI_*`, PORT, HOSTNAME, NODE_ENV.
 - **Preview** on any main address: the element trusts its node core origin (`/api/core-origin` ← `NODE_DOMAIN_FILE`
   `architectHostname`); «Refresh» goes through `/api/architect/items/<id>/redraw` (core server, loopback) — the sign-in
   cookie of the node zone does not live on the element's own domain.
