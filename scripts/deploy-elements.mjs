@@ -18,6 +18,7 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 const { startStaticCopy } = createRequire(import.meta.url)('../lib/agi-items/static-copy-start.cjs')
+const { pendingPreview } = createRequire(import.meta.url)('../lib/deploy/preview-lock.cjs')
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const STATE = join(ROOT, 'logs', 'deploy-state.json')
@@ -33,6 +34,12 @@ save()
 for (const id of ids) {
   state.current = id
   save()
+  // 353-1: тот же запрет, что у двери, — и для запуска из терминала (✗ 2026-09-30 предпросмотр собрал агент, дверь о нём не знала).
+  if (pendingPreview(ROOT, id)) {
+    state.results.push({ id, ok: false, seconds: 0, note: 'предпросмотр ждёт «Принять» или «Отклонить» — развёртывание не начато' })
+    save()
+    continue
+  }
   const t0 = Date.now()
   const r = spawnSync(process.execPath, [join(ROOT, 'scripts', 'services-install.mjs'), '--only', id, '--rebuild'], {
     cwd: ROOT, encoding: 'utf8', windowsHide: true,

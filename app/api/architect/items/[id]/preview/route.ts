@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireRoles } from "@/lib/auth/require-roles"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
 import { isBornElement } from "@/lib/agi-items/element-delete"
+import deployLock from "@/lib/deploy/deploy-lock.cjs"
 
 // ПРЕДПРОСМОТР ЭЛЕМЕНТА (337-4). GET — состояние (`data/services/<id>/preview.json`, живость процессов измеряется здесь же);
 // POST `{ action: "stage" | "promote" | "discard" }` — запускает `scripts/element-preview.mjs` вне дерева процессов ядра.
@@ -56,6 +57,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const now = read(id)
   if (action === "stage" && now?.state === "building") return NextResponse.json({ ok: false, error: "already-building" }, { status: 409 })
   if (action === "promote" && now?.state !== "ready") return NextResponse.json({ ok: false, error: "nothing-to-accept" }, { status: 409 })
+  // 353-1: сборка предпросмотра и «Принять» не идут рядом с развёртыванием — отказ вслух, а не молча вышедший скрипт.
+  if (action !== "discard" && deployLock.isRunning()) return NextResponse.json({ ok: false, error: "deploy-running" }, { status: 409 })
   // Вне дерева процессов ядра — тот же запускатель, что у развёртывания (337-1).
   spawnSync(process.execPath, [join(ROOT, "scripts", "spawn-free.mjs"), join(ROOT, "scripts", "element-preview.mjs"), action, id], {
     cwd: ROOT, windowsHide: true, stdio: "ignore", timeout: 10_000,

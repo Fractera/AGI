@@ -159,6 +159,14 @@ if (action === 'discard') {
 
 // promote — «Принять»: без сборки, только переключение на уже собранную и проверенную папку.
 if (!current || current.state !== 'ready' || !stamp) { console.error('нечего принимать'); process.exit(1) }
+// 353-1: ✗ 2026-09-30 21:03:49 «Принять» переключило отметку на `.next-a`, которую за секунды до этого стёрло упавшее развёртывание, —
+// сайт лёг. Принимается только при тихом развёртывании и только существующая папка с сервером; иначе работающая версия не трогается.
+if (deployLock.isRunning()) { console.error('идёт развёртывание — «Принять» не выполнено'); process.exit(1) }
+if (!current.target || !existsSync(join(dir, current.target))) {
+  killPreview(current)
+  save({ state: 'failed', target: current.target, commit: current.commit, note: 'папки предпросмотра нет — принимать нечего, работает прежняя версия' })
+  process.exit(1)
+}
 killPreview(current)
 const base = String(stamp.version ?? '').split('+')[0]
 writeFileSync(stampFile, JSON.stringify({

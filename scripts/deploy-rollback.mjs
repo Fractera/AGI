@@ -22,6 +22,11 @@ if (!id || !/^[a-z][a-z0-9-]{0,31}$/.test(id)) {
   console.error('deploy:rollback: укажите элемент — npm run deploy:rollback -- auth')
   process.exit(1)
 }
+// 353-1: предпросмотр ждёт решения — откат (это развёртывание) не начинается ДО смены версии в реестре.
+if (createRequire(import.meta.url)('../lib/deploy/preview-lock.cjs').pendingPreview(ROOT, id)) {
+  console.error(`deploy:rollback: у «${id}» предпросмотр ждёт «Принять» или «Отклонить» — сначала решите его`)
+  process.exit(1)
+}
 const current = currentVersion(id)
 const prev = previousVersion(id)
 if (!current || !prev) {

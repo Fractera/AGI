@@ -8,6 +8,7 @@ import { requireRoles } from "@/lib/auth/require-roles"
 import paths from "@/lib/agi-items/paths.cjs"
 import rollback from "@/lib/deploy/previous-version.cjs"
 import deployLock from "@/lib/deploy/deploy-lock.cjs"
+import previewLock from "@/lib/deploy/preview-lock.cjs"
 import { elementCodeState } from "@/lib/agi-items/element-code-state"
 
 // ДАШБОРД РАЗВЁРТЫВАНИЙ — ДВЕРЬ (280-11b).
@@ -116,12 +117,16 @@ export async function POST(req: NextRequest) {
   // 287: откат — та же команда, что с машины (`npm run deploy:rollback -- <id>`), отдельным процессом.
   if (typeof body.rollback === "string") {
     if (!known.has(body.rollback)) return NextResponse.json({ ok: false, reason: "no-elements" }, { status: 400 })
+    if (previewLock.pendingPreview(ROOT, body.rollback)) return NextResponse.json({ ok: false, reason: "preview-pending", ids: [body.rollback] }, { status: 409 })
     if (!rollback.previousVersion(body.rollback)) return NextResponse.json({ ok: false, reason: "no-previous" }, { status: 409 })
     startFree("deploy-rollback.mjs", [body.rollback])
     return NextResponse.json({ ok: true, rollback: body.rollback })
   }
   const ids = Array.isArray(body.ids) ? body.ids.filter((x): x is string => typeof x === "string" && known.has(x)) : []
   if (ids.length === 0) return NextResponse.json({ ok: false, reason: "no-elements" }, { status: 400 })
+  // 353-1: предпросмотр, ждущий «Принять»/«Отклонить», держит соседнюю папку — развёртывание этого элемента запрещено.
+  const waiting = ids.filter((x) => previewLock.pendingPreview(ROOT, x))
+  if (waiting.length > 0) return NextResponse.json({ ok: false, reason: "preview-pending", ids: waiting }, { status: 409 })
   startFree("deploy-elements.mjs", ids)
   return NextResponse.json({ ok: true, started: ids })
 }
