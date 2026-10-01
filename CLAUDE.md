@@ -556,6 +556,14 @@ restarts the service through pm2 (seconds, no build); **Reject** stops it and re
 by a core door go through `scripts/spawn-free.mjs` (double spawn — no living parent, outside the core's tree).
 `serve:rebuild` refuses to start while a deploy runs and waits for it before restarting the core.
 
+**Task report and reject reason (node step 356).** The element agent rewrites `TASK-REPORT.json` (task, done, check, path,
+anchor) in the same commit; the preview carries it only when that file changed in the previewed commit, «Open the preview» lands
+on `/<lang><path>?report=<commit>#<anchor>`, the site's report window answers only on this machine and, closed, puts the page at
+the anchor block (`id` or `data-block`). **Reject** opens `_tools/block-task` in `note` mode: the line «Rejected preview <commit>
+(<task>)» plus a reason by text or voice; the preview is removed either way, with a reason the browser goes to
+`/<lang>/architect/<address>/build/terminal?paste=…` — a born element's terminal is under `build/`, not the core-service path of
+`terminalLink` (measured: that one is an error page). Attention dot and lists in «My account» — 356-1.
+
 ## Dashboard → Projects — every AGI ITEM in one table (node step 339)
 
 Owner 2026-09-29: «После кнопки паспорт в левом меню добавлять кнопку Dashboard … кнопку проекты … нашу стандартную таблицу».
