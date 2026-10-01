@@ -7,9 +7,11 @@ import { requireRoles } from "@/lib/auth/require-roles"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
 import { isBornElement } from "@/lib/agi-items/element-delete"
 import { addressOf, checkAddress, setAddress } from "@/lib/agi-items/element-address"
+import { moveSubdomain } from "@/lib/agi-items/element-subdomain"
 
 // «ПЕРЕИМЕНОВАТЬ АДРЕС» (325-3). GET `?name=` — свободно ли имя (занято — варианты); POST `{ address }` — записать, id не
-// меняется. Только рождённые элементы; ворота architect/admin; на временном публичном адресе — отказ. Поддомен не трогается.
+// меняется. Только рождённые элементы; ворота architect/admin; на временном публичном адресе — отказ. 🪦 «Поддомен не трогается»
+// отменено 2026-10-01: подключённый поддомен переезжает на новое имя (`lib/agi-items/element-subdomain.ts`).
 
 export const dynamic = "force-dynamic"
 
@@ -41,11 +43,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const name = typeof body?.address === "string" ? body.address.trim() : ""
   const r = setAddress(id, name)
   if (!r.ok) return NextResponse.json(r, { status: 409, ...noStore })
+  // 2026-10-01 (владелец: «переноси поддомен при переименовании»): подключённый поддомен переезжает на новое имя, старый снимается.
+  const subdomain = r.previous ? await moveSubdomain(id, r.previous, addressOf(id)) : null
   revalidatePath("/[lang]", "layout")
   // 343 (слово владельца «Папка = адрес»): папка элемента переезжает под новый адрес — вне дерева процессов ядра, дверь не ждёт.
   // Итог — `data/services/<id>/move.json` (отказ, например открытый терминал агента, называет, что сделать).
   spawnSync(process.execPath, [join(ROOT, "scripts", "spawn-free.mjs"), join(ROOT, "scripts", "element-move.mjs"), id], {
     cwd: ROOT, windowsHide: true, stdio: "ignore", timeout: 10_000,
   })
-  return NextResponse.json({ ...r, address: addressOf(id), folder: "moving" }, noStore)
+  return NextResponse.json({ ...r, address: addressOf(id), folder: "moving", subdomain }, noStore)
 }
