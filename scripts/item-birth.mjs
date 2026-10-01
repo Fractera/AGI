@@ -67,6 +67,13 @@ const repoAt = process.argv.indexOf('--repo')
 const repoUrl = repoAt > 0 ? process.argv[repoAt + 1] : null
 if (repoUrl && look !== 'own') fail('элемент из своего репозитория рождается только самостоятельным')
 if (repoUrl && !/^https:\/\/[a-z0-9.-]+\.[a-z]{2,}\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+?(\.git)?\/?$/.test(repoUrl)) fail(`адрес репозитория «${repoUrl}» — не https://хост/владелец/имя`)
+// 367-5: только ваш репозиторий — владелец совпадает с аккаунтом узла (`lib/agi-items/repo-owner.mjs`; та же проверка в двери).
+let repoOwned = null
+if (repoUrl) {
+  const { checkRepoOwner } = await import('../lib/agi-items/repo-owner.mjs')
+  repoOwned = checkRepoOwner(repoUrl, ROOT)
+  if (!repoOwned.ok) fail(repoOwned.message)
+}
 const origin = repoUrl ? { from: 'repository', version: repoUrl } : template
 stage(`рождаю «${id}» из ${origin.from} ${origin.version}`)
 
@@ -143,6 +150,15 @@ for (const step of historySteps) {
   if (r.rc !== 0) fail(`своя история не заведена (git ${step.filter((a) => !a.startsWith('user.')).join(' ')}): ${r.out.trim().split('\n').slice(-1)[0]}`, dir)
 }
 stage(`своя история: ${git(['rev-parse', '--short', 'HEAD'], dir).out.trim()}, паспорт — «${id}»`)
+// 367-5 (владелец: «сразу записываешь … этого AGI ITEM его собственный репозиторий»): адрес — в данные GitHub элемента (страница
+// GitHub элемента сразу показывает репозиторий; ключ нужен только для выгрузки — его человек добавляет там же) и в окружение
+// (`ELEMENT_REPO_URL`, установщик берёт из `born.url` реестра).
+if (repoOwned?.ok) {
+  const gh = join(ROOT, 'data', 'services', id, 'github')
+  mkdirSync(gh, { recursive: true })
+  writeFileSync(join(gh, 'state.json'), JSON.stringify({ repo: `${repoOwned.owner}/${repoOwned.name}` }, null, 2) + '\n', 'utf8')
+  stage(`репозиторий элемента записан: ${repoOwned.owner}/${repoOwned.name}`)
+}
 
 // 5. Запись реестра.
 registry.services.push({

@@ -31,6 +31,8 @@ export function BirthButton({ id, ui, dialogUi, born = false }: { id: string; ui
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [starting, setStarting] = useState(false)
+  // 367-5: отказ двери с объяснением (например, «это не ваш репозиторий — сделайте Fork») — в окне, окно не закрывается.
+  const [refusal, setRefusal] = useState<string | null>(null)
   // 367 (слово владельца 2026-10-01): облик элемента выбирает человек — «как весь проект» или «самостоятельный»; без выбора не рождаем.
   const [look, setLook] = useState<"project" | "own" | "">("")
   // 367-3: у самостоятельного — источник кода: стартер Fractera или репозиторий человека (адрес проверяет и дверь).
@@ -86,6 +88,10 @@ export function BirthButton({ id, ui, dialogUi, born = false }: { id: string; ui
         headers: { "content-type": "application/json" },
         body: JSON.stringify(look === "own" ? { look, source, ...(source === "repo" ? { repo: repo.trim() } : {}) } : { look }),
       })
+      if (r.status === 400) {
+        const j = (await r.json().catch(() => null)) as { message?: string } | null
+        if (j?.message) { setRefusal(j.message); return }
+      }
       setOpen(false)
       if (r.ok || r.status === 409) await poll()
       else setS({ state: "failed", lines: [], reason: String(r.status) })
@@ -100,7 +106,7 @@ export function BirthButton({ id, ui, dialogUi, born = false }: { id: string; ui
   return (
     <div className="my-4 flex flex-col gap-3" data-birth data-birth-state={s.state}>
       {!born && !running && s.state !== "done" && (
-        <Button onClick={() => { setLook(""); setSource(""); setRepo(""); setOpen(true) }} className="w-fit gap-1.5" data-birth-start>
+        <Button onClick={() => { setLook(""); setSource(""); setRepo(""); setRefusal(null); setOpen(true) }} className="w-fit gap-1.5" data-birth-start>
           <Sprout className="size-4" aria-hidden />
           {ui.birth}
         </Button>
@@ -148,7 +154,7 @@ export function BirthButton({ id, ui, dialogUi, born = false }: { id: string; ui
                 <div className="flex flex-col gap-1.5">
                   <Input
                     value={repo}
-                    onChange={(e) => setRepo(e.target.value)}
+                    onChange={(e) => { setRepo(e.target.value); setRefusal(null) }}
                     placeholder={ui.repoPlaceholder}
                     aria-label={ui.sourceRepo}
                     className="font-mono text-sm"
@@ -165,6 +171,7 @@ export function BirthButton({ id, ui, dialogUi, born = false }: { id: string; ui
             </div>
           )}
           {!look && <p className="text-xs text-muted-foreground">{ui.lookPick}</p>}
+          {refusal && <p className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-foreground" role="alert" data-birth-refusal>{refusal}</p>}
         </div>
       </AppDialog>
     </div>

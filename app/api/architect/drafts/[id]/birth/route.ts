@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
 import { requireRoles } from "@/lib/auth/require-roles"
 import { getDraft } from "@/lib/agi-items/drafts"
+import { checkRepoOwner } from "@/lib/agi-items/repo-owner.mjs"
 import { BIRTH_LOOKS, birthState, isRepoUrl, markRevalidated, startBirth, wasRevalidated } from "@/lib/agi-items/birth"
 import { getService } from "@/lib/microservices/registry"
 
@@ -29,6 +30,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const source = look === "own" && body?.source === "repo" ? "repo" : "starter"
   const repo = source === "repo" ? String(body?.repo ?? "").trim() : ""
   if (source === "repo" && !isRepoUrl(repo)) return NextResponse.json({ ok: false, reason: "bad-repo" }, { status: 400 })
+  // 367-5: только ваш репозиторий — владелец совпадает с аккаунтом узла; отказ показывается в окне, ничего не клонируется.
+  if (source === "repo") {
+    const own = checkRepoOwner(repo)
+    if (!own.ok) return NextResponse.json({ ok: false, reason: own.reason, message: own.message }, { status: 400 })
+  }
   const r = startBirth(id, look, source === "repo" ? repo : null)
   if (!r.ok) return NextResponse.json({ ok: false, reason: r.reason }, { status: r.reason === "running" ? 409 : 500 })
   return NextResponse.json({ ok: true, state: "running" }, { status: 202 })

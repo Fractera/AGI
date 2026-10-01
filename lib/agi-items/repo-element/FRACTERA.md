@@ -16,6 +16,11 @@ adds how the project lives inside the node. Answer the person in their language.
 - Data: the node's data element at `REMOTE_DATA_URL` — HTTP requests with the node's key. Never open a database file of your own.
 - Design and CONFIG of the project are not followed by this element: it was born independent.
 
+## Where updates go
+- This element's own repository is `ELEMENT_REPO_URL` (the person's GitHub account — the node allows only the person's own
+  repository). Pushing needs a GitHub key: if the person has not added one, send them to this element's «GitHub» page — it
+  shows the repository and explains how to get the key. Never push with credentials of your own.
+
 ## How work is delivered
 - Commit your change. Then rewrite `TASK-REPORT.json` in the same commit: `task` (the request in one sentence, in the person's
   language), `done` (what changed), `check` (steps to see it), `path` (page where it shows, "" for home), `anchor` ("" if none).
