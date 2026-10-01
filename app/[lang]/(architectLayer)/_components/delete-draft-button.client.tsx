@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,7 +22,6 @@ export function DeleteDraftButton({ lang, id, address, ui, dialogUi }: {
   ui: AgiDraftsUi
   dialogUi: AppDialogUi
 }) {
-  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [typed, setTyped] = useState("")
   const [busy, setBusy] = useState(false)
@@ -41,9 +39,11 @@ export function DeleteDraftButton({ lang, id, address, ui, dialogUi }: {
       })
       if (r.status === 409) throw new Error("mismatch")
       if (!r.ok) throw new Error(String(r.status))
-      setOpen(false)
-      router.push(`/${lang}/architect`)
-      router.refresh()
+      // Владелец 2026-10-01: «после того как окно закрылось вкладка не поменялась, когда я обновил страницу вкладка исчезла».
+      // ✗ Было: окно закрывалось сразу, а мягкий переход (`router.push` + `refresh`) перерисовывал раскладку от 4 с до >45 с —
+      // всё это время на экране страница удалённого черновика (замерено). Теперь как у удаления элемента: ПОЛНЫЙ переход, а окно
+      // остаётся открытым в состоянии «удаляю», пока браузер не ушёл, — «окно закрылось, страница прежняя» невозможно.
+      window.location.assign(`${BASE}/${lang}/architect`)
     } catch (e) {
       setError(e instanceof Error && e.message === "mismatch" ? ui.deleteMismatch : ui.deleteFailed)
       setBusy(false)
