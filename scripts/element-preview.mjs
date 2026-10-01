@@ -22,7 +22,7 @@ import deployLock from '../lib/deploy/deploy-lock.cjs'
 import { elementLanguages } from '../lib/agi-items/element-languages.mjs'
 
 const require = createRequire(import.meta.url)
-const { isFree, PORT_BLOCK_START, PORT_BLOCK_END } = require('../lib/server-port.cjs')
+const { isFree, PORT_BLOCK_START, blockPorts } = require('../lib/server-port.cjs')
 
 const ROOT = join(paths.ITEMS_DIR, '..')
 const IS_WIN = process.platform === 'win32'
@@ -88,7 +88,8 @@ async function freePort() {
   const taken = new Set((registry.services ?? []).map((s) => s.port).filter(Number.isInteger))
   const nodePort = readJson(join(ROOT, 'logs', 'runtime.json'))?.port ?? PORT_BLOCK_START
   // С конца блока, на шаг ниже прогрева установщика (он берёт самый верхний свободный).
-  for (let p = PORT_BLOCK_END - 1; p >= PORT_BLOCK_START; p -= 1) {
+  // 370: по разрешённым портам блока (без чужих умолчаний), с конца, на шаг ниже прогрева установщика.
+  for (const p of blockPorts().reverse().slice(1)) {
     if (taken.has(p) || p === nodePort) continue
     if (!(await isFree(p, '127.0.0.1'))) continue
     try { if (!(await isFree(p, '::1'))) continue } catch { /* без IPv6 */ }

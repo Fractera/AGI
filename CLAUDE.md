@@ -546,6 +546,10 @@ Claude Code cloud session) → `===CLOUD_REFUSED===` with how to run locally. RE
 npm runs `preinstall` after it has fetched dependencies, so the README is the earliest stop and the code catches an agent that skipped it.
 ✗ Paid 2026-10-01: the owner's «launch this» in a cloud session installed the node into a machine that vanished with the session.
 ✓ Proven by a live cloud session (new account): the agent stopped at README step 0.
+**Port block 24680–25679** (node step 370, owner: «расширь блок портов»): 1000 ports minus `PORT_SKIP` (defaults of programs
+people run, each from a primary source: IANA registry, Synergy/Barrier `kDefaultPort = 24800`, Minecraft 25565/25575) — one source
+`lib/server-port.cjs` (`blockPorts()`, `isBlockPort()`); the installer (incl. a passport's desired port), the element preview and
+the registry guard read it. Was 24680–24699: the core + 6 native elements left only 13 own sites.
 **One node per computer** (owner 2026-10-01: «да, запрещай»): the same script refuses when pm2 (live or its `dump.pm2` snapshot)
 holds `fractera-agi` from ANOTHER existing folder — `===NODE_EXISTS===`. Two copies would share pm2 names, autostart and the port
 block. `scripts/ensure-env.mjs` creates `.env.local` from the example on a clean clone (preinstall, prebuild before check-origin,

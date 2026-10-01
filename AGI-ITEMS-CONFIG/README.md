@@ -19,7 +19,7 @@ defaults: this is the **state of one machine** — what is installed and from wh
 | `kind` | `core` — installed by the node itself · `user` — connected by the person. **It decides the path**: `AGI-ITEMS/<kind>/<id>` |
 | `repo` | the git address the item is cloned from |
 | `version` | the pinned **tag**, never a branch |
-| `port` | the actual port from the block `24680–24699`, assigned by the node |
+| `port` | the actual port from the block `24680–25679`, assigned by the node |
 | `provides`, `required`, `note` | what the item gives, whether the node needs it, a human sentence |
 
 🔒 **The version is pinned by a tag, never by a branch.** Following `main`, two people who run the same

@@ -10,7 +10,7 @@ You need a GitHub account, a computer that stays on, and Claude Code — the ter
 session (claude.ai/code, the Code tab of the mobile app, or Desktop with **Cloud** selected) installs the node into a temporary
 machine that disappears with the session — the install refuses there.
 🔒 **One node per computer.** A second copy is never needed: one node carries many sites and applications inside it — AGI
-ITEMS, created with «Create AGI ITEM». The install refuses a second copy on a computer that already has a node.
+ITEMS, created with «Create AGI ITEM» — as many as the computer can carry. The install refuses a second copy on a computer that already has a node.
 
 1. **Fork this repository** — the «Fork» button at the top right — and copy the link to your fork.
    🔒 **Only your own fork of the original works.** A node installs only from a direct fork of `github.com/fractera/agi`:
@@ -102,8 +102,10 @@ milliseconds, nothing is compiled while you browse. That is also why changing th
 The site runs on **http://localhost:24680**. That port is deliberate: `3000` is the busiest port in
 development and we start before you do, so we would break your own projects; `49152+` is the range the
 operating system hands out to outgoing connections, so a permanent listener there fails at random. If
-24680 is taken, the server moves to the next free port in 24680–24699 and says so — the address it
-actually took is written to `logs/runtime.json`.
+24680 is taken, the server moves to the next free port in 24680–25679 and says so — the address it
+actually took is written to `logs/runtime.json`. Every running element of the node takes one port from the same block (1000 ports,
+minus the defaults of other programs people run — Synergy 24800, Minecraft 25565/25575, IANA-registered services; the list is in
+`lib/server-port.cjs`), so one node holds as many sites as the computer can carry.
 
 🛑 **Do not start the server by hand (`node server.js`) once it runs under pm2.** Two servers race for
 the same port; the loser dies and the winner may be the stale one, which then answers with an old

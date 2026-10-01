@@ -44,7 +44,7 @@ import { addressOf } from '../lib/agi-items/address-file.mjs'
 import { elementLanguages } from '../lib/agi-items/element-languages.mjs'
 
 const require = createRequire(import.meta.url)
-const { isFree, PORT_BLOCK_START, PORT_BLOCK_END } = require('../lib/server-port.cjs')
+const { isFree, PORT_BLOCK_START, PORT_BLOCK_END, blockPorts, isBlockPort } = require('../lib/server-port.cjs')
 const { authEnvOverrides, publicAuth } = require('../lib/domain/public-auth.cjs')
 
 const ROOT = process.cwd()
@@ -189,9 +189,9 @@ async function assignPort(entry, desired, installedHere) {
     entry.port = null
   }
 
-  const first = Number.isInteger(desired) ? desired : PORT_BLOCK_START
-  const candidates = [first]
-  for (let p = PORT_BLOCK_START; p <= PORT_BLOCK_END; p += 1) if (p !== first) candidates.push(p)
+  // 370: желаемый порт паспорта — только если узел вправе его занимать (внутри блока и не чужое умолчание).
+  const first = isBlockPort(desired) ? desired : PORT_BLOCK_START
+  const candidates = [first, ...blockPorts().filter((p) => p !== first)]
 
   for (const p of candidates) {
     if (takenByRegistry.has(p)) continue
@@ -449,7 +449,7 @@ const REBUILD = process.argv.includes('--rebuild')
 // отвечает на здоровье и главную — и только потом pm2 переключается на неё: файлы уже прочитаны.
 async function warmUp(start, healthPath) {
   let port = null
-  for (let c = PORT_BLOCK_END; c >= PORT_BLOCK_START; c -= 1) {
+  for (const c of blockPorts().reverse()) {
     if (takenByRegistry.has(c) || c === nodePort) continue
     if (await freeOnBothStacks(c)) { port = c; break }
   }

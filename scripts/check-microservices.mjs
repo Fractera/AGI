@@ -22,12 +22,14 @@ import { execFileSync } from 'node:child_process'
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import paths from '../lib/agi-items/paths.cjs'
+import serverPort from '../lib/server-port.cjs'
 
 const ROOT = process.cwd()
 const FILE = paths.REGISTRY_FILE
 
-const PORT_MIN = 24680
-const PORT_MAX = 24699
+// 370: блок и чужие умолчания — из одного источника (lib/server-port.cjs), второй копии чисел здесь нет.
+const PORT_MIN = serverPort.PORT_BLOCK_START
+const PORT_MAX = serverPort.PORT_BLOCK_END
 
 const out = []
 let errors = 0
@@ -100,7 +102,9 @@ for (const [i, s] of reg.services.entries()) {
 
   // ── 6. port-block. Порча: поставить 3001 или 50505.
   if (s.port !== null && s.port !== undefined) {
-    if (!Number.isInteger(s.port) || s.port < PORT_MIN || s.port > PORT_MAX) {
+    if (Number.isInteger(s.port) && serverPort.PORT_SKIP.has(s.port)) {
+      fail('port-block', `${where}: порт ${s.port} — умолчание чужой программы человека (список пропуска в lib/server-port.cjs); узел его не занимает.`)
+    } else if (!Number.isInteger(s.port) || s.port < PORT_MIN || s.port > PORT_MAX) {
       fail('port-block',
         `${where}: порт ${s.port} вне блока ${PORT_MIN}–${PORT_MAX}. ` +
         'Ниже блока мы отбираем порты у собственных проектов человека, выше 49152 их раздаёт ОС исходящим соединениям.')
@@ -149,7 +153,7 @@ for (const id of REQUIRED) {
 // ── 10. no-remembered-address. Порча: вернуть "http://localhost:3300" в любую
 // дверь медиа. ПРАВИЛО НЕ ПРО РЕЕСТР, А ПРО КОД УЗЛА, и живёт здесь потому, что
 // сторож реестра — единственное место, знающее, что адрес назначается, а не
-// помнится. Порты узла берутся из блока 24680-24699 и чисел 3001/3300 не
+// помнится. Порты узла берутся из блока 24680-25679 и чисел 3001/3300 не
 // содержат никогда: умолчание с этими номерами есть тихий стук в пустоту.
 {
   // Адрес бывает не только строкой целиком: `${hostname}:3001` — тот же адрес,
