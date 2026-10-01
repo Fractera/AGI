@@ -1,4 +1,4 @@
-// @api list what waits for the architect — open element terminals and previews ready for a decision
+// @api list open element terminals and previews waiting for the architect
 import { readFileSync } from "node:fs"
 import { NextRequest, NextResponse } from "next/server"
 
