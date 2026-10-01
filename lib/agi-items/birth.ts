@@ -86,13 +86,18 @@ function liveTail(id: string): string[] {
 export type BirthLook = "project" | "own"
 export const BIRTH_LOOKS: BirthLook[] = ["project", "own"]
 
-/** Запустить рождение. Вызывающий уже проверил роли, черновик, что элемента ещё нет, и значение `look`. */
-export function startBirth(id: string, look: BirthLook): { ok: true } | { ok: false; reason: string } {
+/** 367-3: адрес репозитория человека — https, хост, владелец/имя, необязательный `.git`. Ни пробелов, ни параметров, ни ключей в адресе. */
+export function isRepoUrl(url: string): boolean {
+  return url.length <= 300 && /^https:\/\/[a-z0-9.-]+\.[a-z]{2,}\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+?(\.git)?\/?$/.test(url)
+}
+
+/** Запустить рождение. Вызывающий уже проверил роли, черновик, что элемента ещё нет, `look` и адрес репозитория (`repo`). */
+export function startBirth(id: string, look: BirthLook, repo: string | null = null): { ok: true } | { ok: false; reason: string } {
   if (birthState(id).state === "running") return { ok: false, reason: "running" }
   mkdirSync(LOGS(), { recursive: true })
   const fd = openSync(logFile(id), "w")
   try {
-    const child = spawn(process.execPath, [join(process.cwd(), "scripts", "item-birth.mjs"), id, "--look", look], {
+    const child = spawn(process.execPath, [join(process.cwd(), "scripts", "item-birth.mjs"), id, "--look", look, ...(repo ? ["--repo", repo] : [])], {
       cwd: process.cwd(),
       detached: true,
       stdio: ["ignore", fd, fd],

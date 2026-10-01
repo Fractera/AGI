@@ -38,6 +38,15 @@ export type AgiDraftsUi = {
   lookOwn: string
   lookOwnText: string
   lookPick: string
+  /** 367-3: «Самостоятельный» раскрывается — откуда взять код. */
+  sourceStarter: string
+  sourceStarterText: string
+  sourceRepo: string
+  sourceRepoText: string
+  repoPlaceholder: string
+  repoWarning: string
+  repoBad: string
+  sourcePick: string
   birthStarting: string
   birthRunning: string
   birthDone: string
@@ -81,10 +90,18 @@ const DICT: Record<string, AgiDraftsUi> = {
     birthConfirm: "Give birth",
     lookQuestion: "How should the element look and be set up?",
     lookProject: "Like the whole project",
-    lookProjectText: "Takes the project's design and CONFIG settings now and follows their changes: colours, menu, languages.",
+    lookProjectText: "Takes the project's design and CONFIG settings now and follows their changes: colours, menu, languages. You can detach it from the platform at any moment.",
     lookOwn: "An independent project",
     lookOwnText: "Keeps the starter's own design and settings and does not follow the project; you change them on its own pages.",
     lookPick: "Choose how the element is born.",
+    sourceStarter: "Fractera starter template",
+    sourceStarterText: "Our Next.js starter with its own design and settings.",
+    sourceRepo: "From my repository",
+    sourceRepoText: "Next.js, any Node project that builds and starts on a port, or a static site (Vite React, Gatsby, Astro). Anything else is refused with the reason.",
+    repoPlaceholder: "https://github.com/owner/project",
+    repoWarning: "Installing runs this repository's code on this computer with your rights (dependency scripts, build). Use only repositories you trust.",
+    repoBad: "Enter an https address of a public Git repository: https://host/owner/name.",
+    sourcePick: "Choose where the code comes from.",
     birthStarting: "Starting…",
     birthRunning: "The element is being born:",
     birthDone: "The element is born.",
@@ -125,10 +142,18 @@ const DICT: Record<string, AgiDraftsUi> = {
     birthConfirm: "Родить",
     lookQuestion: "Каким будет элемент — по облику и настройкам?",
     lookProject: "Как весь проект",
-    lookProjectText: "Сразу берёт дизайн и настройки CONFIG проекта и дальше меняется вместе с ними: цвета, меню, языки.",
+    lookProjectText: "Сразу берёт дизайн и настройки CONFIG проекта и дальше меняется вместе с ними: цвета, меню, языки. Отвязать от платформы можно в любой момент.",
     lookOwn: "Самостоятельный проект",
     lookOwnText: "Остаётся со своим дизайном и настройками стартера и не следует за проектом; меняете их на его собственных страницах.",
     lookPick: "Выберите, каким родится элемент.",
+    sourceStarter: "Стартовый шаблон Fractera",
+    sourceStarterText: "Наш стартер на Next.js со своим дизайном и настройками.",
+    sourceRepo: "Из своего репозитория",
+    sourceRepoText: "Next.js, любой Node-проект со сборкой и запуском на порту или статический сайт (Vite React, Gatsby, Astro). Остальное — отказ с причиной.",
+    repoPlaceholder: "https://github.com/владелец/проект",
+    repoWarning: "Установка запускает код этого репозитория на этом компьютере с вашими правами (скрипты зависимостей, сборка). Используйте только репозитории, которым доверяете.",
+    repoBad: "Введите https-адрес публичного Git-репозитория: https://хост/владелец/имя.",
+    sourcePick: "Выберите, откуда взять код.",
     birthStarting: "Запускаю…",
     birthRunning: "Элемент рождается:",
     birthDone: "Элемент родился.",

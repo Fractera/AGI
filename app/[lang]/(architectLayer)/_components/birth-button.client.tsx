@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Sprout } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { AppDialog } from "@/components/dialog/app-dialog.client"
 import type { AppDialogUi } from "@/components/dialog/app-dialog.i18n"
 import type { AgiDraftsUi } from "../_i18n/agi-drafts.i18n"
@@ -19,6 +20,8 @@ import type { AgiDraftsUi } from "../_i18n/agi-drafts.i18n"
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 const EVERY_MS = 2000
+// Та же форма, что у двери (`isRepoUrl` в lib/agi-items/birth.ts): окно подсказывает, решает дверь.
+const REPO_URL = /^https:\/\/[a-z0-9.-]+\.[a-z]{2,}\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+?(\.git)?\/?$/
 
 type State = { state: "idle" | "running" | "done" | "failed"; lines: string[]; reason?: string; port?: number }
 
@@ -30,6 +33,29 @@ export function BirthButton({ id, ui, dialogUi, born = false }: { id: string; ui
   const [starting, setStarting] = useState(false)
   // 367 (слово владельца 2026-10-01): облик элемента выбирает человек — «как весь проект» или «самостоятельный»; без выбора не рождаем.
   const [look, setLook] = useState<"project" | "own" | "">("")
+  // 367-3: у самостоятельного — источник кода: стартер Fractera или репозиторий человека (адрес проверяет и дверь).
+  const [source, setSource] = useState<"starter" | "repo" | "">("")
+  const [repo, setRepo] = useState("")
+  const repoOk = REPO_URL.test(repo.trim())
+  const ready = look === "project" || (look === "own" && (source === "starter" || (source === "repo" && repoOk)))
+
+  /** Карточка-вариант: shadcn Button с role=radio; выбранная — с рамкой основного цвета. */
+  const option = (value: string, title: string, text: string, checked: boolean, pick: () => void, mark: string) => (
+    <Button
+      key={value}
+      type="button"
+      variant="outline"
+      role="radio"
+      aria-checked={checked}
+      onClick={pick}
+      disabled={starting}
+      className={`h-auto w-full flex-col items-start gap-1 whitespace-normal p-3 text-left ${checked ? "border-primary ring-2 ring-primary/40" : ""}`}
+      {...{ [mark]: value }}
+    >
+      <span className="font-semibold text-foreground">{title}</span>
+      <span className="text-xs font-normal text-muted-foreground">{text}</span>
+    </Button>
+  )
   const [s, setS] = useState<State>({ state: "idle", lines: [] })
   const timer = useRef<number | null>(null)
 
@@ -58,7 +84,7 @@ export function BirthButton({ id, ui, dialogUi, born = false }: { id: string; ui
       const r = await fetch(`${BASE}/api/architect/drafts/${id}/birth`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ look }),
+        body: JSON.stringify(look === "own" ? { look, source, ...(source === "repo" ? { repo: repo.trim() } : {}) } : { look }),
       })
       setOpen(false)
       if (r.ok || r.status === 409) await poll()
@@ -74,7 +100,7 @@ export function BirthButton({ id, ui, dialogUi, born = false }: { id: string; ui
   return (
     <div className="my-4 flex flex-col gap-3" data-birth data-birth-state={s.state}>
       {!born && !running && s.state !== "done" && (
-        <Button onClick={() => { setLook(""); setOpen(true) }} className="w-fit gap-1.5" data-birth-start>
+        <Button onClick={() => { setLook(""); setSource(""); setRepo(""); setOpen(true) }} className="w-fit gap-1.5" data-birth-start>
           <Sprout className="size-4" aria-hidden />
           {ui.birth}
         </Button>
@@ -105,31 +131,39 @@ export function BirthButton({ id, ui, dialogUi, born = false }: { id: string; ui
         footer={
           <>
             <Button variant="ghost" onClick={() => setOpen(false)} disabled={starting}>{ui.cancel}</Button>
-            <Button onClick={start} disabled={starting || !look} data-birth-confirm>{starting ? ui.birthStarting : ui.birthConfirm}</Button>
+            <Button onClick={start} disabled={starting || !ready} data-birth-confirm>{starting ? ui.birthStarting : ui.birthConfirm}</Button>
           </>
         }
       >
         <div className="flex flex-col gap-2" role="radiogroup" aria-label={ui.lookQuestion} data-birth-look>
           <p className="text-sm font-medium text-foreground">{ui.lookQuestion}</p>
-          {([
-            ["project", ui.lookProject, ui.lookProjectText],
-            ["own", ui.lookOwn, ui.lookOwnText],
-          ] as const).map(([value, title, text]) => (
-            <Button
-              key={value}
-              type="button"
-              variant="outline"
-              role="radio"
-              aria-checked={look === value}
-              onClick={() => setLook(value)}
-              disabled={starting}
-              className={`h-auto w-full flex-col items-start gap-1 whitespace-normal p-3 text-left ${look === value ? "border-primary ring-2 ring-primary/40" : ""}`}
-              data-birth-look-option={value}
-            >
-              <span className="font-semibold text-foreground">{title}</span>
-              <span className="text-xs font-normal text-muted-foreground">{text}</span>
-            </Button>
-          ))}
+          {option("project", ui.lookProject, ui.lookProjectText, look === "project", () => setLook("project"), "data-birth-look-option")}
+          {option("own", ui.lookOwn, ui.lookOwnText, look === "own", () => setLook("own"), "data-birth-look-option")}
+          {/* 367-3 (владелец: «нажатие на вторую карточку … увеличит её в длину и покажет два варианта»): откуда код самостоятельного. */}
+          {look === "own" && (
+            <div className="ml-4 flex flex-col gap-2 border-l-2 border-primary/40 pl-3" role="radiogroup" aria-label={ui.sourcePick} data-birth-source>
+              {option("starter", ui.sourceStarter, ui.sourceStarterText, source === "starter", () => setSource("starter"), "data-birth-source-option")}
+              {option("repo", ui.sourceRepo, ui.sourceRepoText, source === "repo", () => setSource("repo"), "data-birth-source-option")}
+              {source === "repo" && (
+                <div className="flex flex-col gap-1.5">
+                  <Input
+                    value={repo}
+                    onChange={(e) => setRepo(e.target.value)}
+                    placeholder={ui.repoPlaceholder}
+                    aria-label={ui.sourceRepo}
+                    className="font-mono text-sm"
+                    autoComplete="off"
+                    spellCheck={false}
+                    disabled={starting}
+                    data-birth-repo
+                  />
+                  {repo.trim() !== "" && !repoOk && <p className="text-xs text-destructive" data-birth-repo-bad>{ui.repoBad}</p>}
+                  <p className="rounded-md border border-warning/50 bg-warning/10 px-3 py-2 text-xs text-foreground" data-birth-repo-warning>{ui.repoWarning}</p>
+                </div>
+              )}
+              {!source && <p className="text-xs text-muted-foreground">{ui.sourcePick}</p>}
+            </div>
+          )}
           {!look && <p className="text-xs text-muted-foreground">{ui.lookPick}</p>}
         </div>
       </AppDialog>
