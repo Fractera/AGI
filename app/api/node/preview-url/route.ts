@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { requireRoles } from "@/lib/auth/require-roles"
-import { serviceUrl } from "@/lib/microservices/registry"
+import { getService, serviceUrl } from "@/lib/microservices/registry"
 import { publicAuth } from "@/lib/domain/public-auth.cjs"
 import { addressOf } from "@/lib/agi-items/address-file.mjs"
 import { domainRecord } from "@/lib/agi-items/element-domain"
@@ -53,6 +53,9 @@ export async function GET(req: NextRequest) {
   // 324-4/324-5: у элемента подключён свой домен — Preview показывает его главный адрес (второй переадресует туда же).
   const own = domainRecord(id)?.url
   if (own) base = own
-  const url = `${(base ?? local).replace(/\/+$/, "")}/${lang}`
+  // 2026-10-02 (владелец: белый экран на se2xu…/ru): элемент из репозитория человека — чужой проект без языковых адресов; путь
+  // `/<язык>` есть только у наших стартеров. Mosaic Lite на `/ru`: «No routes matched location "/ru"» — пустая страница.
+  const fromRepo = (getService(id) as { born?: { from?: string } } | null)?.born?.from === "repository"
+  const url = `${(base ?? local).replace(/\/+$/, "")}/${fromRepo ? "" : lang}`
   return NextResponse.json({ ok: true, url, public: !!base }, { headers: { "Cache-Control": "no-store" } })
 }
