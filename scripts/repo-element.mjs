@@ -109,6 +109,15 @@ export function prepareRepoElement({ dir, id, template, root, git }) {
     }
   }
 
+  // Собственный пример окружения проекта → `.env.local`, если своих файлов окружения нет: обычный первый шаг любого проекта.
+  // ✗ Замерено 367-4 на fractera-next-starter: без него Next-проект собрался, но `/` переадресовывал сам на себя (301-петля) —
+  // проекту не хватало его собственных настроек (тот же дефект чистого клона, что в 354). Чужой `.env*` не затирается.
+  const example = ['.env.local.example', '.env.example'].find((f) => existsSync(join(dir, f)))
+  if (example && !['.env.local', '.env'].some((f) => existsSync(join(dir, f)))) {
+    copyFileSync(join(dir, example), join(dir, '.env.local'))
+    console.log(`  .env.local проекта создан из его ${example}`)
+  }
+
   // Файлы агента: инструкция узла отдельным файлом, ссылка на неё в CLAUDE.md человека (создаётся, если нет).
   copyFileSync(join(KIT(root), 'FRACTERA.md'), join(dir, 'FRACTERA.md'))
   const claude = join(dir, 'CLAUDE.md')

@@ -59,6 +59,8 @@ function serviceApps() {
     apps.push({
       name: `fractera-svc-${s.id}`,
       script: stamp.start.args[0],
+      // 367-4: запускатель элемента из репозитория получает режим вторым аргументом (`fractera-start.mjs next`); у прежних служб — пусто.
+      args: stamp.start.args.slice(1),
       cwd: stamp.start.cwd || dir,
       instances: 1,
       exec_mode: 'fork',
