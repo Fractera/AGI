@@ -175,7 +175,7 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ token }),
       })
-      const data = (await res.json()) as { ok?: boolean; reason?: string; keyTail?: string; zones?: Array<{ name: string }> }
+      const data = (await res.json()) as { ok?: boolean; reason?: string; keyTail?: string; detail?: string; zones?: Array<{ name: string }> }
       // 🛑 ПОЛЕ ОЧИЩАЕТСЯ В ЛЮБОМ ИСХОДЕ. Токен, оставшийся на экране после
       // отправки, виден каждому, кто подойдёт к компьютеру.
       setToken("")
@@ -184,7 +184,8 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
         setState((prev) => (prev ? { ...prev, keyConfigured: true, keyTail: data.keyTail ?? null } : prev))
         setReplacing(false)
       } else {
-        setAnswer({ ok: false, text: reasonText(data.reason ?? "") })
+        const checked = data.keyTail ? ` ${words.keyCheckedTail.replace("{tail}", data.keyTail).replace("{detail}", (data.detail ?? "—").replace(/^cloudflare:/, ""))}` : ""
+        setAnswer({ ok: false, text: reasonText(data.reason ?? "") + checked })
       }
     } catch {
       setAnswer({ ok: false, text: words.reasonNetwork })

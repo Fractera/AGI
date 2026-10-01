@@ -99,7 +99,9 @@ export async function POST(req: NextRequest) {
   const account = await accountOfZone(token, zones.result[0].id)
   const tunnelId = nodeTunnelId()
   const tunnels = !account.ok ? account : tunnelId ? await getIngress(token, account.result, tunnelId) : await findTunnel(token, account.result, "fractera-permission-probe")
-  if (!tunnels.ok) return NextResponse.json({ ok: false, reason: "no-tunnel-permission" }, { status: 400 })
+  // 2026-10-01: отказ называет, КАКОЙ ключ проверен (последние 4 знака) и что ответил Cloudflare — иначе «вставил новый ключ» и
+  // «вставился прежний» на экране неотличимы.
+  if (!tunnels.ok) return NextResponse.json({ ok: false, reason: "no-tunnel-permission", keyTail: token.slice(-4), detail: tunnels.reason }, { status: 400 })
 
   putEnv(KEY_NAME, token)
   process.env[KEY_NAME] = token

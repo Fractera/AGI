@@ -50,6 +50,7 @@ export type DomainLadderWords = {
   reasonNoZones: string
   reasonNotOwner: string
   reasonNoTunnel: string
+  keyCheckedTail: string
   reasonTemporary: string
   openLocally: string
   activateFor: string
@@ -157,6 +158,7 @@ const W: Record<string, DomainLadderWords> = {
     reasonEmpty: "The field is empty.",
     reasonNoZones: "The key is alive but sees no domain. It was most likely created without access to your zone — create it again and grant the zone.",
     reasonNotOwner: "Only the node's architect can do this — sign in as the architect and try again.",
+    keyCheckedTail: "Checked key …{tail}; Cloudflare answered: {detail}.",
     reasonNoTunnel: "The key has no right to Cloudflare tunnels. Add the line Account · Cloudflare Tunnel · Edit to the token and paste it again — the node's current key stays in place.",
     reasonTemporary: "You are looking at the site through its temporary public address. A key must never travel over a public link, so this field is switched off here. Open the same page on this computer — the address is below — and it will work.",
     openLocally: "Open this page locally",
@@ -288,6 +290,7 @@ const W: Record<string, DomainLadderWords> = {
     reasonEmpty: "Поле пустое.",
     reasonNoZones: "Ключ жив, но не видит ни одного домена. Скорее всего его создали без доступа к вашей зоне — создайте заново и дайте зону.",
     reasonNotOwner: "Это может сделать только архитектор узла — войдите как архитектор и попробуйте снова.",
+    keyCheckedTail: "Проверен ключ …{tail}; ответ Cloudflare: {detail}.",
     reasonNoTunnel: "У ключа нет права на туннели Cloudflare. Добавьте токену строку Account · Cloudflare Tunnel · Edit и вставьте его снова — прежний ключ узла остаётся на месте.",
     reasonTemporary: "Вы смотрите сайт через его временный публичный адрес. Ключ не должен идти по публичной ссылке, поэтому здесь поле выключено. Откройте ту же страницу на этом компьютере — адрес ниже — и всё заработает.",
     openLocally: "Открыть эту страницу локально",
