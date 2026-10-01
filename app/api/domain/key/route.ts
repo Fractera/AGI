@@ -2,7 +2,7 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { readFileSync, writeFileSync, existsSync } from "node:fs"
 import { join } from "node:path"
-import { verifyToken, listZones, accountOfZone, findTunnel, workersAccess } from "@/lib/domain/cloudflare"
+import { verifyToken, listZones, accountOfZone, findTunnel, getIngress, workersAccess } from "@/lib/domain/cloudflare"
 import { getSession } from "@/lib/auth/get-session"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
 
@@ -24,6 +24,14 @@ export const dynamic = "force-dynamic"
 
 const ROOT = process.cwd()
 const ENV_FILE = join(ROOT, ".env.local")
+
+/** Туннель узла (`logs/domain.json` → `tunnelId`) или `null`. */
+function nodeTunnelId(): string | null {
+  try {
+    const d = JSON.parse(readFileSync(join(ROOT, "logs", "domain.json"), "utf8")) as { tunnelId?: unknown }
+    return typeof d.tunnelId === "string" && d.tunnelId ? d.tunnelId : null
+  } catch { return null }
+}
 const KEY_NAME = "CLOUDFLARE_API_TOKEN"
 
 /**
@@ -84,8 +92,13 @@ export async function POST(req: NextRequest) {
   // «Cloudflare Tunnel», прошёл эту дверь и заменил рабочий ключ — у узла молча перестали работать подключение доменов к
   // элементам, «Адрес в интернете» и снятие туннеля при удалении (Cloudflare: 1001 Not authorized). Проба — чтение
   // туннелей аккаунта первой зоны; отказ — ключ не записывается, прежний остаётся.
+  // 🛑 2026-10-01: ПРОБА «СПИСОК ТУННЕЛЕЙ» ЛГАЛА ЗЕЛЁНЫМ. Ключу без права Cloudflare Tunnel список отвечает УСПЕХОМ с пустым
+  // результатом (замерено: `cfd_tunnel?…` → 200, n=0; `cfd_tunnel/<id>/configurations` → 1001). Так 30.09 (344) прошёл ключ без
+  // права, и 01.10 «Подключить» у dhndy отказал. Теперь у узла с туннелем проба — та же операция, что делает «Подключить»:
+  // чтение настроек туннеля узла; без туннеля — прежний список (лучшего замера до создания туннеля нет).
   const account = await accountOfZone(token, zones.result[0].id)
-  const tunnels = account.ok ? await findTunnel(token, account.result, "fractera-permission-probe") : account
+  const tunnelId = nodeTunnelId()
+  const tunnels = !account.ok ? account : tunnelId ? await getIngress(token, account.result, tunnelId) : await findTunnel(token, account.result, "fractera-permission-probe")
   if (!tunnels.ok) return NextResponse.json({ ok: false, reason: "no-tunnel-permission" }, { status: 400 })
 
   putEnv(KEY_NAME, token)
