@@ -46,7 +46,7 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
       setEl((d.elements as Element[]).find((e) => e.id === id) ?? "failed")
       setDep(d.deployment as Deployment)
       setPreview((p as { preview: Preview }).preview)
-      setAccepting((was) => (was && (p as { preview: Preview }).preview?.state === "ready"))
+      setAccepting((was) => was && ["ready", "promoting"].includes((p as { preview: Preview }).preview?.state ?? ""))
     } catch {
       setEl("failed")
     }
@@ -64,8 +64,10 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
   const deploying = !!dep?.running && (dep.current === id || dep.queue.includes(id))
   const building = preview?.state === "building"
   const ready = preview?.state === "ready"
-  const busy = !!dep?.running || building || accepting
-  const previewPending = building || ready || accepting || starting?.kind === "preview"
+  // «Принять» идёт (в том числе запущено с другой вкладки): это переключение, а не поломка — «Переключаю…», опрос продолжается.
+  const switching = accepting || preview?.state === "promoting"
+  const busy = !!dep?.running || building || switching
+  const previewPending = building || ready || switching || starting?.kind === "preview"
   // Пока идёт работа, которую человек сам запустил (или она только что запрошена), — ход раз в секунду; в покое ни одного запроса.
   const active = starting !== null || busy
 
@@ -84,7 +86,7 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
       if (d) setDep(dd)
       if (p) {
         setPreview(pp)
-        setAccepting((was) => was && pp?.state === "ready")
+        setAccepting((was) => was && ["ready", "promoting"].includes(pp?.state ?? ""))
       }
       setLog(mine ? ((d?.log as string[]) ?? []) : pp?.state === "building" ? ((p?.log as string[]) ?? []) : [])
       setStarting((s) => {
@@ -189,12 +191,12 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
       {(building || starting?.kind === "preview") && !deploying && (
         <LiveLog title={ui.previewBuilding} lines={log.length > 0 && building ? log : [ui.starting]} />
       )}
-      {accepting && <p className="text-sm text-foreground" role="status">{ui.accepting}</p>}
+      {switching && <p className="text-sm text-foreground" role="status">{ui.accepting}</p>}
       {refused && <p className="text-sm text-muted-foreground" role="status">{refused}</p>}
       {preview?.state === "failed" && <p className="text-sm text-destructive" role="alert">{ui.previewFailed} {preview.note}</p>}
       {last && !previewPending && <p className={last.ok ? "text-sm text-foreground" : "text-sm text-destructive"}>{last.ok ? ui.lastOk : ui.lastFailed}{last.note ? ` · ${last.note}` : ""}</p>}
 
-      {ready && previewUrl && !accepting && (
+      {ready && previewUrl && !switching && (
         <div className="flex flex-col gap-3" data-element-preview-ready={preview?.port}>
           <p className="text-sm text-foreground">{ui.previewReady}</p>
           {/* 353-2 (владелец: «кнопка посмотреть привил должны быть оформлены как настоящая кнопка чётко и выразительно»): была

@@ -174,6 +174,10 @@ if (!current.target || !existsSync(join(dir, current.target))) {
   save({ state: 'failed', target: current.target, commit: current.commit, note: 'папки предпросмотра нет — принимать нечего, работает прежняя версия' })
   process.exit(1)
 }
+// ✗ 2026-10-01 (владелец: «нажал кнопку принять появилась красная надпись предпросмотр ошибка … ошибки-то нет»): сервер предпросмотра
+// гасится здесь, а запись удаляется в конце, через секунды перезапуска pm2; дверь в этом окне видела «ready» с мёртвым сервером и
+// отвечала «сервер предпросмотра погас». Теперь на время приёма запись — `promoting` с pid этого процесса.
+save({ ...current, state: 'promoting', pid: process.pid })
 killPreview(current)
 const base = String(stamp.version ?? '').split('+')[0]
 writeFileSync(stampFile, JSON.stringify({

@@ -29,6 +29,8 @@ function read(id: string): Preview | null {
   try { p = JSON.parse(readFileSync(join(ROOT, "data", "services", id, "preview.json"), "utf8")) as Preview } catch { return null }
   if (p.state === "building" && !alive(p.pid)) return { ...p, state: "failed", note: "сборка предпросмотра прервана — процесс исчез" }
   if (p.state === "ready" && !alive(p.serverPid)) return { ...p, state: "failed", note: "сервер предпросмотра погас" }
+  // Идёт «Принять» (сервер предпросмотра уже погашен — это норма). Процесс приёма исчез, не убрав запись, — приём кончился.
+  if (p.state === "promoting" && !alive(p.pid)) return null
   return p
 }
 
