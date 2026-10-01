@@ -116,6 +116,19 @@ if (action === 'stage') {
   const live = typeof stamp.dist === 'string' && stamp.dist.startsWith('.next') ? stamp.dist : String(stamp.start?.args?.[0] ?? '').split(/[\\/]/)[0]
   const target = live === '.next-a' ? '.next-b' : '.next-a'
   const commit = spawnSync('git', ['-C', dir, 'rev-parse', '--short=7', 'HEAD'], { encoding: 'utf8', windowsHide: true }).stdout?.trim() || null
+  // 356-2: отчёт о задаче — `TASK-REPORT.json` элемента, но только если он менялся В ЭТОМ коммите: старый отчёт к новой правке не
+  // прилипает. Сайт показывает его окном по `?report=`; здесь он нужен ядру для адреса предпросмотра и блока «Что сделано».
+  const git1 = (args) => spawnSync('git', ['-C', dir, ...args], { encoding: 'utf8', windowsHide: true }).stdout?.trim() || ''
+  let report = null
+  if (git1(['log', '-1', '--format=%H', '--', 'TASK-REPORT.json']) === git1(['rev-parse', 'HEAD'])) {
+    const r = readJson(join(dir, 'TASK-REPORT.json'))
+    if (r && typeof r.task === 'string' && r.task.trim()) {
+      const list = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string').slice(0, 20) : [])
+      const path = typeof r.path === 'string' && /^\/[\w\-/]*$|^$/.test(r.path) ? r.path : ''
+      const anchor = typeof r.anchor === 'string' && /^[\w-]*$/.test(r.anchor) ? r.anchor : ''
+      report = { task: r.task.slice(0, 500), done: list(r.done), check: list(r.check), path, anchor }
+    }
+  }
   const t0 = Date.now()
   save({ state: 'building', pid: process.pid, target, commit, startedAt: new Date().toISOString() })
   try { rmSync(join(dir, target), { recursive: true, force: true }) } catch { /* next build очистит */ }
@@ -153,7 +166,7 @@ if (action === 'stage') {
     await new Promise((r) => setTimeout(r, 1000))
   }
   if (!ok) { killPreview({ serverPid: proc.pid }); save({ state: 'failed', target, commit, note: 'сервер предпросмотра не ответил за 3 минуты' }); process.exit(1) }
-  save({ state: 'ready', target, commit, port, serverPid: proc.pid, start, seconds: Math.round((Date.now() - t0) / 1000), readyAt: new Date().toISOString() })
+  save({ state: 'ready', target, commit, report, port, serverPid: proc.pid, start, seconds: Math.round((Date.now() - t0) / 1000), readyAt: new Date().toISOString() })
   process.exit(0)
 }
 

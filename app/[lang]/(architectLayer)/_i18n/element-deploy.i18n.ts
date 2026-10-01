@@ -24,6 +24,9 @@ export type ElementDeployUi = {
   busy: string
   afterDecision: string
   allDeployed: string
+  reportTitle: string
+  reportCheck: string
+  reportMissing: string
   starting: string
   previewWaiting: string
   loading: string
@@ -56,6 +59,9 @@ const DICT: Record<"en" | "ru", ElementDeployUi> = {
     afterDecision: "A new deployment becomes available once you accept or reject this preview.",
     starting: "Starting — the first lines appear in a few seconds…",
     allDeployed: "Everything is deployed — there are no new changes",
+    reportTitle: "What was done in this build",
+    reportCheck: "How to check",
+    reportMissing: "The element agent attached no task report to this commit.",
     previewWaiting: "A preview is waiting for your decision — accept or reject it first.",
     loading: "Asking the node about this element…",
     unavailable: "The node did not answer.",
@@ -85,6 +91,9 @@ const DICT: Record<"en" | "ru", ElementDeployUi> = {
     afterDecision: "Новое развёртывание станет доступно, когда вы примете или отклоните этот предпросмотр.",
     starting: "Запускаю — первые строки появятся через несколько секунд…",
     allDeployed: "Всё уже развёрнуто — новых изменений нет",
+    reportTitle: "Что сделано в этой сборке",
+    reportCheck: "Как проверить",
+    reportMissing: "Агент элемента не приложил отчёт о задаче к этому коммиту.",
     previewWaiting: "Предпросмотр ждёт вашего решения — сначала примите или отклоните его.",
     loading: "Спрашиваю узел об этом элементе…",
     unavailable: "Узел не ответил.",

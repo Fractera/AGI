@@ -20,7 +20,8 @@ import { LiveLog } from "./live-log.client"
 type Code = { head: string | null; running: string | null; changed: number; changes: string[]; pending: boolean }
 type Element = { id: string; pending: boolean; code: Code | null }
 type Deployment = { running: boolean; current: string | null; queue: string[]; finishedAt?: string | null; results: { id: string; ok: boolean; note: string }[] } | null
-type Preview = { state?: string; port?: number; commit?: string | null; note?: string } | null
+type Report = { task: string; done: string[]; check: string[]; path: string; anchor: string }
+type Preview = { state?: string; port?: number; commit?: string | null; note?: string; report?: Report | null } | null
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 const DEPLOY = `${BASE}/api/node/deploy`
@@ -152,7 +153,11 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
 
   const code = el.code
   const last = !dep?.running ? dep?.results.find((r) => r.id === id) : undefined
-  const previewUrl = ready && preview?.port ? `http://127.0.0.1:${preview.port}/${lang}` : null
+  // 356-2: с отчётом — на изменённую страницу и к изменённому блоку, с ?report=<коммит> (сайт откроет окно отчёта); без — на главную.
+  const rp = preview?.report
+  const previewUrl = ready && preview?.port
+    ? `http://127.0.0.1:${preview.port}/${lang}${rp?.path ?? ""}${rp ? `?report=${preview.commit ?? ""}` : ""}${rp?.anchor ? `#${rp.anchor}` : ""}`
+    : null
 
   return (
     <div className="my-4 flex flex-col gap-3 rounded-lg border border-border p-4" data-element-deploy={id}>
@@ -225,6 +230,24 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
             {ui.previewOpen}
             <ExternalLink className="size-4" aria-hidden />
           </a>
+          {/* 356-2: что сделано в этой сборке — отчёт агента элемента (`TASK-REPORT.json` этого коммита); нет — так и сказано. */}
+          {preview?.report ? (
+            <div className="flex flex-col gap-2 rounded-md border border-border bg-muted/40 p-3 text-sm" data-element-preview-report>
+              <p className="font-semibold text-foreground">{ui.reportTitle}</p>
+              <p className="text-foreground">{preview.report.task}</p>
+              {preview.report.done.length > 0 && (
+                <ul className="list-disc pl-5 text-muted-foreground">{preview.report.done.map((d) => <li key={d}>{d}</li>)}</ul>
+              )}
+              {preview.report.check.length > 0 && (
+                <>
+                  <p className="font-medium text-foreground">{ui.reportCheck}</p>
+                  <ol className="list-decimal pl-5 text-muted-foreground">{preview.report.check.map((c) => <li key={c}>{c}</li>)}</ol>
+                </>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground" data-element-preview-report-missing>{ui.reportMissing}</p>
+          )}
           <div className="flex flex-wrap items-center gap-2">
             <Button type="button" variant="secondary" onClick={() => act("promote")} data-element-preview-accept>
               <Check className="size-4" aria-hidden />
