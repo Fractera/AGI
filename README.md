@@ -6,6 +6,9 @@ A person gets it by forking this repository and asking an AI coding agent (Claud
 ## If you are a person and want to launch this project
 
 You need a GitHub account, a computer that stays on, and Claude Code — the terminal app or Claude Desktop in Code mode.
+🔒 **Claude Code must run on YOUR computer**: Claude Desktop → Code with **Local** selected, or `claude` in a terminal. A cloud
+session (claude.ai/code, the Code tab of the mobile app, or Desktop with **Cloud** selected) installs the node into a temporary
+machine that disappears with the session — the install refuses there.
 
 1. **Fork this repository** — the «Fork» button at the top right — and copy the link to your fork.
    🔒 **Only your own fork of the original works.** A node installs only from a direct fork of `github.com/fractera/agi`:
@@ -34,6 +37,13 @@ Have a good journey.
 ## If you are an AI agent and were asked to launch this project
 
 The person pasted a link to this repository (or to their fork of it) and asked you to run it. Do this, in order:
+
+0. **Stop if you run in a cloud session — before cloning anything.** If the environment variable `CLAUDE_CODE_REMOTE` is
+   `true` (Claude Code sets it in every cloud session — code.claude.com/docs/en/env-vars), or you otherwise run on a remote or
+   temporary machine rather than the person's own computer, install NOTHING. Tell the person: the node lives on their computer,
+   so open Claude Desktop → Code → **Local** with a folder on this computer, or run `claude` in a terminal in an empty folder,
+   paste the link to their fork and write «launch this». Then stop. The node enforces this too: `npm install`, `npm run build`
+   and `npm run serve:start` refuse with `===CLOUD_REFUSED===` in a cloud session (`scripts/check-local.mjs`).
 
 1. **Check the tools.** `git --version` and `node --version` (Node.js 22 is what this node is built and measured on). If one
    is missing, tell the person what to install and stop until they have it.

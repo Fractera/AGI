@@ -105,7 +105,9 @@ function ensureElements() {
 }
 
 function start() {
-  // 368: узел ставится и запускается только из прямого форка оригинала Fractera — проверка до установки элементов.
+  // 369: не в облачной сессии Claude Code; 368: только из прямого форка оригинала Fractera — обе проверки до установки элементов.
+  const local = spawnSync(process.execPath, [path.join(here, 'check-local.mjs')], { stdio: 'inherit', windowsHide: true })
+  if (local.status !== 0) process.exit(1)
   const origin = spawnSync(process.execPath, [path.join(here, 'check-origin.mjs')], { stdio: 'inherit', windowsHide: true })
   if (origin.status !== 0) process.exit(1)
   ensureElements()

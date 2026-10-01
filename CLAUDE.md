@@ -539,6 +539,13 @@ notes from the example file, set / not set asked in the browser (`/api/architect
 anchors (instant scroll + frame 3 s), only `OPENAI_API_KEY` editable, checked by a real OpenAI call before it is written;
 saving an element key while the core has none asks «copy to the core?». Voice without a key links there in a new tab.
 
+## 🔒 Never in a cloud session (node step 369)
+
+`scripts/check-local.mjs` — `preinstall`, first in `prebuild`, in `serve:start`: `CLAUDE_CODE_REMOTE=true` (documented: set in every
+Claude Code cloud session) → `===CLOUD_REFUSED===` with how to run locally. README step 0 tells the agent the same BEFORE cloning —
+npm runs `preinstall` after it has fetched dependencies, so the README is the earliest stop and the code catches an agent that skipped it.
+✗ Paid 2026-10-01: the owner's «launch this» in a cloud session installed the node into a machine that vanished with the session.
+
 ## 🔒 The node installs only from a direct fork of Fractera/AGI (node step 368)
 
 Owner 2026-10-01: «… продвижение моего проекта … зависит от количества Форк … хард кодом оставить проверку на соответствии того что
