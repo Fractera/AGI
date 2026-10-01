@@ -61,15 +61,30 @@ const dir = itemDir(id, 'user')
 if (existsSync(dir)) fail(`папка ${dir} уже существует — рождение не пишет поверх чужих файлов`)
 
 const template = JSON.parse(readFileSync(TEMPLATE_FILE, 'utf8'))
-stage(`рождаю «${id}» из ${template.from} ${template.version}`)
+// 367-4 (владелец 2026-10-01: «старт из своего репозитория введите ссылку на репозиторий»; «Агентские файлы добавляй, агента только
+// по кнопке»): самостоятельный элемент из репозитория человека. Источник ниже — `origin` — и есть правда о происхождении.
+const repoAt = process.argv.indexOf('--repo')
+const repoUrl = repoAt > 0 ? process.argv[repoAt + 1] : null
+if (repoUrl && look !== 'own') fail('элемент из своего репозитория рождается только самостоятельным')
+if (repoUrl && !/^https:\/\/[a-z0-9.-]+\.[a-z]{2,}\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+?(\.git)?\/?$/.test(repoUrl)) fail(`адрес репозитория «${repoUrl}» — не https://хост/владелец/имя`)
+const origin = repoUrl ? { from: 'repository', version: repoUrl } : template
+stage(`рождаю «${id}» из ${origin.from} ${origin.version}`)
 
-// 2. Шаблон по закреплённому тегу.
-const clone = git(['clone', '--quiet', '--depth', '1', '--branch', template.version, template.repo, dir], ROOT)
-if (clone.rc !== 0) fail(`шаблон не скачан: ${clone.out.trim().split('\n').slice(-1)[0]}`, dir)
-stage('шаблон скачан')
+// 2. Код: шаблон по закреплённому тегу — или репозиторий человека целиком, с его историей.
+const clone = repoUrl
+  ? git(['clone', '--quiet', repoUrl, dir], ROOT)
+  : git(['clone', '--quiet', '--depth', '1', '--branch', template.version, template.repo, dir], ROOT)
+if (clone.rc !== 0) fail(`${repoUrl ? 'репозиторий' : 'шаблон'} не скачан: ${clone.out.trim().split('\n').slice(-1)[0]}`, dir)
+stage(repoUrl ? 'репозиторий скачан' : 'шаблон скачан')
 
-// 3. Своя история вместо истории шаблона.
-rmSync(join(dir, '.git'), { recursive: true, force: true })
+// 3. Своя история вместо истории шаблона (у репозитория человека история его — остаётся).
+if (!repoUrl) rmSync(join(dir, '.git'), { recursive: true, force: true })
+if (repoUrl) {
+  const { prepareRepoElement } = await import('./repo-element.mjs')
+  const r = prepareRepoElement({ dir, id, template, root: ROOT, git })
+  if (!r.ok) fail(r.reason, dir)
+  stage(`проект распознан: ${r.kind} — паспорт, запускатель и файлы агента добавлены`)
+}
 
 // 4. Паспорт.
 const propsFile = join(dir, 'OWN-SERVICE-PROPS.json')
@@ -79,7 +94,7 @@ props.id = id
 props.name = id
 // 325-1: СВОЁ ОПИСАНИЕ, А НЕ ШАБЛОННОЕ. ✗ Замерено: рождённый `as8kp` описывал себя словами шаблона («The template of a node
 // element…»). Первичная запись говорит, кто это и откуда; что элемент умеет, пишет его агент (Настройки → Описание, 325-2).
-props.summary = `AGI element ${id}, born from ${template.from} ${template.version} on ${new Date().toISOString().slice(0, 10)}. Its capabilities are written by its agent from Settings → Capabilities description.`
+props.summary = `AGI element ${id}, born from ${origin.from} ${origin.version} on ${new Date().toISOString().slice(0, 10)}. Its capabilities are written by its agent from Settings → Capabilities description.`
 writeFileSync(propsFile, JSON.stringify(props, null, 2) + '\n', 'utf8')
 
 // 4б. ЭЛЕМЕНТ РОЖДАЕТСЯ В ОБЛИКЕ ПРОЕКТА (слово владельца 2026-10-01: «стартовый шаблон … по дефолту должен сразу подключиться к
@@ -119,7 +134,11 @@ if (look === 'project') {
 }
 
 const ident = ['-c', 'user.name=Fractera node', '-c', 'user.email=node@fractera.local']
-for (const step of [['init', '--quiet', '-b', 'main'], ['add', '-A'], [...ident, 'commit', '--quiet', '-m', `born from ${template.from} ${template.version}`]]) {
+// 367-4: у репозитория человека история его — один коммит с файлами узла поверх неё; у шаблона — своя история с нуля.
+const historySteps = repoUrl
+  ? [['add', '-A'], [...ident, 'commit', '--quiet', '-m', 'Fractera: element files (passport, launcher, agent instruction)']]
+  : [['init', '--quiet', '-b', 'main'], ['add', '-A'], [...ident, 'commit', '--quiet', '-m', `born from ${template.from} ${template.version}`]]
+for (const step of historySteps) {
   const r = git(step, dir)
   if (r.rc !== 0) fail(`своя история не заведена (git ${step.filter((a) => !a.startsWith('user.')).join(' ')}): ${r.out.trim().split('\n').slice(-1)[0]}`, dir)
 }
@@ -128,14 +147,14 @@ stage(`своя история: ${git(['rev-parse', '--short', 'HEAD'], dir).out
 // 5. Запись реестра.
 registry.services.push({
   id,
-  repo: template.repo,
-  version: template.version,
-  born: { from: template.from, version: template.version, at: new Date().toISOString() },
+  repo: repoUrl ?? template.repo,
+  version: repoUrl ? git(['rev-parse', '--short', 'HEAD'], dir).out.trim() : template.version,
+  born: repoUrl ? { from: 'repository', url: repoUrl, version: 'repo', at: new Date().toISOString() } : { from: template.from, version: template.version, at: new Date().toISOString() },
   provides: ['element-site'],
   // 333-3: навык дизайна шаблона едет в реестр с рождения (паспорт шаблона `designSkill`); дальше его обновляет «Забрать в ядро».
   ...(typeof props.designSkill === 'string' && props.designSkill ? { designSkill: props.designSkill } : {}),
   required: false,
-  note: `Рождён из ${template.from} ${template.version} (319). Самостоятельный проект: установщик его код не трогает.`,
+  note: `Рождён из ${origin.from} ${origin.version} (319${repoUrl ? ', 367-4' : ''}). Самостоятельный проект: установщик его код не трогает.`,
   kind: 'user',
 })
 writeFileSync(REGISTRY_FILE, JSON.stringify(registry, null, 2) + '\n', 'utf8')

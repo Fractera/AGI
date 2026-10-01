@@ -383,6 +383,12 @@ function findStandaloneServer(dir, distDir = '.next') {
 }
 
 function resolveStart(dir, props, distDir = '.next') {
+  // 367-4: элемент из репозитория человека несёт запускатель узла (`fractera-start.mjs`), названный в паспорте `runtime.entry`
+  // (+ `entryArgs` — режим next / node:<файл> / static:<папка>). Он и есть процесс pm2: окружение читает сам, порт берёт оттуда.
+  const entry = props?.runtime?.entry
+  if (typeof entry === 'string' && entry && existsSync(join(dir, entry))) {
+    return { cmd: 'node', args: [entry, ...(Array.isArray(props.runtime.entryArgs) ? props.runtime.entryArgs.map(String) : [])], cwd: dir }
+  }
   const standaloneDir = findStandaloneServer(dir, distDir)
   if (standaloneDir) {
     // Статика — рядом с найденным сервером, а не в корне standalone; папка сборки — та, в
