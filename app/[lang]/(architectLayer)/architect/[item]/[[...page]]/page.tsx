@@ -166,7 +166,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   // 319-2: РОДИВШИЙСЯ элемент (он уже в реестре узла) показывает в Preview свой сайт — тот же просмотр, что у служб, с
   // подсветкой и «Найти блок». Черновик, ещё не родившийся, — только заголовок раздела: показывать нечего.
   const preview = section.slug === 'preview' && !page && serviceUrl(item)
-    ? <ElementPreview serviceId={item} lang={lang} words={elementPreviewWords(lang)} task={previewTaskKit(item, lang)} />
+    // Терминал рождённого элемента — под `build/` (как у «Описания» ниже); путь служб ядра вёл на ошибку (замерено 356-3).
+    ? <ElementPreview serviceId={item} terminalService={`${slug}/build`} lang={lang} words={elementPreviewWords(lang)} task={previewTaskKit(item, lang)} />
     : null
 
   // 326-3: «Подписка Claude Code», «Терминал», «Telegram бот» — острова ОБЩЕЙ копии комплекта агента (`../_agent-kit`, 326-1);

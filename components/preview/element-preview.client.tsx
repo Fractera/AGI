@@ -97,7 +97,9 @@ type ReloadState = "idle" | "busy" | "done" | "unconfirmed"
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
-export function ElementPreview({ serviceId, lang, words, task }: { serviceId: string; lang: string; words: ElementPreviewWords; task?: PreviewTaskKit }) {
+/** `terminalService` — сегмент страницы терминала в `/architect/<…>/terminal`: у служб ядра это их id (по умолчанию), у рождённого
+ *  элемента — `<адрес>/build` (356: по id элемента ссылка вела на страницу ошибки). */
+export function ElementPreview({ serviceId, terminalService, lang, words, task }: { serviceId: string; terminalService?: string; lang: string; words: ElementPreviewWords; task?: PreviewTaskKit }) {
   const [state, setState] = useState<{ url: string; public: boolean } | "loading" | "failed">("loading")
   // Адрес, открытый в просмотре СЕЙЧАС (человек мог перейти внутри): его и открывает кнопка «в новой вкладке».
   const [current, setCurrent] = useState<string | null>(null)
@@ -370,7 +372,7 @@ export function ElementPreview({ serviceId, lang, words, task }: { serviceId: st
             </Button>
             {/* Текст в терминал не уходит сам: ссылка открывает страницу терминала с окном вставки, отправляет человек. */}
             <a
-              href={terminalLink({ base: BASE, lang, service: serviceId, text: picked })}
+              href={terminalLink({ base: BASE, lang, service: terminalService ?? serviceId, text: picked })}
               className={buttonVariants({ variant: "outline", size: "sm", className: "w-fit gap-1.5" })}
               data-preview-to-terminal
             >
