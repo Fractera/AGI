@@ -15,13 +15,13 @@
 // 🔒 Процессы — `windowsHide: true` (закон 2026-09-18). Ничего не делается само: прибор запускает человек (или кнопка 319-3).
 // 🔒 Отказ до записи реестра не оставляет следов; отказ сборки оставляет папку и запись — повтор одной командой (печатается).
 
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
-const { REGISTRY_FILE, itemDir } = require('../lib/agi-items/paths.cjs')
+const { REGISTRY_FILE, itemDir, entryDir } = require('../lib/agi-items/paths.cjs')
 
 const ROOT = process.cwd()
 const DRAFTS_FILE = join(ROOT, 'data', 'agi-drafts.json')
@@ -77,6 +77,31 @@ props.name = id
 // element…»). Первичная запись говорит, кто это и откуда; что элемент умеет, пишет его агент (Настройки → Описание, 325-2).
 props.summary = `AGI element ${id}, born from ${template.from} ${template.version} on ${new Date().toISOString().slice(0, 10)}. Its capabilities are written by its agent from Settings → Capabilities description.`
 writeFileSync(propsFile, JSON.stringify(props, null, 2) + '\n', 'utf8')
+
+// 4б. ЭЛЕМЕНТ РОЖДАЕТСЯ В ОБЛИКЕ ПРОЕКТА (слово владельца 2026-10-01: «стартовый шаблон … по дефолту должен сразу подключиться к
+// настройкам всего проекта … если у меня даже страницы архитектора и авторизации жёлтые то и новый проект должен покраситься сразу»).
+// ✗ Замерено кодом: шаблон приезжает со своим `DESIGN-CONFIG`, поэтому шаг 4а установщика («если своего файла ещё нет») его
+// пропускал, а копию CONFIG элемент забирал только при запуске — ПОСЛЕ первой сборки: первая сборка выходила цветом и меню шаблона.
+// Файл шаблона — не «свой файл» элемента: здесь он заменяется оформлением проекта (у сайта root, подписанного на «Дизайн»), а в
+// папку данных элемента кладётся последняя копия настроек проекта (её получил root от CONFIG) — сборка читает обе. Нет root или
+// его файлов — элемент рождается с файлами шаблона и догоняет проект при запуске, как прежде.
+{
+  const site = registry.services.find((x) => x.id === 'root')
+  const siteDir = site ? entryDir(site) : null
+  const design = siteDir ? join(siteDir, 'DESIGN-CONFIG', 'design-config.json') : null
+  if (design && existsSync(design)) {
+    mkdirSync(join(dir, 'DESIGN-CONFIG'), { recursive: true })
+    copyFileSync(design, join(dir, 'DESIGN-CONFIG', 'design-config.json'))
+    stage('оформление проекта взято у сайта (DESIGN-CONFIG)')
+  }
+  const copy = join(ROOT, 'data', 'services', 'root', 'project-settings.json')
+  const mine = join(ROOT, 'data', 'services', id, 'project-settings.json')
+  if (existsSync(copy) && !existsSync(mine)) {
+    mkdirSync(dirname(mine), { recursive: true })
+    copyFileSync(copy, mine)
+    stage('настройки проекта (копия CONFIG) переданы элементу')
+  }
+}
 
 const ident = ['-c', 'user.name=Fractera node', '-c', 'user.email=node@fractera.local']
 for (const step of [['init', '--quiet', '-b', 'main'], ['add', '-A'], [...ident, 'commit', '--quiet', '-m', `born from ${template.from} ${template.version}`]]) {

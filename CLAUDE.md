@@ -585,6 +585,10 @@ CLI: `npm run items:birth -- <id>`). The birth clones `fractera-item-starter` at
 `AGI-ITEMS-CONFIG/item-template.json` (owner: from the Fractera repository), cuts the template's history (own `main`, first
 commit «born from …», no `origin`), writes the passport id, adds a registry entry with `born: { from, version, at }`, runs the
 usual `services-install.mjs --only <id>`, starts the service and its watch in pm2 and waits for `/api/health` by fact.
+🔒 **Born in the project's look** (owner 2026-10-01: «по дефолту должен сразу подключиться к настройкам всего проекта»): before
+the first commit the birth replaces the template's `DESIGN-CONFIG` with the site root's (the project's Design) and puts root's
+last CONFIG copy into `data/services/<id>/project-settings.json` — the first build already has the project's colours and menu.
+The template's design file is not the element's own: install step 4a («only if no own file») skipped it.
 🛑 **`services-install.mjs` never clones, fetches or checks out a `born` entry** — its code is the element agent's work; its
 version for rebuild decisions is `<template tag>+<element commit>`.
 The element's pages (`architect/[item]/[[...page]]`): home = `ServicePort` (live port + «Address on the internet»), Preview =
