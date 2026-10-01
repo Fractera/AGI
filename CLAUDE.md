@@ -606,8 +606,10 @@ A born element is not deleted as a draft (409). Not built yet: birth in seconds.
   `summary`/`provides`/`described {at, commit}` into the registry entry (working file, like the birth).
 - **Address** — the core address over the unchanged id (`lib/agi-items/element-address.ts`, `data/services/<id>/address.json`):
   menu and pages by address, `/<lang>/<id>` redirects to it; `GET|POST /api/architect/items/<id>/address` checks
-  (sections, registry ids, drafts, other addresses, service paths → taken + 3 suggestions). 🔒 Owner: «Только ядро» — the
-  subdomain is not renamed. Doors, pty, folder, pm2 stay by id. Only the id path redirects, not earlier addresses.
+  (sections, registry ids, drafts, other addresses, service paths → taken + 3 suggestions). 🪦 «Только ядро — the subdomain
+  is not renamed» cancelled by the owner 2026-10-01 («переноси поддомен при переименовании»): a CONNECTED subdomain moves to
+  the new name (`lib/agi-items/element-subdomain.ts`: tunnel rule + DNS for the new name, old rule and our CNAME removed; own
+  domain and foreign records untouched; not connected — nothing created). Doors, pty, pm2 stay by id. Only the id path redirects, not earlier addresses.
   Shape = a DNS label (RFC 1035/1123/5890/5891) plus the node policy — one module `lib/agi-items/dns-label.mjs`, sentinel
   `scripts/check-dns-label.mjs` in prebuild (325-7); reserved names are one list with drafts (`RESERVED_NAMES`).
 - **Main mirror** (step 324-3…5, `lib/agi-items/element-domain.ts`, `_components/element-domain.client.tsx`): a drop-down
