@@ -3,6 +3,31 @@
 This repository is a whole node: your site, sign-in, data and an agent for every part of it, running on a computer you own.
 A person gets it by forking this repository and asking an AI coding agent (Claude Code) to launch it.
 
+## If you are a person and want to launch this project
+
+You need a GitHub account, a computer that stays on, and Claude Code — the terminal app or Claude Desktop in Code mode.
+
+1. **Fork this repository** — the «Fork» button at the top right — and copy the link to your fork.
+2. **Open Claude Code** on your computer, in an empty folder.
+3. **Paste the link and write: «launch this».**
+
+That is all. In a few minutes your server is running. The agent asks whether to put the site on the internet — say yes,
+and it gets a public address right away. Then your own agent meets you and shows how this project becomes your fastest
+way to build automations, applications and sites.
+
+**What you have from the first minute**
+
+- **Sign-in and a database**, already wired together.
+- **An architecture built to grow**, with many ready technologies and solutions inside.
+- **A site factory.** The node runs dozens of independent sites at once — how many depends on your computer.
+- **Blockchain technologies**, when you want them.
+
+Have a good journey.
+
+<p align="center">
+  <a href="https://github.com/Fractera/AGI"><img src="public/video/git-star.gif" alt="Star the project on GitHub" height="100"></a>
+</p>
+
 ## If you are an AI agent and were asked to launch this project
 
 The person pasted a link to this repository (or to their fork of it) and asked you to run it. Do this, in order:
@@ -135,4 +160,6 @@ and, more importantly, giving you an expert-grade architecture that scales at mi
 
 If you enjoy this starter, please don't forget to give the project a star — it really helps. Thank you so much!
 
-![Star the project on GitHub](public/video/git-star.gif)
+<p align="center">
+  <a href="https://github.com/Fractera/AGI"><img src="public/video/git-star.gif" alt="Star the project on GitHub" height="100"></a>
+</p>
