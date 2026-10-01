@@ -2,7 +2,7 @@ import "server-only"
 import { mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { isDnsLabel } from "@/lib/agi-items/dns-label.mjs"
-import { accountOfZone, activationCheck, createZone, listAccounts, verifyToken, workersAccess, zoneByName } from "@/lib/domain/cloudflare"
+import { accountOfZone, activationCheck, createZone, getIngress, listAccounts, verifyToken, workersAccess, zoneByName } from "@/lib/domain/cloudflare"
 import { envValue } from "@/lib/agi-items/element-delete"
 
 // ДОМЕНЫ УЗЛА — СПИСОК, А НЕ ОДИН (шаг 324-1). Слово владельца 2026-09-27: «нужно все то что сделано там превратить в карточке
@@ -219,20 +219,26 @@ export async function createDomainZone(name: string, accountId?: string): Promis
 // бывает). Замеряется каждый раз: есть ли ключ и его статус у Cloudflare (`/user/tokens/verify`: active · disabled · expired).
 // Нехватка права создавать зоны — не тревога страницы: она выясняется в момент «Создать зону» и показывается там же.
 export async function nodeKeyState(): Promise<
-  { present: false } | { present: true; tail: string; status: string | null; workers: { scripts: boolean; routes: boolean } | null }
+  { present: false } | { present: true; tail: string; status: string | null; workers: { scripts: boolean; routes: boolean } | null; tunnel: boolean | null }
 > {
   const key = envValue("CLOUDFLARE_API_TOKEN")
   if (!key) return { present: false }
   const v = await verifyToken(key)
   // 344-1: права на Workers — копия публичных страниц в Cloudflare. Замер, а не память: зона основного домена → её аккаунт.
   let workers: { scripts: boolean; routes: boolean } | null = null
+  let tunnel: boolean | null = null
   const zoneName = primaryDomain()?.name
   const zone = zoneName ? await zoneByName(key, zoneName) : null
   if (zone?.ok && zone.result) {
     const acct = await accountOfZone(key, zone.result.id)
     if (acct.ok) workers = await workersAccess(key, acct.result, zone.result.id)
+    // 2026-10-01 (dhndy: «Подключить не удалось: 502», Cloudflare `1001 Not authorized`): ключ без права на туннель выглядел здесь
+    // исправным — работающие адреса отвечают (туннель живёт своими учётными данными), а подключить новый нельзя. Замер — тот же
+    // вызов, что делает «Подключить»: чтение настроек туннеля узла. Туннеля у узла нет — `null`, не тревога.
+    const tunnelId = nodeTunnelId()
+    if (acct.ok && tunnelId) tunnel = (await getIngress(key, acct.result, tunnelId)).ok
   }
-  return { present: true, tail: key.slice(-4), status: v.ok ? v.result.status : null, workers }
+  return { present: true, tail: key.slice(-4), status: v.ok ? v.result.status : null, workers, tunnel }
 }
 
 /** Убрать дополнительный домен из списка — только если он не подключён к элементу. Зона в Cloudflare не трогается. */
@@ -242,4 +248,12 @@ export function removeDomain(name: string): { ok: true } | { ok: false; error: s
   const holder = domainHolder(name)
   if (holder) return { ok: false, error: "attached", holder }
   return writeList(list.filter((d) => d.name !== name)) ? { ok: true } : { ok: false, error: "write-failed" }
+}
+
+/** Туннель узла (`logs/domain.json` → `tunnelId`), или `null` — узел без туннеля. */
+function nodeTunnelId(): string | null {
+  try {
+    const d = JSON.parse(readFileSync(PRIMARY_FILE, "utf8")) as { tunnelId?: unknown }
+    return typeof d.tunnelId === "string" && d.tunnelId ? d.tunnelId : null
+  } catch { return null }
 }

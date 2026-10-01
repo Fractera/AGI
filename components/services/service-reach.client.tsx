@@ -35,6 +35,8 @@ export function ServiceReach({ serviceId, words }: { serviceId: string; words: S
   const [state, setState] = useState<State>({ phase: "asking" })
   const [connecting, setConnecting] = useState(false)
   const [connectError, setConnectError] = useState<string | null>(null)
+  // 2026-10-01 (dhndy): отказ ключа на туннеле — не код ответа, а путь к экрану ключа.
+  const [keyProblem, setKeyProblem] = useState(false)
 
   const load = useCallback(() => {
     setState({ phase: "asking" })
@@ -52,6 +54,7 @@ export function ServiceReach({ serviceId, words }: { serviceId: string; words: S
   const connect = async () => {
     setConnecting(true)
     setConnectError(null)
+    setKeyProblem(false)
     try {
       const r = await fetch(`${BASE}/api/node/reach`, {
         method: "POST",
@@ -59,7 +62,10 @@ export function ServiceReach({ serviceId, words }: { serviceId: string; words: S
         body: JSON.stringify({ service: serviceId }),
       })
       const body = (await r.json().catch(() => ({}))) as Reach
-      if (!r.ok || !body.ok) setConnectError(words.connectFailed.replace("{reason}", body.reason ?? String(r.status)))
+      const noTunnel = !body.ok && /not authorized|1001/i.test(body.reason ?? "")
+      setKeyProblem(noTunnel)
+      if (noTunnel) setConnectError(words.connectNoTunnel)
+      else if (!r.ok || !body.ok) setConnectError(words.connectFailed.replace("{reason}", body.reason ?? String(r.status)))
       else setState({ phase: "known", reach: body })
     } catch {
       setConnectError(words.connectFailed.replace("{reason}", "network"))
@@ -121,6 +127,11 @@ export function ServiceReach({ serviceId, words }: { serviceId: string; words: S
           </div>
         ) : null}
         {connectError ? <Small className="text-destructive">{connectError}</Small> : null}
+        {keyProblem ? (
+          <a className="w-fit text-sm underline" href={`${BASE}/${location.pathname.split("/")[1] || "en"}/architect/hosting/domain`} data-reach-key-link>
+            {words.connectKeyLink}
+          </a>
+        ) : null}
       </CardContent>
     </Card>
   )

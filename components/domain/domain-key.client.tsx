@@ -18,7 +18,7 @@ const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
 export type NodeKey =
   | { present: false }
-  | { present: true; tail: string; status: string | null; workers?: { scripts: boolean; routes: boolean } | null }
+  | { present: true; tail: string; status: string | null; workers?: { scripts: boolean; routes: boolean } | null; tunnel?: boolean | null }
 
 // 344 (слово владельца 2026-09-30: путь к любой настройке Cloudflare — только через экран узла с настоящими ссылками, никаких
 // шагов «из чата», иначе настоящий пользователь их никогда не узнает). Ключ исправен, но замер прав на Workers отказал —
@@ -39,9 +39,13 @@ export function DomainKey({ state, words: w, ladderWords, onChanged }: {
   const missing = state.present && state.status === "active" && state.workers
     ? [!state.workers.scripts && "Workers Scripts · Edit", !state.workers.routes && "Workers Routes · Edit"].filter(Boolean).join(", ")
     : ""
-  if (state.present && state.status === "active" && !missing) return null
-  const workersOnly = Boolean(missing)
-  const reason = workersOnly
+  // 2026-10-01: ключ без права на туннель — подключить новый адрес нельзя (dhndy: Cloudflare 1001). Важнее Workers: показывается первым.
+  const noTunnel = state.present && state.status === "active" && state.tunnel === false
+  if (state.present && state.status === "active" && !missing && !noTunnel) return null
+  const workersOnly = Boolean(missing) || noTunnel
+  const reason = noTunnel
+    ? k.noTunnel
+    : missing
     ? k.noWorkers.replace("{missing}", missing)
     : !state.present ? k.none : state.status === "disabled" ? k.disabled : state.status === "expired" ? k.expired : k.unverified
 
@@ -60,9 +64,9 @@ export function DomainKey({ state, words: w, ladderWords, onChanged }: {
   return (
     <div
       className={`flex flex-col gap-2 rounded-lg border p-3 ${workersOnly ? "border-warning bg-warning/10" : "border-destructive bg-destructive/5"}`}
-      data-node-key-alarm={workersOnly ? "no-workers" : state.present ? state.status ?? "unverified" : "none"}
+      data-node-key-alarm={noTunnel ? "no-tunnel" : workersOnly ? "no-workers" : state.present ? state.status ?? "unverified" : "none"}
     >
-      <p className={`font-medium ${workersOnly ? "text-foreground" : "text-destructive"}`}>{workersOnly ? k.workersTitle : k.title}</p>
+      <p className={`font-medium ${workersOnly ? "text-foreground" : "text-destructive"}`}>{noTunnel ? k.tunnelTitle : workersOnly ? k.workersTitle : k.title}</p>
       <p className="text-sm text-foreground">{reason.replace("{tail}", state.present ? state.tail : "")}</p>
       <TokenHowTo words={ladderWords} />
       <Label htmlFor="node-key-token">{k.label}</Label>

@@ -43,6 +43,9 @@ export type ServicePortWords = {
     connect: string
     connecting: string
     connectFailed: string
+    /** 2026-10-01: Cloudflare отказал ключу узла в доступе к туннелю (1001 Not authorized) — объяснение и путь к замене ключа. */
+    connectNoTunnel: string
+    connectKeyLink: string
   }
 }
 
@@ -77,6 +80,8 @@ const DICT: Record<string, ServicePortWords> = {
       connect: "Connect",
       connecting: "Connecting…",
       connectFailed: "Could not connect: {reason}.",
+      connectNoTunnel: "Could not connect: the node's Cloudflare key cannot manage the tunnel. Replace the key — the screen shows how.",
+      connectKeyLink: "Open Hosting → Domain",
     },
   },
   ru: {
@@ -104,6 +109,8 @@ const DICT: Record<string, ServicePortWords> = {
       connect: "Подключить",
       connecting: "Подключаю…",
       connectFailed: "Подключить не удалось: {reason}.",
+      connectNoTunnel: "Подключить не удалось: ключ Cloudflare узла не может управлять туннелем. Замените ключ — экран покажет как.",
+      connectKeyLink: "Открыть «Хостинг → Домен»",
     },
   },
 }
