@@ -17,7 +17,7 @@ import { servicePortWords } from '@/components/services/service-port.i18n'
 import { ElementGithub } from '../../../_components/element-github.client'
 import { elementGithubUi } from '../../../_i18n/element-github.i18n'
 import { elementDeploymentsUi } from '../../../_i18n/element-deployments.i18n'
-import { elementDeployUi } from '../../../_i18n/element-deploy.i18n'
+import { elementDeployUi, rejectTaskUi } from '../../../_i18n/element-deploy.i18n'
 import { ElementDeploy } from '../../../_components/element-deploy.client'
 import { elementVersions } from '@/lib/agi-items/element-versions'
 import type { Block } from '@/lib/content/blocks/types'
@@ -36,7 +36,7 @@ import { ElementSiteSettings } from '../../../_components/element-site-settings'
 import { addressOf, idOfAddress } from '@/lib/agi-items/element-address'
 import { registryDescription, TASK as DESCRIBE_TASK } from '@/lib/agi-items/element-describe'
 import { terminalLink } from '@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/client/terminal-paste.mjs'
-import { agentKitWidget, type AgentKitPage } from '../_agent-kit/widgets'
+import { agentKitWidget, openAiKeyHref, type AgentKitPage } from '../_agent-kit/widgets'
 import { Button } from '@/components/ui/button'
 import { ElementPreview } from '@/components/preview/element-preview.client'
 import { elementPreviewWords, previewTaskKit } from '@/sections/blocks/element-preview.server'
@@ -232,7 +232,15 @@ export default async function Page({ params }: { params: Promise<Params> }) {
     : null
 
   // 337-3/4: «Развернуть» и «Предпросмотр» — на своей странице элемента, а не только в ядре (слово владельца 2026-09-29).
-  const deployPanel = isDeployments && entry ? <ElementDeploy id={item} lang={lang} ui={elementDeployUi(lang)} /> : null
+  const deployPanel = isDeployments && entry ? (
+    <ElementDeploy
+      id={item}
+      lang={lang}
+      ui={elementDeployUi(lang)}
+      // 356-3: «Отклонить» спрашивает причину (текст или голос) — окно задачи 336 в режиме «заметка».
+      reject={{ ui: rejectTaskUi(lang), dialogUi: appDialogUi(lang), keyHref: openAiKeyHref(item, lang) }}
+    />
+  ) : null
   // 344-3: итог последней выкладки копии публичных страниц в Cloudflare (`data/services/<id>/static-copy.json`); нет своего
   // домена или выкладок не было — строки нет.
   const copy = isDeployments && entry ? readStaticCopy(item) : null

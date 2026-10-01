@@ -8,7 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { AppDialog } from "@/components/dialog/app-dialog.client"
 import type { AppDialogUi } from "@/components/dialog/app-dialog.i18n"
 import { VoiceControl } from "@/components/form/voice-control.client"
-import { INTENTS, composeBlockTask, type BlockIntent, type BlockTaskUi } from "../types/block-task"
+import { INTENTS, composeBlockTask, composeNote, type BlockIntent, type BlockTaskUi } from "../types/block-task"
 
 // ОКНО ЗАДАЧИ БЛОКА (инструмент, 336-3). Слово владельца 2026-09-29: «Нажми для обновления» → окно с вариантами «улучшить
 // дизайн · улучшить код · это работает неправильно · давай это удалим · давай изменим тексты · давай превратим это в
@@ -18,6 +18,8 @@ import { INTENTS, composeBlockTask, type BlockIntent, type BlockTaskUi } from ".
 // его `onSend`; первый потребитель — Preview ядра, который кладёт текст в окно вставки терминала элемента. В сеть инструмент
 // ходит только за расшифровкой голоса (`voiceApiUrl`, дверь ядра `/api/transcribe`).
 // 🔒 ВЫБОР = РАСКРЫТЫЙ ВАРИАНТ: аккордеон на один пункт; открыт — значит выбран, «Отправить» ждёт выбора.
+// 🔒 РЕЖИМ «ЗАМЕТКА» (`note`, шаг 356-3 — причина отклонения предпросмотра): вариантов нет, `address` — готовая строка задачи,
+// подробности необязательны; «Отправить» доступно сразу, `onSend` получает текст и сами подробности (пустые — решает потребитель).
 
 export function BlockTask({
   open,
@@ -28,6 +30,7 @@ export function BlockTask({
   dialogUi,
   voiceApiUrl,
   keyHref,
+  note = false,
   onSend,
 }: {
   open: boolean
@@ -40,7 +43,9 @@ export function BlockTask({
   voiceApiUrl?: string
   /** Поле ключа OpenAI — туда ведёт подсказка голосового ввода, когда ключа нет (новая вкладка). */
   keyHref?: string
-  onSend: (text: string) => void
+  /** 356-3: окно без вариантов — строка `address` плюс подробности. */
+  note?: boolean
+  onSend: (text: string, details: string) => void
 }) {
   const [intent, setIntent] = useState<BlockIntent | "">("")
   const [details, setDetails] = useState("")
@@ -54,8 +59,9 @@ export function BlockTask({
   }
 
   function send() {
-    if (!intent) return
-    onSend(composeBlockTask(ui, intent, address, details))
+    if (note) onSend(composeNote(ui, address, details), details.trim())
+    else if (intent) onSend(composeBlockTask(ui, intent, address, details), details.trim())
+    else return
     setIntent("")
     setDetails("")
   }
@@ -71,7 +77,7 @@ export function BlockTask({
       footer={
         <>
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{ui.cancel}</Button>
-          <Button type="button" onClick={send} disabled={!intent} data-block-task-send>{ui.send}</Button>
+          <Button type="button" onClick={send} disabled={!note && !intent} data-block-task-send>{ui.send}</Button>
         </>
       }
     >
@@ -79,19 +85,23 @@ export function BlockTask({
         <div className="flex flex-col gap-1.5">
           <Small className="font-medium">{ui.block}</Small>
           <pre className="whitespace-pre-wrap break-all rounded-md border border-border p-2 font-mono text-xs select-all">{address}</pre>
-          <Button type="button" variant="outline" size="sm" className="w-fit gap-1.5" onClick={copy}>
-            <Copy className="size-4" aria-hidden />
-            {copied ? ui.copied : ui.copy}
-          </Button>
+          {!note && (
+            <Button type="button" variant="outline" size="sm" className="w-fit gap-1.5" onClick={copy}>
+              <Copy className="size-4" aria-hidden />
+              {copied ? ui.copied : ui.copy}
+            </Button>
+          )}
         </div>
-        <Accordion type="single" collapsible value={intent} onValueChange={(v) => setIntent(v as BlockIntent | "")} className="rounded-md border border-border px-3">
-          {INTENTS.map((id) => (
-            <AccordionItem key={id} value={id} data-block-intent={id}>
-              <AccordionTrigger>{ui.intents[id].title}</AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">{ui.intents[id].text}</AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+        {!note && (
+          <Accordion type="single" collapsible value={intent} onValueChange={(v) => setIntent(v as BlockIntent | "")} className="rounded-md border border-border px-3">
+            {INTENTS.map((id) => (
+              <AccordionItem key={id} value={id} data-block-intent={id}>
+                <AccordionTrigger>{ui.intents[id].title}</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">{ui.intents[id].text}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        )}
         <div className="flex flex-col gap-1.5">
           <Small className="font-medium" id="block-task-details-label">{ui.details}</Small>
           <VoiceControl
@@ -107,7 +117,7 @@ export function BlockTask({
             keyHint={keyHref ? { href: keyHref, label: ui.keyLink } : undefined}
           />
         </div>
-        {!intent && <Small className="text-muted-foreground">{ui.pickFirst}</Small>}
+        {!note && !intent && <Small className="text-muted-foreground">{ui.pickFirst}</Small>}
       </div>
     </AppDialog>
   )

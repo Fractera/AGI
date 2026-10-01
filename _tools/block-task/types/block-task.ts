@@ -26,3 +26,8 @@ export function composeBlockTask(ui: BlockTaskUi, intent: BlockIntent, address: 
   if (details.trim()) parts.push("", `${ui.details}:`, details.trim())
   return parts.join("\n")
 }
+
+/** 356-3: режим «заметка» — без шести вариантов. Сверху готовая строка (`head`), ниже подробности человека; пустые — только строка. */
+export function composeNote(ui: BlockTaskUi, head: string, details: string): string {
+  return details.trim() ? [head.trim(), "", `${ui.details}:`, details.trim()].join("\n") : head.trim()
+}

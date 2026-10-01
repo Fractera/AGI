@@ -8,6 +8,13 @@ import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 import type { ElementDeployUi } from "../_i18n/element-deploy.i18n"
 import { LiveLog } from "./live-log.client"
+import { BlockTask } from "@/_tools/block-task/client/block-task.client"
+import type { BlockTaskUi } from "@/_tools/block-task/types/block-task"
+import type { AppDialogUi } from "@/components/dialog/app-dialog.i18n"
+import { terminalLink } from "@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/client/terminal-paste.mjs"
+
+/** 356-3: окно «Почему отклоняете?» — инструмент задачи (336) в режиме «заметка»; нет — «Отклонить» убирает сразу, как прежде. */
+export type RejectKit = { ui: BlockTaskUi; dialogUi: AppDialogUi; keyHref: string }
 
 // «РАЗВЕРНУТЬ» И «ПРЕДПРОСМОТР» НА СТРАНИЦЕ «РАЗВЁРТЫВАНИЯ» ЭЛЕМЕНТА (узел, шаг 337-3/4). Слово владельца 2026-09-29:
 // «кнопка развёртывания уже существует у нас в проекте и выглядит более целостно, потому что показывает и коммит и
@@ -26,7 +33,8 @@ type Preview = { state?: string; port?: number; commit?: string | null; note?: s
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 const DEPLOY = `${BASE}/api/node/deploy`
 
-export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: ElementDeployUi }) {
+export function ElementDeploy({ id, lang, ui, reject }: { id: string; lang: string; ui: ElementDeployUi; reject?: RejectKit }) {
+  const [rejectOpen, setRejectOpen] = useState(false)
   const [el, setEl] = useState<Element | null | "failed">(null)
   const [dep, setDep] = useState<Deployment>(null)
   const [preview, setPreview] = useState<Preview>(null)
@@ -146,6 +154,16 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
       setRefused(r.status === 409 ? await refusal(r) : ui.unavailable)
     }
     if (action !== "stage") setTimeout(() => void load(), 800)
+    return r.ok
+  }
+
+  // 356-3 (слово владельца 2026-10-01: «что происходит если я отклоняю? Возможно нужно предоставить форму для репорта … поле
+  // текстового ввода и голосового набора»). Предпросмотр убирается всегда; с причиной — страница терминала элемента с задачей
+  // в окне вставки: в терминал текст уходит только кнопкой человека (закон вставки 316). Без причины — остаёмся здесь.
+  async function rejectWith(text: string, reason: string) {
+    setRejectOpen(false)
+    const ok = await act("discard")
+    if (ok && reason) window.location.href = terminalLink({ base: BASE, lang, service: id, text })
   }
 
   if (el === null) return <p className="my-4 text-sm text-muted-foreground">{ui.loading}</p>
@@ -253,11 +271,27 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
               <Check className="size-4" aria-hidden />
               {ui.accept}
             </Button>
-            <Button type="button" variant="outline" onClick={() => act("discard")} data-element-preview-reject>
+            <Button type="button" variant="outline" onClick={() => (reject ? setRejectOpen(true) : void act("discard"))} data-element-preview-reject>
               <X className="size-4" aria-hidden />
               {ui.reject}
             </Button>
           </div>
+          {reject && (
+            <BlockTask
+              note
+              open={rejectOpen}
+              onOpenChange={setRejectOpen}
+              address={(preview?.report?.task ? ui.rejectLine : ui.rejectLineNoTask)
+                .replace("{commit}", preview?.commit ?? ui.none)
+                .replace("{task}", preview?.report?.task ?? "")}
+              lang={lang}
+              ui={reject.ui}
+              dialogUi={reject.dialogUi}
+              voiceApiUrl={`${BASE}/api/transcribe?item=${encodeURIComponent(id)}`}
+              keyHref={reject.keyHref}
+              onSend={(text, reason) => void rejectWith(text, reason)}
+            />
+          )}
           {/* Владелец 2026-10-01: «самая важная строка на этом экране … сделай его жирным … пульсирующим нижний бордюр».
               Подчёркивание пульсирует основным цветом; при «уменьшить движение» стоит ровно. */}
           <p className="relative w-fit pb-1 text-sm font-bold text-foreground" data-element-after-decision>

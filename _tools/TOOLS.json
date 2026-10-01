@@ -10,18 +10,19 @@
       ],
       "npmDeps": [],
       "usedBy": [
-        "components/preview/element-preview"
+        "components/preview/element-preview",
+        "app/[lang]/(architectLayer)/_components/element-deploy"
       ],
       "en": {
         "title": "Block task",
         "what": "A window opened from a highlighted block: its address on top, six things to do with it (improve the design, improve the code, it works wrong, delete it, change the texts, turn it into a tool), each opening a short explanation, and a details field that takes voice. Send gives back one text: the choice, the address and the details.",
-        "how": "The window is AppDialog; the choice is a single-item accordion, so the opened item is the chosen one. Details use VoiceControl with the core's transcription door; without an OpenAI key the voice line links to the key field on the Environment variables tab, opened in a new tab. The text is built by composeBlockTask in the words file — one place for every consumer. The tool does not know where the task goes: onSend receives it.",
+        "how": "The window is AppDialog; the choice is a single-item accordion, so the opened item is the chosen one. Details use VoiceControl with the core's transcription door; without an OpenAI key the voice line links to the key field on the Environment variables tab, opened in a new tab. The text is built by composeBlockTask in the words file — one place for every consumer. The tool does not know where the task goes: onSend receives it. With note (step 356-3, the reason for rejecting a preview) there are no choices: the address line is the ready task line, details are optional and Send is open at once.",
         "value": "The step from seeing a block to giving its agent a precise task used to be copy, switch pages, paste and type. Here it is one click on the frame, one choice and a spoken sentence — and the same window can serve any page that shows blocks, not only the Preview."
       },
       "ru": {
         "title": "Задача блоку",
         "what": "Окно, которое открывается с подсвеченного блока: сверху его адрес, шесть действий (улучшить дизайн, улучшить код, это работает неправильно, удалить, изменить тексты, превратить в инструмент), у каждого раскрывается короткое пояснение, и поле подробностей с голосовым вводом. «Отправить» отдаёт один текст: выбор, адрес и подробности.",
-        "how": "Окно — AppDialog; выбор — аккордеон на один пункт, раскрытый пункт и есть выбранный. Подробности — VoiceControl с дверью расшифровки ядра; без ключа OpenAI строка голоса ведёт на поле ключа во вкладке «Переменные окружения», в новой вкладке. Текст собирает composeBlockTask в файле слов — одно место для всех потребителей. Куда уйдёт задача, инструмент не знает: её получает onSend.",
+        "how": "Окно — AppDialog; выбор — аккордеон на один пункт, раскрытый пункт и есть выбранный. Подробности — VoiceControl с дверью расшифровки ядра; без ключа OpenAI строка голоса ведёт на поле ключа во вкладке «Переменные окружения», в новой вкладке. Текст собирает composeBlockTask в файле слов — одно место для всех потребителей. Куда уйдёт задача, инструмент не знает: её получает onSend. С note (шаг 356-3, причина отклонения предпросмотра) вариантов нет: строка адреса — готовая строка задачи, подробности необязательны, «Отправить» доступно сразу.",
         "value": "Путь от «вижу блок» до точной задачи его агенту был: скопировать, перейти на другую страницу, вставить, дописать. Здесь это один щелчок по рамке, один выбор и сказанная фраза — и то же окно годится любой странице, где видны блоки, а не только Preview."
       }
     },

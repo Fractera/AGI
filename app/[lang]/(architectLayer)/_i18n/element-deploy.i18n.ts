@@ -1,6 +1,12 @@
 // СЛОВА «РАЗВЕРНУТЬ / ПРЕДПРОСМОТР» НА СТРАНИЦЕ «РАЗВЁРТЫВАНИЯ» ЭЛЕМЕНТА (узел, шаг 337-3/4). `en` основа, `ru` перевод;
 // строки выбирает сервер и передаёт острову пропсом.
+import { blockTaskUi } from "@/_tools/block-task/types/block-task.i18n"
+import type { BlockTaskUi } from "@/_tools/block-task/types/block-task"
+
 export type ElementDeployUi = {
+  /** 356-3: первая строка задачи агенту при отклонении; `{commit}`, `{task}`. */
+  rejectLine: string
+  rejectLineNoTask: string
   title: string
   running: string
   head: string
@@ -35,6 +41,8 @@ export type ElementDeployUi = {
 
 const DICT: Record<"en" | "ru", ElementDeployUi> = {
   en: {
+    rejectLine: "Rejected preview {commit} ({task})",
+    rejectLineNoTask: "Rejected preview {commit}",
     title: "Deploy",
     running: "Running",
     head: "Last commit",
@@ -67,6 +75,8 @@ const DICT: Record<"en" | "ru", ElementDeployUi> = {
     unavailable: "The node did not answer.",
   },
   ru: {
+    rejectLine: "Отклонён предпросмотр {commit} ({task})",
+    rejectLineNoTask: "Отклонён предпросмотр {commit}",
     title: "Развернуть",
     running: "Работает",
     head: "Последний коммит",
@@ -102,4 +112,31 @@ const DICT: Record<"en" | "ru", ElementDeployUi> = {
 
 export function elementDeployUi(lang: string): ElementDeployUi {
   return lang === "ru" ? DICT.ru : DICT.en
+}
+
+// 356-3: слова окна «Почему отклоняете?» — инструмент `_tools/block-task` в режиме «заметка»; варианты блока не показываются,
+// поэтому берутся как есть из его словаря.
+const REJECT: Record<"en" | "ru", Partial<BlockTaskUi>> = {
+  en: {
+    title: "Why are you rejecting this preview?",
+    description: "The preview is removed either way. With a reason, the element's terminal opens with this task ready to send to its agent.",
+    block: "Task for the agent",
+    details: "Reason",
+    detailsPlaceholder: "What is wrong, what you expected instead…",
+    send: "Reject",
+    cancel: "Cancel",
+  },
+  ru: {
+    title: "Почему отклоняете предпросмотр?",
+    description: "Предпросмотр будет убран в любом случае. С причиной откроется терминал элемента, и эта задача уже будет готова к отправке его агенту.",
+    block: "Задача агенту",
+    details: "Причина",
+    detailsPlaceholder: "Что не так, что вы ожидали увидеть…",
+    send: "Отклонить",
+    cancel: "Отмена",
+  },
+}
+
+export function rejectTaskUi(lang: string): BlockTaskUi {
+  return { ...blockTaskUi(lang), ...(lang === "ru" ? REJECT.ru : REJECT.en) }
 }
