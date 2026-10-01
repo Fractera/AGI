@@ -30,6 +30,8 @@ export type DomainLadderWords = {
   locked4: string
   locked5: string
   keyConfigured: string
+  keyReplace: string
+  keyReplaceCancel: string
   nodeAddress: string
   quickAddress: string
   liveAddress: string
@@ -136,6 +138,8 @@ const W: Record<string, DomainLadderWords> = {
     locked4: "The key field appears here once you have changed the nameservers.",
     locked5: "This opens once the node has a working key.",
     keyConfigured: "Key is configured",
+    keyReplace: "Update key",
+    keyReplaceCancel: "Cancel",
     nodeAddress: "Node address",
     quickAddress: "Temporary address in use",
     liveAddress: "Your address in the internet",
@@ -265,6 +269,8 @@ const W: Record<string, DomainLadderWords> = {
     locked4: "Поле для ключа появится здесь, когда вы смените серверы имён.",
     locked5: "Откроется, когда у узла будет рабочий ключ.",
     keyConfigured: "Ключ настроен",
+    keyReplace: "Обновить ключ",
+    keyReplaceCancel: "Отмена",
     nodeAddress: "Адрес узла",
     quickAddress: "Сейчас работает временный адрес",
     liveAddress: "Ваш адрес в интернете",

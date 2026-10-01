@@ -94,6 +94,9 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
   const [state, setState] = useState<State | null>(null)
   const [token, setToken] = useState("")
   const [busy, setBusy] = useState(false)
+  // 2026-10-01 (владелец: «состояние этого аккордеона заблокировано в состоянии успеха … нету кнопки установить другой ключ»):
+  // «Обновить ключ» открывает ту же форму поверх настроенного ключа. Прежний ключ работает, пока дверь не приняла новый.
+  const [replacing, setReplacing] = useState(false)
   // 🔒 ОТВЕТ ДВЕРИ ЖИВЁТ НА ЭКРАНЕ, А НЕ МЕЛЬКАЕТ. Закон образца: молчаливый
   // успех неотличим от молчаливого отказа, и у успеха обязан быть назван
   // СЛЕДУЮЩИЙ шаг — иначе человек не знает, куда смотреть дальше.
@@ -179,6 +182,7 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
       if (data.ok) {
         setAnswer({ ok: true, text: `${words.keyAccepted} ${words.keyNextStep}`, zones: (data.zones ?? []).map((z) => z.name) })
         setState((prev) => (prev ? { ...prev, keyConfigured: true, keyTail: data.keyTail ?? null } : prev))
+        setReplacing(false)
       } else {
         setAnswer({ ok: false, text: reasonText(data.reason ?? "") })
       }
@@ -442,8 +446,15 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
 
       {outside >= 3 ? (
         <Step n={4} title={words.step4Title} done={state.keyConfigured}>
-          <p className="text-muted-foreground text-sm">{state.keyConfigured ? `${words.keyConfigured} · ····${state.keyTail}` : words.step4Text}</p>
-          {!state.keyConfigured && onTemporary ? (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-muted-foreground text-sm">{state.keyConfigured ? `${words.keyConfigured} · ····${state.keyTail}` : words.step4Text}</p>
+            {state.keyConfigured ? (
+              <Button size="sm" variant="outline" onClick={() => { setReplacing((v) => !v); setAnswer(null); setToken("") }} data-key-replace>
+                {replacing ? words.keyReplaceCancel : words.keyReplace}
+              </Button>
+            ) : null}
+          </div>
+          {(!state.keyConfigured || replacing) && onTemporary ? (
             <div className="mt-3 flex gap-2 rounded-md border border-warning/50 bg-warning/10 px-3 py-2" data-key-blocked>
               <CircleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
               <div>
@@ -457,7 +468,7 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
               </div>
             </div>
           ) : null}
-          {!state.keyConfigured && !onTemporary ? (
+          {(!state.keyConfigured || replacing) && !onTemporary ? (
             <div className="mt-3 flex flex-col gap-2" data-key-form>
               <Small className="text-muted-foreground">{words.keyHelp}</Small>
               <a className="inline-flex w-fit items-center gap-1 text-sm underline" href={CLOUDFLARE_DASH} rel="noreferrer noopener" target="_blank">
