@@ -44,6 +44,10 @@ function git(args, cwd) {
 
 const id = process.argv[2]
 if (!id || !ID.test(id)) fail(`имя «${id ?? ''}» — не имя черновика (буква, затем 4–23 строчных латинских или цифр)`)
+// 367: облик — ответ человека в окне рождения (`--look project|own`); вызов из командной строки без него — «как проект» (как до 367).
+const lookAt = process.argv.indexOf('--look')
+const look = lookAt > 0 ? process.argv[lookAt + 1] : 'project'
+if (look !== 'project' && look !== 'own') fail(`облик «${look ?? ''}» — не из списка: project | own`)
 
 // 1. Черновик существует и ещё не родился.
 let drafts = []
@@ -85,7 +89,18 @@ writeFileSync(propsFile, JSON.stringify(props, null, 2) + '\n', 'utf8')
 // Файл шаблона — не «свой файл» элемента: здесь он заменяется оформлением проекта (у сайта root, подписанного на «Дизайн»), а в
 // папку данных элемента кладётся последняя копия настроек проекта (её получил root от CONFIG) — сборка читает обе. Нет root или
 // его файлов — элемент рождается с файлами шаблона и догоняет проект при запуске, как прежде.
+// 367 (слово владельца 2026-10-01: «тема зелёная стартер синий, в одном случае стартер приедет синий а другой зелёный»): рычаги
+// `data/services/<id>/links.json` ставятся ДО установки — её и первую сборку читают те же рычаги (`linkOn` шаблона).
+// `own` — файлы шаблона нетронуты, CONFIG и «Дизайн» выключены, «Блоки» включены; `project` — всё включено и облик проекта ниже.
 {
+  const links = join(ROOT, 'data', 'services', id, 'links.json')
+  mkdirSync(dirname(links), { recursive: true })
+  writeFileSync(links, JSON.stringify(look === 'own' ? { config: false, design: false, blocks: true } : { config: true, design: true, blocks: true }, null, 2) + '\n', 'utf8')
+  stage(look === 'own'
+    ? 'облик: самостоятельный — дизайн и настройки шаблона, связи с CONFIG и «Дизайном» выключены'
+    : 'облик: как весь проект — связи с CONFIG, «Дизайном» и «Блоками» включены')
+}
+if (look === 'project') {
   const site = registry.services.find((x) => x.id === 'root')
   const siteDir = site ? entryDir(site) : null
   const design = siteDir ? join(siteDir, 'DESIGN-CONFIG', 'design-config.json') : null
