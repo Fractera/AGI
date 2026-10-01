@@ -44,6 +44,9 @@ export type ElementPreviewWords = {
   loading: string
   unavailable: string
   localOnly: string
+  /** 2026-10-01: ядро на https, у элемента нет подключённого имени — браузер не пустит локальный адрес во фрейм. */
+  blockedHttps: string
+  connectAddress: string
   openNew: string
   reload: string
   reloading: string
@@ -99,7 +102,7 @@ const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
 /** `terminalService` — сегмент страницы терминала в `/architect/<…>/terminal`: у служб ядра это их id (по умолчанию), у рождённого
  *  элемента — `<адрес>/build` (356: по id элемента ссылка вела на страницу ошибки). */
-export function ElementPreview({ serviceId, terminalService, lang, words, task }: { serviceId: string; terminalService?: string; lang: string; words: ElementPreviewWords; task?: PreviewTaskKit }) {
+export function ElementPreview({ serviceId, terminalService, homeHref, lang, words, task }: { serviceId: string; terminalService?: string; homeHref?: string; lang: string; words: ElementPreviewWords; task?: PreviewTaskKit }) {
   const [state, setState] = useState<{ url: string; public: boolean } | "loading" | "failed">("loading")
   // Адрес, открытый в просмотре СЕЙЧАС (человек мог перейти внутри): его и открывает кнопка «в новой вкладке».
   const [current, setCurrent] = useState<string | null>(null)
@@ -163,6 +166,23 @@ export function ElementPreview({ serviceId, terminalService, lang, words, task }
 
   if (state === "loading") return <p className="text-muted-foreground text-sm">{words.loading}</p>
   if (state === "failed") return <p className="text-muted-foreground text-sm">{words.unavailable}</p>
+  // 2026-10-01 (владелец: «вижу http://127.0.0.1:24690/ru и белый пустой экран»; браузер: «The connection is blocked because it was
+  // initiated by a public page to connect to devices or servers on your local network»). Ядро открыто по https, а адрес элемента —
+  // петля машины: рамку браузер не загрузит НИКОГДА. Вместо белой рамки — причина и путь к «Адресу в интернете».
+  if (!state.public && window.location.protocol === "https:") {
+    return (
+      <div className="flex flex-col gap-2 rounded-lg border border-warning/50 bg-warning/10 p-3 text-sm" role="status" data-preview-blocked>
+        <p className="text-foreground">{words.blockedHttps}</p>
+        <div className="flex flex-wrap gap-2">
+          {homeHref && <a href={`${BASE}${homeHref}`} className={buttonVariants({ size: "sm" })} data-preview-connect>{words.connectAddress}</a>}
+          <a href={state.url} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "outline", size: "sm", className: "gap-1.5" })}>
+            <ExternalLink className="size-4" aria-hidden />
+            {words.openNew}
+          </a>
+        </div>
+      </div>
+    )
+  }
 
   const page = current ?? state.url
 
