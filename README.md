@@ -9,6 +9,8 @@ You need a GitHub account, a computer that stays on, and Claude Code — the ter
 🔒 **Claude Code must run on YOUR computer**: Claude Desktop → Code with **Local** selected, or `claude` in a terminal. A cloud
 session (claude.ai/code, the Code tab of the mobile app, or Desktop with **Cloud** selected) installs the node into a temporary
 machine that disappears with the session — the install refuses there.
+🔒 **One node per computer.** A second copy is never needed: one node carries many sites and applications inside it — AGI
+ITEMS, created with «Create AGI ITEM». The install refuses a second copy on a computer that already has a node.
 
 1. **Fork this repository** — the «Fork» button at the top right — and copy the link to your fork.
    🔒 **Only your own fork of the original works.** A node installs only from a direct fork of `github.com/fractera/agi`:
@@ -43,7 +45,10 @@ The person pasted a link to this repository (or to their fork of it) and asked y
    temporary machine rather than the person's own computer, install NOTHING. Tell the person: the node lives on their computer,
    so open Claude Desktop → Code → **Local** with a folder on this computer, or run `claude` in a terminal in an empty folder,
    paste the link to their fork and write «launch this». Then stop. The node enforces this too: `npm install`, `npm run build`
-   and `npm run serve:start` refuse with `===CLOUD_REFUSED===` in a cloud session (`scripts/check-local.mjs`).
+   and `npm run serve:start` refuse with `===CLOUD_REFUSED===` in a cloud session (`scripts/check-local.mjs`). The same check
+   refuses a second node on a computer that already has one (`===NODE_EXISTS===` with that node's folder): tell the person a
+   node is already installed there and new projects are AGI ITEMS inside it — never install a second copy. `.env.local` is
+   created from `.env.local.example` automatically on a clean clone (`===ENV_CREATED===`).
 
 1. **Check the tools.** `git --version` and `node --version` (Node.js 22 is what this node is built and measured on). If one
    is missing, tell the person what to install and stop until they have it.

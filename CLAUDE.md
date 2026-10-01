@@ -545,6 +545,12 @@ saving an element key while the core has none asks «copy to the core?». Voice 
 Claude Code cloud session) → `===CLOUD_REFUSED===` with how to run locally. README step 0 tells the agent the same BEFORE cloning —
 npm runs `preinstall` after it has fetched dependencies, so the README is the earliest stop and the code catches an agent that skipped it.
 ✗ Paid 2026-10-01: the owner's «launch this» in a cloud session installed the node into a machine that vanished with the session.
+✓ Proven by a live cloud session (new account): the agent stopped at README step 0.
+**One node per computer** (owner 2026-10-01: «да, запрещай»): the same script refuses when pm2 (live or its `dump.pm2` snapshot)
+holds `fractera-agi` from ANOTHER existing folder — `===NODE_EXISTS===`. Two copies would share pm2 names, autostart and the port
+block. `scripts/ensure-env.mjs` creates `.env.local` from the example on a clean clone (preinstall, prebuild before check-origin,
+serve:start). `lib/server-port.cjs` `isFree` throws on a missing stack (EAFNOSUPPORT/EADDRNOTAVAIL) instead of «busy» — the `::1`
+catches in the installer and the element preview finally work on machines without IPv6.
 
 ## 🔒 The node installs only from a direct fork of Fractera/AGI (node step 368)
 
