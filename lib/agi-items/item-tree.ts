@@ -23,6 +23,9 @@ export const ITEM_TREE: TreePage[] = [
     pages: [
       { slug: "subscription", words: w("Claude Code subscription", "Signing the element's agent in to the Claude Code subscription.", "Подписка Claude Code", "Вход агента элемента в подписку Claude Code.") },
       { slug: "terminal", words: w("Terminal", "A live Claude Code in the element's folder: started and stopped here.", "Терминал", "Живой Claude Code в папке элемента: запускается и останавливается здесь.") },
+      // Владелец 2026-10-01: «кнопку развёртывания мы находим внизу а это очень важная кнопка … подними её вверх и установи сразу
+      // под кнопкой терминал».
+      { slug: "deployments", words: w("Deployments", "Versions of the element and a way back to a working one.", "Развёртывания", "Версии элемента и путь назад к работающей.") },
       { slug: "telegram", words: w("Telegram bot", "A bot that talks to the same agent session.", "Telegram бот", "Бот, который говорит с той же сессией агента.") },
       { slug: "skills", words: w("Skills", "The skills the element's agent carries.", "Навыки", "Навыки, которые несёт агент элемента.") },
       { slug: "hooks", words: w("Hooks", "Commands the agent's tools run on their own events.", "Хуки", "Команды, которые инструменты агента запускают на своих событиях.") },
@@ -30,7 +33,6 @@ export const ITEM_TREE: TreePage[] = [
       // должен поставить для максимальной эффективности проекта».
       { slug: "plugins", words: w("Plugins", "Claude Code plugins to install so the element's agent works at its best.", "Плагины", "Плагины Claude Code, которые стоит поставить, чтобы агент элемента работал максимально эффективно.") },
       { slug: "browser-extensions", words: w("Browser extensions", "Browser extensions to install for the most effective work on the project.", "Браузерные расширения", "Расширения браузера, которые стоит поставить для максимально эффективной работы над проектом.") },
-      { slug: "deployments", words: w("Deployments", "Versions of the element and a way back to a working one.", "Развёртывания", "Версии элемента и путь назад к работающей.") },
       { slug: "environment", words: w("Environment variables", "Keys and settings the element reads at start.", "Переменные окружения", "Ключи и настройки, которые элемент читает при старте.") },
       { slug: "github", words: w("GitHub", "The element's own repository.", "GitHub", "Собственный репозиторий элемента.") },
     ],
