@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 const { startStaticCopy } = createRequire(import.meta.url)('../lib/agi-items/static-copy-start.cjs')
 const { pendingPreview } = createRequire(import.meta.url)('../lib/deploy/preview-lock.cjs')
+const liveLog = createRequire(import.meta.url)('../lib/deploy/live-log.cjs')
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const STATE = join(ROOT, 'logs', 'deploy-state.json')
@@ -41,12 +42,16 @@ for (const id of ids) {
     continue
   }
   const t0 = Date.now()
-  const r = spawnSync(process.execPath, [join(ROOT, 'scripts', 'services-install.mjs'), '--only', id, '--rebuild'], {
-    cwd: ROOT, encoding: 'utf8', windowsHide: true,
-  })
-  const out = (r.stdout ?? '') + (r.stderr ?? '')
+  // 353-3: ход — в `logs/deploy-<id>.log` по мере работы (установщик пишет туда же сборку); страница читает его хвост.
+  const live = liveLog.logPath(ROOT, 'deploy', id)
+  liveLog.startLog(live, `▶ ${new Date().toISOString()} — развёртывание ${id} начато`)
+  const r = liveLog.runLive(process.execPath, [join(ROOT, 'scripts', 'services-install.mjs'), '--only', id, '--rebuild'], {
+    cwd: ROOT, windowsHide: true, env: { ...process.env, FRACTERA_LIVE_LOG: live },
+  }, live)
+  const out = r.out
   appendFileSync(LOG, `\n=== ${new Date().toISOString()} ${id}\n${out}`)
-  const ok = r.status === 0 && !/ОШИБКА/.test(out)
+  const ok = r.rc === 0 && !/ОШИБКА/.test(out)
+  appendFileSync(live, ok ? '■ готово\n' : '■ не удалось — работает прежняя версия\n')
   state.results.push({
     id,
     ok,

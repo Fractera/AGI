@@ -54,6 +54,8 @@ const NODE_ENV_FILE = join(ROOT, '.env.local')
 
 const IS_WIN = process.platform === 'win32'
 const say = (m) => console.log(m)
+const liveLog = createRequire(import.meta.url)('../lib/deploy/live-log.cjs')
+const LIVE_LOG = process.env.FRACTERA_LIVE_LOG || null
 const warn = []
 const missingForeign = []
 
@@ -70,6 +72,8 @@ function childEnv() {
   for (const [k, v] of Object.entries(process.env)) {
     if (k.startsWith('__NEXT') || k.startsWith('NEXT_') || k.startsWith('AGI_') || own.has(k)) continue
     if (k === 'PORT' || k === 'HOSTNAME' || k === 'NODE_ENV') continue
+    // 353-3: журнал хода — дело одного развёртывания; pm2 сохранил бы его в окружении службы навсегда.
+    if (k === 'FRACTERA_LIVE_LOG') continue
     out[k] = v
   }
   return out
@@ -77,6 +81,11 @@ function childEnv() {
 
 // ── Запуск чужой программы. Один вход, чтобы правила Windows не разъехались.
 function run(cmd, args, cwd, { quiet = false, env = {} } = {}) {
+  // 353-3: развёртывание передаёт журнал хода (`FRACTERA_LIVE_LOG`) — `npm ci` и сборка пишут в него по мере работы, страница
+  // видит движение. Только npm: вывод git и pm2 здесь разбирается как данные. `out` тот же — читается из журнала после выхода.
+  if (LIVE_LOG && !quiet && cmd === 'npm') {
+    return liveLog.runLive(cmd, args, { cwd, shell: IS_WIN, windowsHide: true, env: { ...childEnv(), ...env } }, LIVE_LOG)
+  }
   const r = spawnSync(cmd, args, {
     cwd,
     encoding: 'utf8',

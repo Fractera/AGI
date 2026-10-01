@@ -120,9 +120,16 @@ if (action === 'stage') {
   save({ state: 'building', pid: process.pid, target, commit, startedAt: new Date().toISOString() })
   try { rmSync(join(dir, target), { recursive: true, force: true }) } catch { /* next build очистит */ }
   const buildEnv = { [distEnv]: target, ...languagesEnv() }
-  let b = run('npm', ['run', 'build'], buildEnv)
-  if (b.rc !== 0) b = run('npm', ['run', 'build'], buildEnv)
+  // 353-3: ход сборки — в `logs/preview-<id>.log` по мере работы; страница читает хвост, пока идёт сборка.
+  const liveLog = require('../lib/deploy/live-log.cjs')
+  const logFile = liveLog.logPath(ROOT, 'preview', id)
+  liveLog.startLog(logFile, `▶ ${new Date().toISOString()} — сборка предпросмотра ${id} (${commit ?? '—'}) в ${target}`)
+  const build = () => liveLog.runLive('npm', ['run', 'build'], { cwd: dir, shell: IS_WIN, windowsHide: true, env: childEnv(buildEnv) }, logFile)
+  let b = build()
+  if (b.rc !== 0) b = build()
+  if (b.rc === 0) writeFileSync(logFile, '■ сборка готова — запускаю сервер предпросмотра\n', { flag: 'a' })
   if (b.rc !== 0) {
+    writeFileSync(logFile, '■ сборка не удалась — работает прежняя версия\n', { flag: 'a' })
     try { rmSync(join(dir, target), { recursive: true, force: true }) } catch { /* пусть лежит */ }
     save({ state: 'failed', target, commit, note: 'сборка упала: ' + b.out.split('\n').filter(Boolean).slice(-3).join(' · ').slice(0, 300) })
     process.exit(1)

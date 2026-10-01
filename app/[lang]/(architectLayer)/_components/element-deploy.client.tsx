@@ -1,23 +1,24 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Check, ExternalLink, Eye, Rocket, X } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Spinner } from "@/components/ui/spinner"
 import type { ElementDeployUi } from "../_i18n/element-deploy.i18n"
+import { LiveLog } from "./live-log.client"
 
 // «РАЗВЕРНУТЬ» И «ПРЕДПРОСМОТР» НА СТРАНИЦЕ «РАЗВЁРТЫВАНИЯ» ЭЛЕМЕНТА (узел, шаг 337-3/4). Слово владельца 2026-09-29:
 // «кнопка развёртывания уже существует у нас в проекте и выглядит более целостно, потому что показывает и коммит и
 // состояние — как будто бы не хватает только кнопки развернуть … и вторая кнопка привью».
 //
 // 🔒 СОСТОЯНИЕ — ФАКТЫ ДВЕРЕЙ, А НЕ ПАМЯТЬ СТРАНИЦЫ: код элемента и ход развёртывания — `/api/node/deploy` (та же дверь, что у
-// «Развёртываний» ядра), предпросмотр — `/api/architect/items/<id>/preview`. Спрашиваются при открытии и раз в 3 с, пока
-// идёт работа, которую человек сам запустил; в покое — ни одного запроса.
+// «Развёртываний» ядра), предпросмотр — `/api/architect/items/<id>/preview`. Спрашиваются при открытии,
+// при возврате на вкладку и раз в 1 с, пока идёт работа, которую человек сам запустил (353-3: лёгкий режим двери — только ход и журнал); в покое — ни одного запроса.
 
 type Code = { head: string | null; running: string | null; changed: number; changes: string[]; pending: boolean }
 type Element = { id: string; pending: boolean; code: Code | null }
-type Deployment = { running: boolean; current: string | null; queue: string[]; results: { id: string; ok: boolean; note: string }[] } | null
+type Deployment = { running: boolean; current: string | null; queue: string[]; finishedAt?: string | null; results: { id: string; ok: boolean; note: string }[] } | null
 type Preview = { state?: string; port?: number; commit?: string | null; note?: string } | null
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
@@ -30,6 +31,9 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
   // 353-2: отказ двери называется причиной, а не одним «занято».
   const [refused, setRefused] = useState<string | null>(null)
   const [accepting, setAccepting] = useState(false)
+  // 353-3: нажатие видно сразу — до ответа двери; `log` — хвост журнала хода.
+  const [starting, setStarting] = useState<{ kind: "deploy" | "preview"; at: number } | null>(null)
+  const [log, setLog] = useState<string[]>([])
   const PREVIEW = `${BASE}/api/architect/items/${encodeURIComponent(id)}/preview`
 
   const load = useCallback(async () => {
@@ -60,13 +64,49 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
   const building = preview?.state === "building"
   const ready = preview?.state === "ready"
   const busy = !!dep?.running || building || accepting
-  const previewPending = building || ready || accepting
+  const previewPending = building || ready || accepting || starting?.kind === "preview"
+  // Пока идёт работа, которую человек сам запустил (или она только что запрошена), — ход раз в секунду; в покое ни одного запроса.
+  const active = starting !== null || busy
+
+  // 353-3 (владелец: «нажал кнопку процесс нужно показывать сразу»). ✗ До 353: после нажатия — одно чтение через 0,8 с; процесс ещё
+  // не записал `running`, страница решала, что ничего не идёт, и больше не спрашивала. Теперь «запускаю» стоит с первого кадра и
+  // снимается, только когда дверь показала сам процесс (или через 30 с — тогда страница спросит всё заново).
+  const progress = useCallback(async () => {
+    try {
+      const [d, p] = await Promise.all([
+        fetch(`${DEPLOY}?progress=1&log=${encodeURIComponent(id)}`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)),
+        fetch(PREVIEW, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)),
+      ])
+      const dd = (d?.deployment ?? null) as Deployment
+      const pp = (p?.preview ?? null) as Preview
+      const mine = !!dd?.running && (dd.current === id || dd.queue.includes(id))
+      if (d) setDep(dd)
+      if (p) {
+        setPreview(pp)
+        setAccepting((was) => was && pp?.state === "ready")
+      }
+      setLog(mine ? ((d?.log as string[]) ?? []) : pp?.state === "building" ? ((p?.log as string[]) ?? []) : [])
+      setStarting((s) => {
+        if (!s) return s
+        if (Date.now() - s.at > 30_000) return null
+        if (s.kind === "deploy" && (mine || (dd?.finishedAt && Date.parse(dd.finishedAt) >= s.at))) return null
+        if (s.kind === "preview" && (pp?.state === "building" || pp?.state === "ready")) return null
+        return s
+      })
+    } catch { /* следующий тик спросит снова */ }
+  }, [id, PREVIEW])
 
   useEffect(() => {
-    if (!busy) return
-    const t = setInterval(() => void load(), 3000)
+    if (!active) return
+    const t = setInterval(() => void progress(), 1000)
     return () => clearInterval(t)
-  }, [busy, load])
+  }, [active, progress])
+  // Работа кончилась — один полный перечёт: код элемента, итог, кнопки.
+  const wasActive = useRef(false)
+  useEffect(() => {
+    if (wasActive.current && !active) void load()
+    wasActive.current = active
+  }, [active, load])
 
   // 409 двери → слова: предпросмотр ждёт решения (353-1) или идёт другое развёртывание.
   async function refusal(r: Response): Promise<string> {
@@ -76,20 +116,29 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
 
   async function deploy() {
     setRefused(null)
+    setLog([])
+    setStarting({ kind: "deploy", at: Date.now() })
     const r = await fetch(DEPLOY, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: [id] }) })
-    if (r.status === 409) setRefused(await refusal(r))
-    setTimeout(() => void load(), 800)
+    if (!r.ok) {
+      setStarting(null)
+      setRefused(r.status === 409 ? await refusal(r) : ui.unavailable)
+    }
   }
 
   async function act(action: "stage" | "promote" | "discard") {
     setRefused(null)
     if (action === "promote") setAccepting(true)
-    const r = await fetch(PREVIEW, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action }) })
-    if (r.status === 409) {
-      setAccepting(false)
-      setRefused(await refusal(r))
+    if (action === "stage") {
+      setLog([])
+      setStarting({ kind: "preview", at: Date.now() })
     }
-    setTimeout(() => void load(), 800)
+    const r = await fetch(PREVIEW, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action }) })
+    if (!r.ok) {
+      setAccepting(false)
+      setStarting(null)
+      setRefused(r.status === 409 ? await refusal(r) : ui.unavailable)
+    }
+    if (action !== "stage") setTimeout(() => void load(), 800)
   }
 
   if (el === null) return <p className="my-4 text-sm text-muted-foreground">{ui.loading}</p>
@@ -122,19 +171,23 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
           в разметке — не выключены, а отсутствуют. Дверь отказывает и сама (353-1). */}
       {!previewPending && (
         <div className="flex flex-wrap items-center gap-2">
-          <Button type="button" onClick={deploy} disabled={busy} data-element-deploy-go>
-            {deploying ? <Spinner className="mr-1" /> : <Rocket className="size-4" aria-hidden />}
+          <Button type="button" onClick={deploy} disabled={busy || starting !== null} data-element-deploy-go>
+            {deploying || starting?.kind === "deploy" ? <Spinner className="mr-1" /> : <Rocket className="size-4" aria-hidden />}
             {ui.deploy}
           </Button>
-          <Button type="button" variant="outline" onClick={() => act("stage")} disabled={busy} data-element-preview-stage>
+          <Button type="button" variant="outline" onClick={() => act("stage")} disabled={busy || starting !== null} data-element-preview-stage>
             <Eye className="size-4" aria-hidden />
             {ui.preview}
           </Button>
         </div>
       )}
 
-      {deploying && <p className="text-sm text-foreground" role="status">{ui.deploying}</p>}
-      {building && <p className="text-sm text-foreground" role="status">{ui.previewBuilding}</p>}
+      {(deploying || starting?.kind === "deploy") && (
+        <LiveLog title={ui.deploying} lines={log.length > 0 && deploying ? log : [ui.starting]} />
+      )}
+      {(building || starting?.kind === "preview") && !deploying && (
+        <LiveLog title={ui.previewBuilding} lines={log.length > 0 && building ? log : [ui.starting]} />
+      )}
       {accepting && <p className="text-sm text-foreground" role="status">{ui.accepting}</p>}
       {refused && <p className="text-sm text-muted-foreground" role="status">{refused}</p>}
       {preview?.state === "failed" && <p className="text-sm text-destructive" role="alert">{ui.previewFailed} {preview.note}</p>}

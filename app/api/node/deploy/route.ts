@@ -9,6 +9,7 @@ import paths from "@/lib/agi-items/paths.cjs"
 import rollback from "@/lib/deploy/previous-version.cjs"
 import deployLock from "@/lib/deploy/deploy-lock.cjs"
 import previewLock from "@/lib/deploy/preview-lock.cjs"
+import liveLog from "@/lib/deploy/live-log.cjs"
 import { elementCodeState } from "@/lib/agi-items/element-code-state"
 
 // ДАШБОРД РАЗВЁРТЫВАНИЙ — ДВЕРЬ (280-11b).
@@ -91,6 +92,16 @@ function elements() {
 export async function GET(req: NextRequest) {
   const denied = await requireRoles(req, ROLES)
   if (denied) return denied
+  const logParam = req.nextUrl.searchParams.get("log")
+  const logId = logParam && /^[a-z][a-z0-9-]{0,31}$/.test(logParam) ? logParam : null
+  // 353-3: `?progress=1` — только ход и журнал, без состояния кода элементов (git на каждый элемент): страница спрашивает раз в
+  // секунду, пока идёт работа, и не должна нагружать машину, которая в это время собирает.
+  if (req.nextUrl.searchParams.get("progress")) {
+    return NextResponse.json(
+      { ok: true, deployment: deployLock.readState(), ...(logId ? { log: liveLog.tail(liveLog.logPath(ROOT, "deploy", logId)) } : {}) },
+      { headers: { "Cache-Control": "no-store" } },
+    )
+  }
   return NextResponse.json(
     {
       ok: true,
@@ -98,6 +109,8 @@ export async function GET(req: NextRequest) {
       elements: elements(),
       // 337-1: осиротевшая запись (running, процесса нет) исправляется на «прервано» при этом же чтении.
       deployment: deployLock.readState(),
+      // 353-3: `?log=<id>` — хвост журнала хода развёртывания этого элемента (страница читает его, пока идёт работа).
+      ...(logId ? { log: liveLog.tail(liveLog.logPath(ROOT, "deploy", logId)) } : {}),
     },
     { headers: { "Cache-Control": "no-store" } },
   )

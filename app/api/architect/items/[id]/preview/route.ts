@@ -7,6 +7,7 @@ import { requireRoles } from "@/lib/auth/require-roles"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
 import { isBornElement } from "@/lib/agi-items/element-delete"
 import deployLock from "@/lib/deploy/deploy-lock.cjs"
+import liveLog from "@/lib/deploy/live-log.cjs"
 
 // ПРЕДПРОСМОТР ЭЛЕМЕНТА (337-4). GET — состояние (`data/services/<id>/preview.json`, живость процессов измеряется здесь же);
 // POST `{ action: "stage" | "promote" | "discard" }` — запускает `scripts/element-preview.mjs` вне дерева процессов ядра.
@@ -43,7 +44,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params
   const denied = await gate(req, id)
   if (denied) return denied
-  return NextResponse.json({ ok: true, preview: read(id) }, { headers: NO_STORE })
+  const preview = read(id)
+  // 353-3: пока сборка идёт — хвост её журнала (страница показывает ход в ящике до 400 px).
+  const log = preview?.state === "building" ? liveLog.tail(liveLog.logPath(ROOT, "preview", id)) : undefined
+  return NextResponse.json({ ok: true, preview, ...(log ? { log } : {}) }, { headers: NO_STORE })
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
