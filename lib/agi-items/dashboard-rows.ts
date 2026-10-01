@@ -127,7 +127,7 @@ async function row(id: string, entry: RegistryEntry | null, custom: boolean, lan
   }
 }
 
-/** Все AGI ITEMS узла: сначала нативные в порядке реестра, затем кастомные в порядке создания. */
+/** Все AGI ITEMS узла: сначала нативные в порядке реестра, затем кастомные — новые сверху (`listDrafts`). */
 export async function projectRows(lang: string): Promise<ProjectRow[]> {
   const d = nodeDomain()
   const drafts = listDrafts()

@@ -91,10 +91,12 @@ function write(drafts: AgiDraft[]): boolean {
   }
 }
 
-/** Черновики по порядку создания. Нечитаемый файл — пустой список для меню. */
+/** Черновики, НОВЫЕ СВЕРХУ (слово владельца 2026-10-01: «новые созданные записи создавать вверху то есть сделать обратную
+ *  сортировку»; в меню roman стоял над только что созданным dhndy). Порядок — по `createdAt`, а не по месту в файле: файл
+ *  дописывается в конец. Нечитаемый файл — пустой список для меню. */
 export function listDrafts(): AgiDraft[] {
   const r = read()
-  return r.ok ? r.drafts : []
+  return r.ok ? [...r.drafts].sort((a, b) => b.createdAt.localeCompare(a.createdAt)) : []
 }
 
 export function getDraft(id: string): AgiDraft | null {
