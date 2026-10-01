@@ -152,7 +152,7 @@ export async function deleteElement(id: string): Promise<{ ok: boolean; steps: S
   rmSync(join(ROOT, "data", "services", id), { recursive: true, force: true })
   steps.push({ step: "data", ok: !existsSync(join(ROOT, "data", "services", id)) })
   // Журналы рождения и журналы процесса элемента (pm2 закрыл их на этапе 1).
-  for (const f of [`birth-${id}.log`, `birth-${id}.json`, `svc-${id}-out.log`, `svc-${id}-err.log`, `svc-${id}-watch.log`]) {
+  for (const f of [`birth-${id}.log`, `birth-${id}-live.log`, `birth-${id}.json`, `svc-${id}-out.log`, `svc-${id}-err.log`, `svc-${id}-watch.log`]) {
     try { rmSync(join(ROOT, "logs", f), { force: true }) } catch { /* занят — останется строкой журнала */ }
   }
   steps.push({ step: "logs", ok: true })

@@ -128,7 +128,12 @@ stage('записан в реестр узла')
 
 // 6. Тот же путь, что установка службы.
 stage('ставлю: порт, окружение, зависимости, сборка, запуск (минуты)')
-const install = spawnSync(process.execPath, [join(ROOT, 'scripts', 'services-install.mjs'), '--only', id], { stdio: 'inherit', windowsHide: true })
+// 2026-10-01 (владелец: «после десятой секунды я не вижу больше никаких обновлений … создается впечатление что зависло»): `npm ci` и
+// сборка — минуты рождения — шли молча до конца. Журнал хода установщика (тот же, что у «Развернуть», 353-3) — в ОТДЕЛЬНЫЙ файл:
+// журнал рождения открыт на перезапись, второй писатель в нём затирал бы строки. Экран рождения показывает хвост этого файла.
+const liveFile = join(ROOT, 'logs', `birth-${id}-live.log`)
+rmSync(liveFile, { force: true })
+const install = spawnSync(process.execPath, [join(ROOT, 'scripts', 'services-install.mjs'), '--only', id], { stdio: 'inherit', windowsHide: true, env: { ...process.env, FRACTERA_LIVE_LOG: liveFile } })
 if (install.status !== 0) {
   say(`\nустановка не завершилась — папка и запись реестра остаются, повтор: npm run services:install -- --only ${id}`)
   say(`===BIRTH_FAILED=== установка «${id}» (код ${install.status})`)

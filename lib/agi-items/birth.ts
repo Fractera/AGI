@@ -67,8 +67,18 @@ export function birthState(id: string): BirthState {
   }
   const failed = all.find((l) => l.startsWith("===BIRTH_FAILED==="))
   if (failed) return { state: "failed", lines, reason: failed.replace("===BIRTH_FAILED===", "").trim() }
-  if (alive(meta.pid)) return { state: "running", lines }
+  // Пока идёт установка — последние строки журнала хода (`npm ci`, сборка), чтобы движение было видно (2026-10-01).
+  if (alive(meta.pid)) return { state: "running", lines: [...lines, ...liveTail(id)] }
   return { state: "failed", lines, reason: "interrupted" }
+}
+
+/** Хвост журнала хода установщика при рождении (`logs/birth-<id>-live.log`): до 6 непустых строк, без управляющих знаков. */
+function liveTail(id: string): string[] {
+  let text = ""
+  try { text = readFileSync(join(LOGS(), `birth-${id}-live.log`), "utf8") } catch { return [] }
+  // eslint-disable-next-line no-control-regex
+  const clean = text.replace(/\u001b\[[0-9;?]*[A-Za-z]/g, "")
+  return clean.split(/\r?\n|\r/).map((l) => l.trim()).filter(Boolean).slice(-6).map((l) => `› ${l.slice(0, 200)}`)
 }
 
 /** Запустить рождение. Вызывающий уже проверил роли, черновик и что элемента ещё нет. */
