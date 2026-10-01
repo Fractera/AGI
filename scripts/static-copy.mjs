@@ -89,6 +89,13 @@ const slugs = []
 })(pagesDir, '')
 const pagePaths = ['/', ...langs.flatMap((l) => [`/${l}`, ...slugs.map((s) => `/${l}/${s}`)])]
 const origin = `http://127.0.0.1:${stamp.port}`
+// 2026-10-01: копия запускается сразу после «Принять»/«Развернуть», а элемент в этот момент ещё перезапускается. ✗ Замерено: 14:45:27
+// копия упала «no-pages» через 7 с после старта элемента, и aifa.dev сутки отдавал прежнюю копию. Ждём ответа ПО ФАКТУ, до 90 с.
+for (const until = Date.now() + 90_000; Date.now() < until;) {
+  const h = await fetch(origin + '/api/health', { signal: AbortSignal.timeout(5_000) }).catch(() => null)
+  if (h?.ok) break
+  await new Promise((r) => setTimeout(r, 2_000))
+}
 
 const files = new Map() // путь в копии → Buffer
 for (const p of pagePaths) {
