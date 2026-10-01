@@ -44,7 +44,13 @@ export const hasAttention = (a: Attention | null) => !!a && a.terminals.length +
 
 /** Оранжевая пульсирующая точка 4 px; `className` ставит её на место. */
 export function AttentionDot({ className }: { className?: string }) {
-  return <span aria-hidden className={cn("pointer-events-none size-1 rounded-full bg-warning animate-pulse motion-reduce:animate-none", className)} data-attention-dot />
+  // Пульс — ореол-маяк (`animate-ping`) вокруг неподвижной точки: `animate-pulse` закреплён за заглушкой загрузки (Skeleton).
+  return (
+    <span aria-hidden className={cn("pointer-events-none flex size-1", className)} data-attention-dot>
+      <span className="absolute inline-flex size-1 rounded-full bg-warning opacity-75 animate-ping motion-reduce:animate-none" />
+      <span className="relative inline-flex size-1 rounded-full bg-warning" />
+    </span>
+  )
 }
 
 function Branch({ title, items, words, onGo, kind }: { title: string; items: AttentionItem[]; words: AttentionWords; onGo: () => void; kind: string }) {
