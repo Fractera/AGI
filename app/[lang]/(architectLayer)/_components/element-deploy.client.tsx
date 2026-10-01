@@ -66,6 +66,9 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
   const ready = preview?.state === "ready"
   // «Принять» идёт (в том числе запущено с другой вкладки): это переключение, а не поломка — «Переключаю…», опрос продолжается.
   const switching = accepting || preview?.state === "promoting"
+  // Развёртывать нечего: настройки не новее сборки, работает последний коммит, незакоммиченных правок нет.
+  const elCode = el && el !== "failed" ? el.code : null
+  const upToDate = !!el && el !== "failed" && !el.pending && (!elCode || (elCode.running === elCode.head && elCode.changed === 0))
   const busy = !!dep?.running || building || switching
   const previewPending = building || ready || switching || starting?.kind === "preview"
   // Пока идёт работа, которую человек сам запустил (или она только что запрошена), — ход раз в секунду; в покое ни одного запроса.
@@ -172,7 +175,15 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
       {/* 353-2 (слово владельца 2026-10-01: «до тех пор пока я не принял или отложил … мне запрещено видеть … интерфейс для запуска
           нового развёртывания»): пока предпросмотр собирается, ждёт решения или принимается, кнопок «Развернуть» и «Предпросмотр» НЕТ
           в разметке — не выключены, а отсутствуют. Дверь отказывает и сама (353-1). */}
-      {!previewPending && (
+      {/* Владелец 2026-10-01: «зачем там кнопка горит развернуть … хорошего точно ничего не произойдёт … показать зелёную не
+          кликабельную плашку все уже развёрнуто». Работает последний коммит, правок и изменённых настроек нет — кнопок нет. */}
+      {!previewPending && !deploying && starting === null && upToDate && (
+        <p className="inline-flex w-fit items-center gap-2 rounded-lg border border-success bg-success/10 px-4 py-2 text-sm font-semibold text-foreground" role="status" data-element-deployed>
+          <Check className="size-4 text-success" aria-hidden />
+          {ui.allDeployed}
+        </p>
+      )}
+      {!previewPending && !(upToDate && !deploying && starting === null) && (
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" onClick={deploy} disabled={busy || starting !== null} data-element-deploy-go>
             {deploying || starting?.kind === "deploy" ? <Spinner className="mr-1" /> : <Rocket className="size-4" aria-hidden />}
