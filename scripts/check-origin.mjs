@@ -46,8 +46,33 @@ if (!slug) refuse(url ? `Адрес репозитория узла «${url}» �
 
 let record = null
 try { record = JSON.parse(readFileSync(RECORD, 'utf8')) } catch { /* первой проверки ещё не было */ }
+// 368 (владелец 2026-10-01: «то что касается версионности то никакой запрет представить не будем, но если это возможно будем выводить
+// уведомления что вы пытаетесь сделать развёртывание из собственного репозитория но ваша версия уже устарела … или продолжите»).
+// Отставание форка от оригинала — сравнение веток GitHub; без сети, на пределе запросов или у узла автора — молча пропускается:
+// работающий узел никогда не зависит от оригинала (закон «нет единой точки отказа»). Число пишется в отметку — его показывает ядро.
+async function versionNotice(rec) {
+  if (rec.verdict !== 'fork' || !rec.parent) return
+  try {
+    const [owner] = rec.slug.split('/')
+    const base = rec.parentBranch || 'main'
+    const head = rec.branch || 'main'
+    const r = await fetch(`https://api.github.com/repos/${rec.parent}/compare/${base}...${owner}:${head}`, { headers: { accept: 'application/vnd.github+json', 'user-agent': 'fractera-node' }, signal: AbortSignal.timeout(10_000) })
+    if (!r.ok) return
+    const c = await r.json()
+    const behindBy = Number(c.behind_by) || 0
+    writeFileSync(RECORD, JSON.stringify({ ...rec, version: { behindBy, status: c.status, checkedAt: new Date().toISOString() } }, null, 2) + '\n', 'utf8')
+    if (behindBy > 0) {
+      console.log('')
+      console.log(`⚠ Вы разворачиваете проект из своего репозитория, но ваша версия устарела: в оригинале Fractera ${behindBy} новых изменений.`)
+      console.log(`  Чтобы обновиться, откройте ${rec.url.replace(/\.git$/, '')} и нажмите «Sync fork», затем повторите развёртывание — или продолжайте как есть.`)
+      console.log(`===ORIGIN_OUTDATED=== behind ${behindBy}`)
+    }
+  } catch { /* нет сети — уведомления нет, развёртывание идёт */ }
+}
+
 if (record?.slug === slug && (record.verdict === 'fork' || record.verdict === 'author')) {
   console.log(`===ORIGIN_OK=== ${slug} (${record.verdict}, проверено ${record.checkedAt})`)
+  await versionNotice(record)
   process.exit(0)
 }
 
@@ -67,9 +92,11 @@ if (name === ORIGINAL) refuse('Это сам оригинал, а не ваш ф
 if (!repo.fork || parent !== ORIGINAL) refuse(repo.fork ? `${repo.full_name} — форк ${repo.parent?.full_name}, а не оригинала.` : `${repo.full_name} — не форк оригинала Fractera.`)
 
 mkdirSync(dirname(RECORD), { recursive: true })
-writeFileSync(RECORD, JSON.stringify({ slug, url, verdict: 'fork', parent: repo.parent.full_name, checkedAt: new Date().toISOString() }, null, 2) + '\n', 'utf8')
+const fresh = { slug, url, verdict: 'fork', parent: repo.parent.full_name, branch: repo.default_branch, parentBranch: repo.parent.default_branch, checkedAt: new Date().toISOString() }
+writeFileSync(RECORD, JSON.stringify(fresh, null, 2) + '\n', 'utf8')
 // Адрес форка — в окружение узла (факт для проекта; проверка его не читает).
 const env = existsSync(ENV) ? readFileSync(ENV, 'utf8') : ''
 const line = `NODE_REPO_URL=${repo.html_url}`
 writeFileSync(ENV, /^NODE_REPO_URL=.*$/m.test(env) ? env.replace(/^NODE_REPO_URL=.*$/m, line) : `${env}${env === '' || env.endsWith('\n') ? '' : '\n'}${line}\n`, 'utf8')
 console.log(`===ORIGIN_OK=== ${repo.full_name} — форк ${repo.parent.full_name}`)
+await versionNotice(fresh)

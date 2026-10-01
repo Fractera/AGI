@@ -549,6 +549,9 @@ the file (`fractera/agi`; GitHub API fork=true, parent=original). The original i
 `logs/origin.json` (machine file, not in git: no network on rebuilds) and `NODE_REPO_URL` (the fork) to `.env.local` — a fact for
 the project, never read by the check. The author's node (origin = the original) has a one-time `author` record.
 🛑 Until this file is obfuscated the check can be cut out or the record forged — said to the owner; obfuscation is a separate task.
+Version — NO ban (owner 2026-10-01): each check compares the fork with the original (GitHub compare); behind → `===ORIGIN_OUTDATED===`
+with «Sync fork» advice, deployment continues; the number goes to `logs/origin.json` → `GET /api/node/origin` → a warning bar above
+the architect layer (`components/node-state/origin-notice.client.tsx`). No network — no notice; the running node never asks the original.
 
 ## Deploy and Preview on the element's own page (node step 337)
 

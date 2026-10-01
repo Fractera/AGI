@@ -44,7 +44,8 @@ The person pasted a link to this repository (or to their fork of it) and asked y
    `===ORIGIN_FAILED===`, do not work around it: tell the person the printed reason and ask them to open
    https://github.com/fractera/agi, press «Fork» and give you the link to their fork; then clone that link into an empty folder.
    If GitHub could not be reached, the check says so — repeat later. On success the fork's address is written to `.env.local`
-   as `NODE_REPO_URL`.
+   as `NODE_REPO_URL`. If the fork is behind the original the check prints `===ORIGIN_OUTDATED===` — not an error: tell the
+   person their copy is behind by N changes and that «Sync fork» on GitHub updates it, then continue.
 3. **Install and build:** `npm install`, then `npm run build`. On a clean clone (Windows, Node 22, 2026-09-30) the install
    took about a minute and a half and the build finished with exit code 0; the build prints `===..._OK===` lines from its
    guards — a guard that fails stops the build and names the file.
