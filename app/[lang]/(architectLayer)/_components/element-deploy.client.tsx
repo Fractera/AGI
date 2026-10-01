@@ -5,6 +5,7 @@ import { Check, ExternalLink, Eye, Rocket, X } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Spinner } from "@/components/ui/spinner"
+import { cn } from "@/lib/utils"
 import type { ElementDeployUi } from "../_i18n/element-deploy.i18n"
 import { LiveLog } from "./live-log.client"
 
@@ -202,7 +203,9 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
             href={previewUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className={buttonVariants({ size: "lg", className: "h-12 w-full gap-2 text-base font-semibold sm:w-auto sm:self-start sm:px-8" })}
+            // cn, а не className внутри buttonVariants: cva склеивает без слияния, и `text-sm` варианта перебивал `text-base`
+            // (замерено в браузере 353-4: 14 px вместо крупной надписи).
+            className={cn(buttonVariants({ size: "lg" }), "h-12 w-full gap-2 text-base font-semibold sm:w-auto sm:self-start sm:px-8")}
             data-element-preview-open
           >
             <Eye className="size-5" aria-hidden />
