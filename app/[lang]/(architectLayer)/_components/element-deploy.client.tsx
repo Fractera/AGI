@@ -222,7 +222,12 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
               {ui.reject}
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground" data-element-after-decision>{ui.afterDecision}</p>
+          {/* Владелец 2026-10-01: «самая важная строка на этом экране … сделай его жирным … пульсирующим нижний бордюр».
+              Подчёркивание пульсирует основным цветом; при «уменьшить движение» стоит ровно. */}
+          <p className="relative w-fit pb-1 text-sm font-bold text-foreground" data-element-after-decision>
+            {ui.afterDecision}
+            <span aria-hidden className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-primary animate-pulse motion-reduce:animate-none" />
+          </p>
           <p className="text-xs text-muted-foreground">{ui.previewOnMachine}</p>
           {/* 347 (слово владельца 2026-09-30: «вместо предпросмотра я вижу белый экран … когда я нажимаю открыть предпросмотр в
               новой вкладке то все получается очень хорошо. Давай уберём отсюда этот белый экран и даже не будем решать эту
