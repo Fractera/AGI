@@ -8,7 +8,8 @@ import { AppDialog } from "@/components/dialog/app-dialog.client"
 import type { AppDialogUi } from "@/components/dialog/app-dialog.i18n"
 import type { AgiDraftsUi } from "../_i18n/agi-drafts.i18n"
 
-// «РОДИТЬ ЭЛЕМЕНТ» (узел, шаг 319-3). Кнопка → окно подтверждения (что произойдёт и сколько займёт) → дверь
+// «РОДИТЬ ЭЛЕМЕНТ» (узел, шаг 319-3; 367 — вопрос об облике). Кнопка → окно подтверждения (что произойдёт, сколько займёт и
+// каким родится элемент: «как весь проект» / «самостоятельный») → дверь
 // `POST /api/architect/drafts/<id>/birth` запускает рождение отдельным процессом → экран хода по журналу.
 //
 // 🔒 ОПРОС ДВЕРИ — ТОЛЬКО ПОКА ЭТОТ ЭКРАН ОТКРЫТ И РОЖДЕНИЕ ИДЁТ (план 319-3, подтверждён владельцем): начинается нажатием
@@ -27,6 +28,8 @@ export function BirthButton({ id, ui, dialogUi, born = false }: { id: string; ui
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [starting, setStarting] = useState(false)
+  // 367 (слово владельца 2026-10-01): облик элемента выбирает человек — «как весь проект» или «самостоятельный»; без выбора не рождаем.
+  const [look, setLook] = useState<"project" | "own" | "">("")
   const [s, setS] = useState<State>({ state: "idle", lines: [] })
   const timer = useRef<number | null>(null)
 
@@ -52,7 +55,11 @@ export function BirthButton({ id, ui, dialogUi, born = false }: { id: string; ui
   async function start() {
     setStarting(true)
     try {
-      const r = await fetch(`${BASE}/api/architect/drafts/${id}/birth`, { method: "POST" })
+      const r = await fetch(`${BASE}/api/architect/drafts/${id}/birth`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ look }),
+      })
       setOpen(false)
       if (r.ok || r.status === 409) await poll()
       else setS({ state: "failed", lines: [], reason: String(r.status) })
@@ -67,7 +74,7 @@ export function BirthButton({ id, ui, dialogUi, born = false }: { id: string; ui
   return (
     <div className="my-4 flex flex-col gap-3" data-birth data-birth-state={s.state}>
       {!born && !running && s.state !== "done" && (
-        <Button onClick={() => setOpen(true)} className="w-fit gap-1.5" data-birth-start>
+        <Button onClick={() => { setLook(""); setOpen(true) }} className="w-fit gap-1.5" data-birth-start>
           <Sprout className="size-4" aria-hidden />
           {ui.birth}
         </Button>
@@ -98,10 +105,34 @@ export function BirthButton({ id, ui, dialogUi, born = false }: { id: string; ui
         footer={
           <>
             <Button variant="ghost" onClick={() => setOpen(false)} disabled={starting}>{ui.cancel}</Button>
-            <Button onClick={start} disabled={starting} data-birth-confirm>{starting ? ui.birthStarting : ui.birthConfirm}</Button>
+            <Button onClick={start} disabled={starting || !look} data-birth-confirm>{starting ? ui.birthStarting : ui.birthConfirm}</Button>
           </>
         }
-      />
+      >
+        <div className="flex flex-col gap-2" role="radiogroup" aria-label={ui.lookQuestion} data-birth-look>
+          <p className="text-sm font-medium text-foreground">{ui.lookQuestion}</p>
+          {([
+            ["project", ui.lookProject, ui.lookProjectText],
+            ["own", ui.lookOwn, ui.lookOwnText],
+          ] as const).map(([value, title, text]) => (
+            <Button
+              key={value}
+              type="button"
+              variant="outline"
+              role="radio"
+              aria-checked={look === value}
+              onClick={() => setLook(value)}
+              disabled={starting}
+              className={`h-auto w-full flex-col items-start gap-1 whitespace-normal p-3 text-left ${look === value ? "border-primary ring-2 ring-primary/40" : ""}`}
+              data-birth-look-option={value}
+            >
+              <span className="font-semibold text-foreground">{title}</span>
+              <span className="text-xs font-normal text-muted-foreground">{text}</span>
+            </Button>
+          ))}
+          {!look && <p className="text-xs text-muted-foreground">{ui.lookPick}</p>}
+        </div>
+      </AppDialog>
     </div>
   )
 }

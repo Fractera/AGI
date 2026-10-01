@@ -31,6 +31,13 @@ export type AgiDraftsUi = {
   birthTitle: string
   birthText: string
   birthConfirm: string
+  /** 367: облик рождённого элемента — вопрос в окне рождения. */
+  lookQuestion: string
+  lookProject: string
+  lookProjectText: string
+  lookOwn: string
+  lookOwnText: string
+  lookPick: string
   birthStarting: string
   birthRunning: string
   birthDone: string
@@ -72,6 +79,12 @@ const DICT: Record<string, AgiDraftsUi> = {
     birthTitle: "Give birth to this AGI element?",
     birthText: "The node downloads the item template, gives this draft its own copy, a port, a build and a process. It takes about three minutes and a lot of memory; the page may be closed — the birth goes on.",
     birthConfirm: "Give birth",
+    lookQuestion: "How should the element look and be set up?",
+    lookProject: "Like the whole project",
+    lookProjectText: "Takes the project's design and CONFIG settings now and follows their changes: colours, menu, languages.",
+    lookOwn: "An independent project",
+    lookOwnText: "Keeps the starter's own design and settings and does not follow the project; you change them on its own pages.",
+    lookPick: "Choose how the element is born.",
     birthStarting: "Starting…",
     birthRunning: "The element is being born:",
     birthDone: "The element is born.",
@@ -110,6 +123,12 @@ const DICT: Record<string, AgiDraftsUi> = {
     birthTitle: "Родить этот AGI элемент?",
     birthText: "Узел скачает шаблон элемента и даст черновику свою копию, порт, сборку и процесс. Это около трёх минут и много памяти; страницу можно закрыть — рождение продолжится.",
     birthConfirm: "Родить",
+    lookQuestion: "Каким будет элемент — по облику и настройкам?",
+    lookProject: "Как весь проект",
+    lookProjectText: "Сразу берёт дизайн и настройки CONFIG проекта и дальше меняется вместе с ними: цвета, меню, языки.",
+    lookOwn: "Самостоятельный проект",
+    lookOwnText: "Остаётся со своим дизайном и настройками стартера и не следует за проектом; меняете их на его собственных страницах.",
+    lookPick: "Выберите, каким родится элемент.",
     birthStarting: "Запускаю…",
     birthRunning: "Элемент рождается:",
     birthDone: "Элемент родился.",

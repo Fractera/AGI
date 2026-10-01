@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
 import { requireRoles } from "@/lib/auth/require-roles"
 import { getDraft } from "@/lib/agi-items/drafts"
-import { birthState, markRevalidated, startBirth, wasRevalidated } from "@/lib/agi-items/birth"
+import { BIRTH_LOOKS, birthState, markRevalidated, startBirth, wasRevalidated } from "@/lib/agi-items/birth"
 import { getService } from "@/lib/microservices/registry"
 
 // РОЖДЕНИЕ ЧЕРНОВИКА (319-3). POST — запустить `scripts/item-birth.mjs <id>` отдельным процессом (только кнопкой человека);
@@ -21,7 +21,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params
   if (!getDraft(id)) return NextResponse.json({ ok: false, reason: "not-found" }, { status: 404 })
   if (getService(id)) return NextResponse.json({ ok: false, reason: "born" }, { status: 409 })
-  const r = startBirth(id)
+  // 367: облик элемента — ответ человека в окне рождения; закрытый список, иначе 400 (рождение не стартует).
+  const body = (await req.json().catch(() => null)) as { look?: unknown } | null
+  const look = BIRTH_LOOKS.find((l) => l === body?.look)
+  if (!look) return NextResponse.json({ ok: false, reason: "bad-look" }, { status: 400 })
+  const r = startBirth(id, look)
   if (!r.ok) return NextResponse.json({ ok: false, reason: r.reason }, { status: r.reason === "running" ? 409 : 500 })
   return NextResponse.json({ ok: true, state: "running" }, { status: 202 })
 }

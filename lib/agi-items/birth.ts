@@ -81,13 +81,18 @@ function liveTail(id: string): string[] {
   return clean.split(/\r?\n|\r/).map((l) => l.trim()).filter(Boolean).slice(-6).map((l) => `› ${l.slice(0, 200)}`)
 }
 
-/** Запустить рождение. Вызывающий уже проверил роли, черновик и что элемента ещё нет. */
-export function startBirth(id: string): { ok: true } | { ok: false; reason: string } {
+/** Облик рождённого элемента (367, слово владельца 2026-10-01): `project` — дизайн и CONFIG проекта, связи включены; `own` —
+ *  самостоятельный: файлы шаблона, связи CONFIG и «Дизайн» выключены до первой сборки. */
+export type BirthLook = "project" | "own"
+export const BIRTH_LOOKS: BirthLook[] = ["project", "own"]
+
+/** Запустить рождение. Вызывающий уже проверил роли, черновик, что элемента ещё нет, и значение `look`. */
+export function startBirth(id: string, look: BirthLook): { ok: true } | { ok: false; reason: string } {
   if (birthState(id).state === "running") return { ok: false, reason: "running" }
   mkdirSync(LOGS(), { recursive: true })
   const fd = openSync(logFile(id), "w")
   try {
-    const child = spawn(process.execPath, [join(process.cwd(), "scripts", "item-birth.mjs"), id], {
+    const child = spawn(process.execPath, [join(process.cwd(), "scripts", "item-birth.mjs"), id, "--look", look], {
       cwd: process.cwd(),
       detached: true,
       stdio: ["ignore", fd, fd],
