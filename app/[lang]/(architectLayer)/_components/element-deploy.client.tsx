@@ -66,7 +66,7 @@ export function ElementDeploy({ id, lang, ui }: { id: string; lang: string; ui: 
   const building = preview?.state === "building"
   const ready = preview?.state === "ready"
   // «Принять» идёт (в том числе запущено с другой вкладки): это переключение, а не поломка — «Переключаю…», опрос продолжается.
-  const switching = accepting || preview?.state === "promoting"
+  const switching = accepting || preview?.state === "promoting" || preview?.state === "discarding"
   // Развёртывать нечего: настройки не новее сборки, работает последний коммит, незакоммиченных правок нет.
   const elCode = el && el !== "failed" ? el.code : null
   const upToDate = !!el && el !== "failed" && !el.pending && (!elCode || (elCode.running === elCode.head && elCode.changed === 0))

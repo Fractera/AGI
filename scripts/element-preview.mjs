@@ -113,6 +113,7 @@ if (action === 'stage') {
   if (!stamp || !distEnv) { save({ state: 'failed', note: 'элемент не умеет собираться в соседнюю папку — предпросмотр невозможен' }); process.exit(1) }
   if (deployLock.isRunning()) { save({ state: 'failed', note: 'идёт развёртывание — предпросмотр не начат' }); process.exit(1) }
   if (current && ((current.state === 'building' && alive(current.pid)) || current.state === 'ready')) process.exit(0)
+  if (current && current.state === 'discarding' && alive(current.pid)) process.exit(0)
   const live = typeof stamp.dist === 'string' && stamp.dist.startsWith('.next') ? stamp.dist : String(stamp.start?.args?.[0] ?? '').split(/[\\/]/)[0]
   const target = live === '.next-a' ? '.next-b' : '.next-a'
   const commit = spawnSync('git', ['-C', dir, 'rev-parse', '--short=7', 'HEAD'], { encoding: 'utf8', windowsHide: true }).stdout?.trim() || null
@@ -171,6 +172,9 @@ if (action === 'stage') {
 }
 
 if (action === 'discard') {
+  // 356 (✗ 2026-10-01): «Отклонить» стирает папку предпросмотра (~1 ГБ, секунды) и запись — а «Собрать», запущенное следом, выбирало
+  // ту же соседнюю папку: стирание съедало новую сборку, а удаление записи — её состояние. Пока идёт уборка — запись «discarding».
+  if (current) save({ ...current, state: 'discarding', pid: process.pid })
   killPreview(current)
   if (current?.target && current.target !== stamp?.dist) try { rmSync(join(dir, current.target), { recursive: true, force: true }) } catch { /* занято — удалит следующая сборка */ }
   rmSync(FILE, { force: true })

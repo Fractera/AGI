@@ -31,6 +31,8 @@ function read(id: string): Preview | null {
   if (p.state === "ready" && !alive(p.serverPid)) return { ...p, state: "failed", note: "сервер предпросмотра погас" }
   // Идёт «Принять» (сервер предпросмотра уже погашен — это норма). Процесс приёма исчез, не убрав запись, — приём кончился.
   if (p.state === "promoting" && !alive(p.pid)) return null
+  // Идёт «Отклонить» (уборка папки). Процесс уборки исчез — предпросмотра нет.
+  if (p.state === "discarding" && !alive(p.pid)) return null
   return p
 }
 
@@ -62,6 +64,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!["stage", "promote", "discard"].includes(action)) return NextResponse.json({ ok: false, error: "bad-request" }, { status: 400 })
   const now = read(id)
   if (action === "stage" && now?.state === "building") return NextResponse.json({ ok: false, error: "already-building" }, { status: 409 })
+  if (action !== "discard" && now?.state === "discarding") return NextResponse.json({ ok: false, error: "discarding" }, { status: 409 })
   if (action === "promote" && now?.state !== "ready") return NextResponse.json({ ok: false, error: "nothing-to-accept" }, { status: 409 })
   // 353-1: сборка предпросмотра и «Принять» не идут рядом с развёртыванием — отказ вслух, а не молча вышедший скрипт.
   if (action !== "discard" && deployLock.isRunning()) return NextResponse.json({ ok: false, error: "deploy-running" }, { status: 409 })
