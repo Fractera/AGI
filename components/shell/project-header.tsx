@@ -27,6 +27,8 @@ export function ProjectHeader({ data, surface = {}, leftSlot, rightSlot }: {
       meUrl={meUrl}
       loginHref={surface.loginHref ? surface.loginHref(lang) : `/login?lang=${lang}`}
       logoutHref={surface.logoutHref ? surface.logoutHref(lang) : `/logout?lang=${lang}`}
+      attentionUrl={surface.attentionUrl}
+      attentionWords={surface.attentionWords}
     />
   ) : null
 

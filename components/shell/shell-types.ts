@@ -90,4 +90,7 @@ export type ShellSurface = {
   logoutHref?: (lang: string) => string
   /** Языки, которые у этой поверхности есть на самом деле; нет — все языки сайта. */
   languages?: string[]
+  /** 356-1: дверь «что ждёт архитектора» и её слова — только у ядра; нет — ящик без точки и без списков. */
+  attentionUrl?: string
+  attentionWords?: { terminals: string; deployments: string; go: string; waiting: string }
 }
