@@ -8,6 +8,9 @@ A person gets it by forking this repository and asking an AI coding agent (Claud
 You need a GitHub account, a computer that stays on, and Claude Code — the terminal app or Claude Desktop in Code mode.
 
 1. **Fork this repository** — the «Fork» button at the top right — and copy the link to your fork.
+   🔒 **Only your own fork of the original works.** A node installs only from a direct fork of `github.com/fractera/agi`:
+   a clone of the original, a fork of someone else's fork or any other copy is refused at install with «You are trying to
+   install a non-original Fractera project». Fork the original yourself and give the agent the link to YOUR fork.
 2. **Open Claude Code** on your computer, in an empty folder.
 3. **Paste the link and write: «launch this».**
 
@@ -35,7 +38,13 @@ The person pasted a link to this repository (or to their fork of it) and asked y
 1. **Check the tools.** `git --version` and `node --version` (Node.js 22 is what this node is built and measured on). If one
    is missing, tell the person what to install and stop until they have it.
 2. **Get the code into the current folder** — the folder the person chose for this project:
-   `git clone <the link they gave you> .` (use their fork's link if they gave one).
+   `git clone <the link they gave you> .` — it MUST be the person's own fork of `github.com/fractera/agi`.
+   🔒 **The node checks this itself** (`scripts/check-origin.mjs`, the first step of `npm run build` and of `npm run serve:start`):
+   GitHub must confirm that `origin` is a direct fork of `fractera/agi`. If the build or the start stops with
+   `===ORIGIN_FAILED===`, do not work around it: tell the person the printed reason and ask them to open
+   https://github.com/fractera/agi, press «Fork» and give you the link to their fork; then clone that link into an empty folder.
+   If GitHub could not be reached, the check says so — repeat later. On success the fork's address is written to `.env.local`
+   as `NODE_REPO_URL`.
 3. **Install and build:** `npm install`, then `npm run build`. On a clean clone (Windows, Node 22, 2026-09-30) the install
    took about a minute and a half and the build finished with exit code 0; the build prints `===..._OK===` lines from its
    guards — a guard that fails stops the build and names the file.

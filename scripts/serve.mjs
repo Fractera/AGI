@@ -105,6 +105,9 @@ function ensureElements() {
 }
 
 function start() {
+  // 368: узел ставится и запускается только из прямого форка оригинала Fractera — проверка до установки элементов.
+  const origin = spawnSync(process.execPath, [path.join(here, 'check-origin.mjs')], { stdio: 'inherit', windowsHide: true })
+  if (origin.status !== 0) process.exit(1)
   ensureElements()
   ensurePm2()
   const result = pm2run(['start', ecosystem])

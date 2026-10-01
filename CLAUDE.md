@@ -539,6 +539,17 @@ notes from the example file, set / not set asked in the browser (`/api/architect
 anchors (instant scroll + frame 3 s), only `OPENAI_API_KEY` editable, checked by a real OpenAI call before it is written;
 saving an element key while the core has none asks «copy to the core?». Voice without a key links there in a new tab.
 
+## 🔒 The node installs only from a direct fork of Fractera/AGI (node step 368)
+
+Owner 2026-10-01: «… продвижение моего проекта … зависит от количества Форк … хард кодом оставить проверку на соответствии того что
+Форк сделан именно из моего репозитория … отказ с ошибкой … что вы пытаетесь установить неоригинальный проект Fractera».
+`scripts/check-origin.mjs` — first in `prebuild` and in `serve:start`: `origin` must be a DIRECT fork of the original hard-coded in
+the file (`fractera/agi`; GitHub API fork=true, parent=original). The original itself, a fork of a fork, another repo, not GitHub —
+`===ORIGIN_FAILED===` with the reason; GitHub unreachable — refuse, «repeat later» (owner's choice). Success writes
+`logs/origin.json` (machine file, not in git: no network on rebuilds) and `NODE_REPO_URL` (the fork) to `.env.local` — a fact for
+the project, never read by the check. The author's node (origin = the original) has a one-time `author` record.
+🛑 Until this file is obfuscated the check can be cut out or the record forged — said to the owner; obfuscation is a separate task.
+
 ## Deploy and Preview on the element's own page (node step 337)
 
 Owner 2026-09-29: the element's «Deployments» page shows the commit and the state — it gets **Deploy** and **Preview**
