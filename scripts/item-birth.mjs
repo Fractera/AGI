@@ -147,7 +147,8 @@ stage(`своя история: ${git(['rev-parse', '--short', 'HEAD'], dir).out
 // 5. Запись реестра.
 registry.services.push({
   id,
-  repo: repoUrl ?? template.repo,
+  // Сторож реестра требует https-адрес с .git (repo-https); версия — коммит (исключение для born.from repository).
+  repo: repoUrl ? `${repoUrl.endsWith('/') ? repoUrl.slice(0, -1) : repoUrl}`.replace(/\.git$/, '') + '.git' : template.repo,
   version: repoUrl ? git(['rev-parse', '--short', 'HEAD'], dir).out.trim() : template.version,
   born: repoUrl ? { from: 'repository', url: repoUrl, version: 'repo', at: new Date().toISOString() } : { from: template.from, version: template.version, at: new Date().toISOString() },
   provides: ['element-site'],
