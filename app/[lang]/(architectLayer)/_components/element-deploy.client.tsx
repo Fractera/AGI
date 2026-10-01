@@ -11,10 +11,10 @@ import { LiveLog } from "./live-log.client"
 import { BlockTask } from "@/_tools/block-task/client/block-task.client"
 import type { BlockTaskUi } from "@/_tools/block-task/types/block-task"
 import type { AppDialogUi } from "@/components/dialog/app-dialog.i18n"
-import { terminalLink } from "@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/client/terminal-paste.mjs"
+import { cleanPaste } from "@/app/[lang]/(architectLayer)/architect/kits/_agent-kit/core/client/terminal-paste.mjs"
 
 /** 356-3: окно «Почему отклоняете?» — инструмент задачи (336) в режиме «заметка»; нет — «Отклонить» убирает сразу, как прежде. */
-export type RejectKit = { ui: BlockTaskUi; dialogUi: AppDialogUi; keyHref: string }
+export type RejectKit = { ui: BlockTaskUi; dialogUi: AppDialogUi; keyHref: string; /** `/<lang>/architect/<адрес>/build/terminal` — считает сервер страницы. */ terminalPath: string }
 
 // «РАЗВЕРНУТЬ» И «ПРЕДПРОСМОТР» НА СТРАНИЦЕ «РАЗВЁРТЫВАНИЯ» ЭЛЕМЕНТА (узел, шаг 337-3/4). Слово владельца 2026-09-29:
 // «кнопка развёртывания уже существует у нас в проекте и выглядит более целостно, потому что показывает и коммит и
@@ -163,7 +163,7 @@ export function ElementDeploy({ id, lang, ui, reject }: { id: string; lang: stri
   async function rejectWith(text: string, reason: string) {
     setRejectOpen(false)
     const ok = await act("discard")
-    if (ok && reason) window.location.href = terminalLink({ base: BASE, lang, service: id, text })
+    if (ok && reason && reject) window.location.href = `${BASE}${reject.terminalPath}?paste=${encodeURIComponent(cleanPaste(text))}`
   }
 
   if (el === null) return <p className="my-4 text-sm text-muted-foreground">{ui.loading}</p>

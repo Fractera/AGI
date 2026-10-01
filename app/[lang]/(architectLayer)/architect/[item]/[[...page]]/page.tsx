@@ -238,7 +238,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       lang={lang}
       ui={elementDeployUi(lang)}
       // 356-3: «Отклонить» спрашивает причину (текст или голос) — окно задачи 336 в режиме «заметка».
-      reject={{ ui: rejectTaskUi(lang), dialogUi: appDialogUi(lang), keyHref: openAiKeyHref(item, lang) }}
+      // Терминал рождённого элемента — `<адрес>/build/terminal`, а не путь служб ядра (`terminalLink`): замерено 356-3, тот вёл на ошибку.
+      reject={{ ui: rejectTaskUi(lang), dialogUi: appDialogUi(lang), keyHref: openAiKeyHref(item, lang), terminalPath: `/${lang}/architect/${slug}/build/terminal` }}
     />
   ) : null
   // 344-3: итог последней выкладки копии публичных страниц в Cloudflare (`data/services/<id>/static-copy.json`); нет своего
