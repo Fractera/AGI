@@ -11,7 +11,7 @@ export type ElementSettingsUi = {
     current: string; label: string; placeholder: string; attach: string; attaching: string; detach: string; detaching: string; primaryTitle: string; primaryNote: string; empty: string; add: string; loadFailed: string; note: string
     kinds: Record<"ready" | "waiting" | "taken" | "current", string>; errors: Record<string, string>
   }
-  addressCard: { current: string; label: string; free: string; "bad-shape": string; taken: string; suggest: string; renaming: string; failed: string; note: string }
+  addressCard: { current: string; label: string; free: string; "bad-shape": string; taken: string; suggest: string; renaming: string; failed: string; note: string; restart: string }
   describeCard: { empty: string; take: string; taking: string; taken: string; takenAt: string; how: string; errors: Record<string, string> }
   address: Card
   mirror: Card
@@ -82,7 +82,8 @@ const DICT: Record<string, ElementSettingsUi> = {
       suggest: "Free:",
       renaming: "Renaming…",
       failed: "The address was not changed:",
-      note: "The inner name {id} stays: the folder, the process and the data do not move. The address on the internet stays {internet}.",
+      note: "The inner name {id} stays: the process and the data keep it. The element's folder moves under the new address, and a connected internet address moves to the new name.",
+      restart: "The element will restart: its address will be unavailable for about a minute.",
     },
     describeCard: {
       empty: "The core has no description of this element yet.",
@@ -212,7 +213,8 @@ const DICT: Record<string, ElementSettingsUi> = {
       suggest: "Свободны:",
       renaming: "Переименовываю…",
       failed: "Адрес не изменён:",
-      note: "Внутреннее имя {id} остаётся: папка, процесс и данные не переезжают. Адрес в интернете остаётся прежним — {internet}.",
+      note: "Внутреннее имя {id} остаётся: под ним живут процесс и данные. Папка элемента переезжает под новый адрес, подключённый адрес в интернете — на новое имя.",
+      restart: "Элемент перезапустится: адрес будет недоступен около минуты.",
     },
     describeCard: {
       empty: "В ядре пока нет описания этого элемента.",

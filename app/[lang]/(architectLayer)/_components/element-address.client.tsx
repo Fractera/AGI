@@ -84,6 +84,10 @@ export function ElementAddress({ id, lang, ui, current, internet }: {
         </Button>
       </div>
       {check?.ok === true && <p className="text-sm text-foreground" data-address-free>{w.free}</p>}
+      {/* 2026-10-01 (владелец, после 502 на roman-3): переезд папки останавливает элемент — около минуты адрес не отвечает. */}
+      {(check?.ok === true || busy) && (
+        <p className="rounded-md border border-warning/50 bg-warning/10 px-3 py-2 text-sm text-foreground" role="status" data-address-restart>{w.restart}</p>
+      )}
       {check?.ok === false && check.reason && (
         <div className="flex flex-col gap-1.5" data-address-taken={check.reason}>
           <p className="text-sm text-destructive">{w[check.reason]}</p>
