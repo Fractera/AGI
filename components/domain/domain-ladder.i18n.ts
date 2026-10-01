@@ -203,8 +203,8 @@ const W: Record<string, DomainLadderWords> = {
     fastPath: "Buying at Cloudflare skips steps 2 and 3 entirely.",
     tokenTemplateButton: "Create the key in Cloudflare",
     tokenTemplateSteps: [
-      "The button opens the Cloudflare token form already filled in: Zone · Edit, DNS · Edit, Workers Scripts · Edit and Workers Routes · Edit for your whole account.",
-      "Add one row with Add more: Account · Cloudflare Tunnel · Edit.",
+      "The button opens the Cloudflare token form already filled in: Zone · Edit, DNS · Edit, Cloudflare Tunnel · Edit, Workers Scripts · Edit and Workers Routes · Edit for your whole account.",
+      "Check that there are five rows, including Account · Cloudflare Tunnel · Edit.",
       "Continue to summary → Create Token. The key is shown ONCE — copy it and paste it below.",
     ],
     tokenManualToggle: "The form did not fill in — do it by hand",
@@ -335,8 +335,8 @@ const W: Record<string, DomainLadderWords> = {
     fastPath: "Покупка в Cloudflare пропускает шаги 2 и 3 целиком.",
     tokenTemplateButton: "Создать ключ в Cloudflare",
     tokenTemplateSteps: [
-      "Кнопка откроет форму токена Cloudflare уже заполненной: Zone · Edit, DNS · Edit, Workers Scripts · Edit и Workers Routes · Edit на весь ваш аккаунт.",
-      "Добавьте одну строку кнопкой Add more: Account · Cloudflare Tunnel · Edit.",
+      "Кнопка откроет форму токена Cloudflare уже заполненной: Zone · Edit, DNS · Edit, Cloudflare Tunnel · Edit, Workers Scripts · Edit и Workers Routes · Edit на весь ваш аккаунт.",
+      "Проверьте, что строк пять, среди них Account · Cloudflare Tunnel · Edit.",
       "Continue to summary → Create Token. Ключ покажут ОДИН раз — скопируйте и вставьте ниже.",
     ],
     tokenManualToggle: "Форма не заполнилась — вручную",

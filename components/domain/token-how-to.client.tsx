@@ -12,15 +12,16 @@ import type { DomainLadderWords } from "./domain-ladder.i18n"
 // 🔒 ГЛАВНОЕ — ССЫЛКА-ШАБЛОН, А НЕ ТЕКСТ (слово владельца 2026-09-27: «документации не годится … человек не может документацию
 // сделать ничего»). Cloudflare поддерживает ссылку, открывающую форму токена с уже проставленными правами (документация «API
 // token template URLs»: `dash.cloudflare.com/profile/api-tokens?permissionGroupKeys=…&accountId=*&zoneId=all&name=…`, права —
-// URL-кодированный JSON `[{key, type}]`). Ключи `zone` и `dns` — из таблицы той же страницы. 🛑 Ключа права Cloudflare Tunnel в
-// документации нет (замер 2026-09-27: таблица и полный текст docs; API групп прав ключу узла закрыт, 403) — эту строку человек
-// добавляет сам, одной кнопкой; угадывать ключ права нельзя.
+// URL-кодированный JSON `[{key, type}]`). Ключи `zone` и `dns` — из таблицы той же страницы. Ключа права Cloudflare Tunnel в
+// таблице документации нет (перепроверено 2026-10-01), но он есть у самой формы: `argotunnel` — замерено формой Cloudflare в
+// браузере владельца 2026-10-01 (ссылка с ним дала строку Account · Cloudflare Tunnel · Edit, скрытое значение `argotunnel`).
+// ✗ До этого строку человек добавлял руками — и 30.09 ключ ушёл без неё (361).
 // Ручная пошаговая инструкция остаётся свёрнутой — на случай, если форма не заполнилась.
 
 // 344-1: `workers_scripts` и `workers_routes` — копия публичных страниц в Workers аккаунта человека (ключи — из той же таблицы
 // «API token template URLs», проверено 2026-09-30).
 const TEMPLATE_PERMISSIONS = [
-  { key: "zone", type: "edit" }, { key: "dns", type: "edit" },
+  { key: "zone", type: "edit" }, { key: "dns", type: "edit" }, { key: "argotunnel", type: "edit" },
   { key: "workers_scripts", type: "edit" }, { key: "workers_routes", type: "edit" },
 ]
 
