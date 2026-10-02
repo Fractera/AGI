@@ -612,6 +612,39 @@ the anchor block (`id` or `data-block`). **Reject** opens `_tools/block-task` in
 `/<lang>/architect/<address>/build/terminal?paste=…` — a born element's terminal is under `build/`, not the core-service path of
 `terminalLink` (measured: that one is an error page). Attention dot and lists in «My account» — 356-1.
 
+## AGI ITEM repositories — one fork, the key later, a private repository per element (node step 374)
+
+Owner 2026-10-02: «–пользователь делает только один Fork – отправляет его репозитории GitHub – запускает проекты и начинает им
+пользоваться – в какой-то момент при необходимости получает GitHub токен». Required elements (auth, data, config, design, later
+Dashboard) are CHANGED by the person exactly like born ones — «их отличия … только в том что пользовательских проект может стартовать
+а без этих нет». Until the key every element lives only in its own local git; the key uploads the whole history afterwards.
+- **Bar** `components/node-state/github-token-alarm.client.tsx` (door `GET /api/node/github-backup`): no node key → red bar over every
+  architect page, why it matters, a button straight to Build → GitHub.
+- **Key saved → repositories created** (`lib/agi-items/element-repos-job.ts` → `createAllElementRepos` in `element-github.ts`): a private
+  `<fork name>-<address>` per element, shallow clones unshallowed first, `git push HEAD:main` with the key as a one-time URL (never in
+  `git remote`). Rights (docs.github.com): create private — classic `repo` / fine-grained Administration: write; push — Contents:
+  write; the template carries `.github/workflows` — `workflow`. Build → GitHub lists every element (`element-repos.client.tsx`):
+  repository, which key, «Send», «Update», «Create the missing repositories».
+- **Key precedence** `tokenFor(id)`: the element's own key (`data/services/<id>/github/.env`) → the node key (`data/node/github/.env`).
+- **Sending** — by button; an agent sends on request; a task from **Telegram is committed and sent at once**: the kit appends a rule to
+  every element agent's launch (`--append-system-prompt`, `telegram.cjs githubRule`) naming `node <node>/scripts/element-github-push.mjs <id>`.
+- **Map** `lib/agi-items/registry-map.mjs` (`npm run registry:map`): `address`, `domain`, `github` next to `port` and `summary` in
+  `agi-items.json`; `lib/agi-items/node-map.ts` writes the snapshot `AGI-ITEMS-CONFIG/agi-items.node.json` and pushes ONLY that file
+  to the person's fork. 🛑 A separate file: `agi-items.json` is changed by Fractera on every release — a person's commit in it would
+  make «Sync fork» conflict. 🛑 The author's node (`logs/origin.json` verdict `author`) never pushes — it would write the original.
+- **Restore** = clone YOUR fork (not a new fork of Fractera): on a machine without `data/services` the installer merges the snapshot and
+  clones each element from the person's repository (node key, or `FRACTERA_GITHUB_TOKEN`). Own domain, tunnel and data are not restored
+  (owner: deferred).
+- 🛑 **A required element with its own commits is never moved back to the Fractera tag** — own work = commits outside every Fractera tag
+  (`git rev-list HEAD --not --tags`); its version reads `<base tag>+<commit>`. ✗ Before 374 the installer checked out the tag on every
+  run and the person's changes vanished from the running element. A new tag is merged with **«Update»** (`lib/agi-items/element-update.ts`,
+  `/api/architect/items/<id>/update`); a conflict leaves the merge open and opens the element's terminal with the task (owner: «fix with
+  ai agent»); without own work the element moves to the tag on its next Deploy.
+- **Replace the code** (element's GitHub page → `/api/architect/items/<id>/github/import` → `scripts/element-import.mjs` via spawn-free):
+  the old history goes to the element's repository first (refused without one), the new repository is cloned with the element's own key,
+  a foreign project gets passport/launcher/agent files (`repo-element.mjs`), the folders swap with the service stopped, the installer
+  builds; id, port, address, domain stay. The previous folder stays in `AGI-ITEMS/.replaced/`.
+
 ## Dashboard → Projects — every AGI ITEM in one table (node step 339)
 
 Owner 2026-09-29: «После кнопки паспорт в левом меню добавлять кнопку Dashboard … кнопку проекты … нашу стандартную таблицу».
