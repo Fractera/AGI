@@ -246,7 +246,12 @@ function serviceDataDir(id) {
 function derivedValue(name, ctx) {
   const { port, id, props } = ctx
   const nodePort = ctx.nodePort
-  const nodeUrl = `http://127.0.0.1:${nodePort}`
+  // 🛑 ЯДРО — ПО ИМЕНИ `localhost`, НЕ `127.0.0.1` (371-7). Сервер ядра слушает имя `localhost` (`server.js:36`), а оно на
+  // macOS и на Windows этой машины разрешается в IPv6 `::1`: измерено 2026-10-02 — `127.0.0.1:24680` → отказ (000), `[::1]` и
+  // `localhost` → 200. ✗ На Mac ссылка сайта «Группа страниц архитектора» (`ARCHITECT_URL`) вела на `127.0.0.1` —
+  // «ERR_CONNECTION_REFUSED». Имя `localhost` браузер и `fetch` node пробуют в обоих видах. Элементы слушают `127.0.0.1` сами
+  // (`SERVICE_BIND`), поэтому их `self` остаётся прежним.
+  const nodeUrl = `http://localhost:${nodePort}`
   const self = `http://127.0.0.1:${port}`
 
   // 🔒 СВОЙ ДОМЕН ПЕРЕКРЫВАЕТ ПЕТЛЮ (259-8). Подключённый домен выводит вход на
@@ -282,7 +287,7 @@ function derivedValue(name, ctx) {
     // `data/` узла лежит в `.gitignore` и не трогается ни сборкой, ни клоном.
     case 'DATABASE_URL': return `file:${serviceDataDir(id)}/${id}.db`
     case 'APP_DB_PATH': return `./data/${id}.db`
-    case 'ALLOWED_ORIGINS': return [nodeUrl, self].join(',')
+    case 'ALLOWED_ORIGINS': return [nodeUrl, `http://127.0.0.1:${nodePort}`, self].join(',') // 371-7: оба вида адреса ядра
     case 'EMBED_MODEL': return 'text-embedding-3-large'
     case 'EMBED_DIMS': return '3072'
     // 280-2a: сайт узнаёт, где живут страницы архитектора (ядро) и дверь к данным. Имена
