@@ -258,13 +258,15 @@ function gitDetail(out: string, token: string): string {
 }
 
 /** Создать приватный репозиторий элемента в аккаунте ключа и выгрузить туда всю историю. Уже связанный — пропуск. */
-export async function createElementRepo(id: string, token: string, login: string): Promise<RepoResult> {
+export type RepoPhase = "create" | "history" | "upload"
+export async function createElementRepo(id: string, token: string, login: string, phase?: (p: RepoPhase) => void): Promise<RepoResult> {
   const dir = elementDir(id)
   if (!dir) return { id, ok: false, error: "no-folder" }
   const st = readStored(id)
   if (st.repo) return { id, ok: true, repo: st.repo, created: false }
   const name = repoName(id)
   const full = `${login}/${name}`
+  phase?.("create")
   const made = await gh(token, "POST", "/user/repos", { name, private: true, auto_init: false, description: `AGI ITEM «${id}» of a Fractera node` })
   const created = made.status === 201
   if (!created) {
@@ -279,10 +281,12 @@ export async function createElementRepo(id: string, token: string, login: string
   }
   // Обязательные элементы установщик клонирует с глубиной 1 — мелкую историю GitHub в новый репозиторий не примет.
   if (git(dir, ["rev-parse", "--is-shallow-repository"]).out.trim() === "true") {
+    phase?.("history")
     const u = git(dir, ["fetch", "--quiet", "--unshallow"])
     if (u.rc !== 0) return { id, ok: false, error: "unshallow-failed", repo: full, detail: gitDetail(u.out, token) }
   }
   if (git(dir, ["rev-parse", "--verify", "--quiet", "HEAD"]).rc !== 0) return { id, ok: false, error: "no-commits", repo: full }
+  phase?.("upload")
   const r = git(dir, ["push", `https://x-access-token:${token}@github.com/${full}.git`, "HEAD:main"])
   if (r.rc !== 0) {
     const error = /without `?workflow`? scope/i.test(r.out) ? "needs-workflow" : /403|denied/i.test(r.out) ? "no-write" : /not found/i.test(r.out) ? "repo-not-found" : "push-failed"
@@ -298,7 +302,7 @@ export async function createElementRepo(id: string, token: string, login: string
 // one second between each request»; отказ по пределу — не повторять раньше `retry-after` (иначе минута), и «Continuing to make
 // requests while you are rate limited may result in the banning of your integration». ✗ Mac 2026-10-02: первый отказ «secondary rate
 // limit», а узел постучался ещё пятью запросами. Теперь первый отказ по пределу останавливает запуск, остальным — «отложено».
-export async function createAllElementRepos(onStep?: (id: string, done: number, total: number) => void): Promise<{ ok: boolean; error?: string; results: RepoResult[]; retryAt?: string }> {
+export async function createAllElementRepos(onStep?: (id: string, done: number, total: number, phase: RepoPhase | null, results: RepoResult[]) => void): Promise<{ ok: boolean; error?: string; results: RepoResult[]; retryAt?: string }> {
   let ids: string[] = []
   try {
     ids = ((JSON.parse(readFileSync(paths.REGISTRY_FILE, "utf8")) as { services?: RegistryEntry[] }).services ?? []).map((e) => e.id)
@@ -306,7 +310,7 @@ export async function createAllElementRepos(onStep?: (id: string, done: number, 
   const results: RepoResult[] = []
   const logins = new Map<string, string | null>()
   for (const id of ids) {
-    onStep?.(id, results.length, ids.length)
+    onStep?.(id, results.length, ids.length, null, results)
     const { token } = tokenFor(id)
     if (!token) { results.push({ id, ok: false, error: "no-token" }); continue }
     if (!logins.has(token)) {
@@ -316,7 +320,7 @@ export async function createAllElementRepos(onStep?: (id: string, done: number, 
     const login = logins.get(token)
     if (!login) { results.push({ id, ok: false, error: "token-rejected" }); continue }
     const st = readStored(id)
-    const r = await createElementRepo(id, token, login)
+    const r = await createElementRepo(id, token, login, (p) => onStep?.(id, results.length, ids.length, p, results))
     results.push(r)
     if (r.error === "rate-limited") {
       for (const rest of ids.slice(results.length)) results.push({ id: rest, ok: false, error: "postponed", retryAt: r.retryAt })

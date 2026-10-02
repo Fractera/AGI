@@ -28,6 +28,12 @@ export type ElementReposWords = {
   rateWait: string
   rateTitle: string
   rowWait: string
+  progressTitle: string
+  progressNote: string
+  elapsed: string
+  queued: string
+  doneOk: string
+  phases: Record<string, string>
   mapPushed: string
   mapAuthor: string
   mapFailed: string
@@ -68,6 +74,12 @@ const DICT: Record<"en" | "ru", ElementReposWords> = {
     jobDone: "Last run {at}: created or found {ok} of {all}.",
     rateTitle: "GitHub allows creating repositories again in",
     rowWait: "waits for GitHub",
+    progressTitle: "Creating repositories: done {done} of {total}",
+    progressNote: "The page follows the work by itself while it runs. A required item first fetches its whole history from Fractera, then uploads it — a few minutes each.",
+    elapsed: "elapsed",
+    queued: "in the queue",
+    doneOk: "created and uploaded",
+    phases: { start: "starting…", create: "creating the repository on GitHub…", history: "fetching the whole history from Fractera…", upload: "uploading the history to your repository…" },
     rateWait: "GitHub temporarily stopped this account from creating repositories (a secondary rate limit). The node stopped at once — GitHub warns that requests during the block can get an integration banned. When the clock reaches zero (at {at}) the button «Create the missing repositories» comes back; what was already created is picked up.",
     jobNow: "Now: {id} (done {done} of {total}). A required item first fetches its whole history from Fractera — a few minutes each.",
     jobInterrupted: "The run started {at} was interrupted — the node restarted while it worked. Press «Create the missing repositories» again: what was already created is picked up.",
@@ -136,6 +148,12 @@ const DICT: Record<"en" | "ru", ElementReposWords> = {
     jobDone: "Последний запуск {at}: создано или найдено {ok} из {all}.",
     rateTitle: "GitHub снова разрешит создавать репозитории через",
     rowWait: "ждёт GitHub",
+    progressTitle: "Создаю репозитории: готово {done} из {total}",
+    progressNote: "Пока идёт работа, страница следит за ней сама. Обязательный элемент сначала дотягивает всю свою историю с Fractera, потом выгружает её — по несколько минут на каждый.",
+    elapsed: "прошло",
+    queued: "в очереди",
+    doneOk: "создан и выгружен",
+    phases: { start: "начинаю…", create: "создаю репозиторий на GitHub…", history: "дотягиваю всю историю с Fractera…", upload: "выгружаю историю в ваш репозиторий…" },
     rateWait: "GitHub временно запретил этому аккаунту создавать репозитории (вторичный предел). Узел сразу остановился — GitHub предупреждает, что запросы во время запрета могут закончиться блокировкой. Когда отсчёт дойдёт до нуля (в {at}), вернётся кнопка «Создать недостающие репозитории»; уже созданное будет подхвачено.",
     jobNow: "Сейчас: {id} (готово {done} из {total}). Обязательный элемент сначала дотягивает всю свою историю с Fractera — по несколько минут на каждый.",
     jobInterrupted: "Запуск {at} прерван — узел перезапустился во время работы. Нажмите «Создать недостающие репозитории» ещё раз: уже созданное будет подхвачено.",

@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { ExternalLink, RefreshCw } from "lucide-react"
+import { Check, ExternalLink, LoaderCircle, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { H3 } from "@/components/ui/typography"
 import type { ElementReposWords } from "../words/element-repos.i18n"
@@ -30,7 +30,7 @@ type Row = {
   commit: string | null
   update: { target: string | null; base: string | null; ownWork: boolean; available: boolean; merging: boolean } | null
 }
-type Job = { running: boolean; retryAt?: string; interrupted?: boolean; current?: string; done?: number; total?: number; startedAt?: string; finishedAt?: string; results?: Array<{ id: string; ok: boolean; error?: string; detail?: string; repo?: string }>; map?: { pushed: boolean; reason?: string; ok: boolean } }
+type Job = { running: boolean; retryAt?: string; interrupted?: boolean; current?: string; phase?: string | null; done?: number; total?: number; startedAt?: string; finishedAt?: string; results?: Array<{ id: string; ok: boolean; error?: string; detail?: string; repo?: string }>; map?: { pushed: boolean; reason?: string; ok: boolean } }
 type State = { token: boolean; elements: Row[]; job: Job }
 
 const when = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleString() : "")
@@ -50,6 +50,22 @@ export function ElementRepos({ words: w, lang }: { words: ElementReposWords; lan
   }, [])
 
   useEffect(() => { void load() }, [load])
+
+  // 380 (владелец 2026-10-02: «вижу абсолютную мёртвую картину … где индикатор где что?»): ПОКА ИДЁТ работа — страница сама
+  // спрашивает ту же дверь каждые 2,5 с и показывает ход; работа кончилась — вопросы прекращаются. Узел от этого не делает ничего
+  // нового: опрос только читает состояние запуска, который начал человек.
+  const running = state?.job.running === true
+  useEffect(() => {
+    if (!running) return
+    const t = window.setTimeout(() => void load(), 2500)
+    return () => window.clearTimeout(t)
+  }, [running, state, load])
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!running) return
+    const t = window.setInterval(() => setNow(Date.now()), 1000)
+    return () => window.clearInterval(t)
+  }, [running])
 
   const why = (code?: string) => (code ? w.errors[code] ?? `${w.errors.unknown} ${code}` : "")
 
@@ -124,12 +140,35 @@ export function ElementRepos({ words: w, lang }: { words: ElementReposWords; lan
           {w.refresh}
         </Button>
       </div>
-      {job.running && (
-        <p className="text-sm" role="status" data-element-repos-current={job.current ?? ""}>
-          {w.jobRunning.replace("{at}", when(job.startedAt))}
-          {job.current ? ` ${w.jobNow.replace("{id}", state.elements.find((e) => e.id === job.current)?.address ?? job.current).replace("{done}", String(job.done ?? 0)).replace("{total}", String(job.total ?? 0))}` : ""}
-        </p>
-      )}
+      {job.running && (() => {
+        const total = job.total ?? state.elements.length
+        const ready = job.done ?? 0
+        const passed = Math.max(0, now - (job.startedAt ? Date.parse(job.startedAt) : now))
+        const mm = String(Math.floor(passed / 60_000)).padStart(2, "0")
+        const ss = String(Math.floor((passed % 60_000) / 1000)).padStart(2, "0")
+        const name = state.elements.find((e) => e.id === job.current)?.address ?? job.current ?? ""
+        return (
+          <div className="flex flex-col gap-3 rounded-xl border border-primary/40 bg-primary/5 p-4" role="status" aria-live="polite" data-element-repos-progress={`${ready}/${total}`}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <LoaderCircle className="size-6 shrink-0 animate-spin text-primary" aria-hidden />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-foreground">{w.progressTitle.replace("{done}", String(ready)).replace("{total}", String(total))}</span>
+                  {name && <span className="text-sm text-muted-foreground">{name} — {w.phases[job.phase ?? "start"] ?? w.phases.start}</span>}
+                </div>
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="text-xs text-muted-foreground">{w.elapsed}</span>
+                <span className="font-mono text-2xl font-semibold tabular-nums text-foreground">{mm}:{ss}</span>
+              </div>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-muted" aria-hidden>
+              <div className="h-full rounded-full bg-primary transition-[width] duration-700" style={{ width: `${total ? Math.max(4, (ready / total) * 100) : 4}%` }} />
+            </div>
+            <p className="text-xs text-muted-foreground">{w.progressNote}</p>
+          </div>
+        )
+      })()}
       {waiting && (
         <RateCountdown
           until={waitMs}
@@ -169,6 +208,18 @@ export function ElementRepos({ words: w, lang }: { words: ElementReposWords; lan
                     <span className="ml-1.5 text-muted-foreground">{row.kind}</span>
                   </td>
                   <td className="px-3 py-2">
+                    {job.running && job.current === row.id && (
+                      <p className="flex items-center gap-1.5 text-primary" data-element-repo-working>
+                        <LoaderCircle className="size-3.5 animate-spin" aria-hidden />
+                        {w.phases[job.phase ?? "start"] ?? w.phases.start}
+                      </p>
+                    )}
+                    {job.running && job.current !== row.id && !done.some((r) => r.id === row.id) && !row.repo && (
+                      <p className="text-muted-foreground" data-element-repo-queued>{w.queued}</p>
+                    )}
+                    {done.some((r) => r.id === row.id && r.ok) && (
+                      <p className="flex items-center gap-1.5 text-success"><Check className="size-3.5" aria-hidden />{w.doneOk}</p>
+                    )}
                     {row.repo ? (
                       <a href={`https://github.com/${row.repo}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-mono underline">
                         {row.repo}
