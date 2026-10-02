@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Check } from "lucide-react"
+import { Check, Plus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,6 +18,10 @@ import { keyReasonText } from "./key-reason"
 // Cloudflare перепроверить). Всё по кнопке.
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
+
+/** Имена серверов имён сравниваются без регистра и точки в конце (`NS1.Example.com.` == `ns1.example.com`). */
+const nsKey = (s: string) => s.trim().toLowerCase().replace(/\.$/, "")
+const sameNs = (a: string, b: string) => nsKey(a) === nsKey(b)
 
 export type PipelineDomain = {
   name: string; state: string; status?: string; nameServers?: string[]; registrarNs?: string[]; nsMatch?: boolean
@@ -170,12 +174,37 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
             <div className="grid gap-2 sm:grid-cols-2">
               <div>
                 <p className="text-[length:var(--fs-small)] text-muted-foreground">{p.assigned}</p>
-                <ul className="font-mono text-sm text-foreground select-all">{(d.nameServers ?? []).map((n) => <li key={n}>{n}</li>)}</ul>
+                {/* 372 (владелец 2026-10-02): цвет говорит, что делать со строкой. Нужный сервер, которого ещё нет у
+                    регистратора, — оранжевый «+» (добавить); есть — зелёная галочка. Видимый сейчас лишний — красный
+                    крестик (убрать). Сравнение без регистра и точки в конце. */}
+                <ul className="flex flex-col gap-0.5 font-mono text-sm select-all">
+                  {(d.nameServers ?? []).map((n) => {
+                    const here = (d.registrarNs ?? []).some((r) => sameNs(r, n))
+                    return (
+                      <li key={n} className={`flex items-center gap-1.5 ${here ? "text-success" : "text-warning"}`} data-ns-state={here ? "ok" : "add"}>
+                        {here ? <Check className="size-4 shrink-0" aria-hidden /> : <Plus className="size-4 shrink-0" aria-hidden />}
+                        {n}
+                      </li>
+                    )
+                  })}
+                </ul>
               </div>
               <div>
                 <p className="text-[length:var(--fs-small)] text-muted-foreground">{p.atRegistrar}</p>
                 {d.registrarNs && d.registrarNs.length > 0
-                  ? <ul className="font-mono text-sm text-foreground">{d.registrarNs.map((n) => <li key={n}>{n}</li>)}</ul>
+                  ? (
+                    <ul className="flex flex-col gap-0.5 font-mono text-sm">
+                      {d.registrarNs.map((n) => {
+                        const wanted = (d.nameServers ?? []).some((a) => sameNs(a, n))
+                        return (
+                          <li key={n} className={`flex items-center gap-1.5 ${wanted ? "text-success" : "text-destructive"}`} data-ns-state={wanted ? "ok" : "remove"}>
+                            {wanted ? <Check className="size-4 shrink-0" aria-hidden /> : <X className="size-4 shrink-0" aria-hidden />}
+                            {n}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )
                   : <p className="text-sm text-muted-foreground">{p.nothingYet}</p>}
               </div>
             </div>
