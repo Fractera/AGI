@@ -287,7 +287,7 @@ export async function createElementRepo(id: string, token: string, login: string
 }
 
 /** Все элементы реестра: создать недостающие репозитории (ключ — свой элемента, иначе общий узла). */
-export async function createAllElementRepos(): Promise<{ ok: boolean; error?: string; results: RepoResult[] }> {
+export async function createAllElementRepos(onStep?: (id: string, done: number, total: number) => void): Promise<{ ok: boolean; error?: string; results: RepoResult[] }> {
   let ids: string[] = []
   try {
     ids = ((JSON.parse(readFileSync(paths.REGISTRY_FILE, "utf8")) as { services?: RegistryEntry[] }).services ?? []).map((e) => e.id)
@@ -295,6 +295,7 @@ export async function createAllElementRepos(): Promise<{ ok: boolean; error?: st
   const results: RepoResult[] = []
   const logins = new Map<string, string | null>()
   for (const id of ids) {
+    onStep?.(id, results.length, ids.length)
     const { token } = tokenFor(id)
     if (!token) { results.push({ id, ok: false, error: "no-token" }); continue }
     if (!logins.has(token)) {

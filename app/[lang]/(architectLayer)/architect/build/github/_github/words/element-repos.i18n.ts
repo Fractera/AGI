@@ -23,6 +23,8 @@ export type ElementReposWords = {
   pushedNow: string
   jobRunning: string
   jobDone: string
+  jobInterrupted: string
+  jobNow: string
   mapPushed: string
   mapAuthor: string
   mapFailed: string
@@ -61,6 +63,8 @@ const DICT: Record<"en" | "ru", ElementReposWords> = {
     pushedNow: "Sent: {commit}",
     jobRunning: "The node is creating repositories (started {at}). Press Refresh to see the progress.",
     jobDone: "Last run {at}: created or found {ok} of {all}.",
+    jobNow: "Now: {id} (done {done} of {total}). A required item first fetches its whole history from Fractera — a few minutes each.",
+    jobInterrupted: "The run started {at} was interrupted — the node restarted while it worked. Press «Create the missing repositories» again: what was already created is picked up.",
     mapPushed: "The project map went to your fork — a clone of the fork restores every item.",
     mapAuthor: "This is the author's node: the map stays here (the original Fractera repository is never written).",
     mapFailed: "The project map was not sent to the fork:",
@@ -123,6 +127,8 @@ const DICT: Record<"en" | "ru", ElementReposWords> = {
     pushedNow: "Отправлено: {commit}",
     jobRunning: "Узел создаёт репозитории (начал в {at}). Нажмите «Обновить», чтобы увидеть ход.",
     jobDone: "Последний запуск {at}: создано или найдено {ok} из {all}.",
+    jobNow: "Сейчас: {id} (готово {done} из {total}). Обязательный элемент сначала дотягивает всю свою историю с Fractera — по несколько минут на каждый.",
+    jobInterrupted: "Запуск {at} прерван — узел перезапустился во время работы. Нажмите «Создать недостающие репозитории» ещё раз: уже созданное будет подхвачено.",
     mapPushed: "Карта проекта отправлена в ваш форк — клон форка восстановит каждый элемент.",
     mapAuthor: "Это узел автора: карта остаётся здесь (оригинальный репозиторий Fractera не пишется никогда).",
     mapFailed: "Карта проекта не отправлена в форк:",

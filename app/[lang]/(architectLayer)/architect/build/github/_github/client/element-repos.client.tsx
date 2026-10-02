@@ -29,7 +29,7 @@ type Row = {
   commit: string | null
   update: { target: string | null; base: string | null; ownWork: boolean; available: boolean; merging: boolean } | null
 }
-type Job = { running: boolean; startedAt?: string; finishedAt?: string; results?: Array<{ id: string; ok: boolean; error?: string; detail?: string; repo?: string }>; map?: { pushed: boolean; reason?: string; ok: boolean } }
+type Job = { running: boolean; interrupted?: boolean; current?: string; done?: number; total?: number; startedAt?: string; finishedAt?: string; results?: Array<{ id: string; ok: boolean; error?: string; detail?: string; repo?: string }>; map?: { pushed: boolean; reason?: string; ok: boolean } }
 type State = { token: boolean; elements: Row[]; job: Job }
 
 const when = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleString() : "")
@@ -118,7 +118,13 @@ export function ElementRepos({ words: w, lang }: { words: ElementReposWords; lan
           {w.refresh}
         </Button>
       </div>
-      {job.running && <p className="text-sm" role="status">{w.jobRunning.replace("{at}", when(job.startedAt))}</p>}
+      {job.running && (
+        <p className="text-sm" role="status" data-element-repos-current={job.current ?? ""}>
+          {w.jobRunning.replace("{at}", when(job.startedAt))}
+          {job.current ? ` ${w.jobNow.replace("{id}", state.elements.find((e) => e.id === job.current)?.address ?? job.current).replace("{done}", String(job.done ?? 0)).replace("{total}", String(job.total ?? 0))}` : ""}
+        </p>
+      )}
+      {job.interrupted && <p className="text-sm text-destructive" role="status" data-element-repos-interrupted>{w.jobInterrupted.replace("{at}", when(job.startedAt))}</p>}
       {!job.running && job.finishedAt && (
         <div className="flex flex-col gap-1 text-sm" role="status" data-element-repos-job>
           <p>{w.jobDone.replace("{at}", when(job.finishedAt)).replace("{ok}", String(done.filter((r) => r.ok).length)).replace("{all}", String(done.length))}</p>
