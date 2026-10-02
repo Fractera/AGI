@@ -46,6 +46,11 @@ Have a good journey.
 
 The person pasted a link to this repository (or to their fork of it) and asked you to run it. Do this, in order:
 
+🔒 **Keep the person informed — the install takes minutes, and a still cursor looks like a hang.** Before every long command
+(`npm install` ≈ 1–2 min, `npm run build` ≈ 4–5 min, the first `npm run serve:start` ≈ 5–15 min — it downloads and builds the
+node's elements; longer on an older computer) write ONE line: what starts now and roughly how long it takes. After it, ONE line:
+what came out (the `===…===` markers it printed). Run these commands in the foreground and do not hide their output in a file.
+
 0. **Stop if you run in a cloud session — before cloning anything.** If the environment variable `CLAUDE_CODE_REMOTE` is
    `true` (Claude Code sets it in every cloud session — code.claude.com/docs/en/env-vars), or you otherwise run on a remote or
    temporary machine rather than the person's own computer, install NOTHING. Tell the person: the node lives on their computer,
