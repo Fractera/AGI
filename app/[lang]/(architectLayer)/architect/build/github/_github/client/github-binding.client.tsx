@@ -65,7 +65,10 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   )
 }
 
-export function GithubBinding({ lang, words }: { lang: string; words: GithubWords }) {
+// 375 (владелец 2026-10-02, Mac: «если репозиторий уже есть то вверху кнопка добавить новую репетитору точно не нужно»): кнопка
+// мастера подключения приходит пропсом и показывается, только пока у узла НЕТ своего репозитория (`own`). Состояние меряется у git
+// при каждом открытии — удалил или отвязал репозиторий, кнопка вернётся.
+export function GithubBinding({ lang, words, connect }: { lang: string; words: GithubWords; connect?: React.ReactNode }) {
   const api = `${BASE}/${lang}/architect/build/github/api`
   const [state, setState] = useState<State | null | "forbidden">(null)
   const [access, setAccess] = useState<Access | null>(null)
@@ -130,6 +133,7 @@ export function GithubBinding({ lang, words }: { lang: string; words: GithubWord
 
   return (
     <div className="my-6 flex flex-col gap-4" data-github-binding data-state={b.state}>
+      {b.state !== "own" && connect}
       <p className="text-muted-foreground text-sm">{words.intro}</p>
 
       {/* ── с каким репозиторием работает узел ─────────────────────────────── */}
