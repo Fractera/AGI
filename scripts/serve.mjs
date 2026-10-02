@@ -116,6 +116,8 @@ async function start() {
   const freshInstall = missingElements().length > 0
   ensureElements()
   ensurePm2()
+  // 372: бит запуска spawn-helper терминала (macOS/Linux) — и для узлов, поставленных до этой правки.
+  spawnSync(process.execPath, [path.join(here, 'ensure-pty.mjs')], { stdio: 'inherit', windowsHide: true })
   // 🛑 ТУННЕЛЬ — НЕ ЗДЕСЬ (371-1, измерено 2026-10-02): `pm2 start ecosystem` целиком поднимал и перезапускал быстрый
   // туннель при КАЖДОМ запуске — адрес менялся молча, хотя `publish()` написан ровно затем, чтобы живой адрес не трогать.
   // Туннелем распоряжается только `publish()`, ниже.
