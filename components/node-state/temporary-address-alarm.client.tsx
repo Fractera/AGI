@@ -37,7 +37,7 @@ export function TemporaryAddressAlarm({ words, lang }: { words: TemporaryAddress
       data-temporary-address={url}
     >
       <Siren className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden />
-      <div className="flex-1 space-y-1">
+      <div className="flex flex-1 flex-col gap-1">
         <p>
           <span className="font-medium">{words.lead}</span>{" "}
           <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 break-all underline">
