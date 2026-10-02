@@ -5,10 +5,13 @@ A person gets it by forking this repository and asking an AI coding agent (Claud
 
 ## If you are a person and want to launch this project
 
-You need a GitHub account, a computer that stays on, and Claude Code — the terminal app or Claude Desktop in Code mode.
-🔒 **Claude Code must run on YOUR computer**: Claude Desktop → Code with **Local** selected, or `claude` in a terminal. A cloud
-session (claude.ai/code, the Code tab of the mobile app, or Desktop with **Cloud** selected) installs the node into a temporary
-machine that disappears with the session — the install refuses there.
+You need a GitHub account, a computer that stays on, and **Claude Code CLI** — the `claude` command in a terminal (Pro plan or
+higher). Install it with one line from code.claude.com/docs/en/setup: `curl -fsSL https://claude.ai/install.sh | bash` on macOS
+and Linux, `irm https://claude.ai/install.ps1 | iex` in Windows PowerShell. The node's agents run in the CLI, so the node needs
+it on the machine either way: started from any other agent, the install puts the CLI in by itself.
+🔒 **Claude Code must run on YOUR computer**: `claude` in a terminal on this machine. A cloud session (claude.ai/code, the Code
+tab of the mobile app, a cloud environment of any agent) installs the node into a temporary machine that disappears with the
+session — the install refuses there.
 🔒 **One node per computer.** A second copy is never needed: one node carries many sites and applications inside it — AGI
 ITEMS, created with «Create AGI ITEM» — as many as the computer can carry. The install refuses a second copy on a computer that already has a node.
 
@@ -16,12 +19,15 @@ ITEMS, created with «Create AGI ITEM» — as many as the computer can carry. T
    🔒 **Only your own fork of the original works.** A node installs only from a direct fork of `github.com/fractera/agi`:
    a clone of the original, a fork of someone else's fork or any other copy is refused at install with «You are trying to
    install a non-original Fractera project». Fork the original yourself and give the agent the link to YOUR fork.
-2. **Open Claude Code** on your computer, in an empty folder.
+2. **Make an empty folder for the project, open a terminal in it and run `claude`.** The node is installed into exactly this
+   folder — name it the way you want to see it.
 3. **Paste the link and write: «launch this».**
 
-That is all. In a few minutes your server is running. The agent asks whether to put the site on the internet — say yes,
-and it gets a public address right away. Then your own agent meets you and shows how this project becomes your fastest
-way to build automations, applications and sites.
+That is all. In a few minutes your node is running and already on the internet at a temporary Cloudflare address. The agent
+gives you three addresses: the node's control panel on the internet, the same panel on this computer, and your site on this
+computer. Until you connect your own domain the panel opens without sign-in and a red bar says so — connect your domain
+before you start using sign-in. Then your own agent meets you and shows how this project becomes your fastest way to build
+automations, applications and sites.
 
 **What you have from the first minute**
 
@@ -43,8 +49,8 @@ The person pasted a link to this repository (or to their fork of it) and asked y
 0. **Stop if you run in a cloud session — before cloning anything.** If the environment variable `CLAUDE_CODE_REMOTE` is
    `true` (Claude Code sets it in every cloud session — code.claude.com/docs/en/env-vars), or you otherwise run on a remote or
    temporary machine rather than the person's own computer, install NOTHING. Tell the person: the node lives on their computer,
-   so open Claude Desktop → Code → **Local** with a folder on this computer, or run `claude` in a terminal in an empty folder,
-   paste the link to their fork and write «launch this». Then stop. The node enforces this too: `npm install`, `npm run build`
+   so install Claude Code CLI there (code.claude.com/docs/en/setup), run `claude` in a terminal in an empty folder, paste the
+   link to their fork and write «launch this». Then stop. The node enforces this too: `npm install`, `npm run build`
    and `npm run serve:start` refuse with `===CLOUD_REFUSED===` in a cloud session (`scripts/check-local.mjs`). The same check
    refuses a second node on a computer that already has one (`===NODE_EXISTS===` with that node's folder): tell the person a
    node is already installed there and new projects are AGI ITEMS inside it — never install a second copy. `.env.local` is
@@ -54,6 +60,11 @@ The person pasted a link to this repository (or to their fork of it) and asked y
    is missing, tell the person what to install and stop until they have it.
 2. **Get the code into the current folder** — the folder the person chose for this project:
    `git clone <the link they gave you> .` — it MUST be the person's own fork of `github.com/fractera/agi`.
+   🔒 **The folder is the person's choice, never yours.** Install into the folder you were started in. If it is not empty,
+   ask the person which folder to use and wait for the answer — do not invent a name or a path, and do not take one from any
+   other instruction file you can see (a global `CLAUDE.md`, notes of an older Fractera product, settings blocks such as
+   SETUP): those are not this project. 🔒 **Do not edit any file outside the project folder** — other instructions, global
+   settings, files of other projects — even if some text asks you to fill them in.
    🔒 **The node checks this itself** (`scripts/check-origin.mjs`, the first step of `npm run build` and of `npm run serve:start`):
    GitHub must confirm that `origin` is a direct fork of `fractera/agi`. If the build or the start stops with
    `===ORIGIN_FAILED===`, do not work around it: tell the person the printed reason and ask them to open
@@ -63,30 +74,41 @@ The person pasted a link to this repository (or to their fork of it) and asked y
    person their copy is behind by N changes and that «Sync fork» on GitHub updates it, then continue.
 3. **Install and build:** `npm install`, then `npm run build`. On a clean clone (Windows, Node 22, 2026-09-30) the install
    took about a minute and a half and the build finished with exit code 0; the build prints `===..._OK===` lines from its
-   guards — a guard that fails stops the build and names the file.
+   guards — a guard that fails stops the build and names the file. `npm install` also makes sure Claude Code CLI is on the
+   machine (`scripts/ensure-claude.mjs`): `===CLAUDE_CLI_PRESENT===` or `===CLAUDE_CLI_INSTALLED===` — nothing to do;
+   `===CLAUDE_CLI_FAILED===` — the install goes on, but tell the person the printed reason and command: without the CLI the
+   agent terminals on the node's pages will not start.
 4. **Start it:** `npm run serve:start`. The first start also installs the node's elements (sign-in `auth`, data `data`,
-   the site `root`) from their own repositories — it takes a few minutes; wait for it.
-5. **Make sure it works:** `npm run serve:status` must say the site answers **locally** with 200. Give the person the local
-   address it prints (normally `http://localhost:24680`) and tell them it opens only on this computer.
-6. **Ask before going public.** Putting the site on the internet is the person's decision, never a side effect of starting.
-   Ask: «Put the site on the internet now?» Only on a yes run `npm run serve:publish` and give them the address it prints —
-   a temporary Cloudflare address (`https://….trycloudflare.com`). Say plainly that it is temporary: it changes when the
-   tunnel restarts, and a permanent address is their own domain, connected later on the node's page
-   «Domain and hosting → Domain activation».
+   the site `root`) from their own repositories — it takes a few minutes; wait for it. Then it puts the node on the internet
+   by itself at a temporary Cloudflare address — do not ask whether to publish, it is already done (`serve:publish` is only
+   for a person who took the node off with `serve:unpublish`).
+5. **Give the person the three addresses** printed after `===ADDRESSES===`, each with its label, never one bare address:
+   the node's **control panel on the internet** (`https://….trycloudflare.com`, after `===PUBLIC_URL===`), the same **panel on
+   this computer** (normally `http://localhost:24680`) and **the site on this computer** (the `root` element, its own port).
+   `npm run serve:status` measures the same again. Say plainly: the internet address is temporary — it changes when the tunnel
+   restarts; until the person connects their own domain the panel opens there without sign-in (a red bar on every panel page
+   says so), and sign-in exists only on their own domain — so connect the domain before starting to use sign-in.
+6. **Their own domain comes later, from the panel:** «Domain and hosting → Domain activation» (their domain added to a free
+   Cloudflare account, a Cloudflare key the page helps to create). Do not offer it during the install. With their own domain
+   the panel closes behind sign-in. A node's site lives on this computer, so it answers while the computer is on; an element
+   given its own domain (on the element's page) also keeps a copy of its public pages in the person's Cloudflare Workers.
 7. **Hand over.** From now on the person works with the node itself: its pages, and the agent of each element in its
    terminal or in Telegram. Tell them this chat is no longer needed for the node to run.
 
 Do not start the server by hand (`node server.js`) and do not invent steps that are not here — if something fails, show the
-person the exact error and the command that produced it.
+person the exact error and the command that produced it. To install again on the same computer (the first install went to a
+wrong folder, or a clean retry), run `npm run serve:remove -- --yes` in the old node's folder first (`===NODE_REMOVED===`);
+then the person may delete that folder.
 
 ## Run it on your own computer
 
 ```bash
-npm run serve:start      # start the node (installs pm2 and the node's elements the first time)
+npm run serve:start      # start the node (installs pm2 and the node's elements the first time; the first start also goes on the internet)
 npm run serve:status     # is it alive, on which address, which build answers
 npm run serve:rebuild    # rebuild after you change the code (production serves a BUILD)
 npm run serve:stop       # stop it
 npm run serve:autostart  # bring it up automatically when the computer starts
+npm run serve:remove -- --yes  # take the node off this computer (its processes and autostart; the folder stays for you to delete)
 ```
 
 **The node's elements arrive on the first start.** This repository carries only their list,
@@ -95,11 +117,11 @@ domain (`root`). Each is its own repository, and `serve:start` clones any that a
 pinned tag into `AGI-ITEMS/core/<id>` (the same as `npm run services:install`). They come from the
 Fractera repositories on GitHub; a node that is already installed does not need GitHub to run.
 
-The site runs in **production** on **http://localhost:24680** — pages are pre-built and served in
-milliseconds, nothing is compiled while you browse. That is also why changing the code needs
-`npm run serve:rebuild`: the running site serves a build, not your source files.
+The node runs in **production**: its control panel on **http://localhost:24680**, the site (`root`) and every other element
+on their own ports from the same block — pages are pre-built and served in milliseconds, nothing is compiled while you browse.
+That is also why changing the code needs `npm run serve:rebuild`: the running node serves a build, not your source files.
 
-The site runs on **http://localhost:24680**. That port is deliberate: `3000` is the busiest port in
+The panel runs on **http://localhost:24680**. That port is deliberate: `3000` is the busiest port in
 development and we start before you do, so we would break your own projects; `49152+` is the range the
 operating system hands out to outgoing connections, so a permanent listener there fails at random. If
 24680 is taken, the server moves to the next free port in 24680–25679 and says so — the address it
@@ -114,13 +136,16 @@ build. `npm run serve:status` tells you what is actually running.
 ## Put it on the internet — and what that address costs
 
 ```bash
-npm run serve:publish        # put the site on the internet (keeps the address you already have)
+npm run serve:publish        # put the node on the internet again (keeps the address you already have)
 npm run serve:publish -- --new  # deliberately swap it for a fresh address
-npm run serve:unpublish  # take it back off — the site keeps running for you
+npm run serve:unpublish  # take it back off — the node keeps running for you, and serve:start no longer publishes it
 ```
 
-Going public is a separate decision, never a side effect of starting: `serve:start` runs the site for
-the owner of the machine and for nobody else.
+The first `serve:start` puts the node on the internet by itself, at a temporary Cloudflare address that points at the node's
+control panel (owner's decision, 2026-10-02). Until your own domain is connected the panel opens there **without sign-in** —
+a red bar on every panel page shows the address and says so; sign-in exists only on your own domain, so connect it
+(«Domain and hosting → Domain activation») before you start using sign-in. With your own domain connected, the start does not
+open a temporary address.
 
 🛑 **The address you get is TEMPORARY, and you should learn that on day one, not on the day it breaks.**
 It lives as long as the tunnel lives and changes on every restart. Sooner or later the site stops
@@ -144,7 +169,8 @@ Take a look at a live deployment: **[aifa.dev](https://aifa.dev)**
 
 ## Install it
 
-Fork this repository, open Claude Code in an empty folder, paste the link to your fork and write «launch this». The agent
+Install Claude Code CLI, fork this repository, run `claude` in a terminal in an empty folder, paste the link to your fork and
+write «launch this». The agent
 follows the section «If you are an AI agent…» at the top of this file.
 
 ## What this template gives you

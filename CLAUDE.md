@@ -256,11 +256,18 @@ defaults to **false**, so Windows opens a console window for every spawn — and
 windows over the human's screen is unusable no matter how correct it is inside. Paid for 2026-09-18:
 the tunnel reopened a window on every reconnect, seven times in ten minutes.
 
-🔒 **GOING PUBLIC IS A SEPARATE DECISION, NOT A SIDE EFFECT OF STARTING.** `serve:start` runs the site
-for the owner of the machine; `serve:publish` puts it on the internet through a Cloudflare quick
-tunnel, `serve:unpublish` takes it back off. That address is temporary and changes on every restart, so
-it is written to `logs/tunnel.json` and shown by `serve:status` — never remembered. The permanent
-address (the human's own domain) is the second scenario and belongs to the control panel.
+🪦 «Going public is a separate decision, not a side effect of starting» — cancelled by the owner 2026-10-02 (step 371-1).
+🔒 **THE FIRST `serve:start` PUTS THE NODE ON THE INTERNET BY ITSELF.** Owner, verbatim: «Вся архитектура строилась на идее
+того что сразу в момент первого запуска весь проект подключается к временному домену cloudflare». The quick tunnel points at
+the core (the control panel), which opens there without sign-in; a red non-collapsible bar
+(`components/node-state/temporary-address-alarm.*`) shows the address and says to connect an own domain before using sign-in.
+The start skips it when an own domain is connected or the person ran `serve:unpublish`; it never restarts a live tunnel
+(`pm2 start --only` without it — measured: a full `pm2 start ecosystem` rotated the address on every start). It prints
+`===ADDRESSES===` (panel on the internet · panel here · site here) and `===PUBLIC_URL===`. The address is temporary and changes on
+every restart, so it lives in `logs/tunnel.json` and `serve:status` measures it — never remembered. The permanent address (the
+human's own domain) belongs to the control panel. `serve:remove -- --yes` takes the node off the machine (371-3);
+`npm install` puts Claude Code CLI on the machine when it is missing (`scripts/ensure-claude.mjs`, 371-2 — on Windows through npm:
+Defender flags «powershell -ExecutionPolicy Bypass … irm | iex» launched from node as a trojan).
 
 🛑 **The tunnel runs with `--protocol http2`, not the default QUIC.** Cloudflare's own docs warn that
 idle QUIC sessions break on networks that aggressively time out UDP — every mobile hotspot does.

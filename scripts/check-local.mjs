@@ -22,10 +22,10 @@ import { fileURLToPath } from 'node:url'
 if (String(process.env.CLAUDE_CODE_REMOTE ?? '').toLowerCase() === 'true') {
   console.error('')
   console.error('Fractera нельзя установить в облачной сессии Claude Code: эта машина временная и исчезнет вместе с сессией.')
-  console.error('Узел ставится только на ваш компьютер. Откройте Claude Desktop → вкладка Code → выберите Local и папку на этом')
-  console.error('компьютере, либо запустите `claude` в терминале в пустой папке, вставьте ссылку на ваш форк и напишите «запусти это».')
-  console.error('Fractera cannot be installed in a Claude Code cloud session: this machine is temporary. Use Claude Desktop → Code →')
-  console.error('Local, or `claude` in a terminal on your own computer.')
+  console.error('Узел ставится только на ваш компьютер. Поставьте там Claude Code CLI (code.claude.com/docs/en/setup), запустите')
+  console.error('`claude` в терминале в пустой папке, вставьте ссылку на ваш форк и напишите «запусти это».')
+  console.error('Fractera cannot be installed in a Claude Code cloud session: this machine is temporary. Install Claude Code CLI on')
+  console.error('your own computer (code.claude.com/docs/en/setup) and run `claude` in a terminal in an empty folder there.')
   console.error('===CLOUD_REFUSED=== cloud session (CLAUDE_CODE_REMOTE=true)')
   process.exit(1)
 }
