@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import { ExternalLink, Siren } from "lucide-react"
 import type { TemporaryAddressAlarmWords } from "./temporary-address-alarm.i18n"
+import { isTemporaryHostname } from "@/lib/auth/temporary-address"
+import { OpenOnThisComputerButton } from "./open-on-this-computer.client"
 
 // ТРЕВОЖНАЯ ПОЛОСА «ПРОЕКТ В ИНТЕРНЕТЕ ПО ВРЕМЕННОМУ АДРЕСУ» НАД СЛОЕМ АРХИТЕКТОРА (шаг 371-1).
 //
@@ -30,6 +32,7 @@ export function TemporaryAddressAlarm({ words, lang }: { words: TemporaryAddress
   }, [])
 
   if (!url) return null
+  const onTemporary = isTemporaryHostname(window.location.hostname)
   return (
     <div
       className="mx-4 mt-2 flex flex-wrap items-start gap-x-3 gap-y-1 rounded-md border-2 border-destructive/60 bg-destructive/10 px-3 py-2 text-sm text-foreground"
@@ -46,10 +49,16 @@ export function TemporaryAddressAlarm({ words, lang }: { words: TemporaryAddress
           </a>
         </p>
         <p>{words.warning}</p>
+        {/* 372: на временном адресе пульт только на чтение (proxy Job −1б) — выход со ЛЮБОЙ страницы, а не заплатка каждого
+            экрана отказа (ключи GitHub, вход Google/Resend, домен …). На самой машине кнопки нет — там всё работает. */}
+        {onTemporary && <p>{words.readOnly}</p>}
       </div>
-      <a href={`${BASE}/${lang}/hosting/domain`} className="self-center font-medium underline">
-        {words.connect}
-      </a>
+      <div className="flex flex-col items-start gap-2 self-center">
+        <OpenOnThisComputerButton open={words.openHere} />
+        <a href={`${BASE}/${lang}/hosting/domain`} className="font-medium underline">
+          {words.connect}
+        </a>
+      </div>
     </div>
   )
 }
