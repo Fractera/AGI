@@ -5,6 +5,8 @@ import { accessGateUi } from "@/components/auth/access-gate.i18n"
 import { appDialogUi } from "@/components/dialog/app-dialog.i18n"
 import { OriginNotice } from "@/components/node-state/origin-notice.client"
 import { originNoticeWords } from "@/components/node-state/origin-notice.i18n"
+import { TemporaryAddressAlarm } from "@/components/node-state/temporary-address-alarm.client"
+import { temporaryAddressAlarmWords } from "@/components/node-state/temporary-address-alarm.i18n"
 
 // Дверь СЛОЯ АРХИТЕКТОРА (шаг 31-1, 2026-08-28).
 //
@@ -51,6 +53,8 @@ export default async function Layout(
     >
       {/* 🪦 Полоса терминалов 345 снята 2026-10-01 (владелец, шаг 356-1): терминалы и ждущие развёртывания — в ящике «Мой аккаунт». */}
       {/* 368: форк узла отстал от оригинала — уведомление без запрета. */}
+      {/* 371-1: проект на временном адресе Cloudflare — тревога, не сворачивается (слово владельца 2026-10-02). */}
+      <TemporaryAddressAlarm words={temporaryAddressAlarmWords(lang)} lang={lang} />
       <OriginNotice words={originNoticeWords(lang)} />
       {children}
     </AccessGate>

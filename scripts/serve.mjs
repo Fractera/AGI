@@ -14,6 +14,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import os from 'node:os'
+import { createRequire } from 'node:module'
 import paths from '../lib/agi-items/paths.cjs'
 import deployLock from '../lib/deploy/deploy-lock.cjs'
 
@@ -104,7 +105,7 @@ function ensureElements() {
   }
 }
 
-function start() {
+async function start() {
   // 369: не в облачной сессии Claude Code; 368: только из прямого форка оригинала Fractera — обе проверки до установки элементов.
   const local = spawnSync(process.execPath, [path.join(here, 'check-local.mjs')], { stdio: 'inherit', windowsHide: true })
   if (local.status !== 0) process.exit(1)
@@ -113,21 +114,73 @@ function start() {
   if (origin.status !== 0) process.exit(1)
   ensureElements()
   ensurePm2()
-  const result = pm2run(['start', ecosystem])
+  // 🛑 ТУННЕЛЬ — НЕ ЗДЕСЬ (371-1, измерено 2026-10-02): `pm2 start ecosystem` целиком поднимал и перезапускал быстрый
+  // туннель при КАЖДОМ запуске — адрес менялся молча, хотя `publish()` написан ровно затем, чтобы живой адрес не трогать.
+  // Туннелем распоряжается только `publish()`, ниже.
+  const require = createRequire(import.meta.url)
+  const names = require(ecosystem).apps.map((a) => a.name).filter((n) => n !== 'fractera-agi-tunnel')
+  const result = pm2run(['start', ecosystem, '--only', names.join(',')])
   if (result.status !== 0) {
     console.error('Запустить не удалось. Журнал: logs/agi-err.log')
     process.exit(1)
   }
-  // Сервер поднимается не мгновенно: Next собирает страницы. Адрес печатается
-  // из файла, который пишет САМ сервер, — поэтому он верен и после уступки порта.
-  setTimeout(() => {
+  // Сервер поднимается не мгновенно: Next собирает страницы. Адрес берётся из
+  // файла, который пишет САМ сервер, — поэтому он верен и после уступки порта;
+  // ответа двери здоровья ждём по факту, а не фиксированной паузой.
+  const url = await waitLocal(120000)
+  if (!url) {
+    console.log('\nAGI запускается. Через минуту проверьте: npm run serve:status')
+    return
+  }
+  // 🔒 ПЕРВЫЙ ЗАПУСК САМ ВЫХОДИТ В ИНТЕРНЕТ (371-1). Слово владельца 2026-10-02: «Вся архитектура строилась на идее того
+  // что сразу в момент первого запуска весь проект подключается к временному домену cloudflare» и «да, поднимай временный
+  // адрес автоматически при первом запуске». 🪦 Прежний закон «выход в интернет — отдельное решение человека» отменён.
+  // Человек, сам убравший сайт из интернета (`serve:unpublish`), обратно без своей команды не выводится.
+  // Свой домен подключён — узел уже в интернете постоянным адресом, и временный открыл бы пульт без входа зря.
+  let ownDomain = null
+  try { ownDomain = JSON.parse(readFileSync(path.join(root, 'logs', 'domain.json'), 'utf8')).hostname || null } catch { /* домена нет */ }
+  if (!ownDomain && !readTunnel()?.unpublished) await publish({ quietPrice: true })
+  await printAddresses(url)
+}
+
+// Ждёт, пока сервер узла ответит локально: адрес — из `logs/runtime.json`, ответ — дверь `/api/health`.
+async function waitLocal(ms) {
+  const until = Date.now() + ms
+  while (Date.now() < until) {
     const runtime = readRuntime()
     if (runtime?.port) {
-      console.log(`\nAGI работает: http://${runtime.hostname || 'localhost'}:${runtime.port}`)
-    } else {
-      console.log('\nAGI запускается. Через минуту проверьте: npm run serve:status')
+      const url = `http://${runtime.hostname || 'localhost'}:${runtime.port}`
+      const r = await ask(`${url}/api/health`)
+      if (r.ok) return url
     }
-  }, 3000)
+    await new Promise((res) => setTimeout(res, 2000))
+  }
+  return null
+}
+
+// 🔒 ТРИ АДРЕСА, У КАЖДОГО НАЗВАН АДРЕСАТ (371-1). ✗ оплачено на Mac 2026-10-02: агент отдал `localhost:24680` без
+// подписи, человек ждал сайт и попал в пульт. Пульт — это ядро (на него смотрит быстрый туннель — решение владельца того
+// же дня: «пусть на старте пользователь попадает в панель … без авторизации»); сайт — элемент `root` на своём порту.
+async function printAddresses(coreUrl) {
+  let rootPort = null
+  try {
+    const registry = JSON.parse(readFileSync(paths.REGISTRY_FILE, 'utf8'))
+    rootPort = (registry.services || []).find((s) => s.id === 'root')?.port ?? null
+  } catch { /* реестра нет */ }
+  const tunnel = readTunnel()
+  const internet = tunnel?.url && !tunnel.dead ? tunnel.url : null
+  console.log('')
+  console.log('===ADDRESSES===')
+  let own = null
+  try { own = JSON.parse(readFileSync(path.join(root, 'logs', 'domain.json'), 'utf8')).hostname || null } catch { /* домена нет */ }
+  if (own) console.log(`Свой домен (постоянный адрес): https://${own}`)
+  console.log(`Пульт узла в интернете (временный адрес, открыт без входа): ${internet ?? 'нет'}`)
+  console.log(`Пульт узла на этом компьютере: ${coreUrl}`)
+  console.log(`Сайт на этом компьютере: ${rootPort ? `http://localhost:${rootPort}` : 'элемент root не установлен'}`)
+  if (internet) {
+    console.log(`===PUBLIC_URL=== ${internet}`)
+    printAddressPrice()
+  }
 }
 
 function stop() {
@@ -495,7 +548,7 @@ function printAddressPrice() {
 //
 // Поэтому: туннель жив и адрес отвечает → печатаем ТОТ ЖЕ адрес. Новый выдаётся
 // только по явной просьбе — `npm run serve:publish -- --new`.
-async function publish() {
+async function publish({ quietPrice = false } = {}) {
   const wantNew = process.argv.includes('--new')
 
   if (!wantNew) {
@@ -515,14 +568,14 @@ async function publish() {
         console.log(`\nСАЙТ УЖЕ В ИНТЕРНЕТЕ: ${state.url}`)
         console.log('Адрес не меняю — по нему могли уже прийти люди.')
         console.log('Нужен именно новый адрес: npm run serve:publish -- --new')
-        printAddressPrice()
+        if (!quietPrice) printAddressPrice()
         return
       }
       console.log(`Прежний адрес (${state.url}) больше не отвечает — поднимаю новый.`)
     }
   }
 
-  // 🛑 Публикация — отдельное решение человека, поэтому и отдельная команда.
+  // 🪦 «Публикация — отдельное решение человека» отменено владельцем 2026-10-02: первый `serve:start` зовёт эту же функцию сам (371-1).
   // Сайт при этом должен уже работать: туннель без сайта отдаёт наружу пустоту.
   //
   // 🔒 СТАРЫЙ АДРЕС УДАЛЯЕТСЯ ДО ЗАПУСКА, И ЭТО НЕ УБОРКА, А СУТЬ. ✗ оплачено
@@ -578,31 +631,29 @@ async function publish() {
   // Адрес приходит из вывода cloudflared, поэтому ждём его появления в файле,
   // а не печатаем предположение.
   const срок = Date.now() + 30000
-  const ждать = () => {
+  while (Date.now() <= срок) {
     const адрес = readTunnel()
     if (адрес?.url) {
       console.log(`\nСАЙТ В ИНТЕРНЕТЕ: ${адрес.url}`)
-      printAddressPrice()
+      if (!quietPrice) printAddressPrice()
       return
     }
-    if (Date.now() > срок) {
-      console.log("Адрес пока не получен. Посмотрите: npm run serve:status")
-      return
-    }
-    setTimeout(ждать, 1000)
+    await new Promise((res) => setTimeout(res, 1000))
   }
-  ждать()
+  console.log("Адрес пока не получен. Посмотрите: npm run serve:status")
 }
 
 function unpublish() {
   pm2run(["stop", "fractera-agi-tunnel"], { quiet: true })
+  // 371-1: метка «человек сам убрал сайт» — следующий `serve:start` не выводит его в интернет без команды.
+  try { writeFileSync(tunnelFile, JSON.stringify({ ...(readTunnel() ?? {}), url: null, unpublished: true }, null, 2)) } catch { /* без метки start опубликует снова */ }
   pm2run(["save"], { quiet: true })
   console.log("Сайт убран из интернета. Локально он продолжает работать.")
 }
 
 const command = process.argv[2]
 
-if (command === 'start') start()
+if (command === 'start') await start()
 else if (command === 'stop') stop()
 else if (command === 'status') await status()
 else if (command === 'autostart') autostart()
