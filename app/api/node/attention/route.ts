@@ -12,8 +12,7 @@ import { isBornItem } from "@/app/[lang]/(architectLayer)/architect/[item]/_agen
 
 // ЧТО ЖДЁТ АРХИТЕКТОРА (узел, шаг 356-1). Слово владельца 2026-10-01: «если есть хотя бы один терминал или хотя бы одно развёртывание
 // в шапке … пульсирующий оранжевый индикатор … внутри я вижу только те развёртывания которые сейчас завершены и требуют внимания или
-// терминалы». Читает ящик «Мой аккаунт» ядра. Терминалы — та же карта сессий, что у `/api/agents/sessions` (только рождённые
-// элементы); развёртывания — только ГОТОВЫЕ предпросмотры (сервер жив): собирающийся ещё не требует решения.
+// терминалы». Читает ящик «Мой аккаунт» ядра. Терминалы — та же карта сессий, что у `/api/agents/sessions` (все, с 2026-10-02); развёртывания — только ГОТОВЫЕ предпросмотры (сервер жив): собирающийся ещё не требует решения.
 // Адреса — страницы ядра: терминал и «Развёртывания» элемента. Ворота architect/admin; на временном адресе — отказ.
 export const dynamic = "force-dynamic"
 
@@ -30,9 +29,16 @@ export async function GET(req: NextRequest) {
   const lang = /^[a-z]{2}(-[A-Za-z]{2,4})?$/.test(langParam) ? langParam : "en"
   const page = (id: string, slug: string) => `/${lang}/architect/${addressOf(id)}/build/${slug}`
 
+  // 🪦 «Только рождённые элементы» (345) отменено владельцем 2026-10-02: «да, показывай все терминалы в ящике» — любой открытый
+  // терминал нагружает компьютер и тратит подписку. Встроенные (root, auth, data, config, design, blocks, узел `build`) ведут
+  // на свою страницу терминала `/<язык>/architect/<служба>/terminal`, рождённые — на `…/<адрес>/build/terminal`.
   const terminals = (list() as Session[])
-    .filter((s) => s.running && isBornItem(s.service))
-    .map((s) => ({ id: s.service, name: addressOf(s.service), href: page(s.service, "terminal") }))
+    .filter((s) => s.running)
+    .map((s) =>
+      isBornItem(s.service)
+        ? { id: s.service, name: addressOf(s.service), href: page(s.service, "terminal") }
+        : { id: s.service, name: s.service, href: `/${lang}/architect/${s.service}/terminal` },
+    )
 
   let entries: Entry[] = []
   try { entries = (JSON.parse(readFileSync(paths.REGISTRY_FILE, "utf8")) as { services: Entry[] }).services ?? [] } catch { /* реестра нет — пусто */ }
