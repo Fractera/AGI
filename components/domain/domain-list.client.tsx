@@ -22,8 +22,11 @@ const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 type Extra = PipelineDomain & { holder: string | null }
 type List = { key: NodeKey; primary: { name: string; status: string | null } | null; extra: Extra[] }
 
+// 372 (владелец 2026-10-02): «Active» — статус ЗОНЫ в Cloudflare (домен там, серверы имён сменены) — зелёный; рядом второй значок
+// — подключён ли домен к узлу (стал основным или привязан к элементу): красный «Не подключён» → зелёный «Подключён». Одно «Active»
+// в шапке читалось как «всё готово», хотя кнопка «Сделать основным» ещё не нажата.
 const BADGE: Record<string, string> = {
-  active: "border-border text-foreground",
+  active: "border-success/50 text-success",
   pending: "border-border text-muted-foreground",
 }
 
@@ -95,6 +98,17 @@ export function DomainList({ lang, words: w, ladderWords, ladder }: { lang: stri
                 <span className={`rounded-md border px-1.5 text-[length:var(--fs-small)] ${BADGE[d.state] ?? "border-destructive/40 text-destructive"}`}>
                   {d.state === "pending" && d.status ? d.status : d.state}
                 </span>
+                {(() => {
+                  const connected = !!d.holder || list?.primary?.name === d.name
+                  return (
+                    <span
+                      className={`rounded-md border px-1.5 text-[length:var(--fs-small)] ${connected ? "border-success/50 text-success" : "border-destructive/50 text-destructive"}`}
+                      data-domain-connected={connected ? "yes" : "no"}
+                    >
+                      {connected ? w.connected : w.notConnected}
+                    </span>
+                  )
+                })()}
                 {d.holder && <span className="text-[length:var(--fs-small)] text-muted-foreground">→ {d.holder}</span>}
               </span>
             </AccordionTrigger>

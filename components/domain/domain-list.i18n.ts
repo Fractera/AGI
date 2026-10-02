@@ -13,6 +13,8 @@ export type DomainListWords = {
   rechecking: string
   remove: string
   attachedTo: string
+  connected: string
+  notConnected: string
   checkedAt: string
   docsAddSite: string
   docsToken: string
@@ -38,6 +40,8 @@ const DICT: Record<string, DomainListWords> = {
     rechecking: "Checking…",
     remove: "Remove from the list",
     attachedTo: "Connected to the element",
+    connected: "Connected",
+    notConnected: "Not connected",
     checkedAt: "Checked:",
     docsAddSite: "How to add a domain to Cloudflare",
     docsToken: "How to give the node's key access to one more zone",
@@ -136,6 +140,8 @@ const DICT: Record<string, DomainListWords> = {
     rechecking: "Проверяю…",
     remove: "Убрать из списка",
     attachedTo: "Подключён к элементу",
+    connected: "Подключён",
+    notConnected: "Не подключён",
     checkedAt: "Проверено:",
     docsAddSite: "Как добавить домен в Cloudflare",
     docsToken: "Как дать ключу узла доступ ещё к одной зоне",
