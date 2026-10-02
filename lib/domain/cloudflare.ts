@@ -315,6 +315,23 @@ export async function deleteDnsRecords(token: string, zoneId: string, name: stri
 // наша CNAME на туннель узла — не «все записи имени», как у удаления поддомена элемента (325-5): на корне домена рядом
 // живут почтовые и проверочные записи.
 
+/**
+ * Записи A и AAAA на этих именах — то, что помешает CNAME туннеля (372: подключение основного домена узла показывает их
+ * человеку ДО удаления; ✗ Mac 2026-10-02 «An A, AAAA, or CNAME record with that host already exists» — Cloudflare перенёс в
+ * новую зону записи, найденные у домена).
+ */
+export async function listAddressRecords(token: string, zoneId: string, names: string[]) {
+  const found: Array<{ name: string; type: string; content: string }> = []
+  for (const name of names) {
+    for (const type of ["A", "AAAA"]) {
+      const list = await send<Array<{ name: string; type: string; content: string }>>("GET", `/zones/${zoneId}/dns_records?name=${encodeURIComponent(name)}&type=${type}`, token)
+      if (!list.ok) return list
+      for (const r of list.result) found.push({ name: r.name, type: r.type, content: r.content })
+    }
+  }
+  return { ok: true as const, result: found }
+}
+
 /** Снять записи A и AAAA с этим именем — перед заведением CNAME туннеля. */
 export async function deleteAddressRecords(token: string, zoneId: string, name: string) {
   let removed = 0

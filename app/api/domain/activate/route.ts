@@ -6,7 +6,7 @@ import { join } from "node:path"
 import { getSession } from "@/lib/auth/get-session"
 import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
 import {
-  accountOfZone, createTunnel, findTunnel, listZones, setIngress, tunnelToken, upsertTunnelRecord,
+  accountOfZone, createTunnel, deleteAddressRecords, findTunnel, listAddressRecords, listZones, setIngress, tunnelToken, upsertTunnelRecord,
   type IngressRule,
 } from "@/lib/domain/cloudflare"
 import { serviceUrl } from "@/lib/microservices/registry"
@@ -84,9 +84,11 @@ export async function POST(req: NextRequest) {
   if (!key) return fail("no-key")
 
   let hostname = ""
+  let removeAddressRecords = false
   try {
-    const body = (await req.json()) as { hostname?: unknown }
+    const body = (await req.json()) as { hostname?: unknown; removeAddressRecords?: unknown }
     hostname = typeof body.hostname === "string" ? body.hostname.trim().toLowerCase() : ""
+    removeAddressRecords = body.removeAddressRecords === true
   } catch { return fail("bad-request") }
   if (!hostname || !hostname.includes(".")) return fail("bad-hostname")
 
@@ -102,6 +104,24 @@ export async function POST(req: NextRequest) {
     .sort((a, b) => b.name.length - a.name.length)[0]
   if (!zone) return fail("zone-not-found")
   if (zone.status !== "active") return fail(`zone-${zone.status}`)
+
+  // 🔒 ЧУЖИЕ АДРЕСНЫЕ ЗАПИСИ НА ИМЕНАХ УЗЛА — ПОКАЗАТЬ, А НЕ МОЛЧА СНЕСТИ (372). Слово владельца 2026-10-02: «может быть нам
+  // надо посвятить кнопку исправить эту ошибку и ты сам уберешь лишние записи? … записи для … Google, recent, то наверное их и
+  // не стоит удалять». Cloudflare переносит в новую зону записи, найденные у домена, и A/AAAA на корне, `architect.` или
+  // `auth.` не дают завести CNAME туннеля. Без подтверждения — ничего не меняется, ответ 409 со списком; с подтверждением
+  // снимаются ТОЛЬКО A и AAAA на этих именах (`deleteAddressRecords`, тот же закон, что у элементов, 324-3). MX, TXT и всё
+  // прочее (почта Google, Resend, проверки) не трогаются никогда. Проверка — до создания туннеля, чтобы не оставлять полдела.
+  const plannedNames = [hostname, serviceUrl("root") ? `architect.${zone.name}` : null, serviceUrl("auth") ? `auth.${zone.name}` : null]
+    .filter((n): n is string => !!n)
+  const conflicts = await listAddressRecords(key, zone.id, plannedNames)
+  if (!conflicts.ok) return fail(conflicts.reason)
+  if (conflicts.result.length > 0) {
+    if (!removeAddressRecords) return NextResponse.json({ ok: false, reason: "address-records", records: conflicts.result }, { status: 409 })
+    for (const n of plannedNames) {
+      const removed = await deleteAddressRecords(key, zone.id, n)
+      if (!removed.ok) return fail(removed.reason)
+    }
+  }
 
   const account = await accountOfZone(key, zone.id)
   if (!account.ok) return fail(account.reason)

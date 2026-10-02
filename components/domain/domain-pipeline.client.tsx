@@ -23,6 +23,8 @@ const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 const nsKey = (s: string) => s.trim().toLowerCase().replace(/\.$/, "")
 const sameNs = (a: string, b: string) => nsKey(a) === nsKey(b)
 
+type AddressRecord = { name: string; type: string; content: string }
+
 export type PipelineDomain = {
   name: string; state: string; status?: string; nameServers?: string[]; registrarNs?: string[]; nsMatch?: boolean
   activationAsked?: boolean; checkedAt?: string; registrar?: string | null
@@ -51,6 +53,7 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
 }) {
   const p = w.pipe
   const [busy, setBusy] = useState<string | null>(null)
+  const [conflicts, setConflicts] = useState<AddressRecord[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [noPermission, setNoPermission] = useState(false)
   const [note, setNote] = useState<string | null>(null)
@@ -96,13 +99,16 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
   }
 
   // 324-2: «Сделать основным доменом узла» — прежний шаг 5 лестницы (дверь activate): туннель, записи DNS, вход, адрес сайта.
-  async function makePrimary() {
+  // 372: чужие A/AAAA на именах узла дверь не сносит молча — отдаёт список (409 `address-records`); человек видит его и
+  // подтверждает удаление второй кнопкой (`removeAddressRecords: true`).
+  async function makePrimary(removeAddressRecords: boolean) {
     setBusy("primary")
     setError(null)
     try {
-      const r = await fetch(`${BASE}/api/domain/activate`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ hostname: d.name }) })
-      const j = (await r.json().catch(() => null)) as { ok?: boolean; reason?: string } | null
+      const r = await fetch(`${BASE}/api/domain/activate`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ hostname: d.name, removeAddressRecords }) })
+      const j = (await r.json().catch(() => null)) as { ok?: boolean; reason?: string; records?: AddressRecord[] } | null
       if (j?.ok) { window.location.reload(); return }
+      if (j?.reason === "address-records" && j.records?.length) { setConflicts(j.records); setBusy(null); return }
       setError(`${p.makePrimaryFailed} ${j?.reason ?? r.status}`)
     } catch { setError(p.makePrimaryFailed) }
     setBusy(null)
@@ -128,6 +134,8 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
 
   const zoneReady = d.state === "pending" || d.state === "active"
   const nsReady = zoneReady && (d.state === "active" || !!d.nsMatch)
+  // 372: домен активен, основного у узла ещё нет — главное действие шага — «Сделать основным доменом узла».
+  const primaryReady = d.state === "active" && !hasPrimary
 
   return (
     <div className="flex flex-col gap-2" data-domain-pipeline={d.name}>
@@ -217,21 +225,49 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
       <Step title={p.step3} done={d.state === "active"}>
         {!nsReady ? <p className="text-sm text-muted-foreground">{p.step3Wait}</p>
           : <p className="text-sm text-foreground">{d.state === "active" ? p.step3Done : p.step3Asked}</p>}
-        {d.state === "active" && !hasPrimary && (
+        {primaryReady && (
           <div className="mt-2 flex flex-col gap-1.5" data-pipe-make-primary>
             <p className="text-sm text-foreground">{p.makePrimaryNote}</p>
-            <Button type="button" className="w-fit" onClick={makePrimary} disabled={busy !== null}>
-              {busy === "primary" ? p.makingPrimary : p.makePrimary}
-            </Button>
+            {/* 372 (владелец 2026-10-02): после подтверждённой проверки главное действие — «Сделать основным», на всю ширину;
+                «Проверить снова» — ссылкой ниже. */}
+            {!conflicts && (
+              <Button type="button" size="lg" className="w-full" onClick={() => makePrimary(false)} disabled={busy !== null}>
+                {busy === "primary" ? p.makingPrimary : p.makePrimary}
+              </Button>
+            )}
+            {conflicts && (
+              <div className="flex flex-col gap-2 rounded-md border border-destructive/50 bg-destructive/5 p-3" data-pipe-conflicts>
+                <p className="text-sm text-foreground">{p.conflictsTitle}</p>
+                <ul className="flex flex-col gap-0.5 font-mono text-sm text-destructive">
+                  {conflicts.map((c) => (
+                    <li key={`${c.name}-${c.type}-${c.content}`} className="flex items-center gap-1.5">
+                      <X className="size-4 shrink-0" aria-hidden />
+                      {c.name} · {c.type} · {c.content}
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-sm text-muted-foreground">{p.conflictsNote}</p>
+                <Button type="button" size="lg" variant="destructive" className="w-full" onClick={() => makePrimary(true)} disabled={busy !== null} data-pipe-remove-and-connect>
+                  {busy === "primary" ? p.makingPrimary : p.removeAndConnect}
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </Step>
 
       {/* Кнопка на всю ширину (слово владельца: «сделай её больше шире … всю ширину»); до ступени 1 проверять нечего —
-          зоны нет, и ключ, который её создаст, ещё не сохранён. */}
-      <Button type="button" size="lg" className="w-full" onClick={check} disabled={!zoneReady || busy !== null} data-pipe-check>
-        {busy === "check" ? p.checking : p.check}
-      </Button>
+          зоны нет, и ключ, который её создаст, ещё не сохранён. Когда главное действие — «Сделать основным», проверка
+          уходит в ссылку «Проверить снова» (372). */}
+      {primaryReady ? (
+        <Button type="button" variant="link" size="sm" className="self-start px-0 underline" onClick={check} disabled={busy !== null} data-pipe-check>
+          {busy === "check" ? p.checking : p.checkAgain}
+        </Button>
+      ) : (
+        <Button type="button" size="lg" className="w-full" onClick={check} disabled={!zoneReady || busy !== null} data-pipe-check>
+          {busy === "check" ? p.checking : p.check}
+        </Button>
+      )}
       {!zoneReady && <p className="text-sm text-muted-foreground" data-pipe-check-locked>{p.checkLocked}</p>}
       {note && <p className="text-sm text-foreground" role="status" data-pipe-note>{note}</p>}
       {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
