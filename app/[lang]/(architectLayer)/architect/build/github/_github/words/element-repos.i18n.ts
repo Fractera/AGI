@@ -26,6 +26,8 @@ export type ElementReposWords = {
   jobInterrupted: string
   jobNow: string
   rateWait: string
+  rateTitle: string
+  rowWait: string
   mapPushed: string
   mapAuthor: string
   mapFailed: string
@@ -64,7 +66,9 @@ const DICT: Record<"en" | "ru", ElementReposWords> = {
     pushedNow: "Sent: {commit}",
     jobRunning: "The node is creating repositories (started {at}). Press Refresh to see the progress.",
     jobDone: "Last run {at}: created or found {ok} of {all}.",
-    rateWait: "GitHub temporarily stopped this account from creating repositories (a secondary rate limit). The node stopped at once — GitHub warns that requests during the block can get an integration banned. Press «Create the missing repositories» after {at}; what was already created is picked up.",
+    rateTitle: "GitHub allows creating repositories again in",
+    rowWait: "waits for GitHub",
+    rateWait: "GitHub temporarily stopped this account from creating repositories (a secondary rate limit). The node stopped at once — GitHub warns that requests during the block can get an integration banned. When the clock reaches zero (at {at}) the button «Create the missing repositories» comes back; what was already created is picked up.",
     jobNow: "Now: {id} (done {done} of {total}). A required item first fetches its whole history from Fractera — a few minutes each.",
     jobInterrupted: "The run started {at} was interrupted — the node restarted while it worked. Press «Create the missing repositories» again: what was already created is picked up.",
     mapPushed: "The project map went to your fork — a clone of the fork restores every item.",
@@ -130,7 +134,9 @@ const DICT: Record<"en" | "ru", ElementReposWords> = {
     pushedNow: "Отправлено: {commit}",
     jobRunning: "Узел создаёт репозитории (начал в {at}). Нажмите «Обновить», чтобы увидеть ход.",
     jobDone: "Последний запуск {at}: создано или найдено {ok} из {all}.",
-    rateWait: "GitHub временно запретил этому аккаунту создавать репозитории (вторичный предел). Узел сразу остановился — GitHub предупреждает, что запросы во время запрета могут закончиться блокировкой. Нажмите «Создать недостающие репозитории» после {at}; уже созданное будет подхвачено.",
+    rateTitle: "GitHub снова разрешит создавать репозитории через",
+    rowWait: "ждёт GitHub",
+    rateWait: "GitHub временно запретил этому аккаунту создавать репозитории (вторичный предел). Узел сразу остановился — GitHub предупреждает, что запросы во время запрета могут закончиться блокировкой. Когда отсчёт дойдёт до нуля (в {at}), вернётся кнопка «Создать недостающие репозитории»; уже созданное будет подхвачено.",
     jobNow: "Сейчас: {id} (готово {done} из {total}). Обязательный элемент сначала дотягивает всю свою историю с Fractera — по несколько минут на каждый.",
     jobInterrupted: "Запуск {at} прерван — узел перезапустился во время работы. Нажмите «Создать недостающие репозитории» ещё раз: уже созданное будет подхвачено.",
     mapPushed: "Карта проекта отправлена в ваш форк — клон форка восстановит каждый элемент.",
