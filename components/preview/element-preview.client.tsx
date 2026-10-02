@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { OpenOnThisComputerButton } from "@/components/node-state/open-on-this-computer.client"
 import { CircleHelp, Copy, ExternalLink, Highlighter, PanelRightClose, RefreshCw, Search, SquareTerminal } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -48,6 +49,8 @@ export type ElementPreviewWords = {
   blockedHttps: string
   connectAddress: string
   openNew: string
+  /** 372-4: на временном адресе — та же страница пульта на этом компьютере, где просмотр работает. */
+  openHere: string
   reload: string
   reloading: string
   reloaded: string
@@ -174,6 +177,8 @@ export function ElementPreview({ serviceId, terminalService, homeHref, lang, wor
       <div className="flex flex-col gap-2 rounded-lg border border-warning/50 bg-warning/10 p-3 text-sm" role="status" data-preview-blocked>
         <p className="text-foreground">{words.blockedHttps}</p>
         <div className="flex flex-wrap gap-2">
+          {/* 372-4: на временном адресе просмотр живёт на пульте этого компьютера (решение владельца «внутри пульта»). */}
+          <OpenOnThisComputerButton open={words.openHere} />
           {homeHref && <a href={`${BASE}${homeHref}`} className={buttonVariants({ size: "sm" })} data-preview-connect>{words.connectAddress}</a>}
           <a href={state.url} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "outline", size: "sm", className: "gap-1.5" })}>
             <ExternalLink className="size-4" aria-hidden />

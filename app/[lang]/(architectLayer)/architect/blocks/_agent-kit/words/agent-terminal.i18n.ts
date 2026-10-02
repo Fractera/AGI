@@ -24,6 +24,9 @@ export type AgentTerminalWords = {
   exited: string
   offline: string
   forbidden: string
+  /** 372-2: выход из отказа на временном адресе. */
+  exitWhy: string
+  exitOpen: string
   /** Окно вставки (шаг 316). */
   paste: string
   pasteTitle: string
@@ -61,6 +64,8 @@ const DICT: Record<string, AgentTerminalWords> = {
     exited: "The agent has finished.",
     offline: "The connection to the node was lost.",
     forbidden: "The terminal is open only to the architect, and only from this computer or your own domain.",
+    exitWhy: "This is closed on the temporary internet address so that nobody with the link can run commands on your computer. Open this page on the computer where the node runs, or connect your own domain.",
+    exitOpen: "Open on this computer",
     paste: "Paste",
     pasteTitle: "Paste into the terminal",
     pasteText: "The text goes into the agent's input line as one paste. Nothing reaches the agent until you press a button below.",
@@ -95,6 +100,8 @@ const DICT: Record<string, AgentTerminalWords> = {
     exited: "Агент завершил работу.",
     offline: "Связь с узлом потеряна.",
     forbidden: "Терминал открыт только архитектору и только с этого компьютера или со своего домена.",
+    exitWhy: "На временном адресе в интернете это закрыто, чтобы никто по ссылке не мог выполнять команды на вашем компьютере. Откройте эту страницу на компьютере, где работает узел, или подключите свой домен.",
+    exitOpen: "Открыть на этом компьютере",
     paste: "Вставить",
     pasteTitle: "Вставить в терминал",
     pasteText: "Текст встанет в строку ввода агента одной вставкой. До агента ничего не дойдёт, пока вы не нажмёте кнопку ниже.",

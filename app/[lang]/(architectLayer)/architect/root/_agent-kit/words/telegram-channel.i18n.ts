@@ -6,6 +6,9 @@
 export type TelegramChannelWords = {
   loading: string
   forbidden: string
+  /** 372-2: выход из отказа на временном адресе. */
+  exitWhy: string
+  exitOpen: string
   intro: string
 
   step1Title: string
@@ -64,6 +67,8 @@ const DICT: Record<string, TelegramChannelWords> = {
   en: {
     loading: "Asking the node…",
     forbidden: "Only the architect can set up the bot, and only from this computer or your own domain.",
+    exitWhy: "This is closed on the temporary internet address so that nobody with the link can run commands on your computer. Open this page on the computer where the node runs, or connect your own domain.",
+    exitOpen: "Open on this computer",
     intro:
       "You write to your own bot in Telegram, and Claude Code answers from the folder of this service on this computer. The bot, its token and its list of allowed people are yours — nothing passes through Fractera.",
 
@@ -134,6 +139,8 @@ const DICT: Record<string, TelegramChannelWords> = {
   ru: {
     loading: "Спрашиваю узел…",
     forbidden: "Настраивать бота может только архитектор и только с этого компьютера или со своего домена.",
+    exitWhy: "На временном адресе в интернете это закрыто, чтобы никто по ссылке не мог выполнять команды на вашем компьютере. Откройте эту страницу на компьютере, где работает узел, или подключите свой домен.",
+    exitOpen: "Открыть на этом компьютере",
     intro:
       "Вы пишете своему боту в Telegram, а отвечает Claude Code из папки этой службы на этом компьютере. Бот, его токен и список допущенных — ваши; через Fractera не проходит ничего.",
 

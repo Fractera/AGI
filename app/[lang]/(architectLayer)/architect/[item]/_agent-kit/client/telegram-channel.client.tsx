@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { ForbiddenWithExit } from "@/components/node-state/open-on-this-computer.client"
 import { Check, ExternalLink, Lock, Send, TerminalSquare, TriangleAlert } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -155,7 +156,7 @@ export function TelegramChannel({ service, lang, words }: { service: string; lan
     if (r.ok) load()
   }
 
-  if (state === "forbidden") return <p className="my-6 text-muted-foreground text-sm">{words.forbidden}</p>
+  if (state === "forbidden") return <ForbiddenWithExit reason={words.forbidden} why={words.exitWhy} open={words.exitOpen} />
   if (state === null) return <p className="my-6 text-muted-foreground text-sm">{words.loading}</p>
 
   const terminalHref = `/${lang}/architect/${service}/terminal`

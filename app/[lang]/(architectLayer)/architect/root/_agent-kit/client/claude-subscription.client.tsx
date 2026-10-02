@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { ForbiddenWithExit } from "@/components/node-state/open-on-this-computer.client"
 import { Check, CircleAlert, Copy, ExternalLink, KeyRound, RotateCw, X } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { AppDialog } from "@/components/dialog/app-dialog.client"
@@ -159,7 +160,7 @@ export function ClaudeSubscription({ service, lang, words }: { service: string; 
     [send],
   )
 
-  if (auth === "forbidden") return <p className="my-6 text-muted-foreground text-sm">{words.forbidden}</p>
+  if (auth === "forbidden") return <ForbiddenWithExit reason={words.forbidden} why={words.exitWhy} open={words.exitOpen} />
 
   const state = auth === "checking" ? null : auth
   const on = state?.loggedIn === true

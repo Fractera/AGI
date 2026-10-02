@@ -23,10 +23,10 @@ ITEMS, created with «Create AGI ITEM» — as many as the computer can carry. T
    folder — name it the way you want to see it.
 3. **Paste the link and write: «launch this».**
 
-That is all. In a few minutes your node is running and already on the internet at a temporary Cloudflare address. The agent
-gives you three addresses: the node's control panel on the internet, the same panel on this computer, and your site on this
-computer. Until you connect your own domain the panel opens without sign-in and a red bar says so — connect your domain
-before you start using sign-in. Then your own agent meets you and shows how this project becomes your fastest way to build
+That is all. In a few minutes your node is running and already on the internet. The agent gives you one link — «Your journey
+into the world of AGI starts here» — your node's control panel at a temporary Cloudflare address. There it is read-only and
+shows a red bar until you connect your own domain; agent terminals and your Claude subscription open with «Open on this
+computer» on the machine where the node runs. Connect your own domain before you start using sign-in. Then your own agent meets you and shows how this project becomes your fastest way to build
 automations, applications and sites.
 
 **What you have from the first minute**
@@ -80,14 +80,17 @@ The person pasted a link to this repository (or to their fork of it) and asked y
    agent terminals on the node's pages will not start.
 4. **Start it:** `npm run serve:start`. The first start also installs the node's elements (sign-in `auth`, data `data`,
    the site `root`) from their own repositories — it takes a few minutes; wait for it. Then it puts the node on the internet
-   by itself at a temporary Cloudflare address — do not ask whether to publish, it is already done (`serve:publish` is only
-   for a person who took the node off with `serve:unpublish`).
-5. **Give the person the three addresses** printed after `===ADDRESSES===`, each with its label, never one bare address:
-   the node's **control panel on the internet** (`https://….trycloudflare.com`, after `===PUBLIC_URL===`), the same **panel on
-   this computer** (normally `http://localhost:24680`) and **the site on this computer** (the `root` element, its own port).
-   `npm run serve:status` measures the same again. Say plainly: the internet address is temporary — it changes when the tunnel
-   restarts; until the person connects their own domain the panel opens there without sign-in (a red bar on every panel page
-   says so), and sign-in exists only on their own domain — so connect the domain before starting to use sign-in.
+   by itself at a temporary Cloudflare address — do not ask whether to publish, do not undo it, it is already done
+   (`serve:publish` is only for a person who took the node off with `serve:unpublish`). It is safe by design: on the temporary
+   address the panel is **read-only** — every request that changes something (terminals, the Claude subscription, keys,
+   domain, GitHub, creating or deleting elements, deploys, uploads, paid AI calls) is refused by the node itself
+   (`proxy.ts`, `reason: "temporary-address"`); those screens offer «Open on this computer», which opens the same page at
+   `http://localhost:24680` on this machine, where everything works.
+5. **Give the person ONE link** — the line after `===PUBLIC_URL===`, with the words the start prints: «Your journey into the
+   world of AGI starts here: <link>» (in Russian: «Здесь начинается ваше путешествие в мире AGI: <link>»). It opens the node's
+   control panel on the internet. The lines under `===ADDRESSES===` are a reference for this computer — do not hand them out
+   as the result. Say plainly in one sentence: the address is temporary and changes when the tunnel restarts; connect your
+   own domain before using sign-in.
 6. **Their own domain comes later, from the panel:** «Domain and hosting → Domain activation» (their domain added to a free
    Cloudflare account, a Cloudflare key the page helps to create). Do not offer it during the install. With their own domain
    the panel closes behind sign-in. A node's site lives on this computer, so it answers while the computer is on; an element

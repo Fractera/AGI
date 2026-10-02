@@ -194,18 +194,27 @@ async function printAddresses(coreUrl) {
   } catch { /* реестра нет */ }
   const tunnel = readTunnel()
   const internet = tunnel?.url && !tunnel.dead ? tunnel.url : null
-  console.log('')
-  console.log('===ADDRESSES===')
   let own = null
-  try { own = JSON.parse(readFileSync(path.join(root, 'logs', 'domain.json'), 'utf8')).hostname || null } catch { /* домена нет */ }
-  if (own) console.log(`Свой домен (постоянный адрес): https://${own}`)
-  console.log(`Пульт узла в интернете (временный адрес, открыт без входа): ${internet ?? 'нет'}`)
+  let architectHost = null
+  try {
+    const d = JSON.parse(readFileSync(path.join(root, 'logs', 'domain.json'), 'utf8'))
+    own = d.hostname || null
+    architectHost = d.architectHostname || null
+  } catch { /* домена нет */ }
+  // 🔒 ИТОГ — ОДНА ССЫЛКА (372-3). Слово владельца 2026-10-02: «заканчивается установка и ссылка: Здесь начинается ваша
+  // путешествия в мире AGI: адрес сети интернет открывающий административную панель». ✗ 371 печатал три равных адреса — человек
+  // не знал, какой его. Главная строка — пульт в интернете (свой домен → `architect.<зона>`, иначе временный адрес); адреса этого
+  // компьютера — ниже, справкой. Агент отдаёт человеку только главную строку (README).
+  const journey = own ? `https://${architectHost || own}` : internet ?? coreUrl
+  console.log('')
+  console.log(`===PUBLIC_URL=== ${journey}`)
+  console.log(`Здесь начинается ваше путешествие в мире AGI: ${journey}`)
+  console.log(`Your journey into the world of AGI starts here: ${journey}`)
+  console.log('')
+  console.log('===ADDRESSES=== (справка: на этом компьютере)')
   console.log(`Пульт узла на этом компьютере: ${coreUrl}`)
   console.log(`Сайт на этом компьютере: ${rootPort ? `http://localhost:${rootPort}` : 'элемент root не установлен'}`)
-  if (internet) {
-    console.log(`===PUBLIC_URL=== ${internet}`)
-    printAddressPrice()
-  }
+  if (!own && internet) printAddressPrice()
 }
 
 function stop() {

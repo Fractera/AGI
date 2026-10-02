@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { AlertTriangle, ChevronDown, ClipboardPaste, Eraser, Moon, Play, Square } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ForbiddenWithExit } from "@/components/node-state/open-on-this-computer.client"
 import type { AppDialogUi } from "@/components/dialog/app-dialog.i18n"
 import { bracketedPaste, cleanPaste, pasteFromSearch } from "./terminal-paste.mjs"
 import { TerminalPasteDialog } from "@/_tools/terminal-paste/client/terminal-paste-dialog.client"
@@ -188,7 +189,7 @@ export function AgentTerminal({ service, lang, words, dialogUi, initialPaste, ke
   )
 
   if (state === "forbidden") {
-    return <p className="my-6 text-muted-foreground text-sm">{words.forbidden}</p>
+    return <ForbiddenWithExit reason={words.forbidden} why={words.exitWhy} open={words.exitOpen} />
   }
 
   const live = state === "running" || state === "connecting"
