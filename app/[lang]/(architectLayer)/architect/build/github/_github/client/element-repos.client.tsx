@@ -69,9 +69,10 @@ export function ElementRepos({ words: w, lang }: { words: ElementReposWords; lan
 
   const why = (code?: string) => (code ? w.errors[code] ?? `${w.errors.unknown} ${code}` : "")
 
-  async function create() {
-    setBusy("*")
-    await fetch(`${BASE}/api/node/github-backup`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "create" }) }).catch(() => null)
+  // 381: по одному — кнопка в строке элемента; пока идёт работа, все кнопки неактивны.
+  async function create(id: string) {
+    setBusy(id)
+    await fetch(`${BASE}/api/node/github-backup`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "create", id }) }).catch(() => null)
     await load()
     setBusy(null)
   }
@@ -130,11 +131,6 @@ export function ElementRepos({ words: w, lang }: { words: ElementReposWords; lan
       <p className="text-sm text-muted-foreground">{w.intro}</p>
       {!state.token && <p className="text-sm text-destructive" role="alert">{w.noToken}</p>}
       <div className="flex flex-wrap items-center gap-2">
-        {state.token && !waiting && (
-          <Button type="button" size="sm" onClick={create} disabled={busy !== null || job.running} data-element-repos-create>
-            {job.running || busy === "*" ? w.creating : w.create}
-          </Button>
-        )}
         <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={() => void load()} disabled={busy !== null}>
           <RefreshCw className="size-4" aria-hidden />
           {w.refresh}
@@ -257,6 +253,11 @@ export function ElementRepos({ words: w, lang }: { words: ElementReposWords; lan
                     {row.update?.available && !row.update.merging && (
                       <Button type="button" size="sm" onClick={() => void update(row)} disabled={busy !== null} data-element-update-run={row.id}>
                         {busy === row.id ? w.updating : w.update}
+                      </Button>
+                    )}
+                    {!row.repo && row.tokenSource && row.present && !waiting && (
+                      <Button type="button" size="sm" onClick={() => void create(row.id)} disabled={busy !== null || job.running} data-element-repo-create={row.id}>
+                        {job.running && job.current === row.id ? w.creating : w.createOne}
                       </Button>
                     )}
                     {row.repo && row.tokenSource && (

@@ -32,7 +32,7 @@ function write(job: ReposJob) {
 }
 
 /** Запустить создание репозиториев, если оно не идёт. Возвращает сразу. */
-export function startReposJob(): ReposJob {
+export function startReposJob(only?: string): ReposJob {
   if (g.__agiReposJob) return readReposJob()
   const prev = readReposJob()
   if (prev.retryAt && Date.parse(prev.retryAt) > Date.now()) return prev
@@ -42,7 +42,7 @@ export function startReposJob(): ReposJob {
     try {
       // 378: ход виден — какой элемент сейчас и сколько готово (владелец ждал «4 минуты» вслепую).
       // 380: ход — какой элемент, какая фаза, уже готовые с итогом (страница показывает их живьём, пока идёт работа).
-      const r = await createAllElementRepos((current, done, total, phase, results) => write({ running: true, pid: process.pid, startedAt, current, phase, done, total, results: [...results] }))
+      const r = await createAllElementRepos((current, done, total, phase, results) => write({ running: true, pid: process.pid, startedAt, current, phase, done, total, results: [...results] }), only)
       write({ running: false, startedAt, finishedAt: new Date().toISOString(), results: r.results, retryAt: r.retryAt, map: saveNodeMap() })
     } catch {
       write({ running: false, startedAt, finishedAt: new Date().toISOString(), results: [] })

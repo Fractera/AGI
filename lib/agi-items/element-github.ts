@@ -147,7 +147,7 @@ export async function connectElementGithub(id: string, rawRepo: string, rawToken
   // ничего не пишет.
   const dir = elementDir(id)
   if (dir) {
-    const probe = spawnSync("git", ["-C", dir, "-c", "credential.helper=", "push", "--dry-run", `https://x-access-token:${token}@github.com/${where.owner}/${where.repo}.git`, "HEAD:main"], {
+    const probe = spawnSync("git", ["-C", dir, "-c", "credential.helper=", "push", "--dry-run", `https://x-access-token:${token}@github.com/${where.owner}/${where.repo}.git`, "HEAD:refs/heads/main"], {
       encoding: "utf8", windowsHide: true, timeout: 60_000, env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
     })
     if (probe.status !== 0) {
@@ -188,7 +188,7 @@ export function pushElement(id: string, commit: boolean) {
     }
   }
   const url = `https://x-access-token:${token}@github.com/${repo}.git`
-  const r = git(dir, ["push", url, "HEAD:main"])
+  const r = git(dir, ["push", url, "HEAD:refs/heads/main"])
   if (r.rc !== 0) {
     // Причина — машинным словом; сам вывод остаётся здесь, в нём адрес с ключом.
     // 🛑 `[remote rejected]` — общее слово GitHub для ЛЮБОГО отказа; «другая история» — только non-fast-forward / fetch first
@@ -287,7 +287,7 @@ export async function createElementRepo(id: string, token: string, login: string
   }
   if (git(dir, ["rev-parse", "--verify", "--quiet", "HEAD"]).rc !== 0) return { id, ok: false, error: "no-commits", repo: full }
   phase?.("upload")
-  const r = git(dir, ["push", `https://x-access-token:${token}@github.com/${full}.git`, "HEAD:main"])
+  const r = git(dir, ["push", `https://x-access-token:${token}@github.com/${full}.git`, "HEAD:refs/heads/main"])
   if (r.rc !== 0) {
     const error = /without `?workflow`? scope/i.test(r.out) ? "needs-workflow" : /403|denied/i.test(r.out) ? "no-write" : /not found/i.test(r.out) ? "repo-not-found" : "push-failed"
     return { id, ok: false, error, repo: full, detail: gitDetail(r.out, token) }
@@ -302,11 +302,13 @@ export async function createElementRepo(id: string, token: string, login: string
 // one second between each request»; отказ по пределу — не повторять раньше `retry-after` (иначе минута), и «Continuing to make
 // requests while you are rate limited may result in the banning of your integration». ✗ Mac 2026-10-02: первый отказ «secondary rate
 // limit», а узел постучался ещё пятью запросами. Теперь первый отказ по пределу останавливает запуск, остальным — «отложено».
-export async function createAllElementRepos(onStep?: (id: string, done: number, total: number, phase: RepoPhase | null, results: RepoResult[]) => void): Promise<{ ok: boolean; error?: string; results: RepoResult[]; retryAt?: string }> {
+export async function createAllElementRepos(onStep?: (id: string, done: number, total: number, phase: RepoPhase | null, results: RepoResult[]) => void, only?: string): Promise<{ ok: boolean; error?: string; results: RepoResult[]; retryAt?: string }> {
   let ids: string[] = []
   try {
     ids = ((JSON.parse(readFileSync(paths.REGISTRY_FILE, "utf8")) as { services?: RegistryEntry[] }).services ?? []).map((e) => e.id)
   } catch { return { ok: false, error: "registry-unreadable", results: [] } }
+  // 381 (владелец 2026-10-02: «давай делать по одному репозиторию … шаг за шагом все по очереди»): кнопка в строке — один элемент.
+  if (only) ids = ids.filter((x) => x === only)
   const results: RepoResult[] = []
   const logins = new Map<string, string | null>()
   for (const id of ids) {
