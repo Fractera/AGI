@@ -179,8 +179,23 @@ async function channelLaunch(service, env) {
   return {
     ok: true,
     env: withBins,
-    args: ['--channels', `plugin:${PLUGIN}`, '--add-dir', stateDir(service), '--permission-mode', 'auto'],
+    args: ['--channels', `plugin:${PLUGIN}`, '--add-dir', stateDir(service), '--permission-mode', 'auto', ...githubRule(service)],
   }
+}
+
+/**
+ * 374-4 (слово владельца 2026-10-02: «работу через Telegram бот, коммит автоматически всегда» — «коммит и сразу отправка в
+ * GitHub»; в терминале — «нельзя запрещать делать коммит по требованию»). Правило дописывается к запуску агента ЭЛЕМЕНТА: агент
+ * узла (`workspace: node`) правит само ядро, его отправка в GitHub — не этот путь. Один комплект на все элементы — правило
+ * получают все, без правки репозиториев элементов. Команда — скрипт ядра по абсолютному пути (дверь «Отправить» по петле).
+ */
+function githubRule(service) {
+  const manifestFile = path.join(process.cwd(), 'app', '[lang]', '(architectLayer)', 'architect', String(service), 'agent-kit.json')
+  try {
+    if (JSON.parse(readFileSync(manifestFile, 'utf8')).workspace === 'node') return []
+  } catch { /* общая копия [item] или служба без манифеста — элемент */ }
+  const script = path.join(process.cwd(), 'scripts', 'element-github-push.mjs')
+  return ['--append-system-prompt', `GitHub rule of this AGI ITEM (node step 374). When a task comes through the Telegram channel, finish it, commit your changes and immediately send them to GitHub by running: node "${script}" ${service} — then tell the person the line it printed (===GITHUB_PUSH_OK=== or the reason). For a task typed in this terminal, commit as your instructions say and send to GitHub only when the person asks — with the same command.`]
 }
 
 // ── СИСТЕМНОЕ СООБЩЕНИЕ О СОСТОЯНИИ ───────────────────────────────────────────

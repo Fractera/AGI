@@ -104,6 +104,42 @@ if (!existsSync(REGISTRY)) {
   process.exit(1)
 }
 const registry = JSON.parse(readFileSync(REGISTRY, 'utf8'))
+
+// ── 374-5: ВОССТАНОВЛЕНИЕ ПРОЕКТА ИЗ СВОЕГО ФОРКА ──────────────────────────────
+// Слово владельца 2026-10-02: «Если нужно восстановить весь проект то просто делаем Fork основного проекта» — уточнено: клон
+// СВОЕГО форка. В нём снимок карты `AGI-ITEMS-CONFIG/agi-items.node.json` (пишет узел, 374-1): все элементы с адресом и
+// репозиторием человека. 🔒 Снимок читается ТОЛЬКО на свежей машине — нет `data/services`: на живом узле реестр и есть правда,
+// а снимок мог отстать (удалённый с тех пор элемент воскрес бы). Свой домен и туннель снимок не возвращает (решение: отложено).
+const SNAPSHOT_FILE = join(ROOT, 'AGI-ITEMS-CONFIG', 'agi-items.node.json')
+if (!existsSync(join(ROOT, 'data', 'services')) && existsSync(SNAPSHOT_FILE)) {
+  let snap = null
+  try { snap = JSON.parse(readFileSync(SNAPSHOT_FILE, 'utf8')) } catch { say('  снимок карты не прочитан — восстанавливать нечего') }
+  for (const s of Array.isArray(snap?.services) ? snap.services : []) {
+    if (!s || typeof s.id !== 'string') continue
+    const e = registry.services.find((x) => x.id === s.id)
+    if (!e) registry.services.push({ ...s })
+    else if (s.github && !e.github) e.github = s.github
+    if (typeof s.address === 'string' && s.address !== s.id) {
+      const f = join(ROOT, 'data', 'services', s.id, 'address.json')
+      mkdirSync(dirname(f), { recursive: true })
+      writeFileSync(f, JSON.stringify({ address: s.address, at: new Date().toISOString(), restored: true }, null, 2) + '\n', 'utf8')
+    }
+    say(`  карта узла: «${s.id}»${s.github ? ` — из ${s.github}` : ''}`)
+  }
+}
+
+/** Ключ GitHub для восстановления: свой элемента → общий узла (`data/node/github/.env`) → `FRACTERA_GITHUB_TOKEN`. */
+function githubToken(id) {
+  for (const f of [join(ROOT, 'data', 'services', id, 'github', '.env'), join(ROOT, 'data', 'node', 'github', '.env')]) {
+    try {
+      const line = readFileSync(f, 'utf8').split(/\r?\n/).find((l) => l.startsWith('GITHUB_TOKEN='))
+      const t = line?.slice('GITHUB_TOKEN='.length).trim()
+      if (t) return t
+    } catch { /* нет файла */ }
+  }
+  return process.env.FRACTERA_GITHUB_TOKEN?.trim() || null
+}
+
 if (!Array.isArray(registry.services) || registry.services.length === 0) {
   say('  В составе узла нет ни одного блока — ставить нечего.')
   say('===SERVICES_INSTALL_OK===')
@@ -506,6 +542,30 @@ for (const entry of registry.services) {
   // стёрла бы эту работу молча. Версия для правил «пересобрать ли» — тег шаблона плюс текущий коммит элемента: правка
   // агента, закоммиченная в его папке, даёт новую версию и новую сборку.
   let version = entry.version
+  // 374-5: у элемента есть репозиторий человека, а папки нет — это восстановление: клон оттуда, со всей историей. Ключ в адрес —
+  // только на время клона; `origin` остаётся чистым адресом. У обязательного элемента Fractera становится `upstream` (374-7).
+  if (entry.github && !existsSync(join(dir, '.git'))) {
+    const token = githubToken(entry.id)
+    if (!token) {
+      say(`  ОШИБКА: элемент живёт в репозитории ${entry.github}, а ключа GitHub нет — добавьте ключ на странице GitHub узла и повторите`)
+      failed += 1
+      continue
+    }
+    if (existsSync(dir)) rmSync(dir, { recursive: true, force: true })
+    mkdirSync(dirname(dir), { recursive: true })
+    const c = run('git', ['-c', 'credential.helper=', 'clone', '--quiet', `https://x-access-token:${token}@github.com/${entry.github}.git`, dir], ROOT, { env: { GIT_TERMINAL_PROMPT: '0' } })
+    if (c.rc !== 0) {
+      say(`  ОШИБКА восстановления из ${entry.github}: репозиторий не склонирован (ключ не видит его или сети нет)`)
+      failed += 1
+      continue
+    }
+    run('git', ['remote', 'set-url', 'origin', `https://github.com/${entry.github}.git`], dir)
+    if (!entry.born && entry.repo) {
+      run('git', ['remote', 'add', 'upstream', entry.repo], dir)
+      run('git', ['fetch', '--quiet', '--tags', 'upstream'], dir)
+    }
+    say(`  восстановлен из ${entry.github}`)
+  }
   if (entry.born) {
     if (!existsSync(join(dir, '.git'))) {
       say('  ОШИБКА: папки рождённого элемента нет — его код существовал только здесь, восстановить его неоткуда')
@@ -516,8 +576,27 @@ for (const entry of registry.services) {
     version = `${entry.born.version ?? 'born'}+${commit || 'no-commit'}`
     say(`  рождён из ${entry.born.from ?? 'шаблона'} ${entry.born.version ?? ''} — код элемента не трогаю, версия ${version}`)
   } else {
+    // 374-7: у обязательного элемента своя работа поверх тега (слово владельца 2026-10-02: «пользователь их меняет … прогрессирует
+    // ровно точно также как и любой другой AGI ITEMS»). Тег Fractera — его предок, а HEAD ушёл дальше: переход на тег стёр бы
+    // эту работу из работающего элемента. Такой элемент не переводится на тег; версия — тег+коммит, как у рождённого; новый
+    // тег Fractera вливается кнопкой «Обновить» (конфликт — агенту элемента).
+    const fractera = existsSync(join(dir, '.git')) && run('git', ['remote', 'get-url', 'upstream'], dir, { quiet: true }).rc === 0 ? 'upstream' : 'origin'
+    let ownWork = false
+    // Своя работа — коммиты, которых нет ни в одном теге Fractera (сверка не с тегом реестра: после выпуска нового тега правки
+    // лежат поверх СТАРОГО, и сверка с новым их бы не увидела).
+    if (existsSync(join(dir, '.git'))) {
+      run('git', ['fetch', '--quiet', '--tags', fractera], dir)
+      ownWork = Number(run('git', ['rev-list', '--count', 'HEAD', '--not', '--tags'], dir).out.trim() || '0') > 0
+    }
+    if (ownWork) {
+      const commit = run('git', ['rev-parse', '--short', 'HEAD'], dir).out.trim()
+      const base = run('git', ['describe', '--tags', '--abbrev=0', 'HEAD'], dir).out.trim() || entry.version
+      version = `${base}+${commit}`
+      say(`  своя работа поверх ${base} — на тег не перевожу, версия ${version}`)
+      if (base !== entry.version) say(`  доступен ${entry.version} — влейте его кнопкой «Обновить» (Строительство → GitHub); конфликт уйдёт агенту элемента`)
+    }
     // 1. Привести репозиторий к ЗАКРЕПЛЁННОЙ версии.
-    if (!existsSync(join(dir, '.git'))) {
+    if (ownWork) { /* работа человека — не трогаем */ } else if (!existsSync(join(dir, '.git'))) {
       if (existsSync(dir)) rmSync(dir, { recursive: true, force: true })
       const c = run('git', ['clone', '--quiet', '--branch', entry.version, '--depth', '1', entry.repo, dir], ROOT)
       if (c.rc !== 0) {
@@ -527,7 +606,7 @@ for (const entry of registry.services) {
       }
       say('  клонирован')
     } else {
-      run('git', ['fetch', '--quiet', '--tags', 'origin'], dir)
+      run('git', ['fetch', '--quiet', '--tags', fractera], dir)
       // 🛑 СБОРКА NEXT САМА ПРАВИТ `tsconfig.json` (дописывает .next-a/.next-b) и `next-env.d.ts` (295-1, измерено):
       // выпуск, меняющий эти же файлы, git отказывался ставить («Aborting»). Они — след сборки, а не чья-то работа:
       // возвращаем ТОЛЬКО их; любая другая локальная правка по-прежнему останавливает переход.
@@ -545,7 +624,7 @@ for (const entry of registry.services) {
 
     // 🔒 Сверяем ФАКТ, а не код возврата: версия, на которой мы стоим, обязана
     // совпасть с реестром. Иначе «поставили v1.0.1» — это обещание, а не факт.
-    const head = run('git', ['describe', '--tags', '--exact-match'], dir).out.trim()
+    const head = ownWork ? entry.version : run('git', ['describe', '--tags', '--exact-match'], dir).out.trim()
     if (head !== entry.version) {
       say(`  ОШИБКА: в папке версия «${head || 'без тега'}», а реестр требует «${entry.version}»`)
       failed += 1

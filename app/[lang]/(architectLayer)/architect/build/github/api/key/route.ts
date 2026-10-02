@@ -6,6 +6,7 @@ import { isTemporaryPublicAddress } from "@/lib/auth/temporary-address"
 import { binding } from "../../_github/server/binding.cjs"
 import { checkAccess } from "../../_github/server/github.cjs"
 import { forgetToken, saveToken, storedToken, tokenState } from "../../_github/server/token.cjs"
+import { startReposJob } from "@/lib/agi-items/element-repos-job"
 
 // КЛЮЧ GITHUB УЗЛА (273).
 //
@@ -35,7 +36,10 @@ export async function POST(req: NextRequest) {
         forgetToken()
         return NextResponse.json({ ok: false, error: "token-rejected" }, noStore)
       }
-      return NextResponse.json({ ...access, ok: true, token: tokenState() }, noStore)
+      // 374-2 (владелец 2026-10-02: «как только вёл сразу же в его репозитории создаются классические репозитории под каждой AGI
+      // ITEMS»): ключ принят GitHub — узел сам создаёт недостающие приватные репозитории элементов; ход — на этой же странице.
+      const repos = access.ok ? startReposJob() : null
+      return NextResponse.json({ ...access, ok: true, token: tokenState(), repos }, noStore)
     }
     case "check": {
       const token = storedToken()

@@ -5,6 +5,8 @@ import { buttonVariants } from '@/components/ui/button'
 import { Small } from '@/components/ui/typography'
 import { GithubBinding } from './client/github-binding.client'
 import { githubWords } from './words/github.i18n'
+import { ElementRepos } from './client/element-repos.client'
+import { elementReposWords } from './words/element-repos.i18n'
 import { adminHref } from '../_connect/shell/admin-nav'
 
 // ВХОД СТРАНИЦЫ В СВОЙ ОСТРОВОК (273, кнопка мастера — 274-4).
@@ -35,6 +37,8 @@ export function githubWidget(lang: string): ReactNode {
         <Small>{words.connectHint}</Small>
       </div>
       <GithubBinding lang={lang} words={words} />
+      {/* 374-2/374-3: репозитории всех AGI ITEMS — создаёт узел по ключу, отправка кнопкой. */}
+      <ElementRepos words={elementReposWords(lang)} lang={lang} />
     </div>
   )
 }

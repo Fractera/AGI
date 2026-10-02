@@ -34,6 +34,19 @@ export type ElementGithubUi = {
   pushed: string
   nextStep: string
   network: string
+  keySource: string
+  keyElement: string
+  keyNode: string
+  importTitle: string
+  importIntro: string
+  importRepo: string
+  importToken: string
+  importButton: string
+  importConfirm: string
+  importYes: string
+  importCancel: string
+  importRefresh: string
+  importState: Record<string, string>
   errors: Record<string, string>
 }
 
@@ -77,7 +90,30 @@ const DICT: Record<string, ElementGithubUi> = {
     pushed: "Sent: commit {commit}.",
     nextStep: "Connected. Next step — press «Send to GitHub».",
     network: "The node did not answer as expected (code {code}). Reload the page and try again; if it repeats, the reason is in the node log.",
+    keySource: "Sent with",
+    keyElement: "this item's own key",
+    keyNode: "the node's common key — if it is revoked, this item stops being saved until you add its own key above",
+    importTitle: "Replace the code from another repository",
+    importIntro: "Bought or found a ready project? It takes this item's place: the same address, domain and port, the new code. The current history first goes to this item's repository and stays there as an archive. The key below becomes this item's own key and is used from now on.",
+    importRepo: "Repository to take (owner/name)",
+    importToken: "Key that sees that repository",
+    importButton: "Replace the code",
+    importConfirm: "The code of this item is replaced with {repo}. Its current history goes to {previous} and stays there. The item stops for the time of the build (a few minutes). Continue?",
+    importYes: "Yes, replace",
+    importCancel: "Cancel",
+    importRefresh: "Refresh the state",
+    importState: {
+      starting: "Starting…",
+      archiving: "Saving the current history to its repository…",
+      downloading: "Downloading the new project…",
+      swapping: "Putting the new project in place…",
+      building: "Building — the item is back in a few minutes.",
+      done: "Done: the new project works in this item's place. The previous history is in {previous}.",
+      failed: "Stopped: {reason}",
+    },
     errors: {
+      "archive-first": "This item has no repository yet — its current history would be lost. Create the repositories first (Build → GitHub).",
+      "same-repo": "This is already this item's repository.",
       "bad-repo": "Write the repository as owner/name or as its GitHub address.",
       "bad-token-shape": "This does not look like a GitHub key (github_pat_… or ghp_…).",
       "token-rejected": "GitHub does not accept this key.",
@@ -134,7 +170,30 @@ const DICT: Record<string, ElementGithubUi> = {
     pushed: "Отправлено: коммит {commit}.",
     nextStep: "Подключено. Следующий шаг — нажмите «Отправить в GitHub».",
     network: "Узел ответил не так, как ожидалось (код {code}). Обновите страницу и повторите; если повторится — причина в журнале узла.",
+    keySource: "Отправка идёт",
+    keyElement: "собственным ключом элемента",
+    keyNode: "общим ключом узла — если его отозвать, элемент перестанет сохраняться, пока вы не добавите ему свой ключ выше",
+    importTitle: "Заменить код из другого репозитория",
+    importIntro: "Купили или нашли готовый проект? Он встанет на место этого элемента: тот же адрес, домен и порт, новый код. Нынешняя история сначала уедет в репозиторий элемента и останется там архивом. Ключ ниже станет собственным ключом элемента и будет использоваться дальше.",
+    importRepo: "Какой репозиторий взять (владелец/имя)",
+    importToken: "Ключ, который видит этот репозиторий",
+    importButton: "Заменить код",
+    importConfirm: "Код элемента заменится на {repo}. Нынешняя история уедет в {previous} и останется там. На время сборки (несколько минут) элемент остановится. Продолжить?",
+    importYes: "Да, заменить",
+    importCancel: "Отмена",
+    importRefresh: "Обновить состояние",
+    importState: {
+      starting: "Запускаю…",
+      archiving: "Сохраняю нынешнюю историю в репозиторий элемента…",
+      downloading: "Скачиваю новый проект…",
+      swapping: "Ставлю новый проект на место…",
+      building: "Собираю — элемент вернётся через несколько минут.",
+      done: "Готово: новый проект работает на месте элемента. Прежняя история — в {previous}.",
+      failed: "Остановлено: {reason}",
+    },
     errors: {
+      "archive-first": "У элемента ещё нет репозитория — его нынешняя история пропала бы. Сначала создайте репозитории («Строительство → GitHub»).",
+      "same-repo": "Это и есть репозиторий этого элемента.",
       "bad-repo": "Укажите репозиторий как владелец/имя или его адресом на GitHub.",
       "bad-token-shape": "Это не похоже на ключ GitHub (github_pat_… или ghp_…).",
       "token-rejected": "GitHub не принимает этот ключ.",

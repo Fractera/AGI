@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react"
 import { CircleHelp, GitBranch, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { H4 } from "@/components/ui/typography"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -24,7 +25,9 @@ type State = {
   lastCommit: string | null
   dirty: number
   commit: string | null
+  tokenSource?: "element" | "node" | null
 }
+type ImportState = { state: string; target?: string; previous?: string; reason?: string }
 
 function Help({ text }: { text: string }) {
   return (
@@ -47,6 +50,27 @@ export function ElementGithub({ id, lang, ui }: { id: string; lang: string; ui: 
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null)
   const [dirtyBlock, setDirtyBlock] = useState<number | null>(null)
   const url = `${BASE}/api/architect/items/${id}/github`
+  // 374-6: импорт на место элемента — поля, подтверждение, ход (спрашивается кнопкой, таймеров нет).
+  const [importRepo, setImportRepo] = useState("")
+  const [importToken, setImportToken] = useState("")
+  const [importAsk, setImportAsk] = useState(false)
+  const [imp, setImp] = useState<ImportState | null>(null)
+  const loadImport = useCallback(async () => {
+    try {
+      const r = await fetch(`${url}/import`, { cache: "no-store" })
+      if (r.ok) setImp((await r.json()) as ImportState)
+    } catch { /* прежнее */ }
+  }, [url])
+  useEffect(() => { void loadImport() }, [loadImport])
+  async function startImport() {
+    setImportAsk(false)
+    setMessage(null)
+    const { status, body: d } = await call(`${url}/import`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ repo: importRepo, token: importToken }) })
+    if (!d) { setMessage({ tone: "error", text: network(status) }); return }
+    if (!d.ok) { setMessage({ tone: "error", text: err(d.error) }); return }
+    setImportToken("")
+    await loadImport()
+  }
 
   const load = useCallback(async () => {
     const r = await fetch(url, { cache: "no-store" })
@@ -158,11 +182,16 @@ export function ElementGithub({ id, lang, ui }: { id: string; lang: string; ui: 
             <Button type="button" variant="ghost" size="sm" className="mt-1 w-fit" onClick={forget}>{ui.forget}</Button>
           </div>
         )}
+        {s?.repo && s.tokenSource && (
+          <p className="text-sm text-muted-foreground" data-element-github-key={s.tokenSource}>
+            {ui.keySource} {s.tokenSource === "element" ? ui.keyElement : ui.keyNode}
+          </p>
+        )}
         {s?.repo && s.tokenTail && !s.lastPushedAt && (
           <p className="text-sm font-medium text-foreground" data-element-github-next>{ui.nextStep}</p>
         )}
 
-        {s?.repo && s.tokenTail && (
+        {s?.repo && (s.tokenTail || s.tokenSource) && (
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-1">
               <Button type="button" className="w-fit gap-1.5" onClick={() => push(false)} disabled={busy !== null} data-element-github-push>
@@ -187,6 +216,36 @@ export function ElementGithub({ id, lang, ui }: { id: string; lang: string; ui: 
             )}
           </div>
         )}
+
+        <section className="flex flex-col gap-3 rounded-lg border border-border p-3" data-element-github-import>
+          <H4 variant="ui">{ui.importTitle}</H4>
+          <p className="text-sm text-muted-foreground">{ui.importIntro}</p>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={`gh-import-repo-${id}`}>{ui.importRepo}</Label>
+            <Input id={`gh-import-repo-${id}`} value={importRepo} onChange={(e) => setImportRepo(e.target.value)} placeholder="owner/name" autoComplete="off" spellCheck={false} className="font-mono" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={`gh-import-token-${id}`}>{ui.importToken}</Label>
+            <Input id={`gh-import-token-${id}`} type="password" value={importToken} onChange={(e) => setImportToken(e.target.value)} placeholder={ui.tokenPlaceholder} autoComplete="off" spellCheck={false} className="font-mono" />
+          </div>
+          {importAsk ? (
+            <div className="flex flex-col gap-2 rounded-lg border border-destructive/40 bg-destructive/5 p-3" role="alert">
+              <p className="text-sm">{ui.importConfirm.replace("{repo}", importRepo).replace("{previous}", s?.repo ?? "—")}</p>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="destructive" size="sm" onClick={() => void startImport()} data-element-github-import-yes>{ui.importYes}</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => setImportAsk(false)}>{ui.importCancel}</Button>
+              </div>
+            </div>
+          ) : (
+            <Button type="button" variant="outline" className="w-fit" disabled={!importRepo.trim() || !importToken.trim() || busy !== null} onClick={() => setImportAsk(true)}>{ui.importButton}</Button>
+          )}
+          {imp && imp.state !== "none" && (
+            <div className="flex flex-wrap items-center gap-2 text-sm" role="status" data-element-github-import-state={imp.state}>
+              <span>{(ui.importState[imp.state] ?? imp.state).replace("{previous}", imp.previous ?? "").replace("{reason}", imp.reason ?? "")}</span>
+              <Button type="button" variant="ghost" size="sm" onClick={() => void loadImport()}>{ui.importRefresh}</Button>
+            </div>
+          )}
+        </section>
 
         {message && (
           <p className={`text-sm ${message.tone === "error" ? "text-destructive" : "text-foreground"}`} role="status" data-element-github-message={message.tone}>

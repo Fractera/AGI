@@ -4,7 +4,7 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync }
 import { join } from "node:path"
 import paths from "@/lib/agi-items/paths.cjs"
 import { checkAccess } from "@/app/[lang]/(architectLayer)/architect/build/github/_github/server/github.cjs"
-import { SHAPE } from "@/app/[lang]/(architectLayer)/architect/build/github/_github/server/token.cjs"
+import { SHAPE, storedToken } from "@/app/[lang]/(architectLayer)/architect/build/github/_github/server/token.cjs"
 
 // GITHUB РОЖДЁННОГО ЭЛЕМЕНТА (узел, шаг 319-5). Слово владельца 2026-09-27: «пользователь … сохранить его обновлённую версию
 // на своем гит хаб … вводить название репозитории и токен … экспортом этого репозитория в свой GitHub» — выгрузка КНОПКОЙ.
@@ -33,6 +33,8 @@ export type ElementGithubState = {
   lastCommit: string | null
   dirty: number
   commit: string | null
+  /** 374-3: каким ключом пойдёт выгрузка — своим элемента, общим узла или никаким. */
+  tokenSource: TokenSource
 }
 
 type Stored = { repo?: string; login?: string | null; expires?: string | null; lastPushedAt?: string; lastCommit?: string }
@@ -73,10 +75,31 @@ function git(dir: string, args: string[]) {
   return { rc: r.status ?? 1, out: `${r.stdout ?? ""}${r.stderr ?? ""}` }
 }
 
-/** Папка рождённого элемента или null — у черновика и чужого имени её нет. */
+type RegistryEntry = { id: string; kind?: string }
+
+/** Род элемента по реестру (374: обязательные элементы сохраняются так же, как рождённые); нет записи — `user`. */
+function kindOf(id: string): string {
+  try {
+    const reg = JSON.parse(readFileSync(paths.REGISTRY_FILE, "utf8")) as { services?: RegistryEntry[] }
+    return reg.services?.find((e) => e.id === id)?.kind ?? "user"
+  } catch { return "user" }
+}
+
+/** Папка элемента с git или null — у черновика и чужого имени её нет. 374: любой род, не только рождённые. */
 export function elementDir(id: string): string | null {
-  const dir = paths.itemDir(id, "user")
+  const dir = paths.itemDir(id, kindOf(id))
   return existsSync(join(dir, ".git")) ? dir : null
+}
+
+// 🔒 СВОЙ КЛЮЧ ЭЛЕМЕНТА СИЛЬНЕЕ ОБЩЕГО (374-3). Слово владельца 2026-10-02: собственное поле токена — «способ занести сюда любой
+// другой Токен если вдруг пользователь отзовёт основной например для того, чтобы ограничить доступ ко всему проекту кроме одного
+// AGI ITEM … возможность подключить сюда другой источник и его ключ». Порядок: ключ элемента → общий ключ узла (273) → нет.
+export type TokenSource = "element" | "node" | null
+export function tokenFor(id: string): { token: string | null; source: TokenSource } {
+  const own = readToken(id)
+  if (own) return { token: own, source: "element" }
+  const node = storedToken() || null
+  return node ? { token: node, source: "node" } : { token: null, source: null }
 }
 
 /** `owner/name` из `owner/name`, `https://github.com/owner/name` или `…/name.git`; иначе null. */
@@ -101,6 +124,7 @@ export function elementGithubState(id: string): ElementGithubState {
     lastCommit: st.lastCommit ?? null,
     dirty,
     commit,
+    tokenSource: tokenFor(id).source,
   }
 }
 
@@ -142,7 +166,7 @@ export function forgetElementToken(id: string) {
 export function pushElement(id: string, commit: boolean) {
   const dir = elementDir(id)
   if (!dir) return { ok: false as const, error: "not-born" }
-  const token = readToken(id)
+  const { token } = tokenFor(id)
   const repo = readStored(id).repo
   if (!token || !repo) return { ok: false as const, error: "not-connected" }
   const pending = changes(dir)
@@ -174,4 +198,98 @@ export function pushElement(id: string, commit: boolean) {
   const head = git(dir, ["rev-parse", "--short", "HEAD"]).out.trim()
   writeStored(id, { ...readStored(id), lastPushedAt: new Date().toISOString(), lastCommit: head })
   return { ok: true as const, commit: head }
+}
+
+// ── РЕПОЗИТОРИЙ НА КАЖДЫЙ ЭЛЕМЕНТ (374-2) ───────────────────────────────────────────────────────────────────────────────────
+// Слово владельца 2026-10-02: «как только произойдёт добавление общего токен … в его репозитории создаются классические
+// репозитории под каждой AGI ITEMS» — «y, but privat as default». Путь человека — один форк, работа, токен потом: вся история,
+// накопленная до ключа, выгружается задним числом. Права ключа (первоисточник docs.github.com): создание приватного — `repo` у
+// классического, Administration: write у тонкого; запись — Contents: write; шаблон несёт `.github/workflows` — Workflows.
+
+const API = "https://api.github.com"
+async function gh(token: string, method: string, url: string, body?: unknown) {
+  try {
+    const res = await fetch(`${API}${url}`, {
+      method,
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+        "User-Agent": "fractera-agi-node",
+        "X-GitHub-Api-Version": "2022-11-28",
+        ...(body ? { "Content-Type": "application/json" } : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(20_000),
+    })
+    return { status: res.status, body: (await res.json().catch(() => null)) as Record<string, unknown> | null }
+  } catch { return { status: 0, body: null } }
+}
+
+/** Имя репозитория элемента: `<имя форка узла>-<адрес>` (решение плана 374, названо владельцу). */
+function repoName(id: string): string {
+  let project = "agi"
+  try {
+    const o = JSON.parse(readFileSync(join(ROOT, "logs", "origin.json"), "utf8")) as { slug?: string }
+    const name = o.slug?.split("/")[1]
+    if (name) project = name.toLowerCase()
+  } catch { /* узел без отметки форка — «agi» */ }
+  let address = id
+  try { address = (JSON.parse(readFileSync(join(ROOT, "data", "services", id, "address.json"), "utf8")) as { address?: string }).address || id } catch { /* адрес = id */ }
+  return `${project}-${address}`.replace(/[^A-Za-z0-9._-]/g, "-").slice(0, 100)
+}
+
+export type RepoResult = { id: string; ok: boolean; repo?: string; error?: string; created?: boolean }
+
+/** Создать приватный репозиторий элемента в аккаунте ключа и выгрузить туда всю историю. Уже связанный — пропуск. */
+export async function createElementRepo(id: string, token: string, login: string): Promise<RepoResult> {
+  const dir = elementDir(id)
+  if (!dir) return { id, ok: false, error: "no-folder" }
+  const st = readStored(id)
+  if (st.repo) return { id, ok: true, repo: st.repo, created: false }
+  const name = repoName(id)
+  const full = `${login}/${name}`
+  const made = await gh(token, "POST", "/user/repos", { name, private: true, auto_init: false, description: `AGI ITEM «${id}» of a Fractera node` })
+  const created = made.status === 201
+  if (!created) {
+    if (made.status === 403 || made.status === 401) return { id, ok: false, error: "no-create-right" }
+    if (made.status === 0) return { id, ok: false, error: "github-unreachable" }
+    // 422 — имя занято: берём, только если репозиторий пуст (повтор после обрыва), иначе — отказ, чужое не трогаем.
+    const have = await gh(token, "GET", `/repos/${full}`)
+    if (have.status !== 200 || Number(have.body?.size ?? 1) !== 0) return { id, ok: false, error: "name-taken", repo: full }
+  }
+  // Обязательные элементы установщик клонирует с глубиной 1 — мелкую историю GitHub в новый репозиторий не примет.
+  if (git(dir, ["rev-parse", "--is-shallow-repository"]).out.trim() === "true") {
+    if (git(dir, ["fetch", "--quiet", "--unshallow"]).rc !== 0) return { id, ok: false, error: "unshallow-failed", repo: full }
+  }
+  if (git(dir, ["rev-parse", "--verify", "--quiet", "HEAD"]).rc !== 0) return { id, ok: false, error: "no-commits", repo: full }
+  const r = git(dir, ["push", `https://x-access-token:${token}@github.com/${full}.git`, "HEAD:main"])
+  if (r.rc !== 0) {
+    const error = /without `?workflow`? scope/i.test(r.out) ? "needs-workflow" : /403|denied/i.test(r.out) ? "no-write" : "push-failed"
+    return { id, ok: false, error, repo: full }
+  }
+  const head = git(dir, ["rev-parse", "--short", "HEAD"]).out.trim()
+  writeStored(id, { ...readStored(id), repo: full, login, lastPushedAt: new Date().toISOString(), lastCommit: head })
+  return { id, ok: true, repo: full, created }
+}
+
+/** Все элементы реестра: создать недостающие репозитории (ключ — свой элемента, иначе общий узла). */
+export async function createAllElementRepos(): Promise<{ ok: boolean; error?: string; results: RepoResult[] }> {
+  let ids: string[] = []
+  try {
+    ids = ((JSON.parse(readFileSync(paths.REGISTRY_FILE, "utf8")) as { services?: RegistryEntry[] }).services ?? []).map((e) => e.id)
+  } catch { return { ok: false, error: "registry-unreadable", results: [] } }
+  const results: RepoResult[] = []
+  const logins = new Map<string, string | null>()
+  for (const id of ids) {
+    const { token } = tokenFor(id)
+    if (!token) { results.push({ id, ok: false, error: "no-token" }); continue }
+    if (!logins.has(token)) {
+      const me = await gh(token, "GET", "/user")
+      logins.set(token, me.status === 200 && typeof me.body?.login === "string" ? me.body.login : null)
+    }
+    const login = logins.get(token)
+    if (!login) { results.push({ id, ok: false, error: "token-rejected" }); continue }
+    results.push(await createElementRepo(id, token, login))
+  }
+  return { ok: results.every((r) => r.ok), results }
 }
