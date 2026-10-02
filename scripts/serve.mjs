@@ -140,7 +140,32 @@ async function start() {
   let ownDomain = null
   try { ownDomain = JSON.parse(readFileSync(path.join(root, 'logs', 'domain.json'), 'utf8')).hostname || null } catch { /* домена нет */ }
   if (!ownDomain && !readTunnel()?.unpublished) await publish({ quietPrice: true })
+  await refreshPages(url)
   await printAddresses(url)
+}
+
+// 🔒 ПЕРЕРИСОВАТЬ СТРАНИЦЫ ПУЛЬТА И САЙТА, КОГДА ВСЕ ЭЛЕМЕНТЫ ОТВЕЧАЮТ (371-7). ✗ Измерено на Mac 2026-10-02: пульт без шапки
+// и подвала, сайт root в Preview без шапки. Причина — порядок установки: пульт собирается (`npm run build`) раньше, чем
+// `serve:start` ставит сайт root, а шапку и подвал пульт берёт у root (`/api/shell`) в момент отрисовки — страницы
+// предрендерились без них и жили так до первой перерисовки ISR (`revalidate = 600`): владелец увидел шапку только после
+// смены языка через 10+ минут. Лечение — та же дверь, которой настройки сбрасывают кэш (`/api/revalidate`), и по два захода
+// на главную каждого языка: пульт после сброса отдаёт свежую страницу сразу (MISS), сайт — сначала старую (STALE) и
+// перерисовывает в фоне. Это шаг запуска, а не поведение системы: ни таймеров, ни повторов.
+async function refreshPages(coreUrl) {
+  let rootPort = null
+  try { rootPort = (JSON.parse(readFileSync(paths.REGISTRY_FILE, 'utf8')).services || []).find((s) => s.id === 'root')?.port ?? null } catch { /* реестра нет */ }
+  const langs = (await ask(`${coreUrl}/api/health`)).body?.langs ?? ['en']
+  const targets = [coreUrl, ...(rootPort ? [`http://localhost:${rootPort}`] : [])]
+  for (const base of targets) {
+    // Сайт root поднимается дольше ядра — ждём его ответа, иначе он отрисует пустую шапку ещё раз.
+    for (let i = 0; i < 60 && !(await ask(`${base}/${langs[0]}`)).ok; i++) await new Promise((res) => setTimeout(res, 2000))
+    try { await fetch(`${base}/api/revalidate`, { method: 'POST', signal: AbortSignal.timeout(15000) }) } catch { /* дверь не ответила — страницы перерисует ISR */ }
+    for (const lang of langs) {
+      await ask(`${base}/${lang}`)
+      await new Promise((res) => setTimeout(res, 1500))
+      await ask(`${base}/${lang}`)
+    }
+  }
 }
 
 // Ждёт, пока сервер узла ответит локально: адрес — из `logs/runtime.json`, ответ — дверь `/api/health`.
