@@ -17,7 +17,8 @@ import type { GithubWords } from "../words/github.i18n"
 // тревожным цветом. Узкий ключ выглядит исправным ровно до дня публикации.
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
-const TOKENS_URL = "https://github.com/settings/personal-access-tokens"
+// 376: ссылка — создание КЛАССИЧЕСКОГО ключа (та же, что на странице GitHub элемента, проверена владельцем в 319-5).
+const TOKENS_URL = "https://github.com/settings/tokens/new"
 // Предупреждаем за две недели: продлить ключ — дело на минуту, но только пока он ещё работает.
 const SOON_MS = 14 * 24 * 60 * 60 * 1000
 
