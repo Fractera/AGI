@@ -669,6 +669,9 @@ async function publish({ quietPrice = false } = {}) {
     /* не вышло — хуже не станет: сверка ниже всё равно ждёт поля `url`, которого нет */
   }
 
+  // 371-8: без cloudflared туннель не поднимется — узел скачивает официальный файл Cloudflare сам (есть — ничего не делает).
+  spawnSync(process.execPath, [path.join(here, 'ensure-cloudflared.mjs')], { stdio: 'inherit', windowsHide: true })
+
   // Живой процесс поднимается перезапуском, мёртвый — запуском. `pm2 start` на
   // уже запущенном жителе ведёт себя неочевидно, а нам нужен предсказуемый
   // новый туннель.

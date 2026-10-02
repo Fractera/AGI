@@ -38,6 +38,7 @@
 // работать, а он об этом не знает. Поэтому смерть ПОМЕЧАЕТСЯ в состоянии и
 // называется в журнале, а новый адрес человек поднимает сам — `serve:publish`.
 
+import { createRequire } from 'node:module'
 import { spawn } from 'node:child_process'
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import path from 'node:path'
@@ -76,26 +77,8 @@ function log(message) {
 // PATH, который был у его демона в момент старта, — а установщик дописывает
 // PATH позже. Процесс, поднятый pm2 вчера, не увидит программу, поставленную
 // сегодня, и это выглядит как «её нет».
-function findCloudflared() {
-  const candidates = []
-  if (isWindows) {
-    const local = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local')
-    candidates.push(
-      path.join(local, 'Microsoft', 'WinGet', 'Links', 'cloudflared.exe'),
-      path.join(
-        local, 'Microsoft', 'WinGet', 'Packages',
-        'Cloudflare.cloudflared_Microsoft.Winget.Source_8wekyb3d8bbwe', 'cloudflared.exe',
-      ),
-      path.join(process.env.ProgramFiles || 'C:\\Program Files', 'cloudflared', 'cloudflared.exe'),
-    )
-  } else {
-    candidates.push('/usr/local/bin/cloudflared', '/opt/homebrew/bin/cloudflared', '/usr/bin/cloudflared')
-  }
-  for (const candidate of candidates) if (existsSync(candidate)) return candidate
-  // Не нашли по известным местам — пусть решает PATH: вдруг человек поставил
-  // программу своим способом.
-  return isWindows ? 'cloudflared.exe' : 'cloudflared'
-}
+// 371-8: одна копия поиска для всех — `lib/cloudflared-bin.cjs` (там же своя папка `~/.local/bin`, куда узел ставит его сам).
+const { findCloudflared } = createRequire(import.meta.url)('../lib/cloudflared-bin.cjs')
 
 function sitePort() {
   try {
@@ -337,7 +320,7 @@ child.stderr.on('data', scan)
 
 child.on('error', (error) => {
   log(`не удалось запустить cloudflared: ${error.message}`)
-  log('поставить: winget install Cloudflare.cloudflared (Windows) · brew install cloudflared (macOS)')
+  log('поставить: node scripts/ensure-cloudflared.mjs (скачивает официальный файл Cloudflare в ~/.local/bin; это же делают npm install и serve:publish)')
   process.exit(1)
 })
 

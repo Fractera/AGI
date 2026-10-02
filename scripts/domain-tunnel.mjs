@@ -18,6 +18,7 @@
 // туннеля адрес не меняется никогда, значит защищать нечего, а молчащий сайт
 // лечится перезапуском. Отказ при этом всё равно записывается и называется вслух.
 
+import { createRequire } from 'node:module'
 import { spawn } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import os from 'node:os'
@@ -49,22 +50,8 @@ function envValue(name) {
 
 // 🔒 Тот же поиск, что у быстрого туннеля: pm2 держит PATH, который был у демона
 // в момент его старта, и программа, поставленная позже, из него не видна.
-function findCloudflared() {
-  const candidates = []
-  if (isWindows) {
-    const local = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local')
-    candidates.push(
-      path.join(local, 'Microsoft', 'WinGet', 'Links', 'cloudflared.exe'),
-      path.join(local, 'Microsoft', 'WinGet', 'Packages',
-        'Cloudflare.cloudflared_Microsoft.Winget.Source_8wekyb3d8bbwe', 'cloudflared.exe'),
-      path.join(process.env.ProgramFiles || 'C:\Program Files', 'cloudflared', 'cloudflared.exe'),
-    )
-  } else {
-    candidates.push('/usr/local/bin/cloudflared', '/opt/homebrew/bin/cloudflared', '/usr/bin/cloudflared')
-  }
-  for (const c of candidates) if (existsSync(c)) return c
-  return isWindows ? 'cloudflared.exe' : 'cloudflared'
-}
+// 371-8: одна копия поиска для всех — `lib/cloudflared-bin.cjs` (там же своя папка `~/.local/bin`, куда узел ставит его сам).
+const { findCloudflared } = createRequire(import.meta.url)('../lib/cloudflared-bin.cjs')
 
 function saveState(patch) {
   mkdirSync(path.join(root, 'logs'), { recursive: true })
