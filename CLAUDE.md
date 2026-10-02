@@ -511,6 +511,16 @@ service agent holding only the README install, wire and extend the kit without o
 
 ## Element Preview — Highlight and «Find block» (node steps 317–318)
 
+🔒 **Preview shows the element as it runs on THIS computer — its build at the loopback address, never its public domain**
+(node step 373, owner 2026-10-02: Preview «вообще должна уметь работать только с режимом Dev mode»; over the internet «Только
+кнопка»). `GET /api/node/preview-url` answers `http://127.0.0.1:<port>/<lang>` for every element; a core page that is not on
+loopback (own domain, temporary address) draws no frame — the reason and «Open on this computer» (`OpenOnThisComputerButton`,
+now on every non-loopback host). ✗ paid: roman's Preview framed aifa.dev after that zone moved to another Cloudflare account
+(530). 🛑 A live `next dev` per element was offered and **dropped by the owner** («у компьютера есть только 400 МБ») — no
+second process for Preview; agent edits appear after Deploy/Preview → Accept. The panel tab on loopback reads «This computer ·» /
+«Этот компьютер ·» (was «Dev mode ·», step 372). **Domain activation** removes a domain attached to an element:
+`DELETE /api/domain/list { name, detach: true }` → `detachDomain` (subdomain back) → off the list; without `detach` — 409 `attached`.
+
 `components/preview/element-preview.client.tsx` shows an element in a frame. The core never reaches into the frame: it
 sends messages to the element's origin, and the element's island (`components/block-highlight/` of the item template)
 does the work. **Highlight** — `fractera:highlight {on}` → a frame over the hovered block, «Click to update» (336, was
