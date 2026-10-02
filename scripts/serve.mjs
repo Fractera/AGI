@@ -112,6 +112,8 @@ async function start() {
   spawnSync(process.execPath, [path.join(here, 'ensure-env.mjs')], { stdio: 'inherit', windowsHide: true })
   const origin = spawnSync(process.execPath, [path.join(here, 'check-origin.mjs')], { stdio: 'inherit', windowsHide: true })
   if (origin.status !== 0) process.exit(1)
+  // 372-3: этот запуск ставит элементы сам — значит это первая установка (браузер откроется один раз, в конце).
+  const freshInstall = missingElements().length > 0
   ensureElements()
   ensurePm2()
   // 🛑 ТУННЕЛЬ — НЕ ЗДЕСЬ (371-1, измерено 2026-10-02): `pm2 start ecosystem` целиком поднимал и перезапускал быстрый
@@ -141,7 +143,7 @@ async function start() {
   try { ownDomain = JSON.parse(readFileSync(path.join(root, 'logs', 'domain.json'), 'utf8')).hostname || null } catch { /* домена нет */ }
   if (!ownDomain && !readTunnel()?.unpublished) await publish({ quietPrice: true })
   await refreshPages(url)
-  await printAddresses(url)
+  await printAddresses(url, freshInstall)
 }
 
 // 🔒 ПЕРЕРИСОВАТЬ СТРАНИЦЫ ПУЛЬТА И САЙТА, КОГДА ВСЕ ЭЛЕМЕНТЫ ОТВЕЧАЮТ (371-7). ✗ Измерено на Mac 2026-10-02: пульт без шапки
@@ -186,7 +188,7 @@ async function waitLocal(ms) {
 // 🔒 ТРИ АДРЕСА, У КАЖДОГО НАЗВАН АДРЕСАТ (371-1). ✗ оплачено на Mac 2026-10-02: агент отдал `localhost:24680` без
 // подписи, человек ждал сайт и попал в пульт. Пульт — это ядро (на него смотрит быстрый туннель — решение владельца того
 // же дня: «пусть на старте пользователь попадает в панель … без авторизации»); сайт — элемент `root` на своём порту.
-async function printAddresses(coreUrl) {
+async function printAddresses(coreUrl, freshInstall = false) {
   let rootPort = null
   try {
     const registry = JSON.parse(readFileSync(paths.REGISTRY_FILE, 'utf8'))
@@ -215,6 +217,20 @@ async function printAddresses(coreUrl) {
   console.log(`Пульт узла на этом компьютере: ${coreUrl}`)
   console.log(`Сайт на этом компьютере: ${rootPort ? `http://localhost:${rootPort}` : 'элемент root не установлен'}`)
   if (!own && internet) printAddressPrice()
+  if (freshInstall) openOnce(journey)
+}
+
+// 🔒 ОТКРЫТЬ ССЫЛКУ В БРАУЗЕРЕ — ОДИН РАЗ, ПОСЛЕ ПЕРВОЙ УСТАНОВКИ (372-3). Слово владельца 2026-10-02: «вместо того чтобы
+// показывать мне эту ссылку он сразу бы открывал её в браузере». Только один раз на узел (метка `logs/browser-opened.json`):
+// повторные `serve:start` (агент перезапускает узел, автозапуск) окон не открывают. Браузер по умолчанию средствами ОС:
+// macOS `open`, Windows `rundll32 url.dll,FileProtocolHandler` (без cmd — без экранирования), Linux `xdg-open`; не вышло (нет экрана, сервер без браузера) — молча, ссылка напечатана выше.
+function openOnce(url) {
+  const mark = path.join(root, 'logs', 'browser-opened.json')
+  if (!url || existsSync(mark)) return
+  try { writeFileSync(mark, JSON.stringify({ url, at: new Date().toISOString() }) + '\n') } catch { return }
+  const [cmd, args] = isWindows ? ['rundll32', ['url.dll,FileProtocolHandler', url]]
+    : process.platform === 'darwin' ? ['open', [url]] : ['xdg-open', [url]]
+  try { spawnSync(cmd, args, { stdio: 'ignore', windowsHide: true, timeout: 15000 }) } catch { /* без браузера — ссылка напечатана */ }
 }
 
 function stop() {
