@@ -10,7 +10,7 @@
 // признать.
 
 import { spawnSync } from 'node:child_process'
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import os from 'node:os'
@@ -190,6 +190,68 @@ function stop() {
   pm2run(['stop', 'fractera-agi-watch'], { quiet: true })
   pm2run(['stop', 'fractera-agi'], { quiet: true })
   console.log('AGI остановлен. Запустить снова: npm run serve:start')
+}
+
+// ── СНЯТЬ УЗЕЛ С МАШИНЫ ЦЕЛИКОМ (371-3) ─────────────────────────────────────
+//
+// 🔒 ЗАЧЕМ. «Один компьютер — один узел» (369): `check-local` отказывает, пока в pm2 или в его снимке `dump.pm2` числится
+// `fractera-agi` из другой папки. ✗ Оплачено на Mac 2026-10-02: узел встал не в ту папку, а команды, которая убирает его,
+// не было — повторить установку можно было только ручной чисткой pm2. `serve:stop` останавливает, но снимок остаётся.
+//
+// 🔒 ЧТО СНИМАЕТСЯ: все процессы pm2 этого узла (ядро, сторож, оба туннеля, элементы и их сторожа) — по имени И по папке
+// (рабочая папка процесса внутри папки узла: чужие процессы pm2 человека не трогаются); снимок пересохраняется
+// (`pm2 save --force` — без него пустой список не пишется, и снимок продолжал бы числить узел); файл автозапуска Windows
+// удаляется. 🛑 ЧЕГО НЕ ДЕЛАЕТ: не удаляет папку и данные (путь печатается — удаляет человек), не трогает Cloudflare (туннель
+// и DNS своего домена остаются в аккаунте человека), не снимает `pm2 startup` на macOS/Linux (ему нужен sudo, и им могут
+// пользоваться другие программы человека — без узла в снимке он не поднимает ничего нашего).
+//
+// 🔒 ТОЛЬКО С `--yes`: без него печатает, что будет снято, и ничего не меняет. Сайты узла перестают отвечать сразу.
+function nodeApps() {
+  let apps = []
+  try { apps = JSON.parse(pm2run(['jlist'], { quiet: true }).stdout) } catch { apps = [] }
+  const inside = (dir) => {
+    if (typeof dir !== 'string' || !dir) return false
+    const rel = path.relative(root, dir)
+    return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel))
+  }
+  return apps.filter((a) => /^fractera-(agi|svc-)/.test(a.name) && inside(a.pm2_env?.pm_cwd ?? a.pm2_env?.cwd))
+}
+
+function remove() {
+  const apps = nodeApps()
+  const startupFile = isWindows
+    ? path.join(process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup', `${TASK_NAME}.cmd`)
+    : null
+  console.log(`Узел в папке: ${root}`)
+  console.log(`Процессы узла (${apps.length}): ${apps.map((a) => a.name).join(', ') || 'нет'}`)
+  if (startupFile && existsSync(startupFile)) console.log(`Автозапуск: ${startupFile}`)
+  if (!process.argv.includes('--yes')) {
+    console.log('\nНичего не изменено. Снять узел с этого компьютера (сайты перестанут отвечать): npm run serve:remove -- --yes')
+    return
+  }
+  if (deployLock.isRunning()) {
+    console.error('Идёт развёртывание элемента — дождитесь его окончания и повторите.')
+    process.exit(1)
+  }
+  // 🛑 По номеру pm2, не по имени: pm2 допускает одинаковые имена, и `delete fractera-agi` снял бы одноимённый процесс
+  // другой папки (ровно случай «узел встал не туда»).
+  for (const a of apps) pm2run(['delete', String(a.pm_id)], { quiet: true })
+  pm2run(['save', '--force'], { quiet: true })
+  // 🛑 Файл автозапуска ОДИН на учётную запись (`pm2 resurrect`), а не на папку узла. ✗ Измерено 2026-10-02: снятие пробного
+  // узла рядом с живым удалило и автозапуск живого. Поэтому он удаляется, только если в pm2 не осталось ни одного ядра узла.
+  let otherCore = false
+  try { otherCore = JSON.parse(pm2run(['jlist'], { quiet: true }).stdout).some((a) => a.name === 'fractera-agi') } catch { otherCore = true }
+  if (startupFile && existsSync(startupFile) && !otherCore) {
+    try { rmSync(startupFile) } catch (error) { console.error(`Файл автозапуска не удалён: ${error.message}`) }
+  }
+  const left = nodeApps()
+  if (left.length) {
+    console.error(`Не сняты: ${left.map((a) => a.name).join(', ')}`)
+    process.exit(1)
+  }
+  console.log(`===NODE_REMOVED=== ${root}`)
+  console.log('Процессы узла сняты, автозапуск убран. Папку с проектом и его данными удалите сами, если она не нужна.')
+  console.log('Туннель и записи DNS своего домена (если подключали) остаются в вашем аккаунте Cloudflare.')
 }
 
 async function status() {
@@ -660,13 +722,14 @@ else if (command === 'autostart') autostart()
 else if (command === 'rebuild') rebuild()
 else if (command === 'publish') await publish()
 else if (command === 'unpublish') unpublish()
+else if (command === 'remove') remove()
 // Только сказать, каких обязательных элементов нет, — ничего не ставя и не запуская (280-7).
 else if (command === 'elements') {
   const missing = missingElements()
   console.log(missing.length ? `нет элементов: ${missing.join(', ')}` : 'элементы узла на месте')
 }
 else {
-  console.log('Команды: start · stop · status · rebuild · publish · unpublish · autostart · elements')
+  console.log('Команды: start · stop · status · rebuild · publish · unpublish · autostart · elements · remove')
   console.log('Новый адрес в интернете вместо прежнего: publish -- --new')
   process.exit(1)
 }

@@ -54,6 +54,7 @@
     "serve:rebuild": "node scripts/serve.mjs rebuild",
     "serve:publish": "node scripts/serve.mjs publish",
     "serve:unpublish": "node scripts/serve.mjs unpublish",
+    "serve:remove": "node scripts/serve.mjs remove",
     "check:architect-routes": "node scripts/check-architect-routes.mjs",
     "check:seo-html": "node scripts/check-seo-html.mjs",
     "check:microservices": "node scripts/check-microservices.mjs",
