@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import type { DomainListWords } from "./domain-list.i18n"
 import type { DomainLadderWords } from "./domain-ladder.i18n"
 import { TokenHowTo } from "./token-how-to.client"
+import { keyReasonText } from "./key-reason"
 
 // КОНВЕЙЕР ДОПОЛНИТЕЛЬНОГО ДОМЕНА (324-1). Слово владельца 2026-09-27: «если … у нас есть доступ к API … просто иди и подключай
 // этот домен через API если это невозможно то значит создавай нормальный конвейер с пошаговым подключением».
@@ -111,10 +112,8 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
       const r = await fetch(`${BASE}/api/domain/key`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: key.trim() }) })
       const j = (await r.json().catch(() => null)) as { ok?: boolean; reason?: string } | null
       if (!j?.ok) {
-        const why = j?.reason === "not-owner" ? ladderWords.reasonNotOwner
-          : j?.reason === "no-tunnel-permission" ? ladderWords.reasonNoTunnel
-          : j?.reason === "temporary-address" ? ladderWords.reasonTemporary
-          : `${w.key.failed} ${j?.reason ?? r.status}`
+        // 372: одна функция перевода причин на все экраны ключа — голого кода (`no-zones`) человек больше не видит.
+        const why = j?.reason ? keyReasonText(ladderWords, j.reason) : `${w.key.failed} ${r.status}`
         setError(why); setBusy(null); return
       }
       setKey("")

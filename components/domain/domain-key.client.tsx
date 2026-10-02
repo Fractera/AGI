@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import type { DomainListWords } from "./domain-list.i18n"
 import type { DomainLadderWords } from "./domain-ladder.i18n"
 import { TokenHowTo } from "./token-how-to.client"
+import { keyReasonText } from "./key-reason"
 
 // ТРЕВОГА «КЛЮЧ УЗЛА» (324-1). Решение владельца 2026-09-27 «go» после разбора: карточка показывается ТОЛЬКО когда проблема
 // замерена сейчас — ключа нет, Cloudflare говорит, что он отключён или истёк, или статус не удалось узнать. Исправный ключ —
@@ -56,7 +57,7 @@ export function DomainKey({ state, words: w, ladderWords, onChanged }: {
       const r = await fetch(`${BASE}/api/domain/key`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: token.trim() }) })
       const j = (await r.json().catch(() => null)) as { ok?: boolean; reason?: string } | null
       if (j?.ok) { setToken(""); await onChanged() }
-      else setError(`${k.failed} ${j?.reason ?? r.status}`)
+      else setError(j?.reason ? keyReasonText(ladderWords, j.reason) : `${k.failed} ${r.status}`)
     } catch { setError(k.failed) }
     setBusy(false)
   }

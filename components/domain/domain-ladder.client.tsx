@@ -7,6 +7,7 @@ import { H3, Small } from "@/components/ui/typography"
 import { isTemporaryHostname } from "@/lib/auth/temporary-address"
 import type { DomainLadderWords } from "@/components/domain/domain-ladder.i18n"
 import { TokenHowTo } from "./token-how-to.client"
+import { keyReasonText } from "./key-reason"
 
 // ЛЕСТНИЦА ПОДКЛЮЧЕНИЯ СВОЕГО ДОМЕНА (259-1).
 //
@@ -153,17 +154,7 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
   const domainName = state.wanted ?? wanted.trim()
 
   /** Перевод причины отказа в человеческие слова. Голый код беды — тот же тупик. */
-  const reasonText = (reason: string): string => {
-    if (reason === "empty") return words.reasonEmpty
-    if (reason === "no-zones") return words.reasonNoZones
-    if (reason === "not-owner") return words.reasonNotOwner
-    if (reason === "no-tunnel-permission") return words.reasonNoTunnel
-    if (reason.startsWith("network:")) return words.reasonNetwork
-    if (reason.startsWith("token-")) return words.reasonToken
-    // Слова самого Cloudflare передаются как есть: они точнее нашего пересказа.
-    if (reason.startsWith("cloudflare:")) return `${words.keyRejected} ${reason.slice("cloudflare:".length)}`
-    return words.keyRejected
-  }
+  const reasonText = (reason: string): string => keyReasonText(words, reason)
 
   async function sendKey() {
     if (busy) return
