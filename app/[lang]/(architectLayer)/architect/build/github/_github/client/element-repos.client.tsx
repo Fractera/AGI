@@ -29,7 +29,7 @@ type Row = {
   commit: string | null
   update: { target: string | null; base: string | null; ownWork: boolean; available: boolean; merging: boolean } | null
 }
-type Job = { running: boolean; interrupted?: boolean; current?: string; done?: number; total?: number; startedAt?: string; finishedAt?: string; results?: Array<{ id: string; ok: boolean; error?: string; detail?: string; repo?: string }>; map?: { pushed: boolean; reason?: string; ok: boolean } }
+type Job = { running: boolean; retryAt?: string; interrupted?: boolean; current?: string; done?: number; total?: number; startedAt?: string; finishedAt?: string; results?: Array<{ id: string; ok: boolean; error?: string; detail?: string; repo?: string }>; map?: { pushed: boolean; reason?: string; ok: boolean } }
 type State = { token: boolean; elements: Row[]; job: Job }
 
 const when = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleString() : "")
@@ -102,6 +102,8 @@ export function ElementRepos({ words: w, lang }: { words: ElementReposWords; lan
   if (!state) return null
   const job = state.job
   const done = job.results ?? []
+  // 379: GitHub велел подождать — до этого времени кнопка неактивна и время названо (таймеров нет: проверка при открытии и «Обновить»).
+  const waitUntil = job.retryAt && Date.parse(job.retryAt) > Date.now() ? new Date(job.retryAt).toLocaleTimeString() : null
   return (
     <section className="flex flex-col gap-3" data-element-repos={state.elements.length}>
       <H3 variant="ui">{w.title}</H3>
@@ -109,7 +111,7 @@ export function ElementRepos({ words: w, lang }: { words: ElementReposWords; lan
       {!state.token && <p className="text-sm text-destructive" role="alert">{w.noToken}</p>}
       <div className="flex flex-wrap items-center gap-2">
         {state.token && (
-          <Button type="button" size="sm" onClick={create} disabled={busy !== null || job.running} data-element-repos-create>
+          <Button type="button" size="sm" onClick={create} disabled={busy !== null || job.running || waitUntil !== null} data-element-repos-create>
             {job.running || busy === "*" ? w.creating : w.create}
           </Button>
         )}
@@ -124,6 +126,7 @@ export function ElementRepos({ words: w, lang }: { words: ElementReposWords; lan
           {job.current ? ` ${w.jobNow.replace("{id}", state.elements.find((e) => e.id === job.current)?.address ?? job.current).replace("{done}", String(job.done ?? 0)).replace("{total}", String(job.total ?? 0))}` : ""}
         </p>
       )}
+      {waitUntil && <p className="text-sm text-destructive" role="status" data-element-repos-wait>{w.rateWait.replace("{at}", waitUntil)}</p>}
       {job.interrupted && <p className="text-sm text-destructive" role="status" data-element-repos-interrupted>{w.jobInterrupted.replace("{at}", when(job.startedAt))}</p>}
       {!job.running && job.finishedAt && (
         <div className="flex flex-col gap-1 text-sm" role="status" data-element-repos-job>

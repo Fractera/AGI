@@ -11,7 +11,7 @@ import { saveNodeMap, type NodeMapResult } from "@/lib/agi-items/node-map"
 
 const FILE = join(process.cwd(), "data", "node", "github", "repos.json")
 const g = globalThis as unknown as { __agiReposJob?: Promise<void> | null }
-export type ReposJob = { running: boolean; pid?: number; current?: string; done?: number; total?: number; interrupted?: boolean; startedAt?: string; finishedAt?: string; results?: RepoResult[]; map?: NodeMapResult }
+export type ReposJob = { running: boolean; retryAt?: string; pid?: number; current?: string; done?: number; total?: number; interrupted?: boolean; startedAt?: string; finishedAt?: string; results?: RepoResult[]; map?: NodeMapResult }
 
 // 🔒 «ИДЁТ» ИЗМЕРЯЕТСЯ, А НЕ ПОМНИТСЯ (378, тот же закон, что у замка развёртываний 337): работа живёт в процессе ядра, и
 // перезапуск ядра (пересборка, pm2) её убивает. Запись несёт `pid`; «идёт» — только если это тот же живой процесс и работа в нём
@@ -34,13 +34,15 @@ function write(job: ReposJob) {
 /** Запустить создание репозиториев, если оно не идёт. Возвращает сразу. */
 export function startReposJob(): ReposJob {
   if (g.__agiReposJob) return readReposJob()
+  const prev = readReposJob()
+  if (prev.retryAt && Date.parse(prev.retryAt) > Date.now()) return prev
   const startedAt = new Date().toISOString()
   write({ running: true, pid: process.pid, startedAt })
   g.__agiReposJob = (async () => {
     try {
       // 378: ход виден — какой элемент сейчас и сколько готово (владелец ждал «4 минуты» вслепую).
       const r = await createAllElementRepos((current, done, total) => write({ running: true, pid: process.pid, startedAt, current, done, total }))
-      write({ running: false, startedAt, finishedAt: new Date().toISOString(), results: r.results, map: saveNodeMap() })
+      write({ running: false, startedAt, finishedAt: new Date().toISOString(), results: r.results, retryAt: r.retryAt, map: saveNodeMap() })
     } catch {
       write({ running: false, startedAt, finishedAt: new Date().toISOString(), results: [] })
     } finally {
