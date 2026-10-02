@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { ExternalLink, Monitor } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
-import { isTemporaryHostname } from "@/lib/auth/temporary-address"
+import { isLoopbackHostname } from "@/lib/auth/owner-at-machine"
 
 // ВЫХОД ИЗ ОТКАЗА НА ВРЕМЕННОМ АДРЕСЕ: «ОТКРЫТЬ НА ЭТОМ КОМПЬЮТЕРЕ» (шаг 372-2).
 //
@@ -18,11 +18,12 @@ import { isTemporaryHostname } from "@/lib/auth/temporary-address"
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
-/** Адрес той же страницы пульта на этом компьютере — только на временном адресе, иначе null. */
+/** Адрес той же страницы пульта на этом компьютере — на любом адресе, кроме самой петли (373-2: Preview на своём домене узла
+ *  тоже ведёт сюда; было — только временный адрес), иначе null. */
 function useLocalHref(): string | null {
   const [href, setHref] = useState<string | null>(null)
   useEffect(() => {
-    if (!isTemporaryHostname(window.location.hostname)) return
+    if (isLoopbackHostname(window.location.hostname)) return
     fetch(`${BASE}/api/domain/state`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((d: { nodeUrl?: string | null } | null) => {

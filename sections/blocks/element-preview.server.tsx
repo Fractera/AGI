@@ -10,9 +10,7 @@ const WORDS: Record<string, ElementPreviewWords> = {
   en: {
     loading: 'Asking the node where this element answers…',
     unavailable: 'The node did not answer, so the preview is not shown.',
-    localOnly: 'This element has no public address: the preview opens only on the computer where the node runs.',
-    blockedHttps: 'The preview cannot be shown here: this page is opened over the internet (https), and the element has no connected internet address yet — the browser does not let a public page load an address of this computer. Connect its address, or open the preview in a new tab on this computer.',
-    connectAddress: 'Connect the address',
+    blockedHttps: 'Preview works only in the panel opened on this computer: it shows the element as it runs here right now, at this computer’s own address, and a browser does not let a page opened over the internet load such an address. Open the panel on this computer.',
     openNew: 'Open in a new tab',
     openHere: 'Open on this computer',
     reload: 'Reload',
@@ -41,9 +39,7 @@ const WORDS: Record<string, ElementPreviewWords> = {
   ru: {
     loading: 'Спрашиваю узел, где отвечает этот элемент…',
     unavailable: 'Узел не ответил, поэтому просмотр не показан.',
-    localOnly: 'У этого элемента нет публичного адреса: просмотр открывается только на компьютере, где работает узел.',
-    blockedHttps: 'Просмотр здесь не покажется: эта страница открыта через интернет (https), а у элемента ещё нет подключённого адреса в интернете — браузер не даёт публичной странице загружать адрес этого компьютера. Подключите адрес или откройте просмотр в новой вкладке на этом компьютере.',
-    connectAddress: 'Подключить адрес',
+    blockedHttps: 'Preview работает только в пульте, открытом на этом компьютере: он показывает элемент таким, каким тот работает здесь прямо сейчас, по адресу этого компьютера, а браузер не даёт странице, открытой через интернет, загрузить такой адрес. Откройте пульт на этом компьютере.',
     openNew: 'Открыть в новой вкладке',
     openHere: 'Открыть на этом компьютере',
     reload: 'Обновить',

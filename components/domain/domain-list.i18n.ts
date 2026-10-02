@@ -12,6 +12,11 @@ export type DomainListWords = {
   recheck: string
   rechecking: string
   remove: string
+  detachRemove: string
+  detachConfirm: string
+  detachRemoveYes: string
+  detaching: string
+  cancel: string
   attachedTo: string
   connected: string
   notConnected: string
@@ -39,6 +44,11 @@ const DICT: Record<string, DomainListWords> = {
     recheck: "Check again",
     rechecking: "Checking…",
     remove: "Remove from the list",
+    detachRemove: "Disconnect from the element and remove",
+    detachConfirm: "{domain} is connected to the element {element}. The node removes it from its tunnel and from its own DNS records, the element answers again on its subdomain, and the domain leaves this list. Records in a zone the node's key no longer sees are not touched.",
+    detachRemoveYes: "Disconnect and remove",
+    detaching: "Disconnecting…",
+    cancel: "Cancel",
     attachedTo: "Connected to the element",
     connected: "Connected",
     notConnected: "Not connected",
@@ -117,6 +127,9 @@ const DICT: Record<string, DomainListWords> = {
       exists: "This domain is already in the list.",
       "no-key": "The node has no Cloudflare key yet: connect the main domain first (the first card).",
       attached: "The domain is connected to an element — disconnect it there first.",
+      "no-tunnel": "The node has no tunnel of its main domain, so it cannot take the domain off the element.",
+      "tunnel-failed": "Cloudflare did not accept the change of the node's tunnel — nothing was removed. Try again.",
+      "cloudflare-error": "Cloudflare did not answer — nothing was removed. Try again.",
       "write-failed": "The list could not be saved.",
       "not-found": "The domain is not in the list.",
       "no-zone-permission": "The key has no right to create zones — see step 1.",
@@ -139,6 +152,11 @@ const DICT: Record<string, DomainListWords> = {
     recheck: "Проверить снова",
     rechecking: "Проверяю…",
     remove: "Убрать из списка",
+    detachRemove: "Отключить от элемента и удалить",
+    detachConfirm: "{domain} подключён к элементу {element}. Узел уберёт его из своего туннеля и своих записей DNS, элемент снова будет отвечать на своём поддомене, а домен уйдёт из этого списка. Записи в зоне, которую ключ узла больше не видит, не трогаются.",
+    detachRemoveYes: "Отключить и удалить",
+    detaching: "Отключаю…",
+    cancel: "Отмена",
     attachedTo: "Подключён к элементу",
     connected: "Подключён",
     notConnected: "Не подключён",
@@ -217,6 +235,9 @@ const DICT: Record<string, DomainListWords> = {
       exists: "Этот домен уже в списке.",
       "no-key": "У узла ещё нет ключа Cloudflare: сначала подключите основной домен (первая карточка).",
       attached: "Домен подключён к элементу — сначала отключите его там.",
+      "no-tunnel": "У узла нет туннеля основного домена — снять домен с элемента нечем.",
+      "tunnel-failed": "Cloudflare не принял правку туннеля узла — ничего не удалено. Попробуйте ещё раз.",
+      "cloudflare-error": "Cloudflare не ответил — ничего не удалено. Попробуйте ещё раз.",
       "write-failed": "Не удалось сохранить список.",
       "not-found": "Этого домена нет в списке.",
       "no-zone-permission": "У ключа нет права создавать зоны — см. ступень 1.",

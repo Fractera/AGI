@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { OpenOnThisComputerButton } from "@/components/node-state/open-on-this-computer.client"
+import { isLoopbackHostname } from "@/lib/auth/owner-at-machine"
 import { CircleHelp, Copy, ExternalLink, Highlighter, PanelRightClose, RefreshCw, Search, SquareTerminal } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -44,10 +45,8 @@ import type { AppDialogUi } from "@/components/dialog/app-dialog.i18n"
 export type ElementPreviewWords = {
   loading: string
   unavailable: string
-  localOnly: string
   /** 2026-10-01: ядро на https, у элемента нет подключённого имени — браузер не пустит локальный адрес во фрейм. */
   blockedHttps: string
-  connectAddress: string
   openNew: string
   /** 372-4: на временном адресе — та же страница пульта на этом компьютере, где просмотр работает. */
   openHere: string
@@ -105,8 +104,8 @@ const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
 /** `terminalService` — сегмент страницы терминала в `/architect/<…>/terminal`: у служб ядра это их id (по умолчанию), у рождённого
  *  элемента — `<адрес>/build` (356: по id элемента ссылка вела на страницу ошибки). */
-export function ElementPreview({ serviceId, terminalService, homeHref, lang, words, task }: { serviceId: string; terminalService?: string; homeHref?: string; lang: string; words: ElementPreviewWords; task?: PreviewTaskKit }) {
-  const [state, setState] = useState<{ url: string; public: boolean } | "loading" | "failed">("loading")
+export function ElementPreview({ serviceId, terminalService, lang, words, task }: { serviceId: string; terminalService?: string; lang: string; words: ElementPreviewWords; task?: PreviewTaskKit }) {
+  const [state, setState] = useState<{ url: string } | "loading" | "failed">("loading")
   // Адрес, открытый в просмотре СЕЙЧАС (человек мог перейти внутри): его и открывает кнопка «в новой вкладке».
   const [current, setCurrent] = useState<string | null>(null)
   const [frameKey, setFrameKey] = useState(0)
@@ -139,7 +138,7 @@ export function ElementPreview({ serviceId, terminalService, homeHref, lang, wor
     let alive = true
     fetch(`${BASE}/api/node/preview-url?id=${encodeURIComponent(serviceId)}&lang=${encodeURIComponent(lang)}`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((d: { url: string; public: boolean }) => alive && setState(d))
+      .then((d: { url: string }) => alive && setState(d))
       .catch(() => alive && setState("failed"))
     return () => {
       alive = false
@@ -169,22 +168,15 @@ export function ElementPreview({ serviceId, terminalService, homeHref, lang, wor
 
   if (state === "loading") return <p className="text-muted-foreground text-sm">{words.loading}</p>
   if (state === "failed") return <p className="text-muted-foreground text-sm">{words.unavailable}</p>
-  // 2026-10-01 (владелец: «вижу http://127.0.0.1:24690/ru и белый пустой экран»; браузер: «The connection is blocked because it was
-  // initiated by a public page to connect to devices or servers on your local network»). Ядро открыто по https, а адрес элемента —
-  // петля машины: рамку браузер не загрузит НИКОГДА. Вместо белой рамки — причина и путь к «Адресу в интернете».
-  if (!state.public && window.location.protocol === "https:") {
+  // 🔒 373-2 (владелец 2026-10-02: Preview «вообще должна уметь работать только с режимом Dev mode», через интернет — «Только
+  // кнопка»). Адрес элемента — всегда петля машины (дверь `preview-url`); страница ядра не на петле (свой домен, временный адрес)
+  // её не загрузит НИКОГДА (Private Network Access: «The connection is blocked because it was initiated by a public page…», замерено
+  // 2026-10-01). Вместо пустой рамки — причина и та же страница пульта на этом компьютере.
+  if (!isLoopbackHostname(window.location.hostname)) {
     return (
       <div className="flex flex-col gap-2 rounded-lg border border-warning/50 bg-warning/10 p-3 text-sm" role="status" data-preview-blocked>
         <p className="text-foreground">{words.blockedHttps}</p>
-        <div className="flex flex-wrap gap-2">
-          {/* 372-4: на временном адресе просмотр живёт на пульте этого компьютера (решение владельца «внутри пульта»). */}
-          <OpenOnThisComputerButton open={words.openHere} />
-          {homeHref && <a href={`${BASE}${homeHref}`} className={buttonVariants({ size: "sm" })} data-preview-connect>{words.connectAddress}</a>}
-          <a href={state.url} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "outline", size: "sm", className: "gap-1.5" })}>
-            <ExternalLink className="size-4" aria-hidden />
-            {words.openNew}
-          </a>
-        </div>
+        <OpenOnThisComputerButton open={words.openHere} />
       </div>
     )
   }
@@ -275,7 +267,6 @@ export function ElementPreview({ serviceId, terminalService, homeHref, lang, wor
 
   return (
     <div className="flex flex-col gap-2" data-element-preview={serviceId}>
-      {!state.public && <p className="text-muted-foreground text-sm">{words.localOnly}</p>}
       <TooltipProvider>
         <form
           className="flex items-center gap-2"

@@ -19,7 +19,7 @@ import { DomainKey, type NodeKey } from "./domain-key.client"
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
-type Extra = PipelineDomain & { holder: string | null }
+type Extra = PipelineDomain & { holder: string | null; holderAddress?: string | null }
 type List = { key: NodeKey; primary: { name: string; status: string | null } | null; extra: Extra[] }
 
 // 372 (владелец 2026-10-02): «Active» — статус ЗОНЫ в Cloudflare (домен там, серверы имён сменены) — зелёный; рядом второй значок
@@ -37,6 +37,8 @@ export function DomainList({ lang, words: w, ladderWords, ladder }: { lang: stri
   const [name, setName] = useState("")
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<Record<string, string>>({})
+  // 373-1: домен, подключённый к элементу, удаляется после подтверждения прямо в карточке (имя элемента названо).
+  const [confirm, setConfirm] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     try {
@@ -49,17 +51,18 @@ export function DomainList({ lang, words: w, ladderWords, ladder }: { lang: stri
 
   useEffect(() => { void load() }, [load])
 
-  async function act(method: "POST" | "DELETE", domain: string, slot: string) {
+  async function act(method: "POST" | "DELETE", domain: string, slot: string, detach = false) {
     setBusy(slot)
     setError((e) => ({ ...e, [slot]: "" }))
     try {
       const r = await fetch(`${BASE}/api/domain/list`, {
         method,
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name: domain }),
+        body: JSON.stringify(detach ? { name: domain, detach: true } : { name: domain }),
       })
       const d = (await r.json().catch(() => null)) as { ok?: boolean; error?: string; holder?: string; domain?: { name: string } } | null
       if (d?.ok) {
+        setConfirm(null)
         await load()
         if (method === "POST" && d.domain) { setName(""); setOpen(d.domain.name) }
       } else {
@@ -109,15 +112,38 @@ export function DomainList({ lang, words: w, ladderWords, ladder }: { lang: stri
                     </span>
                   )
                 })()}
-                {d.holder && <span className="text-[length:var(--fs-small)] text-muted-foreground">→ {d.holder}</span>}
+                {d.holder && <span className="text-[length:var(--fs-small)] text-muted-foreground">→ {d.holderAddress ?? d.holder}</span>}
               </span>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-2">
               <DomainPipeline lang={lang} domain={d} words={w} ladderWords={ladderWords} onChanged={load} hasPrimary={!!list?.primary} />
-              {d.holder && <p className="text-sm text-foreground">{w.attachedTo} <span className="font-mono">{d.holder}</span></p>}
-              <Button type="button" variant="ghost" size="sm" className="w-fit" onClick={() => act("DELETE", d.name, d.name)} disabled={busy !== null || !!d.holder} data-domain-remove>
-                {w.remove}
-              </Button>
+              {d.holder && <p className="text-sm text-foreground">{w.attachedTo} <span className="font-mono">{d.holderAddress ?? d.holder}</span></p>}
+              {/* 373-1 (владелец 2026-10-02: «добавить опцию удалить домен который должна вернуть работу проекта как субдомен»). */}
+              {d.holder && confirm === d.name ? (
+                <div className="flex flex-col gap-2 rounded-lg border border-destructive/40 bg-destructive/5 p-3" role="alert" data-domain-detach-confirm>
+                  <p className="text-sm text-foreground">{w.detachConfirm.replace("{domain}", d.name).replace("{element}", d.holderAddress ?? d.holder)}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" variant="destructive" size="sm" onClick={() => act("DELETE", d.name, d.name, true)} disabled={busy !== null} data-domain-detach-remove-yes>
+                      {busy === d.name ? w.detaching : w.detachRemoveYes}
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setConfirm(null)} disabled={busy !== null}>
+                      {w.cancel}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="w-fit"
+                  onClick={() => (d.holder ? setConfirm(d.name) : act("DELETE", d.name, d.name))}
+                  disabled={busy !== null}
+                  data-domain-remove
+                >
+                  {d.holder ? w.detachRemove : w.remove}
+                </Button>
+              )}
               {error[d.name] && <p className="text-sm text-destructive" role="alert">{error[d.name]}</p>}
             </AccordionContent>
           </AccordionItem>
