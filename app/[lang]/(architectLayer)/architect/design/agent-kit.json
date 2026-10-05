@@ -2,7 +2,7 @@
   "_": "Параметры установки комплекта агента. Пишет npm run agent-kit:add, читают мост и сторож. Руками не править: правьте мастер и повторите npm run agent-kit:update.",
   "service": "design",
   "workspace": "agi-item",
-  "version": "e1bec948b0902851",
+  "version": "1470c63733b358d8",
   "pages": [
     {
       "template": "claude-code",

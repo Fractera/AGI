@@ -315,50 +315,97 @@ function named(service) {
   return address
 }
 
+// Тексты — языком человека (владелец 2026-10-05 одобрил образец: «Агенту roman пришёл вопрос от агента gyr1i / «…» / Агент roman
+// сейчас выключен. Включить его, чтобы он ответил? / [Включить и ответить] [Не сейчас — gyr1i получит отказ]»). Кто говорит и
+// кому — словами; «терминал» — внутреннее устройство, человеку говорится «агент включён / выключен». `a` — имя агента элемента
+// (адрес без зоны), `c` — кто спрашивает (одно имя или список через запятую).
 const ASK = {
   en: {
-    title: (who) => `${who}: asking to start the terminal.`, from: 'From', about: 'Task', go: 'Start', no: 'Not now',
-    started: 'Terminal started — the agent got the task.', declined: 'Not started.',
-    memory: (f, n) => `Not started: not enough free memory (${f} MB free, ${n} MB needed). Press «Start» again later.`,
-    failed: (r) => `Not started: ${r}. Press «Start» again.`,
-    declineText: 'The person chose not to start the agent terminal now.',
-    titleHuman: (who) => `${who}: the terminal is off. Start it and pass your message to the agent?`, message: 'Your message',
-    startedHuman: 'Terminal started — the agent got your message.',
+    oneCall: (a, c) => `Agent ${a} got a question from agent ${c}`,
+    manyCalls: (a, n) => `Agent ${a} got ${n} questions`,
+    fromLine: (c, q) => `from ${c}: «${q}»`,
+    offCalls: (a) => `Agent ${a} is off now. Turn it on so it answers?`,
+    offHuman: (a) => `Agent ${a} is off. Turn it on and pass your message to it?`,
+    yourMessage: (q) => `Your message: «${q}»`,
+    goCalls: 'Turn on and answer', goHuman: 'Turn on and pass',
+    noCalls: (c) => `Not now — ${c} gets a refusal`, noHuman: 'Not now',
+    startedCalls: (a, c) => `Agent ${a} is on and answering ${c}.`,
+    startedHuman: (a) => `Agent ${a} is on and got your message.`,
+    declinedCalls: (a, c) => `Agent ${a} was not turned on — ${c} gets a refusal.`,
+    declinedHuman: (a) => `Agent ${a} was not turned on.`,
+    memory: (a, f, n) => `Agent ${a} was not turned on: too little free memory (${f} MB free, ${n} MB needed). Press «Turn on» later.`,
+    failed: (a, r) => `Agent ${a} did not turn on: ${r}. Press «Turn on» again.`,
+    declineText: (a) => `The owner of ${a} chose not to turn its agent on now.`,
+    toast: 'Turning on…',
   },
   ru: {
-    title: (who) => `${who}: просят запустить терминал.`, from: 'Кто', about: 'Задача', go: 'Запустить', no: 'Не сейчас',
-    started: 'Терминал запущен — агент получил задачу.', declined: 'Не запущено.',
-    memory: (f, n) => `Не запущено: не хватает свободной памяти (свободно ${f} МБ, нужно ${n} МБ). Нажмите «Запустить» позже.`,
-    failed: (r) => `Не запущено: ${r}. Нажмите «Запустить» ещё раз.`,
-    declineText: 'Человек не стал сейчас запускать терминал агента.',
-    titleHuman: (who) => `${who}: терминал выключен. Запустить его и передать агенту ваше сообщение?`, message: 'Ваше сообщение',
-    startedHuman: 'Терминал запущен — агент получил ваше сообщение.',
+    oneCall: (a, c) => `Агенту ${a} пришёл вопрос от агента ${c}`,
+    manyCalls: (a, n) => `Агенту ${a} пришли вопросы (${n})`,
+    fromLine: (c, q) => `от ${c}: «${q}»`,
+    offCalls: (a) => `Агент ${a} сейчас выключен. Включить его, чтобы он ответил?`,
+    offHuman: (a) => `Агент ${a} выключен. Включить его и передать ему ваше сообщение?`,
+    yourMessage: (q) => `Ваше сообщение: «${q}»`,
+    goCalls: 'Включить и ответить', goHuman: 'Включить и передать',
+    noCalls: (c) => `Не сейчас — ${c} получит отказ`, noHuman: 'Не сейчас',
+    startedCalls: (a, c) => `Агент ${a} включён и отвечает ${c}.`,
+    startedHuman: (a) => `Агент ${a} включён и получил ваше сообщение.`,
+    declinedCalls: (a, c) => `Агент ${a} не включён — ${c} получит отказ.`,
+    declinedHuman: (a) => `Агент ${a} не включён.`,
+    memory: (a, f, n) => `Агент ${a} не включён: мало свободной памяти (свободно ${f} МБ, нужно ${n} МБ). Нажмите «Включить» позже.`,
+    failed: (a, r) => `Агент ${a} не включился: ${r}. Нажмите «Включить» ещё раз.`,
+    declineText: (a) => `Хозяин ${a} не стал сейчас включать его агента.`,
+    toast: 'Включаю…',
   },
 }
 
 /** 409-4: что вставить агенту из сообщения человека — кто, откуда и как ответить (инструмент reply канала Telegram). */
 function humanPrompt(chatId, who, said) {
-  return `Сообщение из Telegram от ${who} (chat_id ${chatId}), пока терминал был выключен: ${said} — ответь ему в Telegram инструментом reply канала (chat_id ${chatId}).`
+  return `Сообщение из Telegram от ${who} (chat_id ${chatId}), пока ты был выключен: ${said} — ответь ему в Telegram инструментом reply канала (chat_id ${chatId}).`
 }
 
 const allHuman = (items) => items.length > 0 && items.every((it) => it.kind === 'human')
 
 const cutText = (t, n) => (t.length > n ? `${t.slice(0, n - 1)}…` : t)
 
+/** Имя элемента для человека: адрес без зоны узла (`roman`, а не `roman.throughsongs.com` и не id). */
+function shortName(nameOrAddress) {
+  const s = String(nameOrAddress || '')
+  let zone = ''
+  try { zone = JSON.parse(readFileSync(path.join(ROOT, 'logs', 'domain.json'), 'utf8')).zone || '' } catch { /* без зоны */ }
+  return zone && s.endsWith(`.${zone}`) ? s.slice(0, -zone.length - 1) : s
+}
+
+/** Кто спрашивает — имена вызывающих без повторов. */
+const callersOf = (items) => [...new Set(items.filter((it) => it.kind !== 'human').map((it) => shortName(it.from) || '?'))].join(', ')
+
 function askText(service, items, lang) {
   const t = ASK[lang]
-  const lines = [(allHuman(items) ? t.titleHuman : t.title)(named(service))]
-  for (const it of items.slice(-5)) {
-    if (it.kind === 'human') { lines.push(`${t.message}: ${cutText(it.about, 300)}`); continue }
-    if (it.from) lines.push(`${t.from}: ${it.from}`)
-    if (it.about) lines.push(`${t.about}: ${cutText(it.about, 300)}`)
+  const a = shortName(named(service))
+  const calls = items.filter((it) => it.kind !== 'human').slice(-5)
+  const human = items.filter((it) => it.kind === 'human').slice(-5)
+  const lines = []
+  if (calls.length === 1) lines.push(t.oneCall(a, shortName(calls[0].from) || '?'), `«${cutText(calls[0].about, 300)}»`)
+  else if (calls.length > 1) {
+    lines.push(t.manyCalls(a, calls.length))
+    for (const it of calls) lines.push(t.fromLine(shortName(it.from) || '?', cutText(it.about, 200)))
   }
+  // Только сообщения человека — вопрос первой строкой, его сообщение под ним; есть вопросы агентов — вопрос о включении в конце.
+  if (!calls.length) lines.push(t.offHuman(a))
+  for (const it of human) lines.push(t.yourMessage(cutText(it.about, 300)))
+  if (calls.length) lines.push(t.offCalls(a))
   return cutText(lines.join('\n'), 3500)
 }
 
-const buttons = (p, lang) => ({
-  inline_keyboard: [[{ text: ASK[lang].go, callback_data: `wake:${p.id}:go` }, { text: ASK[lang].no, callback_data: `wake:${p.id}:no` }]],
-})
+const buttons = (p, lang) => {
+  const t = ASK[lang]
+  const human = allHuman(p.items)
+  return {
+    inline_keyboard: [[
+      { text: human ? t.goHuman : t.goCalls, callback_data: `wake:${p.id}:go` },
+      { text: human ? t.noHuman : t.noCalls(callersOf(p.items)), callback_data: `wake:${p.id}:no` },
+    ]],
+  }
+}
 
 let starter = null
 /** bridge.cjs кладёт сюда запуск с подтверждением — без круговой зависимости модулей. */
@@ -423,25 +470,29 @@ async function onButton(service, token, q) {
   }
   const lang = botLang(service)
   const t = ASK[lang]
+  const a = shortName(named(service))
+  const c = callersOf(p.items)
+  const human = allHuman(p.items)
   if (m[2] === 'no') {
-    await tg(token, 'answerCallbackQuery', { callback_query_id: q.id, text: t.declined })
+    const declined = human ? t.declinedHuman(a) : t.declinedCalls(a, c)
+    await tg(token, 'answerCallbackQuery', { callback_query_id: q.id, text: declined })
     rmSync(pendingFile(service), { force: true })
-    await closeAsk(service, token, p, t.declined, false, lang)
-    for (const it of p.items) if (it.declineUrl) await declineCaller(it.declineUrl, t.declineText)
+    await closeAsk(service, token, p, declined, false, lang)
+    for (const it of p.items) if (it.declineUrl) await declineCaller(it.declineUrl, t.declineText(a))
     return
   }
-  await tg(token, 'answerCallbackQuery', { callback_query_id: q.id, text: t.go })
+  await tg(token, 'answerCallbackQuery', { callback_query_id: q.id, text: t.toast })
   const text = p.items.map((it) => it.text).filter(Boolean).join('\n\n')
   const out = typeof starter === 'function' ? await starter(service, { text: text || undefined }) : { ok: false, reason: 'no-starter' }
   if (out.ok) {
     rmSync(pendingFile(service), { force: true })
-    const startedText = allHuman(p.items) ? t.startedHuman : t.started
+    const startedText = human ? t.startedHuman(a) : t.startedCalls(a, c)
     await closeAsk(service, token, p, startedText, false, lang)
     // Владелец 2026-10-05: «нажатие кнопку ничего визуально не меняет» — правка сообщения наверху не видна; итог — новым
-    // сообщением внизу, за ним пойдут ответ агента и «закрыть терминал?».
-    for (const a of p.asked) await tg(token, 'sendMessage', { chat_id: a.chat, text: `${named(service)}: ${startedText}`, disable_web_page_preview: true })
+    // сообщением внизу, за ним пойдут ответ агента и «выключить агента?».
+    for (const x of p.asked) await tg(token, 'sendMessage', { chat_id: x.chat, text: startedText, disable_web_page_preview: true })
   } else {
-    const why = out.reason === 'memory' ? t.memory(out.freeMb, out.perSessionMb) : t.failed(String(out.reason ?? 'unknown'))
+    const why = out.reason === 'memory' ? t.memory(a, out.freeMb, out.perSessionMb) : t.failed(a, String(out.reason ?? 'unknown'))
     await closeAsk(service, token, p, why, true, lang)
   }
 }
@@ -449,25 +500,25 @@ async function onButton(service, token, q) {
 // ── ПРЕДЛОЖЕНИЕ ЗАКРЫТЬ ТЕРМИНАЛ (409-5) ──────────────────────────────────────
 //
 // Пока терминал запущен, бота читает плагин каналов, и чужие кнопки он выбрасывает (server.ts 0.0.7: принимает только
-// `perm:…`). Поэтому вопрос — текстом, без кнопок (владелец 2026-10-05: «Ответ текстом»): ответ «закрыть» получает агент через
+// `perm:…`). Поэтому вопрос — текстом, без кнопок (владелец 2026-10-05: «Ответ текстом»): ответ «выключить» получает агент через
 // канал и закрывает свой терминал дверью ядра (`POST /api/agents/done` с `close`). Бота нет — ничего не шлётся и ничего не
 // закрывается: закрывать без ответа человека нельзя.
 
 const CLOSE = {
   en: {
-    done: (who) => `${who}: the work is done. Close the terminal? Reply «close» — the agent will close it.`,
-    timeout: (who) => `${who}: the terminal has been running for 60 minutes since it was woken. Close it? Reply «close» — the agent will close it.`,
+    done: (a) => `Agent ${a} has finished. Turn it off? Reply «off» — the agent will turn itself off.`,
+    timeout: (a) => `Agent ${a} has been on for 60 minutes. Turn it off? Reply «off» — the agent will turn itself off.`,
   },
   ru: {
-    done: (who) => `${who}: работа закончена. Закрыть терминал? Ответьте «закрыть» — агент закроет его сам.`,
-    timeout: (who) => `${who}: терминал работает 60 минут с пробуждения. Закрыть его? Ответьте «закрыть» — агент закроет его сам.`,
+    done: (a) => `Агент ${a} закончил. Выключить его? Ответьте «выключить» — агент выключится сам.`,
+    timeout: (a) => `Агент ${a} работает уже 60 минут. Выключить его? Ответьте «выключить» — агент выключится сам.`,
   },
 }
 
 async function askToClose(service, why) {
   if (!connected(service)) return { ok: true, asked: 0, reason: 'no-telegram' }
   const token = storedToken(service)
-  const text = CLOSE[botLang(service)][why === 'timeout' ? 'timeout' : 'done'](named(service))
+  const text = CLOSE[botLang(service)][why === 'timeout' ? 'timeout' : 'done'](shortName(named(service)))
   let asked = 0
   for (const chat of access(service).allowed) {
     const r = await tg(token, 'sendMessage', { chat_id: chat, text, disable_web_page_preview: true })

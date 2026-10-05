@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { nodeZone } from "@/lib/agi-items/drafts"
-import { humanAnswerOf, humanQuestionOf, type Lang } from "@/lib/a2a/call-text"
+import { humanAnswerOf, humanQuestionOf, isTextQuestion, type Lang } from "@/lib/a2a/call-text"
 
 // ВЫЗОВЫ A2A — В TELEGRAM УЧАСТНИКОВ И ЯДРА (шаг 408-5; владелец 2026-10-05: «если ты видишь активный Telegram то
 // одновременно с этим пробрасывать туда сообщения … максимум три телеграмм канала … Добавляются ещё и Telegram ядра … текст
@@ -57,7 +57,10 @@ export type RelayCall = {
   request: string | null; response: string | null
 }
 
-const WRITES: Record<Lang, string> = { en: "writes", ru: "пишет" }
+// Владелец 2026-10-05 (образец «Агенту roman пришёл вопрос от агента gyr1i»): кто кому — глаголом: спрашивает / отвечает.
+const ASKS: Record<Lang, string> = { en: "asks", ru: "спрашивает" }
+const ANSWERS: Record<Lang, string> = { en: "answers", ru: "отвечает" }
+const lowerFirst = (t: string) => t.charAt(0).toLowerCase() + t.slice(1)
 
 const named = (address: string) => {
   const zone = nodeZone()
@@ -71,8 +74,10 @@ export function relayMessages(call: RelayCall, lang: Lang) {
   // 🪦 409-2 «при TaskResult — только ответ» снято 2026-10-05: вопрос больше не шлётся при постановке задачи.
   // 🪦 Вложение `.json` (408-6) снято владельцем 2026-10-05: «Сейчас в Telegram ты дублирующий Джейсон но человеком не дает
   // никакой ценности. Оставь его для внутреннего взаимодействия … возвращают просто текст». Тело вызова — в журнале и ленте.
-  const ask = { caption: cut(`${named(call.fromAddress)} ${WRITES[lang]}: ${humanQuestionOf(call.request, lang)}`), file: null, name: "question.json" }
-  const answer = { caption: cut(`${named(call.toAddress)} ${WRITES[lang]}: ${humanAnswerOf(call.response, lang, call.reason)}`), file: null, name: "answer.json" }
+  const q = humanQuestionOf(call.request, lang)
+  const askLine = isTextQuestion(call.request) ? `${named(call.fromAddress)} ${ASKS[lang]}: «${q}»` : `${named(call.fromAddress)} ${lowerFirst(q)}`
+  const ask = { caption: cut(askLine), file: null, name: "question.json" }
+  const answer = { caption: cut(`${named(call.toAddress)} ${ANSWERS[lang]}: ${humanAnswerOf(call.response, lang, call.reason)}`), file: null, name: "answer.json" }
   // Владелец 2026-10-05: сначала вопрос «запустить терминал?», и только после «Запустить» — сообщения разговора. Поэтому
   // задача агенту приходит в Telegram парой «вопрос + ответ» при `TaskResult`, а не при постановке (см. `relayCall`).
   return [ask, answer]

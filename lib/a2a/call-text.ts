@@ -53,6 +53,11 @@ const REASONS: Record<string, Record<Lang, string>> = {
   TASK_NOT_FOUND: { en: "No such task.", ru: "Такой задачи нет." },
 }
 
+/** Вопрос словами (часть `text`), а не вызов навыка: в Telegram — «спрашивает: «…»», иначе — «вызывает навык …». */
+export function isTextQuestion(request: string | null): boolean {
+  return requestParts(request).some((p) => typeof p.text === "string" && (p.text as string).trim() !== "")
+}
+
 export function humanQuestionOf(request: string | null, lang: Lang): string {
   const raw = parse(request)
   if (typeof raw === "string") return lang === "ru" ? "Прислал не-JSON." : "Sent something that is not JSON."
