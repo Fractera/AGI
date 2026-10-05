@@ -506,12 +506,13 @@ async function onButton(service, token, q) {
 
 const CLOSE = {
   en: {
-    done: (a) => `Agent ${a} has finished. Turn it off? Reply «off» — the agent will turn itself off.`,
-    timeout: (a) => `Agent ${a} has been on for 60 minutes. Turn it off? Reply «off» — the agent will turn itself off.`,
+    done: (a) => `Agent ${a} has finished. Turn it off? Reply «off» — the agent will turn itself off.\nReply «review» if you first want the agent to suggest how to improve its skills.`,
+    timeout: (a) => `Agent ${a} has been on for 60 minutes. Turn it off? Reply «off» — the agent will turn itself off.\nReply «review» if you first want the agent to suggest how to improve its skills.`,
   },
   ru: {
-    done: (a) => `Агент ${a} закончил. Выключить его? Ответьте «выключить» — агент выключится сам.`,
-    timeout: (a) => `Агент ${a} работает уже 60 минут. Выключить его? Ответьте «выключить» — агент выключится сам.`,
+    // 410-3: «разбор» — агент перед выключением предлагает, как улучшить свои навыки (навык self-review элемента).
+    done: (a) => `Агент ${a} закончил. Выключить его? Ответьте «выключить» — агент выключится сам.\nОтветьте «разбор», если хотите, чтобы сначала агент предложил, как улучшить свои навыки.`,
+    timeout: (a) => `Агент ${a} работает уже 60 минут. Выключить его? Ответьте «выключить» — агент выключится сам.\nОтветьте «разбор», если хотите, чтобы сначала агент предложил, как улучшить свои навыки.`,
   },
 }
 
