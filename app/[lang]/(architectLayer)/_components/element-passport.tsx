@@ -27,7 +27,7 @@ function Door({ d, ui }: { d: A2ADoor; ui: ElementPassportUi }) {
         <span className="font-medium">{d.path}</span>
       </p>
       <p className="text-sm text-muted-foreground">
-        {ui.capability}: <span className="text-foreground">{d.capability}</span> · {ui.key}: <span className="text-foreground">{d.key}</span> · {ui.callers}: <span className="text-foreground">{callers}</span>
+        {ui.capability}: <span className="text-foreground">{d.skill}</span> · {ui.key}: <span className="text-foreground">{d.key}</span> · {ui.callers}: <span className="text-foreground">{callers}</span>
       </p>
       <Example label={ui.input} value={d.input} />
       <Example label={ui.output} value={d.output} />
@@ -38,9 +38,13 @@ function Door({ d, ui }: { d: A2ADoor; ui: ElementPassportUi }) {
 
 export function ElementPassport({ view, passport, ui }: { view: PassportView; passport: Passport | null; ui: ElementPassportUi }) {
   if (view === "find") return <p className="my-4 text-sm text-muted-foreground" data-passport-view="find">{ui.networkSoon}</p>
-  const a = passport?.a2a
-  if (!a) return <p className="my-4 text-sm text-muted-foreground" data-passport-view="none">{ui.none} {ui.describeHint}</p>
+  const card = passport?.card
+  const x = passport?.ext
+  if (!card || !x) return <p className="my-4 text-sm text-muted-foreground" data-passport-view="none">{ui.none} {ui.describeHint}</p>
 
+  const notes = passport!.warnings.length ? (
+    <p className="text-xs text-muted-foreground" data-passport-warnings>{ui.warnings} {passport!.warnings.join(" · ")}</p>
+  ) : null
   const problems = passport!.problems.length ? (
     <div className="my-3 rounded-md border-2 border-destructive/60 bg-destructive/10 px-3 py-2 text-sm" role="alert" data-passport-problems>
       <p className="font-medium">{ui.problems}</p>
@@ -51,64 +55,66 @@ export function ElementPassport({ view, passport, ui }: { view: PassportView; pa
 
   let body: React.ReactNode = null
   if (view === "api" || view === "mcp") {
-    const doors = a.doors.filter((d) => d.protocol === (view === "api" ? "http" : "mcp"))
+    const doors = (x.doors ?? []).filter((d) => d.protocol === (view === "api" ? "http" : "mcp"))
     body = doors.length
       ? <div className="flex flex-col gap-3"><p className="text-sm font-medium">{ui.doors}</p>{doors.map((d) => <Door key={`${d.method} ${d.path}`} d={d} ui={ui} />)}</div>
       : <p className="text-sm text-muted-foreground">{view === "api" ? ui.noHttp : ui.noMcp}</p>
   } else if (view === "a2a") {
     body = (
       <div className="flex flex-col gap-4">
-        <p className="text-sm">{a.summary}</p>
-        <section className="flex flex-col gap-2">
+        <p className="text-sm">{card.description}</p>
+        <section className="flex flex-col gap-3">
           <p className="text-sm font-medium">{ui.can}</p>
-          <ul className="flex flex-col gap-1.5">
-            {a.capabilities.map((c) => (
-              <li key={c.name} className="text-sm" data-passport-capability={c.name}>
-                <span className="font-mono">{c.name}</span> — {c.words}{" "}
-                {c.tags.map((t) => <Badge key={t} variant="secondary" className="ml-1">{t}</Badge>)}
-              </li>
-            ))}
-          </ul>
+          {card.skills.map((c) => (
+            <div key={c.id} className="flex flex-col gap-1 rounded-lg border border-border px-4 py-3 text-sm" data-passport-capability={c.id}>
+              <p><span className="font-medium">{c.name}</span> <span className="font-mono text-xs text-muted-foreground">{c.id}</span></p>
+              <p>{c.description}</p>
+              <p className="text-xs text-muted-foreground">{ui.accepts}: {(c.inputModes ?? card.defaultInputModes).join(", ")} · {ui.returns}: {(c.outputModes ?? card.defaultOutputModes).join(", ")}</p>
+              {c.examples?.length ? <p className="text-xs text-muted-foreground">{ui.examples}: «{c.examples.join("» · «")}»</p> : null}
+              <p>{c.tags.map((t) => <Badge key={t} variant="secondary" className="mr-1">{t}</Badge>)}</p>
+            </div>
+          ))}
         </section>
         <section className="flex flex-col gap-2">
           <p className="text-sm font-medium">{ui.needs}</p>
-          {a.consumes?.length
-            ? <ul className="flex flex-col gap-1.5">{a.consumes.map((c) => <li key={`${c.from}-${c.capability}`} className="text-sm"><span className="font-mono">{c.capability}</span>{c.from ? <> {ui.from} <span className="font-mono">{c.from}</span></> : null} — {c.why}</li>)}</ul>
+          {x.consumes?.length
+            ? <ul className="flex flex-col gap-1.5">{x.consumes.map((c) => <li key={`${c.from}-${c.skill}`} className="text-sm"><span className="font-mono">{c.skill}</span>{c.from ? <> {ui.from} <span className="font-mono">{c.from}</span></> : null} — {c.why}</li>)}</ul>
             : <p className="text-sm text-muted-foreground">{ui.noNeeds}</p>}
         </section>
       </div>
     )
   } else if (view === "catalog") {
-    body = a.catalog
+    body = x.catalog
       ? (
         <div className="flex flex-col gap-1 text-sm">
           <p className="font-medium">{ui.catalogDoors}</p>
-          <p>{ui.find}: <span className="font-mono">{a.catalog.find}</span></p>
-          <p>{ui.get}: <span className="font-mono">{a.catalog.get}</span></p>
-          <p>{ui.contribute}: {a.catalog.contribute ? <span className="font-mono">{a.catalog.contribute}</span> : <span className="text-muted-foreground">{ui.noContribute}</span>}</p>
+          <p>{ui.find}: <span className="font-mono">{x.catalog.find}</span></p>
+          <p>{ui.get}: <span className="font-mono">{x.catalog.get}</span></p>
+          <p>{ui.contribute}: {x.catalog.contribute ? <span className="font-mono">{x.catalog.contribute}</span> : <span className="text-muted-foreground">{ui.noContribute}</span>}</p>
         </div>
       )
       : <p className="text-sm text-muted-foreground">{ui.catalogNone}</p>
   } else if (view === "publish") {
-    const pr = passport!.projections as { nostrTags: string[][]; lightragText: string } | null
+    const pr = passport!.projections
     body = (
       <div className="flex flex-col gap-3">
         <p className="text-sm text-muted-foreground">{ui.notSent}</p>
-        <Example label={`${ui.card} — ${ui.cardLead}`} value={passport!.card} />
+        <Example label={`${ui.published} — ${ui.publishedLead}`} value={passport!.published} />
+        <Example label={`${ui.registry} — ${ui.cardLead}`} value={passport!.registry} />
         {pr && <Example label={ui.nostr} value={pr.nostrTags.map((t) => t[1]).join(", ")} />}
         {pr && <Example label={ui.lightrag} value={pr.lightragText} />}
       </div>
     )
   } else if (view === "subscriptions") {
-    body = a.consumes?.length
-      ? <ul className="flex flex-col gap-1.5">{a.consumes.map((c) => <li key={`${c.from}-${c.capability}`} className="text-sm"><span className="font-mono">{c.capability}</span>{c.from ? <> {ui.from} <span className="font-mono">{c.from}</span></> : null} — {c.why}</li>)}</ul>
+    body = x.consumes?.length
+      ? <ul className="flex flex-col gap-1.5">{x.consumes.map((c) => <li key={`${c.from}-${c.skill}`} className="text-sm"><span className="font-mono">{c.skill}</span>{c.from ? <> {ui.from} <span className="font-mono">{c.from}</span></> : null} — {c.why}</li>)}</ul>
       : <p className="text-sm text-muted-foreground">{ui.noNeeds}</p>
   } else if (view === "cron") {
     body = (
       <section className="flex flex-col gap-2">
         <p className="text-sm font-medium">{ui.process}</p>
-        {a.process?.length
-          ? <ul className="flex flex-col gap-1.5">{a.process.map((p, i) => <li key={i} className="text-sm"><Badge variant="outline" className="mr-2">{p.kind}</Badge>{p.what}</li>)}</ul>
+        {x.process?.length
+          ? <ul className="flex flex-col gap-1.5">{x.process.map((p, i) => <li key={i} className="text-sm"><Badge variant="outline" className="mr-2">{p.kind}</Badge>{p.what}</li>)}</ul>
           : <p className="text-sm text-muted-foreground">{ui.noProcess}</p>}
       </section>
     )
@@ -117,6 +123,7 @@ export function ElementPassport({ view, passport, ui }: { view: PassportView; pa
     <div className="my-4 flex flex-col gap-3" data-passport-view={view}>
       {problems}
       {body}
+      {notes}
     </div>
   )
 }

@@ -35,6 +35,13 @@ export type ElementPassportUi = {
   process: string
   noProcess: string
   fingerprint: string
+  accepts: string
+  returns: string
+  examples: string
+  published: string
+  publishedLead: string
+  registry: string
+  warnings: string
 }
 
 const DICT: Record<"en" | "ru", ElementPassportUi> = {
@@ -73,6 +80,13 @@ const DICT: Record<"en" | "ru", ElementPassportUi> = {
     process: "What the element does by itself",
     noProcess: "Nothing: it acts only when called.",
     fingerprint: "Passport fingerprint",
+    accepts: "Accepts",
+    returns: "Returns",
+    examples: "Asked like",
+    published: "Published A2A card",
+    publishedLead: "What any A2A client gets at /.well-known/agent-card.json of the element (Google A2A v1.0).",
+    registry: "Entry in the node registry",
+    warnings: "Notes:",
   },
   ru: {
     none: "Элемент ещё не описал себя: в его паспорте нет раздела `a2a`.",
@@ -109,6 +123,13 @@ const DICT: Record<"en" | "ru", ElementPassportUi> = {
     process: "Что элемент делает сам",
     noProcess: "Ничего: действует только по вызову.",
     fingerprint: "Отпечаток паспорта",
+    accepts: "Принимает",
+    returns: "Возвращает",
+    examples: "Как просят",
+    published: "Опубликованная визитка A2A",
+    publishedLead: "Что получает любой клиент A2A по адресу /.well-known/agent-card.json элемента (Google A2A v1.0).",
+    registry: "Запись в реестре узла",
+    warnings: "Заметки:",
   },
 }
 

@@ -1,4 +1,4 @@
-// СТОРОЖ ПАСПОРТА A2A (шаг 406-3). Стандарт — `lib/a2a/STANDARD.md`.
+// СТОРОЖ ПАСПОРТА A2A (шаг 406-3): визитка A2A Google v1.0 (`a2a.card`) + расширение Fractera. Стандарт — `lib/a2a/STANDARD.md`.
 //
 //   node scripts/check-passport.mjs <папка элемента>   один элемент (так его зовёт и шаблон элемента)
 //   node scripts/check-passport.mjs --all              все элементы узла по реестру
@@ -9,7 +9,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative, sep, dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { passportProblems, cardOf, CARD_LIMIT } from '../lib/a2a/passport.mjs'
+import { passportProblems, registryEntryOf, extensionOf, CARD_LIMIT } from '../lib/a2a/passport.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SKIP = new Set(['node_modules', '.git', 'public', 'AGI-ITEMS', 'data', 'logs', 'storage'])
@@ -31,12 +31,16 @@ const norm = (p) => p.replace(/\/+$/, '').replace(/\[\.{3}[^\]]+\]|\[[^\]]+\]|:[
 
 function checkElement(dir) {
   const problems = []
+  const warnings = []
   const file = join(dir, 'OWN-SERVICE-PROPS.json')
-  if (!existsSync(file)) return ['нет OWN-SERVICE-PROPS.json']
+  if (!existsSync(file)) return { problems: ['нет OWN-SERVICE-PROPS.json'], warnings }
   let props
-  try { props = JSON.parse(readFileSync(file, 'utf8')) } catch (e) { return [`паспорт не читается: ${e.message}`] }
-  problems.push(...passportProblems(props))
-  if (!props.a2a) return problems
+  try { props = JSON.parse(readFileSync(file, 'utf8')) } catch (e) { return { problems: [`паспорт не читается: ${e.message}`], warnings } }
+  const form = passportProblems(props)
+  problems.push(...form.problems)
+  warnings.push(...form.warnings)
+  const ext = extensionOf(props.a2a?.card)
+  if (!ext) return { problems, warnings }
 
   const files = walk(dir)
   const code = files.map((f) => readFileSync(f, 'utf8')).join('\n')
@@ -46,7 +50,7 @@ function checkElement(dir) {
     .filter((f) => /^app\/api\/.+\/route\.(t|j)sx?$/.test(f))
     .map((f) => '/' + f.replace(/^app\//, '').replace(/\/route\.(t|j)sx?$/, ''))
 
-  const doors = props.a2a.doors ?? []
+  const doors = ext.doors ?? []
   for (const d of doors) {
     if (d.protocol === 'mcp') {
       if (!code.includes(d.path)) problems.push(`дверь MCP «${d.path}» не найдена в коде`)
@@ -57,17 +61,17 @@ function checkElement(dir) {
     if (!inRoutes && !code.includes(base)) problems.push(`дверь ${d.method} ${d.path} не найдена в коде`)
   }
   const declared = doors.filter((d) => d.protocol === 'http').map((d) => norm(d.path))
-  const priv = (props.a2a.private ?? []).map(norm)
+  const priv = (ext.private ?? []).map(norm)
   for (const r of routes) {
     const n = norm(r)
     if (declared.includes(n) || priv.some((p) => n === p || n.startsWith(p + '/'))) continue
     problems.push(`дверь ${r} есть в коде, но не объявлена и не названа в private`)
   }
   if (problems.length === 0) {
-    const size = JSON.stringify(cardOf(props)).length
-    if (size > CARD_LIMIT) problems.push(`карточка ${size} знаков — больше предела ${CARD_LIMIT}`)
+    const size = JSON.stringify(registryEntryOf(props)).length
+    if (size > CARD_LIMIT) problems.push(`запись реестра ${size} знаков — больше предела ${CARD_LIMIT}`)
   }
-  return problems
+  return { problems, warnings }
 }
 
 const arg = process.argv[2]
@@ -85,10 +89,11 @@ if (arg === '--all') {
 
 let bad = 0
 for (const d of dirs) {
-  const p = checkElement(d)
+  const { problems: p, warnings: w } = checkElement(d)
   bad += p.length
   console.log(`${p.length ? '✗' : '✓'} ${relative(ROOT, d) || d}`)
   for (const x of p) console.log(`   ${x}`)
+  for (const x of w) console.log(`   ⚠ ${x}`)
 }
 console.log(bad ? `\n===PASSPORT_FAILED=== нарушений: ${bad}` : `\n===PASSPORT_OK=== элементов: ${dirs.length}`)
 process.exit(bad ? 1 : 0)

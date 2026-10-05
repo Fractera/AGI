@@ -1,78 +1,49 @@
-# A2A standard — how an AGI ITEM describes itself and how others find and use it
+# A2A standard of a Fractera node — Google A2A v1.0 plus one Fractera extension
 
-One standard for every element of a node, native or custom, whatever it is built with (Next, Express, no pages).
-A2A = elements of ONE node; M2M = nodes of the network. The same shape serves both.
+Source of truth: the A2A project, `spec/a2a.proto` (normative) and `docs/specification.md`, v1.0.0
+(github.com/a2aproject/A2A). Field names below are copied from `a2a.proto`; JSON uses camelCase (spec: «All JSON
+serializations … MUST use camelCase»). Nothing here renames or reshapes an A2A object. What A2A has no field for lives in ONE
+extension, the A2A way (`AgentCapabilities.extensions`).
 
-## Levels and operations
+Terms of the node: **A2A** — elements of one node; **M2M** — nodes of the network. Both speak the same AgentCard.
 
-| Level | What | find (query → short list) | get (address → full) |
-|---|---|---|---|
-| 0 · network (M2M) | not found in the node ≠ does not exist | cards of other nodes' elements | link to their passport |
-| 1 · node registry | one small **card** per element | ≤ 10 cards | link to the full passport |
-| 2 · full passport | everything about the element, in sections | — | the whole passport |
-| 3 · element catalog | a tree of any depth: sections, sub-sections, units | ≤ N units | the full unit |
-| 4 · answer tools | describe · show · give (copy, install, call) · **contribute** | — | — |
+## Where things live
 
-**contribute** writes into another element's state: an element hands a unit to the catalog of the element that accepts
-contributions. The receiver checks it (schema, example, block addresses), records origin and version, never overwrites
-silently, and answers `accepted` · `pending` (waits for a person's yes) · `refused` with the reason.
+| What | Where |
+|---|---|
+| the element's AgentCard (source) | `OWN-SERVICE-PROPS.json` → `a2a.card` |
+| the published AgentCard | `GET /.well-known/agent-card.json` of the element (spec discovery path) |
+| node registry entry (level 1) | derived from the card: name, description, skill ids and tags, fingerprint, card URL |
 
-## The unit — one shape on every level
+## AgentCard fields used (from `a2a.proto`)
 
-```json
-{
-  "address": "blocks/pricing",
-  "kind": "element | block | section | page | variant | …",
-  "title": "Pricing",
-  "words": "One or two plain sentences: what it is and what it is for.",
-  "tags": ["pricing", "section"],
-  "parent": "blocks",
-  "hasChildren": false,
-  "schema": { "in": {}, "out": {} },
-  "preview": "/path-or-url",
-  "obtain": { "how": "install | copy | call", "door": "/catalog/get" }
-}
-```
+Required by A2A: `name`, `description`, `supportedInterfaces` (`url`, `protocolBinding`, `protocolVersion`), `version`,
+`capabilities`, `defaultInputModes`, `defaultOutputModes`, `skills`. Optional used: `provider`, `documentationUrl`, `iconUrl`.
+`supportedInterfaces` is filled when the element is served (its address is known only then) and lists ONLY A2A endpoints the
+element really implements. Until an element has an A2A endpoint (`message/send` …) the list is empty and the guard warns —
+we never announce an interface that does not answer.
 
-## The passport — `OWN-SERVICE-PROPS.json` → `a2a`
+AgentSkill: `id`, `name`, `description`, `tags` (required), `examples`, `inputModes`, `outputModes` (media types).
+**inputModes / outputModes = «what I accept / what I return»**; `examples` = what a caller would ask in words.
 
-```json
-"a2a": {
-  "version": 1,
-  "summary": "1–2 plain sentences for the card.",
-  "visibility": "node | network",
-  "capabilities": [ { "name": "table-rows", "words": "store and read rows of tables", "tags": ["data", "storage"] } ],
-  "doors": [
-    {
-      "capability": "table-rows", "protocol": "http | mcp", "method": "GET", "path": "/db/tables/:table",
-      "key": "none | session | X-Data-Secret | X-Settings-Key | node-key",
-      "input": { }, "output": { "rows": [] }, "errors": { "401": "no or wrong key" },
-      "callers": ["*"]
-    }
-  ],
-  "consumes": [ { "capability": "settings", "from": "config", "why": "project name and languages" } ],
-  "process": [ { "kind": "signal | schedule | subscription", "what": "re-renders pages when the design changes" } ],
-  "catalog": { "find": "/catalog/find", "get": "/catalog/get", "contribute": "/catalog/contribute" },
-  "private": ["/api/health"],
-  "intent": "optional: what the element should become"
-}
-```
+## The Fractera extension — `https://fractera.ai/a2a/ext/node/v1`
 
-- `doors[].output` is required; `input` is required for writing methods (POST, PUT, PATCH, DELETE).
-- `callers`: `["*"]` = every element of the node with the node key; or a list of element ids.
-- `catalog`: `null` when the element offers no catalog.
-- `private`: doors that exist in code and are deliberately not offered to neighbours (health, internal callbacks).
+Declared in `capabilities.extensions[]` as `{ uri, description, required: false, params }`. `params`:
 
-## Derived, never written by hand
+| Key | Meaning |
+|---|---|
+| `visibility` | `node` (neighbours only) or `network` (may be announced to other nodes) |
+| `doors` | concrete doors per skill: `{ skill, protocol: http|mcp, method, path, key, input, output, errors, callers }` — input/output are JSON examples |
+| `consumes` | what the element needs from neighbours: `{ skill, from, why }` — «what I need for this» |
+| `process` | what it does by itself: `{ kind: signal|schedule|subscription, what }` |
+| `catalog` | `null` or `{ find, get, contribute }` doors of its catalog (levels 3–4) |
+| `private` | doors that exist in code and are not offered (health, callbacks) |
 
-- **card** (level 1, `lib/a2a/passport.mjs` → `cardOf`): address = element id, title, words = summary, tags = capability
-  names and tags, `hasChildren` = has a catalog, fingerprint of the passport, link to the passport. At most 1500 characters.
-- **Nostr tags** (M2M): capability names and tags. **LightRAG text** (M2M): summary + capability words. Described only;
-  nothing is sent to the network yet.
+Levels of the node and the operations find · get · contribute are described in the step plan; contribute writes into another
+element's catalog and the receiver checks it, records origin and version, and answers accepted · pending · refused.
 
-## Who does what
+## Guard — `node scripts/check-passport.mjs <element dir>`
 
-- The element's `CLAUDE.md` says WHEN to describe itself (first session; the task «describe yourself»; a change that alters
-  what it can do). Skills say HOW. The node guards and writes the registry. No timers.
-- Guard: `node scripts/check-passport.mjs <element dir>` — form; every door path appears in the element's code; every
-  `app/api/**/route.ts` of a Next element is a door or listed in `private`; the card fits its limit.
+A2A required fields of the card and of every skill; extension shape; every door's skill exists; output example on every
+door, input on writing doors; door paths appear in code; every Next `app/api/**/route.ts` is a door or `private`; the
+registry entry fits 1500 characters; warning while `supportedInterfaces` is empty.
