@@ -516,10 +516,12 @@ const CLOSE = {
   },
 }
 
-async function askToClose(service, why) {
+async function askToClose(service, why, { reviewed = false } = {}) {
   if (!connected(service)) return { ok: true, asked: 0, reason: 'no-telegram' }
   const token = storedToken(service)
-  const text = CLOSE[botLang(service)][why === 'timeout' ? 'timeout' : 'done'](shortName(named(service)))
+  const full = CLOSE[botLang(service)][why === 'timeout' ? 'timeout' : 'done'](shortName(named(service)))
+  // После разбора в этой сессии — без второй строки (предложение разбора).
+  const text = reviewed ? full.split('\n')[0] : full
   let asked = 0
   for (const chat of access(service).allowed) {
     const r = await tg(token, 'sendMessage', { chat_id: chat, text, disable_web_page_preview: true })

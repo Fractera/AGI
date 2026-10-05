@@ -194,7 +194,7 @@ async function wake(service, { text, from, about, declineUrl, confirmed } = {}) 
   // 409-5 (владелец: «timeout more then 60 min»): через 60 минут от пробуждения — вопрос «закрыть терминал?». Только для
   // пробуждённых сессий; сама сессия не закрывается — закрывает агент по ответу человека. Переменная — для прибора.
   const born = r.session
-  const timer = setTimeout(() => { if (session.current(service) === born) telegram.askToClose(service, 'timeout') }, wakeTimeoutMs())
+  const timer = setTimeout(() => { if (session.current(service) === born) telegram.askToClose(service, 'timeout', { reviewed: Boolean(born.reviewed) }) }, wakeTimeoutMs())
   timer.unref?.()
   return { ok: true, started: true, freeMb, perSessionMb: per }
 }
@@ -209,7 +209,7 @@ function finishRule(service) {
   // 🛑 `localhost`, не `127.0.0.1`: сервер ядра слушает `localhost`, на Windows это IPv6 — по `127.0.0.1` вызов агента в 409-5
   // отказал (curl, код 7), агент нашёл адрес сам в `logs/runtime.json` (закон проекта «хост подписки — тот, что слушает сервер»).
   const door = `http://localhost:${process.env.PORT || 24680}/api/agents/done`
-  return `Когда закончишь и ответишь, сообщи узлу: POST ${door} с заголовком X-Node-Key = SETTINGS_SECRET из .env.local и телом {"service":"${service}"} — человек получит в Telegram вопрос «выключить агента?». Если человек ответит «выключить» (или «закрыть») — тот же запрос с телом {"service":"${service}","close":true}. Если человек ответит «разбор» — сделай разбор своей работы по навыку self-review (нет такого навыка — скажи человеку, что разбор этому агенту недоступен), предложения пришли ему в Telegram по номерам, прими ответы вида «1 да, 2 нет», а затем снова отправь первый запрос — вопрос «выключить?» придёт ещё раз. Тело — файлом UTF-8 (curl --data-binary @файл).`
+  return `Когда закончишь и ответишь, сообщи узлу: POST ${door} с заголовком X-Node-Key = SETTINGS_SECRET из .env.local и телом {"service":"${service}"} — человек получит в Telegram вопрос «выключить агента?». Если человек ответит «выключить» (или «закрыть») — тот же запрос с телом {"service":"${service}","close":true}. Если человек ответит «разбор» — сделай разбор своей работы по навыку self-review (нет такого навыка — скажи человеку, что разбор этому агенту недоступен), предложения пришли ему в Telegram по номерам, прими ответы вида «1 да, 2 нет», а затем снова отправь первый запрос, добавив в тело "reviewed":true — вопрос «выключить?» придёт ещё раз, уже без «разбор». Тело — файлом UTF-8 (curl --data-binary @файл).`
 }
 
 /**
@@ -217,7 +217,7 @@ function finishRule(service) {
  * «выключить»» (решение владельца «Ответ текстом»: пока терминал запущен, бота читает плагин и чужие кнопки выбрасывает). С `close`
  * — агент получил «закрыть» от человека и закрывает свой терминал; остановка — после ответа двери, чтобы агент его увидел.
  */
-async function done(service, { close = false } = {}) {
+async function done(service, { close = false, reviewed = false } = {}) {
   const live = session.current(service)
   if (!live) return { ok: false, reason: 'no-session' }
   if (close) {
@@ -229,7 +229,9 @@ async function done(service, { close = false } = {}) {
   // её обгонял. Переменная — для прибора.
   await new Promise((r) => setTimeout(r, Number(process.env.AGENT_CLOSE_ASK_DELAY_MS) || 5000))
   if (session.current(service) !== live) return { ok: false, reason: 'no-session' }
-  return telegram.askToClose(service, 'done')
+  // Владелец 2026-10-06: «второй раз не предлагать разбор после первого» — разбор в этой сессии был, строки «разбор» больше нет.
+  if (reviewed) live.reviewed = true
+  return telegram.askToClose(service, 'done', { reviewed: Boolean(live.reviewed) })
 }
 
 // 409-3: кнопка «Запустить» в Telegram рождает сессию этим же путём, уже с подтверждением.

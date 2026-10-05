@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic"
 
 const HEADERS = { "Cache-Control": "no-store" }
 
-type Done = (service: string, opts: { close?: boolean }) => (Record<string, unknown> & { ok: boolean }) | Promise<Record<string, unknown> & { ok: boolean }>
+type Done = (service: string, opts: { close?: boolean; reviewed?: boolean }) => (Record<string, unknown> & { ok: boolean }) | Promise<Record<string, unknown> & { ok: boolean }>
 
 function nodeKeyOk(given: string | null): boolean {
   const expected = process.env.SETTINGS_SECRET ?? ""
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   if (!nodeKeyOk(req.headers.get("x-node-key"))) {
     return NextResponse.json({ ok: false, reason: "node key required (X-Node-Key)" }, { status: 401, headers: HEADERS })
   }
-  let body: { service?: unknown; close?: unknown }
+  let body: { service?: unknown; close?: unknown; reviewed?: unknown }
   try { body = await req.json() } catch {
     return NextResponse.json({ ok: false, reason: "invalid JSON" }, { status: 400, headers: HEADERS })
   }
@@ -37,7 +37,8 @@ export async function POST(req: NextRequest) {
   if (typeof done !== "function") {
     return NextResponse.json({ ok: false, reason: "agent kits are not mounted in this process" }, { status: 503, headers: HEADERS })
   }
-  const out = await done(service, { close: body.close === true })
+  // 410: `reviewed` — разбор в этой сессии уже был, вопрос «выключить?» придёт без предложения разбора.
+  const out = await done(service, { close: body.close === true, reviewed: body.reviewed === true })
   console.log(`[agents/done] ${service} close=${body.close === true} → ${out.ok ? (out.closing ? "closing" : `asked ${out.asked}`) : out.reason}`)
   const status = out.ok ? 200 : out.reason === "no-agent-kit" ? 404 : 409
   return NextResponse.json(out, { status, headers: HEADERS })
