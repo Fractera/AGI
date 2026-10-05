@@ -255,13 +255,24 @@ async function idleTick(service) {
     const msg = u.message
     if (!msg || msg.chat?.type !== 'private' || !msg.from) continue
     const sender = String(msg.from.id)
+    let activated = false
     if (nonce && typeof msg.text === 'string' && msg.text.trim() === `/start ${nonce}`) {
       const acc = { dmPolicy: 'allowlist', allowFrom: [], groups: {}, pending: {}, ...readJson(accessFile(service), {}) }
       if (!acc.allowFrom.map(String).includes(sender)) acc.allowFrom.push(sender)
       writeSecret(accessFile(service), JSON.stringify(acc, null, 2))
       rmSync(activationFile(service), { force: true })
+      activated = true
     } else if (!access(service).allowed.includes(sender)) {
       // Чужим узел не отвечает: список допущенных — единственная граница бота.
+      continue
+    }
+    // 409-4 (владелец 2026-10-05: агент просыпается «и на сообщение в Telegram», с подтверждением до старта): текст
+    // допущенного при выключенном терминале — не «терминал не активен», а тот же вопрос с кнопками; после «Запустить» агент
+    // получает это сообщение. Команды (`/…`), не текст и неподключённая подписка — прежнее сообщение о состоянии.
+    const said = typeof msg.text === 'string' ? msg.text.trim() : ''
+    if (!activated && said && !said.startsWith('/') && (await claudeSignedIn()) !== false) {
+      const who = [msg.from.first_name, msg.from.last_name].filter(Boolean).join(' ') || msg.from.username || sender
+      await askToStart(service, { text: humanPrompt(msg.chat.id, who, said), from: who, about: said, kind: 'human' })
       continue
     }
     if (answered.has(msg.chat.id)) continue
@@ -311,6 +322,8 @@ const ASK = {
     memory: (f, n) => `Not started: not enough free memory (${f} MB free, ${n} MB needed). Press «Start» again later.`,
     failed: (r) => `Not started: ${r}. Press «Start» again.`,
     declineText: 'The person chose not to start the agent terminal now.',
+    titleHuman: (who) => `${who}: the terminal is off. Start it and pass your message to the agent?`, message: 'Your message',
+    startedHuman: 'Terminal started — the agent got your message.',
   },
   ru: {
     title: (who) => `${who}: просят запустить терминал.`, from: 'Кто', about: 'Задача', go: 'Запустить', no: 'Не сейчас',
@@ -318,15 +331,25 @@ const ASK = {
     memory: (f, n) => `Не запущено: не хватает свободной памяти (свободно ${f} МБ, нужно ${n} МБ). Нажмите «Запустить» позже.`,
     failed: (r) => `Не запущено: ${r}. Нажмите «Запустить» ещё раз.`,
     declineText: 'Человек не стал сейчас запускать терминал агента.',
+    titleHuman: (who) => `${who}: терминал выключен. Запустить его и передать агенту ваше сообщение?`, message: 'Ваше сообщение',
+    startedHuman: 'Терминал запущен — агент получил ваше сообщение.',
   },
 }
+
+/** 409-4: что вставить агенту из сообщения человека — кто, откуда и как ответить (инструмент reply канала Telegram). */
+function humanPrompt(chatId, who, said) {
+  return `Сообщение из Telegram от ${who} (chat_id ${chatId}), пока терминал был выключен: ${said} — ответь ему в Telegram инструментом reply канала (chat_id ${chatId}).`
+}
+
+const allHuman = (items) => items.length > 0 && items.every((it) => it.kind === 'human')
 
 const cutText = (t, n) => (t.length > n ? `${t.slice(0, n - 1)}…` : t)
 
 function askText(service, items, lang) {
   const t = ASK[lang]
-  const lines = [t.title(named(service))]
+  const lines = [(allHuman(items) ? t.titleHuman : t.title)(named(service))]
   for (const it of items.slice(-5)) {
+    if (it.kind === 'human') { lines.push(`${t.message}: ${cutText(it.about, 300)}`); continue }
     if (it.from) lines.push(`${t.from}: ${it.from}`)
     if (it.about) lines.push(`${t.about}: ${cutText(it.about, 300)}`)
   }
@@ -345,11 +368,11 @@ function setStarter(fn) { starter = fn }
  * Спросить человека в Telegram, запускать ли терминал. Запрос уже висит — задача добавляется к нему и вопрос обновляется,
  * а не шлётся вторым. Возвращает `{ ok, pending: true, asked }` (`asked` — сколько чатов получили вопрос).
  */
-async function askToStart(service, { text, from, about, declineUrl } = {}) {
+async function askToStart(service, { text, from, about, declineUrl, kind = 'call' } = {}) {
   const token = storedToken(service)
   const file = pendingFile(service)
   const p = readJson(file, null) ?? { id: randomBytes(6).toString('hex'), createdAt: new Date().toISOString(), items: [], asked: [] }
-  p.items.push({ text: text ?? '', from: from ?? '', about: about ?? '', declineUrl: declineUrl ?? '', at: new Date().toISOString() })
+  p.items.push({ kind, text: text ?? '', from: from ?? '', about: about ?? '', declineUrl: declineUrl ?? '', at: new Date().toISOString() })
   const lang = botLang(service)
   const body = askText(service, p.items, lang)
   if (p.asked.length === 0) {
@@ -412,7 +435,7 @@ async function onButton(service, token, q) {
   const out = typeof starter === 'function' ? await starter(service, { text: text || undefined }) : { ok: false, reason: 'no-starter' }
   if (out.ok) {
     rmSync(pendingFile(service), { force: true })
-    await closeAsk(service, token, p, t.started, false, lang)
+    await closeAsk(service, token, p, allHuman(p.items) ? t.startedHuman : t.started, false, lang)
   } else {
     const why = out.reason === 'memory' ? t.memory(out.freeMb, out.perSessionMb) : t.failed(String(out.reason ?? 'unknown'))
     await closeAsk(service, token, p, why, true, lang)
