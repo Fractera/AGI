@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process"
 import { readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import paths from "@/lib/agi-items/paths.cjs"
+import { entryForRegistry } from "@/lib/a2a/node-registry"
 
 // ОПИСАНИЕ ВОЗМОЖНОСТЕЙ AGI ЭЛЕМЕНТА → ЗАПИСЬ В ЯДРЕ (325-2). Решение владельца 2026-09-27: описание пишет «Агент элемента».
 //
@@ -93,6 +94,10 @@ export function takeDescription(id: string): { ok: true; description: Descriptio
     e.provides = read.provides
     if (read.designSkill) e.designSkill = read.designSkill
     e.described = { at, commit }
+    // 406-6: запись A2A (уровень 1) из визитки элемента с отпечатком — ядро по ней отвечает «кто умеет и где»; нет визитки — нет записи.
+    const a2a = entryForRegistry(id, "user")
+    if (a2a) (e as unknown as { a2a?: unknown }).a2a = a2a
+    else delete (e as unknown as { a2a?: unknown }).a2a
     writeFileSync(paths.REGISTRY_FILE, JSON.stringify(reg, null, 2) + "\n", "utf8")
   } catch { return { ok: false, error: "registry-failed" } }
   return { ok: true, description: { summary: read.summary, provides: read.provides, at, commit } }
