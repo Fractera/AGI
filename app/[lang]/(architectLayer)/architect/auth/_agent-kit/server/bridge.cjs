@@ -206,7 +206,9 @@ const wakeTimeoutMs = () => Number(process.env.AGENT_WAKE_TIMEOUT_MS) || 60 * 60
  * правки его репозитория. Адрес — порт работающего сервера ядра (`process.env.PORT` этого процесса), не запомненное число.
  */
 function finishRule(service) {
-  const door = `http://127.0.0.1:${process.env.PORT || 24680}/api/agents/done`
+  // 🛑 `localhost`, не `127.0.0.1`: сервер ядра слушает `localhost`, на Windows это IPv6 — по `127.0.0.1` вызов агента в 409-5
+  // отказал (curl, код 7), агент нашёл адрес сам в `logs/runtime.json` (закон проекта «хост подписки — тот, что слушает сервер»).
+  const door = `http://localhost:${process.env.PORT || 24680}/api/agents/done`
   return `Когда закончишь и ответишь, сообщи узлу: POST ${door} с заголовком X-Node-Key = SETTINGS_SECRET из .env.local и телом {"service":"${service}"} — человек получит в Telegram вопрос «закрыть терминал?». Если человек ответит «закрыть» — тот же запрос с телом {"service":"${service}","close":true}. Тело — файлом UTF-8 (curl --data-binary @файл).`
 }
 
