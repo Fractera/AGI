@@ -2677,3 +2677,23 @@ blog post cold; `use-pwa` was verified in a browser against a live deployment (2
 What is built but not yet explained, half-built, or owed — `development-docs/BACKLOG.md`. It is not
 instruction: it is the list of our own work, read when the area it names comes up, never at session
 start.
+
+## A2A inside the node — talk, wake, Telegram (steps 406–409, 2026-10-05)
+
+- **Elements call each other directly** (Google A2A 1.0, `lib/a2a/STANDARD.md`); the core is not a middleman (owner, re-confirmed
+  2026-10-06: «оставляем напрямую»). The core: registry (`GET /api/node/a2a`), journal + feed (`POST /api/node/a2a-log`,
+  Dashboard → agents-log), Telegram relay (`lib/a2a/telegram-relay.ts`), waking agents. Orchestrator facade — later, for outside orders.
+- **A text-only message = a task for the element's agent** (roman `lib/a2a/endpoint.ts`): SUBMITTED → `POST /api/agents/wake`
+  (node key) → the agent gets the task pasted, answers through `POST /api/a2a/tasks/<id>` (body — UTF-8 file, never a curl
+  argument: Cyrillic arrives as «?» on Windows).
+- **Wake** (`_agent-kit/server/bridge.cjs` → `wake`, master `architect/kits/_agent-kit/core`, copies by `npm run agent-kit:update -- <group>`):
+  sessions = free memory ÷ ~300 MB. Element bot connected (token + an allowed chat) → no start, a question in Telegram with buttons
+  «Включить и ответить / Не сейчас — <caller> получит отказ» (`data/services/<id>/wake/pending.json`, node poller every 3 s);
+  a person's text to the bot while the agent is off → «Включить и передать». No bot → start at once.
+- **Done** — `POST /api/agents/done {service}`: 5 s later «Агент <имя> закончил. Выключить его? Ответьте «выключить»»; the agent gets
+  the reply via the channel and sends `{service, close:true}`. Also asked 60 min after a wake. Text, not buttons: while the terminal
+  runs, the channel plugin reads the bot and drops foreign buttons (plugin 0.0.7 accepts only `perm:…`). The rule is appended to the
+  first pasted text (`finishRule`); the core is called on `localhost` (127.0.0.1 is refused — IPv6).
+- **Telegram texts** — the person's language, approved sample (owner 2026-10-05); a task for an agent is relayed as a pair
+  «<addr> спрашивает: «…»» / «<addr> отвечает: …» when answered, never at setting; no `.json` attachments. 🛑 Paste: Enter is sent
+  at 400 ms, 2.5 s and 6 s — one Enter was lost under the channel.
