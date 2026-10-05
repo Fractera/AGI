@@ -81,6 +81,12 @@ export function humanAnswerOf(response: string | null, lang: Lang, reason?: stri
   return Object.keys(body).length ? (lang === "ru" ? "Ответил данными." : "Answered with data.") : ""
 }
 
+/** Тема беседы (408-7): `metadata.title` сообщения — её даёт вызывающий в первом сообщении; нет — пусто. */
+export function titleOf(request: string | null): string {
+  const t = obj(obj(obj(obj(parse(request)).params).message).metadata).title
+  return typeof t === "string" ? t.trim().slice(0, 120) : ""
+}
+
 /** Данные вопроса: вход навыка (или то, что пришло вместо него). */
 export function questionOf(request: string | null, max = MAX_TEXT): string {
   const raw = parse(request)

@@ -5,7 +5,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { addressHue } from "@/lib/a2a/address-hue"
-import { answerOf, humanAnswerOf, humanQuestionOf, questionOf } from "@/lib/a2a/call-text"
+import { answerOf, humanAnswerOf, humanQuestionOf, questionOf, titleOf } from "@/lib/a2a/call-text"
 
 // ЛЕНТА «Dashboard → Общение агентов» (шаг 408). Только чтение: поля ввода нет. Каждый вызов A2A — два сообщения: вопрос
 // вызывающего (слева) и ответ принимающего (справа); у сообщения адрес агента и полоса 6 px цветом из его адреса (`addressHue`). Вверху —
@@ -17,7 +17,25 @@ import { answerOf, humanAnswerOf, humanQuestionOf, questionOf } from "@/lib/a2a/
 type Row = {
   id: number; at: string; from_element: string; to_element: string; method: string | null; skill: string | null
   task_id: string | null; state: string | null; http_status: number | null; reason: string | null; duration_ms: number | null
-  request: string | null; response: string | null; truncated: number
+  request: string | null; response: string | null; truncated: number; context_id: string | null
+}
+
+/**
+ * БЕСЕДЫ (408-7; владелец: «беседа: … между gyr1i и roman, 05.10.26 18:07:05»): записи с одним `contextId` (A2A — номер
+ * разговора) идут под одним заголовком; беседы — по последней записи, свежая внизу, как в чате. Без `contextId` — каждая запись
+ * своей беседой.
+ */
+function conversations(rows: Row[]): { key: string; rows: Row[] }[] {
+  const byKey = new Map<string, Row[]>()
+  for (const r of rows) {
+    const key = r.context_id ? `ctx:${r.context_id}` : `row:${r.id}`
+    const list = byKey.get(key) ?? []
+    list.push(r)
+    byKey.set(key, list)
+  }
+  return [...byKey.entries()]
+    .map(([key, list]) => ({ key, rows: list.sort((a, b) => a.id - b.id) }))
+    .sort((a, b) => a.rows[a.rows.length - 1].id - b.rows[b.rows.length - 1].id)
 }
 type Agent = { key: string; address: string; name: string }
 
@@ -33,6 +51,9 @@ export type A2aFeedWords = {
   refused: string
   truncated: string
   data: string
+  conversation: string
+  between: string
+  and: string
   states: Record<string, string>
 }
 
@@ -205,12 +226,23 @@ export function A2aFeed({ words, lang }: { words: A2aFeedWords; lang: string }) 
       <div ref={box} className="flex max-h-[70vh] flex-col gap-3 overflow-y-auto rounded-lg border border-border p-3" data-feed="a2a">
         {more && <Button size="sm" variant="ghost" className="self-center" onClick={earlier}>{words.earlier}</Button>}
         {rows.length === 0 && <p className="text-sm text-muted-foreground">{words.empty}</p>}
-        {rows.map((r) => {
+        {conversations(rows).map((c) => {
+          const people = [...new Set(c.rows.flatMap((r) => [r.from_element, r.to_element]))].map((k) => who(k).name)
+          const lng = lang === "ru" ? "ru" : "en"
+          const title = c.rows.map((r) => titleOf(r.request)).find(Boolean) || humanQuestionOf(c.rows[0].request, lng).slice(0, 80)
+          const shown = c.rows.some((r) => !hidden.has(r.from_element) || !hidden.has(r.to_element))
+          if (!shown) return null
+          return (
+            <section key={c.key} className="flex flex-col gap-2" data-conversation={c.key}>
+              <p className="border-b border-border pb-1 text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">{words.conversation}: {title}</span>
+                {" · "}{words.between} {people.join(` ${words.and} `)} · {time(c.rows[0].at)}
+              </p>
+        {c.rows.map((r) => {
           const from = who(r.from_element)
           const to = who(r.to_element)
           const refused = r.http_status !== null && r.http_status >= 400
           const bad = refused || r.state === "ERROR" || r.state === "TASK_STATE_FAILED"
-          const lng = lang === "ru" ? "ru" : "en"
           const hq = humanQuestionOf(r.request, lng)
           const ha = humanAnswerOf(r.response, lng, r.reason)
           const q = questionOf(r.request)
@@ -240,6 +272,9 @@ export function A2aFeed({ words, lang }: { words: A2aFeedWords; lang: string }) 
                 </Bubble>
               )}
             </div>
+          )
+        })}
+            </section>
           )
         })}
       </div>
