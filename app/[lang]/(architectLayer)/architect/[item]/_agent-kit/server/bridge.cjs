@@ -165,7 +165,9 @@ function pasteWhenReady(s, text, { quietMs = 3000, maxMs = 120_000 } = {}) {
     if ((len > 0 && Date.now() - since >= quietMs) || Date.now() - t0 > maxMs) {
       clearInterval(timer)
       s.proc.write(`\x1b[200~${text}\x1b[201~`)
-      setTimeout(() => { if (session.current(s.service) === s) s.proc.write('\r') }, 400)
+      // 409-3: один Enter через 400 мс терялся у сессии с каналом Telegram (экран владельца: задача стоит во вводе, не
+      // отправлена). Повтор безопасен: пустой Enter в Claude Code ничего не делает.
+      for (const ms of [400, 2500, 6000]) setTimeout(() => { if (session.current(s.service) === s) s.proc.write('\r') }, ms)
     }
   }, 500)
   timer.unref?.()
