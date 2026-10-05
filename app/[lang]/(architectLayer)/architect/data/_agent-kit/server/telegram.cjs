@@ -213,6 +213,8 @@ function saveMessages(service, raw) {
   if (!m.active || !m.inactive || !m.noSubscription) return { ok: false, error: 'bad-messages' }
   mkdirSync(stateDir(service), { recursive: true })
   writeFileSync(messagesFile(service), JSON.stringify(m, null, 2))
+  // 411: язык страницы, где человек подключал бота, — начальный язык человека.
+  if (raw?.lang) setPersonLang(service, raw.lang, 'page')
   return { ok: true }
 }
 
@@ -296,9 +298,36 @@ function connected(service) {
   return Boolean(storedToken(service)) && access(service).allowed.length > 0
 }
 
-/** Язык человека этого бота — по его системным сообщениям (как у рассылки 408-6): кириллица → ru. */
-function botLang(service) {
+// ── ЯЗЫК ЧЕЛОВЕКА (411; владелец 2026-10-06: «в своем чате я вижу на своем языке по дефолту ну или если я уже после этого перешёл
+// на другой язык») ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+// Значение, а не догадка: `person.json` в папке бота — `{ lang, source, at }`. Источники: `page` — язык страницы, где бота
+// подключали (страница шлёт его вместе с системными текстами); `agent` — свой агент увидел, что человек пишет на другом языке, и
+// сообщил дверью `POST /api/agents/person-lang`. Страница не перекрывает выбор агента: человек уже перешёл на свой язык.
+// Нет файла — прежняя догадка по кириллице системных текстов (бот, подключённый до 411).
+
+const personFile = (service) => path.join(stateDir(service), 'person.json')
+const LANG_CODE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$/
+
+function personLang(service) {
+  const p = readJson(personFile(service), null)
+  if (p && typeof p.lang === 'string' && LANG_CODE.test(p.lang)) return p.lang
   try { return /[а-яё]/i.test(readFileSync(messagesFile(service), 'utf8')) ? 'ru' : 'en' } catch { return 'en' }
+}
+
+function setPersonLang(service, lang, source) {
+  const code = String(lang ?? '').trim().toLowerCase()
+  if (!LANG_CODE.test(code)) return { ok: false, error: 'bad-lang' }
+  const cur = readJson(personFile(service), null)
+  if (source === 'page' && cur?.source === 'agent') return { ok: true, lang: cur.lang, kept: true }
+  mkdirSync(stateDir(service), { recursive: true })
+  writeFileSync(personFile(service), JSON.stringify({ lang: code, source, at: new Date().toISOString() }, null, 2))
+  return { ok: true, lang: code }
+}
+
+/** Язык встроенных текстов (en/ru); прочие языки получают перевод (411-2). */
+function botLang(service) {
+  const l = personLang(service).split('-')[0]
+  return l === 'ru' ? 'ru' : 'en'
 }
 
 /** `<адрес>.<зона>` элемента — как подпись рассылки 408-5. */
@@ -575,5 +604,5 @@ function channelState(service) {
 
 module.exports = {
   PLUGIN, isService, stateDir, storedToken, saveToken, activationLink, saveMessages, channelLaunch,
-  running, channelState, startIdlePoller, connected, askToStart, setStarter, askToClose,
+  running, channelState, startIdlePoller, connected, askToStart, setStarter, askToClose, personLang, setPersonLang,
 }

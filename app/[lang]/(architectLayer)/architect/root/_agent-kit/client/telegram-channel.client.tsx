@@ -125,7 +125,8 @@ export function TelegramChannel({ service, lang, words }: { service: string; lan
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         action: "messages",
-        messages: { active: fill(words.msgActive), inactive: fill(words.msgInactive), noSubscription: fill(words.msgNoSubscription) },
+        // 411: язык этой страницы — начальный язык человека в Telegram элемента.
+        messages: { active: fill(words.msgActive), inactive: fill(words.msgInactive), noSubscription: fill(words.msgNoSubscription), lang },
       }),
     }).catch(() => null)
   }, [configured, door, service, lang, words.msgActive, words.msgInactive, words.msgNoSubscription])

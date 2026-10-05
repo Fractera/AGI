@@ -7,11 +7,12 @@
 Имя маршрута — то, чем его находят: 6–12 слов, глагол первым. Правило проверяется `npm run check:api`,
 который стоит в `prebuild` — маршрут без имени роняет сборку.
 
-Всего маршрутов: **59**
+Всего маршрутов: **60**
 
 | Адрес | Методы | Что делает | Продукт |
 |---|---|---|---|
 | `/api/agents/done` | POST | woken element agent reports work done or closes its terminal | — |
+| `/api/agents/person-lang` | POST | element agent reports the language its person now writes in | — |
 | `/api/agents/sessions` | GET, POST | list and stop the live Claude Code terminals of born AGI elements | — |
 | `/api/agents/wake` | POST | wake the Claude Code agent of a node element without a browser | — |
 | `/api/architect/design-config` | GET, POST | read and change the site element's design settings from the core | — |

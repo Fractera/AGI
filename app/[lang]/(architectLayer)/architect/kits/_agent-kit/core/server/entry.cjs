@@ -6,7 +6,8 @@
 // перезапуска узла её здесь нет.
 
 const { onConnection, wake, done } = require('./bridge.cjs')
-const { startIdlePoller } = require('./telegram.cjs')
+const { startIdlePoller, personLang, setPersonLang } = require('./telegram.cjs')
 
 // 409-5: `done` — агент сообщил «работа закончена» или закрывает свой терминал по ответу человека.
-module.exports = { onConnection, startIdlePoller, wake, done }
+// 411: язык человека в Telegram элемента — читать и менять (дверь `/api/agents/person-lang`).
+module.exports = { onConnection, startIdlePoller, wake, done, personLang, setPersonLang }

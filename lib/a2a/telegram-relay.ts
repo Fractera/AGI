@@ -42,13 +42,25 @@ export function telegramConnected(service: string): boolean {
   return Boolean(token(service)) && allowed(service).length > 0
 }
 
-/** Язык человека этого бота: по его системным сообщениям. */
-function botLang(service: string): Lang {
+/**
+ * Язык человека этого бота (411): `person.json` папки бота (пишет комплект агента — страница подключения или свой агент); нет
+ * файла — прежняя догадка по кириллице системных текстов. Код BCP 47 (`ru`, `uk`, `zh`).
+ */
+export function personLang(service: string): string {
+  try {
+    const p = JSON.parse(readFileSync(join(stateDir(service), "person.json"), "utf8")) as { lang?: unknown }
+    if (typeof p.lang === "string" && /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$/.test(p.lang)) return p.lang
+  } catch { /* нет файла */ }
   try {
     return /[а-яё]/i.test(readFileSync(join(stateDir(service), "messages.json"), "utf8")) ? "ru" : "en"
   } catch {
     return "en"
   }
+}
+
+/** Язык встроенных фраз (en/ru); прочие языки — переводом (411-3). */
+function botLang(service: string): Lang {
+  return personLang(service).split("-")[0] === "ru" ? "ru" : "en"
 }
 
 export type RelayCall = {
