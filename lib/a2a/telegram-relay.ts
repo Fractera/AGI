@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { nodeZone } from "@/lib/agi-items/drafts"
 import { humanAnswerOf, humanQuestionOf, isTextQuestion, type Lang } from "@/lib/a2a/call-text"
+import { clearlyIn, translateTo } from "@/lib/a2a/translate"
 
 // ВЫЗОВЫ A2A — В TELEGRAM УЧАСТНИКОВ И ЯДРА (шаг 408-5; владелец 2026-10-05: «если ты видишь активный Telegram то
 // одновременно с этим пробрасывать туда сообщения … максимум три телеграмм канала … Добавляются ещё и Telegram ядра … текст
@@ -58,10 +59,6 @@ export function personLang(service: string): string {
   }
 }
 
-/** Язык встроенных фраз (en/ru); прочие языки — переводом (411-3). */
-function botLang(service: string): Lang {
-  return personLang(service).split("-")[0] === "ru" ? "ru" : "en"
-}
 
 export type RelayCall = {
   fromId: string | null; fromAddress: string; toId: string | null; toAddress: string
@@ -81,18 +78,52 @@ const named = (address: string) => {
 
 const cut = (t: string) => (t.length > CAPTION ? `${t.slice(0, CAPTION - 1)}…` : t)
 
-/** Два сообщения вызова — вопрос вызывающего и ответ принимающего: только текст для человека. */
-export function relayMessages(call: RelayCall, lang: Lang) {
+/** Две строки вызова — вопрос вызывающего и ответ принимающего, по частям: кто и глагол, тело, кавычки, двоеточие. */
+function lineParts(call: RelayCall, lang: Lang) {
   // 🪦 409-2 «при TaskResult — только ответ» снято 2026-10-05: вопрос больше не шлётся при постановке задачи.
   // 🪦 Вложение `.json` (408-6) снято владельцем 2026-10-05: «Сейчас в Telegram ты дублирующий Джейсон но человеком не дает
   // никакой ценности. Оставь его для внутреннего взаимодействия … возвращают просто текст». Тело вызова — в журнале и ленте.
   const q = humanQuestionOf(call.request, lang)
-  const askLine = isTextQuestion(call.request) ? `${named(call.fromAddress)} ${ASKS[lang]}: «${q}»` : `${named(call.fromAddress)} ${lowerFirst(q)}`
-  const ask = { caption: cut(askLine), file: null, name: "question.json" }
-  const answer = { caption: cut(`${named(call.toAddress)} ${ANSWERS[lang]}: ${humanAnswerOf(call.response, lang, call.reason)}`), file: null, name: "answer.json" }
+  const text = isTextQuestion(call.request)
+  return [
+    { head: text ? `${named(call.fromAddress)} ${ASKS[lang]}` : named(call.fromAddress), body: text ? q : lowerFirst(q), quoted: text, colon: text },
+    { head: `${named(call.toAddress)} ${ANSWERS[lang]}`, body: humanAnswerOf(call.response, lang, call.reason), quoted: false, colon: true },
+  ]
+}
+
+/**
+ * Сообщения вызова на языке человека этого бота (411-3; владелец 2026-10-06: «в своем чате я вижу на своем языке»). en/ru —
+ * встроенные слова, тело не на языке человека переводится с пометкой «перевод с …»; другой язык — вся строка переводом.
+ * Перевод — ключом OpenAI ядра (`lib/a2a/translate.ts`); явно на языке человека — без обращения к модели.
+ */
+export async function relayMessagesFor(call: RelayCall, person: string): Promise<{ messages: { caption: string; file: null; name: string }[]; translated: number }> {
+  const base = person.split("-")[0]
+  const builtIn = base === "ru" || base === "en"
+  const L: Lang = base === "ru" ? "ru" : "en"
+  let translated = 0
+  const messages: { caption: string; file: null; name: string }[] = []
+  for (const [i, p] of lineParts(call, L).entries()) {
+    let line: string
+    if (builtIn) {
+      let body = p.body
+      let note = ""
+      if (body && !clearlyIn(body, person)) {
+        translated++
+        const tr = await translateTo(body, person)
+        if (tr && !tr.same) { body = tr.text; note = tr.note ? ` (${tr.note})` : "" }
+      }
+      line = p.colon ? `${p.head}${note}: ${p.quoted ? `«${body}»` : body}` : `${p.head} ${body}${note}`
+    } else {
+      const en = p.colon ? `${p.head}: ${p.quoted ? `«${p.body}»` : p.body}` : `${p.head} ${p.body}`
+      let tr = null
+      if (!clearlyIn(en, person)) { translated++; tr = await translateTo(en, person, "a line of a chat log between two AI agents: \"<address> asks: <question>\" or \"<address> answers: <answer>\" — asks and answers are verbs") }
+      line = tr && !tr.same ? tr.text : en
+    }
+    messages.push({ caption: cut(line), file: null, name: i ? "answer.json" : "question.json" })
+  }
   // Владелец 2026-10-05: сначала вопрос «запустить терминал?», и только после «Запустить» — сообщения разговора. Поэтому
   // задача агенту приходит в Telegram парой «вопрос + ответ» при `TaskResult`, а не при постановке (см. `relayCall`).
-  return [ask, answer]
+  return { messages, translated }
 }
 
 async function send(token: string, chat: string, m: { caption: string; file: string | null; name: string }): Promise<boolean> {
@@ -129,7 +160,9 @@ export async function relayCall(call: RelayCall): Promise<{ sent: number; skippe
   for (const s of services) {
     if (!telegramConnected(s)) { skipped.push(s); continue }
     const t = token(s)
-    const messages = relayMessages(call, botLang(s))
+    const person = personLang(s)
+    const { messages, translated } = await relayMessagesFor(call, person)
+    if (translated) console.log(`[a2a-log] translate ${translated} → ${person} (${s})`)
     for (const chat of allowed(s)) {
       const key = `${t}:${chat}`
       if (seen.has(key)) continue

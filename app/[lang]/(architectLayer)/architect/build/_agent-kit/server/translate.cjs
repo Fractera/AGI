@@ -54,31 +54,6 @@ async function translateMap(map, lang) {
   }
 }
 
-/** Перевод текста реплики (411-3): вернуть `{ text, from }` на языке `lang`, `from` — язык оригинала (имя на `lang`). */
-async function translateText(text, lang) {
-  const key = coreKey()
-  if (!key || !text) return null
-  try {
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-      body: JSON.stringify({
-        model: MODEL,
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: `If the text is already in the language with BCP 47 code «${lang}», return {"same":true}. Otherwise translate it into that language and return {"same":false,"text":"<translation>","from":"<name of the original language, written in ${lang}>"}. Return only JSON.` },
-          { role: 'user', content: text },
-        ],
-      }),
-      signal: AbortSignal.timeout(60_000),
-    })
-    if (!res.ok) return null
-    const body = await res.json()
-    return JSON.parse(body.choices?.[0]?.message?.content ?? 'null')
-  } catch {
-    return null
-  }
-}
 
 const cacheFile = (name, lang) => path.join(ROOT, 'data', 'i18n-cache', `${name}-${lang}.json`)
 
@@ -109,4 +84,4 @@ async function tableFor(name, en, lang) {
   return out
 }
 
-module.exports = { tableFor, translateText, coreKey }
+module.exports = { tableFor, coreKey }
