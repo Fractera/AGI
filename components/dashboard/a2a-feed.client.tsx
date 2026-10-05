@@ -5,6 +5,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { addressHue } from "@/lib/a2a/address-hue"
+import { answerOf, questionOf } from "@/lib/a2a/call-text"
 
 // ЛЕНТА «Dashboard → Общение агентов» (шаг 408). Только чтение: поля ввода нет. Каждый вызов A2A — два сообщения: вопрос
 // вызывающего и ответ принимающего; у сообщения имя агента и полоса 6 px цветом из его адреса (`addressHue`). Вверху —
@@ -37,52 +38,6 @@ export type A2aFeedWords = {
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 const POLL_MS = 3000
 const FIRST = 100
-const MAX_TEXT = 1500
-
-type J = Record<string, unknown>
-const obj = (v: unknown): J => (v && typeof v === "object" ? (v as J) : {})
-const partsOf = (v: unknown): J[] => (Array.isArray(v) ? (v as J[]) : [])
-
-function parse(text: string | null): unknown {
-  if (!text) return null
-  try { return JSON.parse(text) } catch { return text }
-}
-
-function show(v: unknown): string {
-  const t = typeof v === "string" ? v : JSON.stringify(v, null, 2) ?? ""
-  return t.length > MAX_TEXT ? `${t.slice(0, MAX_TEXT)}…` : t
-}
-
-/** Что спросили: вход навыка, текст сообщения или то, что пришло вместо JSON. */
-function question(row: Row): string {
-  const raw = parse(row.request)
-  if (typeof raw === "string") return show(raw)
-  const message = obj(obj(obj(raw).params).message)
-  const parts = partsOf(message.parts)
-  const call = parts.map((p) => obj(p.data)).find((d) => typeof d.skill === "string")
-  if (call) return show(call.input ?? {})
-  const text = parts.map((p) => p.text).filter((t): t is string => typeof t === "string").join("\n")
-  if (text) return show(text)
-  const params = obj(raw).params
-  return params ? show(params) : ""
-}
-
-/** Что ответили: результат задачи, текст отказа задачи или ошибка протокола. */
-function answer(row: Row): string {
-  const body = obj(parse(row.response))
-  const err = obj(body.error)
-  if (typeof err.message === "string") return err.message
-  const result = obj(body.result)
-  const task = obj(result.task ?? result)
-  const failText = partsOf(obj(obj(task.status).message).parts)
-    .map((p) => p.text)
-    .filter((t): t is string => typeof t === "string")
-    .join("\n")
-  if (failText) return show(failText)
-  const parts = partsOf(task.artifacts).flatMap((a) => partsOf(a.parts))
-  if (parts.length) return parts.map((p) => (p.text !== undefined ? show(String(p.text)) : show(p.data))).join("\n")
-  return Object.keys(body).length ? show(body) : ""
-}
 
 const stripeVars = (address: string) => {
   const h = addressHue(address)
@@ -217,8 +172,8 @@ export function A2aFeed({ words, lang }: { words: A2aFeedWords; lang: string }) 
           const to = who(r.to_element)
           const refused = r.http_status !== null && r.http_status >= 400
           const bad = refused || r.state === "ERROR" || r.state === "TASK_STATE_FAILED"
-          const q = question(r)
-          const a = answer(r)
+          const q = questionOf(r.request)
+          const a = answerOf(r.response)
           return (
             <div key={r.id} className="flex flex-col gap-2" data-call={r.id}>
               {!hidden.has(from.key) && (

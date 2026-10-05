@@ -1,9 +1,11 @@
 import { dataFetch } from "@/lib/fractera/data-service"
 import { nodeEntries } from "@/lib/a2a/node-registry"
+import { relayCall } from "@/lib/a2a/telegram-relay"
 
 // ЖУРНАЛ ОБЩЕНИЯ АГЕНТОВ (шаг 408). Принимающий элемент отдаёт запись каждого вызова A2A ядру (`POST /api/node/a2a-log`),
 // ядро пишет её в слой данных (`/a2a-log`, data v1.3.16: новые сверху, последние 10 000, ключи вырезаны, тела ≤ 8 КБ) и
-// показывает лентой «Dashboard → Общение агентов». Ядро — единственный писатель журнала; сюда же 408-5 добавит Telegram.
+// показывает лентой «Dashboard → Общение агентов». Ядро — единственный писатель журнала, и тем же действием шлёт вызов в
+// Telegram участников и ядра (408-5, `lib/a2a/telegram-relay.ts`) — не дожидаясь отправки.
 
 export type LogRecord = {
   from?: string; to: string; method?: string; skill?: string; taskId?: string; contextId?: string; state?: string
@@ -24,10 +26,28 @@ export async function writeLog(rec: LogRecord): Promise<{ ok: boolean; id?: numb
   try {
     const res = await dataFetch("/a2a-log", { method: "POST", body: JSON.stringify(rec) })
     const body = (await res.json().catch(() => ({}))) as { id?: number; error?: string }
-    return res.ok ? { ok: true, id: body.id } : { ok: false, error: body.error ?? `data layer ${res.status}` }
+    if (!res.ok) return { ok: false, error: body.error ?? `data layer ${res.status}` }
+    const from = entryOf(rec.from ?? "unknown")
+    const to = entryOf(rec.to)
+    relayCall({
+      fromId: from.id, fromAddress: from.address, toId: to.id, toAddress: to.address, skill: rec.skill, state: rec.state,
+      httpStatus: rec.httpStatus, reason: rec.reason, durationMs: rec.durationMs != null ? Math.round(rec.durationMs) : null,
+      request: json(rec.request), response: json(rec.response),
+    }, process.env.NEXT_PUBLIC_DEFAULT_LOCALE === "ru" ? "ru" : "en")
+      .then((r) => { if (r.sent) console.log(`[a2a-log] telegram: sent ${r.sent}`) })
+      .catch(() => {})
+    return { ok: true, id: body.id }
   } catch (e) {
     return { ok: false, error: String((e as Error).message ?? e) }
   }
+}
+
+const json = (v: unknown) => (v === undefined || v === null ? null : typeof v === "string" ? v : JSON.stringify(v))
+
+/** Элемент реестра по адресу или id: id нужен, чтобы найти его бота; неизвестный — без id. */
+function entryOf(key: string): { id: string | null; address: string } {
+  const e = nodeEntries().find((x) => x.address === key || x.id === key)
+  return e ? { id: e.id, address: e.address } : { id: null, address: key }
 }
 
 /** Как называть участника: запись реестра по адресу или id; неизвестный — как назвал себя сам. */
