@@ -2697,3 +2697,8 @@ start.
 - **Telegram texts** — the person's language, approved sample (owner 2026-10-05); a task for an agent is relayed as a pair
   «<addr> спрашивает: «…»» / «<addr> отвечает: …» when answered, never at setting; no `.json` attachments. 🛑 Paste: Enter is sent
   at 400 ms, 2.5 s and 6 s — one Enter was lost under the channel.
+- **Review before turning off** (step 410): «Выключить его?» also offers «разбор» — the element agent runs its skill `self-review`
+  (`npm run review:digest` reads its own Claude Code session file; ≤3 proposals tied to a signal; nothing changed without «да»;
+  decisions verbatim in `.claude/skills/self-review/DECISIONS.md`), then `done` with `reviewed:true` — the question comes again
+  without «разбор». Findings outside the element → `POST /api/node/review-inbox` (node key) → `data/review-inbox.jsonl`; read it
+  when working on the node. Sample: roman; template and other elements — later.
