@@ -21,7 +21,7 @@
 и только карточка говорит, что он выдержит** — сколько элементов, что ломается за пределом, когда
 его не брать. Есть карточка — прочти её перед использованием.
 
-Видов: **69** · рендереров: **68** · карточек: **43**
+Видов: **70** · рендереров: **69** · карточек: **44**
 
 | Код | Вид | Семейство | Что это | Поля | Правила владельца |
 |---|---|---|---|---|---|
@@ -89,6 +89,7 @@
 | `designSection01` | `designSection` | Workspace | a design editor of the site element | lang: string; section: 'colors' \| 'fonts' \| 'type' \| 'shape' | [карточка](blocks/designSection.md) |
 | `deployBoard01` | `deployBoard` | Workspace | the deployment board of the node | lang: string | [карточка](blocks/deployBoard.md) |
 | `projectsBoard01` | `projectsBoard` | Page material | the projects table of the node | lang: string | [карточка](blocks/projectsBoard.md) |
+| `a2aFeed01` | `a2aFeed` | Page material | a2aFeed — the agents' conversation feed of the node | lang: string | [карточка](blocks/a2aFeed.md) |
 | `elementPreview01` | `elementPreview` | Workspace | a live preview of an element | lang: string; serviceId: string | [карточка](blocks/elementPreview.md) |
 | `authGoogleSetup01` | `authGoogleSetup` | Workspace | — | words: import('@/components/auth/google-setup.i18n').GoogleSetupWords | — |
 | `authResendSetup01` | `authResendSetup` | Workspace | — | words: import('@/components/auth/resend-setup.i18n').ResendSetupWords | — |

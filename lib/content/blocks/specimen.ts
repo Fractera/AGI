@@ -1254,6 +1254,12 @@ export const SPECIMEN: SpecimenSection[] = [
     blocks: [{ kind: 'projectsBoard', lang: 'en' }],
   },
   {
+    kind: 'a2aFeed',
+    when: 'The agents’ conversation of the node as a read-only chat: every A2A call between its elements — the caller’s question and the receiver’s answer, refusals too — with the agent’s name and a 6 px stripe coloured from its address; toggles per agent, everyone, no one. New calls arrive by a poll every 3 s while the tab is visible; the page stays prerendered.',
+    whenRu: 'Разговор агентов узла лентой-чатом только для чтения: каждый вызов A2A между его элементами — вопрос вызывающего и ответ принимающего, отказы тоже — с именем агента и полосой 6 px цветом из его адреса; переключатели по агентам, «все», «никого». Новые вызовы приходят опросом раз в 3 с, пока вкладка видна; страница остаётся предрендеренной.',
+    blocks: [{ kind: 'a2aFeed', lang: 'en' }],
+  },
+  {
     kind: 'designSection',
     when: 'A design editor of the SITE element — colours, fonts, type or shape, chosen by `section` — carried over from fractera-next-starter. The settings belong to the site; the core reads and patches them through the site settings door and rebuilds the site. Asked in the browser: the page is prerendered and the settings change without rebuilding the core.',
     whenRu: 'Редактор оформления элемента САЙТ — цвета, шрифты, типографика или форма, раздел задаётся `section`, — перенесённый из fractera-next-starter. Настройки принадлежат сайту; ядро читает и правит их через дверь настроек сайта и пересобирает сайт. Спрашивается в браузере: страница предрендерена, а настройки меняются без пересборки ядра.',
