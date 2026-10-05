@@ -29,6 +29,7 @@ const path = require('node:path')
 const { serviceDir } = require('./workspace.cjs')
 const session = require('./session.cjs')
 const { claudeAuthState, extraBins, resolveBin } = require('./claude-cli.cjs')
+const { tableFor } = require('./translate.cjs')
 
 const ROOT = process.cwd()
 const PLUGIN = 'telegram@claude-plugins-official'
@@ -324,11 +325,21 @@ function setPersonLang(service, lang, source) {
   return { ok: true, lang: code }
 }
 
-/** Язык встроенных текстов (en/ru); прочие языки получают перевод (411-2). */
-function botLang(service) {
-  const l = personLang(service).split('-')[0]
-  return l === 'ru' ? 'ru' : 'en'
+/**
+ * 411-2: таблицы текстов на языке человека — en/ru встроены, прочие языки переводятся один раз ключом OpenAI ядра и кэшируются
+ * (`translate.cjs`); перевода нет — английский. Объявлены ниже `ASK` и `CLOSE`, вызываются при отправке.
+ */
+async function askTable(service) {
+  const l = personLang(service)
+  if (ASK[l.split('-')[0]]) return ASK[l.split('-')[0]]
+  return tableFor('telegram-ask', ASK.en, l)
 }
+async function closeTable(service) {
+  const l = personLang(service)
+  if (CLOSE[l.split('-')[0]]) return CLOSE[l.split('-')[0]]
+  return tableFor('telegram-close', CLOSE.en, l)
+}
+
 
 /** `<адрес>.<зона>` элемента — как подпись рассылки 408-5. */
 function named(service) {
@@ -407,8 +418,7 @@ function shortName(nameOrAddress) {
 /** Кто спрашивает — имена вызывающих без повторов. */
 const callersOf = (items) => [...new Set(items.filter((it) => it.kind !== 'human').map((it) => shortName(it.from) || '?'))].join(', ')
 
-function askText(service, items, lang) {
-  const t = ASK[lang]
+function askText(service, items, t) {
   const a = shortName(named(service))
   const calls = items.filter((it) => it.kind !== 'human').slice(-5)
   const human = items.filter((it) => it.kind === 'human').slice(-5)
@@ -425,8 +435,7 @@ function askText(service, items, lang) {
   return cutText(lines.join('\n'), 3500)
 }
 
-const buttons = (p, lang) => {
-  const t = ASK[lang]
+const buttons = (p, t) => {
   const human = allHuman(p.items)
   return {
     inline_keyboard: [[
@@ -449,16 +458,16 @@ async function askToStart(service, { text, from, about, declineUrl, kind = 'call
   const file = pendingFile(service)
   const p = readJson(file, null) ?? { id: randomBytes(6).toString('hex'), createdAt: new Date().toISOString(), items: [], asked: [] }
   p.items.push({ kind, text: text ?? '', from: from ?? '', about: about ?? '', declineUrl: declineUrl ?? '', at: new Date().toISOString() })
-  const lang = botLang(service)
-  const body = askText(service, p.items, lang)
+  const t = await askTable(service)
+  const body = askText(service, p.items, t)
   if (p.asked.length === 0) {
     for (const chat of access(service).allowed) {
-      const r = await tg(token, 'sendMessage', { chat_id: chat, text: body, reply_markup: buttons(p, lang), disable_web_page_preview: true })
+      const r = await tg(token, 'sendMessage', { chat_id: chat, text: body, reply_markup: buttons(p, t), disable_web_page_preview: true })
       if (r.ok && r.result?.message_id) p.asked.push({ chat, messageId: r.result.message_id })
     }
   } else {
     for (const a of p.asked) {
-      await tg(token, 'editMessageText', { chat_id: a.chat, message_id: a.messageId, text: body, reply_markup: buttons(p, lang), disable_web_page_preview: true })
+      await tg(token, 'editMessageText', { chat_id: a.chat, message_id: a.messageId, text: body, reply_markup: buttons(p, t), disable_web_page_preview: true })
     }
   }
   mkdirSync(path.dirname(file), { recursive: true })
@@ -467,10 +476,10 @@ async function askToStart(service, { text, from, about, declineUrl, kind = 'call
 }
 
 /** Заменить вопрос итогом во всех чатах; `keep` — оставить кнопки (нажать «Запустить» ещё раз). */
-async function closeAsk(service, token, p, outcome, keep, lang) {
-  const text = `${askText(service, p.items, lang)}\n\n${outcome}`
+async function closeAsk(service, token, p, outcome, keep, t) {
+  const text = `${askText(service, p.items, t)}\n\n${outcome}`
   for (const a of p.asked) {
-    await tg(token, 'editMessageText', { chat_id: a.chat, message_id: a.messageId, text, ...(keep ? { reply_markup: buttons(p, lang) } : {}) })
+    await tg(token, 'editMessageText', { chat_id: a.chat, message_id: a.messageId, text, ...(keep ? { reply_markup: buttons(p, t) } : {}) })
   }
 }
 
@@ -497,8 +506,7 @@ async function onButton(service, token, q) {
     await tg(token, 'answerCallbackQuery', { callback_query_id: q.id })
     return
   }
-  const lang = botLang(service)
-  const t = ASK[lang]
+  const t = await askTable(service)
   const a = shortName(named(service))
   const c = callersOf(p.items)
   const human = allHuman(p.items)
@@ -506,7 +514,7 @@ async function onButton(service, token, q) {
     const declined = human ? t.declinedHuman(a) : t.declinedCalls(a, c)
     await tg(token, 'answerCallbackQuery', { callback_query_id: q.id, text: declined })
     rmSync(pendingFile(service), { force: true })
-    await closeAsk(service, token, p, declined, false, lang)
+    await closeAsk(service, token, p, declined, false, t)
     for (const it of p.items) if (it.declineUrl) await declineCaller(it.declineUrl, t.declineText(a))
     return
   }
@@ -516,13 +524,13 @@ async function onButton(service, token, q) {
   if (out.ok) {
     rmSync(pendingFile(service), { force: true })
     const startedText = human ? t.startedHuman(a) : t.startedCalls(a, c)
-    await closeAsk(service, token, p, startedText, false, lang)
+    await closeAsk(service, token, p, startedText, false, t)
     // Владелец 2026-10-05: «нажатие кнопку ничего визуально не меняет» — правка сообщения наверху не видна; итог — новым
     // сообщением внизу, за ним пойдут ответ агента и «выключить агента?».
     for (const x of p.asked) await tg(token, 'sendMessage', { chat_id: x.chat, text: startedText, disable_web_page_preview: true })
   } else {
     const why = out.reason === 'memory' ? t.memory(a, out.freeMb, out.perSessionMb) : t.failed(a, String(out.reason ?? 'unknown'))
-    await closeAsk(service, token, p, why, true, lang)
+    await closeAsk(service, token, p, why, true, t)
   }
 }
 
@@ -548,7 +556,8 @@ const CLOSE = {
 async function askToClose(service, why, { reviewed = false } = {}) {
   if (!connected(service)) return { ok: true, asked: 0, reason: 'no-telegram' }
   const token = storedToken(service)
-  const full = CLOSE[botLang(service)][why === 'timeout' ? 'timeout' : 'done'](shortName(named(service)))
+  const c = await closeTable(service)
+  const full = c[why === 'timeout' ? 'timeout' : 'done'](shortName(named(service)))
   // После разбора в этой сессии — без второй строки (предложение разбора).
   const text = reviewed ? full.split('\n')[0] : full
   let asked = 0
