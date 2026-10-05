@@ -16,7 +16,8 @@ const { redeemTicket } = require('./ticket.cjs')
 const session = require('./session.cjs')
 const { serviceDir } = require('./workspace.cjs')
 const { claudeBin, resolveBin } = require('./claude-cli.cjs')
-const { channelLaunch } = require('./telegram.cjs')
+const telegram = require('./telegram.cjs')
+const { channelLaunch } = telegram
 const os = require('node:os')
 
 const INIT_DEADLINE_MS = 10_000
@@ -174,12 +175,14 @@ function pasteWhenReady(s, text, { quietMs = 3000, maxMs = 120_000 } = {}) {
  * РАЗБУДИТЬ АГЕНТА СЛУЖБЫ БЕЗ БРАУЗЕРА (409-1). Сессия жива — только вставить текст. Свободной памяти меньше нормы на сессию —
  * отказ с цифрами, ничего не рождается (задача ждёт). Открытая потом страница терминала видит этот же экран.
  */
-async function wake(service, { text } = {}) {
+async function wake(service, { text, from, about, declineUrl, confirmed } = {}) {
   const live = session.current(service)
   if (live) {
     if (text) pasteWhenReady(live, text, { quietMs: 500 })
     return { ok: true, already: true }
   }
+  // 409-3: бот элемента подключён — сначала вопрос человеку в Telegram; сессия родится по кнопке «Запустить» (`confirmed`).
+  if (!confirmed && telegram.connected(service)) return telegram.askToStart(service, { text, from, about, declineUrl })
   const freeMb = Math.floor(os.freemem() / MB)
   const per = perSessionMb()
   if (freeMb < per) return { ok: false, reason: 'memory', freeMb, perSessionMb: per }
@@ -188,6 +191,9 @@ async function wake(service, { text } = {}) {
   if (text) pasteWhenReady(r.session, text)
   return { ok: true, started: true, freeMb, perSessionMb: per }
 }
+
+// 409-3: кнопка «Запустить» в Telegram рождает сессию этим же путём, уже с подтверждением.
+telegram.setStarter((service, opts) => wake(service, { ...opts, confirmed: true }))
 
 /** Принять сокет службы — его отдаёт общее подключение узла (`lib/agent-kit/mount.cjs`). */
 function onConnection(ws, service) {

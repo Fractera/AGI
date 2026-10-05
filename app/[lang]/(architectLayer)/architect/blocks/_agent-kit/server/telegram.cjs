@@ -34,7 +34,8 @@ const ROOT = process.cwd()
 const PLUGIN = 'telegram@claude-plugins-official'
 const TOKEN_SHAPE = /^\d{6,}:[A-Za-z0-9_-]{30,}$/
 const ACTIVATION_LIFETIME_MS = 60 * 60 * 1000
-const IDLE_POLL_MS = 4000
+// 409-3: раз в 3 с (владелец 2026-10-05) — нажатие «Запустить» узел видит не позже чем через 3 с.
+const IDLE_POLL_MS = 3000
 
 const stateDir = (service) => path.join(ROOT, 'data', 'services', service, 'channel', 'telegram')
 const envFile = (service) => path.join(stateDir(service), '.env')
@@ -42,6 +43,7 @@ const accessFile = (service) => path.join(stateDir(service), 'access.json')
 const botFile = (service) => path.join(stateDir(service), 'bot.json')
 const activationFile = (service) => path.join(stateDir(service), 'activation.json')
 const messagesFile = (service) => path.join(stateDir(service), 'messages.json')
+const pendingFile = (service) => path.join(ROOT, 'data', 'services', service, 'wake', 'pending.json')
 
 function readJson(file, fallback) {
   try { return JSON.parse(readFileSync(file, 'utf8')) } catch { return fallback }
@@ -238,7 +240,7 @@ const idleKey = (service) => `__agiTelegramIdle:${service}`
 async function idleTick(service) {
   const token = storedToken(service)
   if (!token || running(service)) return
-  const got = await tg(token, 'getUpdates', { allowed_updates: ['message'], timeout: 0 })
+  const got = await tg(token, 'getUpdates', { allowed_updates: ['message', 'callback_query'], timeout: 0 })
   // 409 — бота читает кто-то другой (канал только что поднялся): уступаем без шума.
   if (!got.ok || !Array.isArray(got.result) || got.result.length === 0) return
   if (running(service)) return
@@ -249,6 +251,7 @@ async function idleTick(service) {
   const nonce = a && Date.now() - a.createdAt < ACTIVATION_LIFETIME_MS ? a.nonce : ''
   const answered = new Set()
   for (const u of updates) {
+    if (u.callback_query) { await onButton(service, token, u.callback_query); continue }
     const msg = u.message
     if (!msg || msg.chat?.type !== 'private' || !msg.from) continue
     const sender = String(msg.from.id)
@@ -264,6 +267,155 @@ async function idleTick(service) {
     if (answered.has(msg.chat.id)) continue
     answered.add(msg.chat.id)
     await tg(token, 'sendMessage', { chat_id: msg.chat.id, text: await statusMessage(service), disable_web_page_preview: true })
+  }
+}
+
+// ── ПОДТВЕРЖДЕНИЕ ЗАПУСКА В TELEGRAM (409-3) ──────────────────────────────────
+//
+// Владелец 2026-10-05: «запрос → подтверждение в Telegram → сессия → предложение закрыть»; «ждём без предела, проверка
+// каждые 3 с»; бота нет — старт сразу. Бот элемента подключён (токен И хотя бы один допущенный — то же определение, что у
+// рассылки 408-5) и сессии нет — `wake` не рождает сессию, а зовёт `askToStart`: допущенным уходит вопрос с кнопками
+// «Запустить» / «Не сейчас», запросы копятся в `data/services/<id>/wake/pending.json` (переживают перезапуск узла). Нажатие
+// приходит опросу узла (`idleTick`, `callback_query`) — пока терминал выключен, бота читает только он. «Запустить» → `starter`
+// (его кладёт bridge.cjs: `wake` с подтверждением) и все накопленные тексты во вход агента. «Не сейчас» → запросы сняты,
+// каждому вызывающему, оставившему `declineUrl`, — ответ «человек не стал запускать» (иначе его задача ждала бы вечно).
+
+/** Подключён ли бот службы: токен и хотя бы один допущенный. */
+function connected(service) {
+  return Boolean(storedToken(service)) && access(service).allowed.length > 0
+}
+
+/** Язык человека этого бота — по его системным сообщениям (как у рассылки 408-6): кириллица → ru. */
+function botLang(service) {
+  try { return /[а-яё]/i.test(readFileSync(messagesFile(service), 'utf8')) ? 'ru' : 'en' } catch { return 'en' }
+}
+
+/** `<адрес>.<зона>` элемента — как подпись рассылки 408-5. */
+function named(service) {
+  let address = service
+  try {
+    const a = JSON.parse(readFileSync(path.join(ROOT, 'data', 'services', service, 'address.json'), 'utf8')).address
+    if (typeof a === 'string' && a) address = a
+  } catch { /* адрес = id */ }
+  try {
+    const zone = JSON.parse(readFileSync(path.join(ROOT, 'logs', 'domain.json'), 'utf8')).zone
+    if (typeof zone === 'string' && zone && !address.includes('.')) return `${address}.${zone}`
+  } catch { /* без зоны */ }
+  return address
+}
+
+const ASK = {
+  en: {
+    title: (who) => `${who}: asking to start the terminal.`, from: 'From', about: 'Task', go: 'Start', no: 'Not now',
+    started: 'Terminal started — the agent got the task.', declined: 'Not started.',
+    memory: (f, n) => `Not started: not enough free memory (${f} MB free, ${n} MB needed). Press «Start» again later.`,
+    failed: (r) => `Not started: ${r}. Press «Start» again.`,
+    declineText: 'The person chose not to start the agent terminal now.',
+  },
+  ru: {
+    title: (who) => `${who}: просят запустить терминал.`, from: 'Кто', about: 'Задача', go: 'Запустить', no: 'Не сейчас',
+    started: 'Терминал запущен — агент получил задачу.', declined: 'Не запущено.',
+    memory: (f, n) => `Не запущено: не хватает свободной памяти (свободно ${f} МБ, нужно ${n} МБ). Нажмите «Запустить» позже.`,
+    failed: (r) => `Не запущено: ${r}. Нажмите «Запустить» ещё раз.`,
+    declineText: 'Человек не стал сейчас запускать терминал агента.',
+  },
+}
+
+const cutText = (t, n) => (t.length > n ? `${t.slice(0, n - 1)}…` : t)
+
+function askText(service, items, lang) {
+  const t = ASK[lang]
+  const lines = [t.title(named(service))]
+  for (const it of items.slice(-5)) {
+    if (it.from) lines.push(`${t.from}: ${it.from}`)
+    if (it.about) lines.push(`${t.about}: ${cutText(it.about, 300)}`)
+  }
+  return cutText(lines.join('\n'), 3500)
+}
+
+const buttons = (p, lang) => ({
+  inline_keyboard: [[{ text: ASK[lang].go, callback_data: `wake:${p.id}:go` }, { text: ASK[lang].no, callback_data: `wake:${p.id}:no` }]],
+})
+
+let starter = null
+/** bridge.cjs кладёт сюда запуск с подтверждением — без круговой зависимости модулей. */
+function setStarter(fn) { starter = fn }
+
+/**
+ * Спросить человека в Telegram, запускать ли терминал. Запрос уже висит — задача добавляется к нему и вопрос обновляется,
+ * а не шлётся вторым. Возвращает `{ ok, pending: true, asked }` (`asked` — сколько чатов получили вопрос).
+ */
+async function askToStart(service, { text, from, about, declineUrl } = {}) {
+  const token = storedToken(service)
+  const file = pendingFile(service)
+  const p = readJson(file, null) ?? { id: randomBytes(6).toString('hex'), createdAt: new Date().toISOString(), items: [], asked: [] }
+  p.items.push({ text: text ?? '', from: from ?? '', about: about ?? '', declineUrl: declineUrl ?? '', at: new Date().toISOString() })
+  const lang = botLang(service)
+  const body = askText(service, p.items, lang)
+  if (p.asked.length === 0) {
+    for (const chat of access(service).allowed) {
+      const r = await tg(token, 'sendMessage', { chat_id: chat, text: body, reply_markup: buttons(p, lang), disable_web_page_preview: true })
+      if (r.ok && r.result?.message_id) p.asked.push({ chat, messageId: r.result.message_id })
+    }
+  } else {
+    for (const a of p.asked) {
+      await tg(token, 'editMessageText', { chat_id: a.chat, message_id: a.messageId, text: body, reply_markup: buttons(p, lang), disable_web_page_preview: true })
+    }
+  }
+  mkdirSync(path.dirname(file), { recursive: true })
+  writeFileSync(file, JSON.stringify(p, null, 2))
+  return { ok: true, pending: true, asked: p.asked.length }
+}
+
+/** Заменить вопрос итогом во всех чатах; `keep` — оставить кнопки (нажать «Запустить» ещё раз). */
+async function closeAsk(service, token, p, outcome, keep, lang) {
+  const text = `${askText(service, p.items, lang)}\n\n${outcome}`
+  for (const a of p.asked) {
+    await tg(token, 'editMessageText', { chat_id: a.chat, message_id: a.messageId, text, ...(keep ? { reply_markup: buttons(p, lang) } : {}) })
+  }
+}
+
+/** Ответ вызывающему «человек не стал запускать» — его дверью задачи, ключом узла, только по петле. */
+async function declineCaller(url, text) {
+  try {
+    const u = new URL(url)
+    if (u.hostname !== '127.0.0.1' && u.hostname !== 'localhost') return
+    await fetch(u, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Node-Key': process.env.SETTINGS_SECRET ?? '' },
+      body: JSON.stringify({ text, failed: true }),
+      signal: AbortSignal.timeout(10_000),
+    })
+  } catch { /* вызывающий недоступен — его задача останется ждать */ }
+}
+
+/** Нажатие кнопки вопроса. Только допущенный и только действующий запрос. */
+async function onButton(service, token, q) {
+  const sender = String(q.from?.id ?? '')
+  const m = /^wake:([0-9a-f]+):(go|no)$/.exec(String(q.data ?? ''))
+  const p = readJson(pendingFile(service), null)
+  if (!access(service).allowed.includes(sender) || !m || !p || p.id !== m[1]) {
+    await tg(token, 'answerCallbackQuery', { callback_query_id: q.id })
+    return
+  }
+  const lang = botLang(service)
+  const t = ASK[lang]
+  if (m[2] === 'no') {
+    await tg(token, 'answerCallbackQuery', { callback_query_id: q.id, text: t.declined })
+    rmSync(pendingFile(service), { force: true })
+    await closeAsk(service, token, p, t.declined, false, lang)
+    for (const it of p.items) if (it.declineUrl) await declineCaller(it.declineUrl, t.declineText)
+    return
+  }
+  await tg(token, 'answerCallbackQuery', { callback_query_id: q.id, text: t.go })
+  const text = p.items.map((it) => it.text).filter(Boolean).join('\n\n')
+  const out = typeof starter === 'function' ? await starter(service, { text: text || undefined }) : { ok: false, reason: 'no-starter' }
+  if (out.ok) {
+    rmSync(pendingFile(service), { force: true })
+    await closeAsk(service, token, p, t.started, false, lang)
+  } else {
+    const why = out.reason === 'memory' ? t.memory(out.freeMb, out.perSessionMb) : t.failed(String(out.reason ?? 'unknown'))
+    await closeAsk(service, token, p, why, true, lang)
   }
 }
 
@@ -312,5 +464,5 @@ function channelState(service) {
 
 module.exports = {
   PLUGIN, isService, stateDir, storedToken, saveToken, activationLink, saveMessages, channelLaunch,
-  running, channelState, startIdlePoller,
+  running, channelState, startIdlePoller, connected, askToStart, setStarter,
 }
