@@ -56,6 +56,13 @@ function Bubble({ address, children }: { address: string; children: React.ReactN
   )
 }
 
+/** Склеить записи без повторов, по возрастанию номера: номер записи журнала — её единственный ключ. */
+function merge(a: Row[], b: Row[]): Row[] {
+  const byId = new Map<number, Row>()
+  for (const r of [...a, ...b]) byId.set(r.id, r)
+  return [...byId.values()].sort((x, y) => x.id - y.id)
+}
+
 export function A2aFeed({ words, lang }: { words: A2aFeedWords; lang: string }) {
   const [rows, setRows] = useState<Row[] | "loading" | "failed">("loading")
   const [agents, setAgents] = useState<Map<string, Agent>>(new Map())
@@ -63,6 +70,10 @@ export function A2aFeed({ words, lang }: { words: A2aFeedWords; lang: string }) 
   const [more, setMore] = useState(false)
   const box = useRef<HTMLDivElement>(null)
   const last = useRef(0)
+  // Опрос начинается только после первого ответа и не шлёт второй запрос, пока не вернулся первый. ✗ 2026-10-05: первый
+  // запрос через туннель шёл дольше 3 с, тик спросил `after=0` — каждый вызов лёг в ленту дважды.
+  const loaded = useRef(false)
+  const busy = useRef(false)
 
   const learn = useCallback((list: Agent[]) => {
     setAgents((prev) => {
@@ -89,12 +100,14 @@ export function A2aFeed({ words, lang }: { words: A2aFeedWords; lang: string }) 
         last.current = asc.length ? asc[asc.length - 1].id : 0
         learn(d.agents)
         setMore(d.total > asc.length)
-        setRows(asc)
+        setRows((prev) => (Array.isArray(prev) ? merge(prev, asc) : asc))
+        loaded.current = true
         toBottom()
       })
       .catch(() => { if (!stop) setRows("failed") })
     const tick = () => {
-      if (stop || document.visibilityState !== "visible") return
+      if (stop || !loaded.current || busy.current || document.visibilityState !== "visible") return
+      busy.current = true
       ask(`after=${last.current}&limit=200`)
         .then((d: { rows: Row[]; agents: Agent[] }) => {
           if (stop || !d.rows.length) return
@@ -103,10 +116,11 @@ export function A2aFeed({ words, lang }: { words: A2aFeedWords; lang: string }) 
           learn(d.agents)
           const el = box.current
           const atBottom = !el || el.scrollHeight - el.scrollTop - el.clientHeight < 80
-          setRows((prev) => (Array.isArray(prev) ? [...prev, ...asc] : asc))
+          setRows((prev) => (Array.isArray(prev) ? merge(prev, asc) : asc))
           if (atBottom) toBottom()
         })
         .catch(() => { /* следующий тик спросит снова */ })
+        .finally(() => { busy.current = false })
     }
     const timer = setInterval(tick, POLL_MS)
     const onShow = () => { if (document.visibilityState === "visible") tick() }
@@ -121,7 +135,7 @@ export function A2aFeed({ words, lang }: { words: A2aFeedWords; lang: string }) 
       .then((d: { rows: Row[]; agents: Agent[] }) => {
         learn(d.agents)
         setMore(d.rows.length === FIRST)
-        setRows((prev) => (Array.isArray(prev) ? [...[...d.rows].reverse(), ...prev] : prev))
+        setRows((prev) => (Array.isArray(prev) ? merge(prev, [...d.rows].reverse()) : prev))
       })
       .catch(() => {})
   }
