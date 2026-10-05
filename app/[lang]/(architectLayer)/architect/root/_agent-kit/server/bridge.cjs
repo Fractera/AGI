@@ -217,7 +217,7 @@ function finishRule(service) {
  * «выключить»» (решение владельца «Ответ текстом»: пока терминал запущен, бота читает плагин и чужие кнопки выбрасывает). С `close`
  * — агент получил «закрыть» от человека и закрывает свой терминал; остановка — после ответа двери, чтобы агент его увидел.
  */
-function done(service, { close = false } = {}) {
+async function done(service, { close = false } = {}) {
   const live = session.current(service)
   if (!live) return { ok: false, reason: 'no-session' }
   if (close) {
@@ -225,6 +225,10 @@ function done(service, { close = false } = {}) {
     t.unref?.()
     return { ok: true, closing: true }
   }
+  // Владелец 2026-10-06: «делай паузу 5 секунд» — пара «спрашивает / отвечает» уходит в Telegram в фоне, и вопрос «выключить?»
+  // её обгонял. Переменная — для прибора.
+  await new Promise((r) => setTimeout(r, Number(process.env.AGENT_CLOSE_ASK_DELAY_MS) || 5000))
+  if (session.current(service) !== live) return { ok: false, reason: 'no-session' }
   return telegram.askToClose(service, 'done')
 }
 
