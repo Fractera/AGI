@@ -7,7 +7,7 @@
 Имя маршрута — то, чем его находят: 6–12 слов, глагол первым. Правило проверяется `npm run check:api`,
 который стоит в `prebuild` — маршрут без имени роняет сборку.
 
-Всего маршрутов: **58**
+Всего маршрутов: **59**
 
 | Адрес | Методы | Что делает | Продукт |
 |---|---|---|---|
@@ -60,6 +60,7 @@
 | `/api/node/preview-url` | GET | tell the address where an element of this node can be previewed | — |
 | `/api/node/projects` | GET | list every AGI ITEM with its state and last commit | — |
 | `/api/node/reach` | GET, POST | measure and connect a service's address on the node's own domain | — |
+| `/api/node/review-inbox` | POST | element agent leaves a self-review finding about something outside it | — |
 | `/api/node/state` | GET | report how this node is reachable and whether it is walled off | — |
 | `/api/openai-models` | GET | list the live model names this key can actually use | — |
 | `/api/project-types/[lang]/[id]` | GET | describe one project direction for the home page window | — |
