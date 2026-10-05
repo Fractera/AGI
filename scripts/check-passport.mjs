@@ -61,6 +61,10 @@ function checkElement(dir) {
     if (!inRoutes && !code.includes(base)) problems.push(`дверь ${d.method} ${d.path} не найдена в коде`)
   }
   const declared = doors.filter((d) => d.protocol === 'http').map((d) => norm(d.path))
+  if (ext.a2aEndpoint) {
+    declared.push(norm(ext.a2aEndpoint))
+    if (!routes.some((r) => norm(r) === norm(ext.a2aEndpoint)) && !code.includes(ext.a2aEndpoint)) problems.push(`конечная точка A2A ${ext.a2aEndpoint} не найдена в коде`)
+  }
   const priv = (ext.private ?? []).map(norm)
   for (const r of routes) {
     const n = norm(r)

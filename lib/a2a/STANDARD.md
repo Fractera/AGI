@@ -41,6 +41,8 @@ Declared in `capabilities.extensions[]` as `{ uri, description, required: false,
 | `process` | what it does by itself: `{ kind: signal|schedule|subscription, what }` |
 | `catalog` | `null` or `{ find, get, contribute }` doors of its catalog (levels 3–4) |
 | `private` | doors that exist in code and are not offered (health, callbacks) |
+| `a2aEndpoint` | path of the element's A2A JSON-RPC endpoint (v1.0: `SendMessage`, `GetTask`, `ListTasks`, `CancelTask`); published as `supportedInterfaces` |
+| `a2aSkills` | skill ids executed by that endpoint; a call names one in a data part `{ "skill": "<id>", "input": {} }` |
 
 Levels of the node and the operations find · get · contribute are described in the step plan; contribute writes into another
 element's catalog and the receiver checks it, records origin and version, and answers accepted · pending · refused.
