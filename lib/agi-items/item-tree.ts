@@ -8,7 +8,7 @@
 // Слова — `en` основа, `ru` перевод; пока у страниц только заглушка: заголовок и описание.
 
 export type TreeWords = { title: string; lead: string }
-export type TreePage = { slug: string; words: Record<"en" | "ru", TreeWords>; pages?: TreePage[] }
+export type TreePage = { slug: string; words: Record<"en" | "ru", TreeWords>; pages?: TreePage[]; needs?: "catalog" }
 
 const w = (enTitle: string, enLead: string, ruTitle: string, ruLead: string): Record<"en" | "ru", TreeWords> => ({
   en: { title: enTitle, lead: enLead },
@@ -29,30 +29,28 @@ export const ITEM_TREE: TreePage[] = [
       // под кнопкой терминал».
       { slug: "deployments", words: w("Deployments", "Versions of the element and a way back to a working one.", "Развёртывания", "Версии элемента и путь назад к работающей.") },
       { slug: "telegram", words: w("Telegram bot", "A bot that talks to the same agent session.", "Telegram бот", "Бот, который говорит с той же сессией агента.") },
-      { slug: "skills", words: w("Skills", "The skills the element's agent carries.", "Навыки", "Навыки, которые несёт агент элемента.") },
-      { slug: "hooks", words: w("Hooks", "Commands the agent's tools run on their own events.", "Хуки", "Команды, которые инструменты агента запускают на своих событиях.") },
-      // 330-6, слово владельца: «рядом с ними внизу добавляй два раздела: плагины, браузерные расширения … что пользователь
-      // должен поставить для максимальной эффективности проекта».
-      { slug: "plugins", words: w("Plugins", "Claude Code plugins to install so the element's agent works at its best.", "Плагины", "Плагины Claude Code, которые стоит поставить, чтобы агент элемента работал максимально эффективно.") },
-      { slug: "browser-extensions", words: w("Browser extensions", "Browser extensions to install for the most effective work on the project.", "Браузерные расширения", "Расширения браузера, которые стоит поставить для максимально эффективной работы над проектом.") },
       { slug: "environment", words: w("Environment variables", "Keys and settings the element reads at start.", "Переменные окружения", "Ключи и настройки, которые элемент читает при старте.") },
     ],
   },
   {
+    // 406-4 (владелец 2026-10-05, карта меню 406-2): «Коннекторы» → «Связи (A2A)»; адрес раздела прежний.
     slug: "connectors",
-    words: w("Connectors", "How other programs and agents reach this element.", "Коннекторы", "Как до этого элемента достают другие программы и агенты."),
+    words: w("Links (A2A)", "What this element offers its neighbours, what it needs from them, and how to reach it.", "Связи (A2A)", "Что элемент предлагает соседям, что ему нужно от них и как к нему обратиться."),
     pages: [
       { slug: "api", words: w("API", "The element's HTTP doors.", "API", "HTTP-двери элемента.") },
       { slug: "mcp", words: w("MCP", "The element's tools for agents over MCP.", "MCP", "Инструменты элемента для агентов по MCP.") },
-      { slug: "a2a", words: w("A2A", "Agent-to-agent protocol of the element.", "A2A", "Протокол агент-агент у элемента.") },
+      { slug: "a2a", words: w("A2A", "What the element can do, what it needs from neighbours, and who may call it.", "A2A", "Что элемент умеет, что ему нужно от соседей и кто вправе его вызывать.") },
+      // 406-4: виден только у элемента, чей паспорт объявляет каталог (`a2a.catalog`).
+      { slug: "catalog", needs: "catalog", words: w("Catalog", "What the element can give away: find, get, contribute.", "Каталог", "Что элемент умеет отдать: найти, получить, внести.") },
     ],
   },
   {
+    // 406-4: «Web3 store» → «Сеть (M2M)»; адрес раздела прежний.
     slug: "web3-store",
-    words: w("Web3 store", "Finding elements in the web3 store and publishing this one there.", "Web3 store", "Поиск элементов в web3 store и публикация этого элемента там."),
+    words: w("Network (M2M)", "Not found in this node is not «does not exist»: the way out to other nodes.", "Сеть (M2M)", "Не нашлось в узле — не значит, что не существует: выход к другим узлам."),
     pages: [
-      { slug: "find", words: w("Find in the web3 store", "Look for a ready element before building one.", "Найти в web3 Store", "Найти готовый элемент, прежде чем строить свой.") },
-      { slug: "publish", words: w("Send to the web3 store", "Offer this element to others.", "Отправить в web3 store", "Предложить этот элемент другим.") },
+      { slug: "find", words: w("Find in the network", "Look for a ready element on other nodes before building one.", "Найти в сети", "Найти готовый элемент на других узлах, прежде чем строить свой.") },
+      { slug: "publish", words: w("Offer to the network", "How this element will be announced to other nodes.", "Отправить в сеть", "Как этот элемент будет объявлен другим узлам.") },
     ],
   },
   {
@@ -70,15 +68,6 @@ export const ITEM_TREE: TreePage[] = [
     pages: [
       { slug: "instruction", words: w("Main instruction", "What the element's agent reads first.", "Главная инструкция", "То, что агент элемента читает первым.") },
       { slug: "task-add", words: w("Add a task", "A task for the element's agent.", "Добавить задание", "Задание агенту элемента.") },
-      { slug: "steps-plan", words: w("Development steps: plan", "Steps planned and not started.", "Шаги разработки: план", "Запланированные и не начатые шаги.") },
-      { slug: "steps-done", words: w("Development steps: done", "Steps closed, with their proof.", "Шаги разработки: завершённые", "Закрытые шаги с их доказательствами.") },
-      { slug: "steps-cancelled", words: w("Development steps: cancelled", "Steps dropped, and why.", "Шаги разработки: отменённые", "Отменённые шаги и причина.") },
-      { slug: "step-current", words: w("Current step", "Where the work is right now.", "Текущий шаг", "Где работа прямо сейчас.") },
-      { slug: "translation-debt", words: w("Translation debt", "Words still missing in some language.", "Долги по переводам", "Слова, которых ещё нет на каком-то языке.") },
-      { slug: "backlog", words: w("Backlog", "Built but not explained, or promised.", "Backlog", "Построенное, но не объяснённое, или обещанное.") },
-      { slug: "glossary", words: w("Glossary", "The element's own words.", "Глоссарий", "Собственные слова элемента.") },
-      { slug: "anti-patterns", words: w("Anti-patterns", "Dead ends already paid for.", "Антипаттерны", "Тупики, за которые уже заплачено.") },
-      { slug: "docs-registry", words: w("Document registry", "Every document of the element in one list.", "Реестр документов", "Все документы элемента одним списком.") },
     ],
   },
   {

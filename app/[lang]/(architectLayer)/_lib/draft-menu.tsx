@@ -3,6 +3,7 @@ import type { WorkspaceItem } from '@/lib/content/blocks/types'
 import { listDrafts } from '@/lib/agi-items/drafts'
 import { addressOf } from '@/lib/agi-items/element-address'
 import { ITEM_TREE, treeLang } from '@/lib/agi-items/item-tree'
+import { hasCatalog } from '@/lib/a2a/element-passport'
 import { agiDraftsUi } from '../_i18n/agi-drafts.i18n'
 import { CreateDraftButton } from '../_components/create-draft-button.client'
 import { ARCHITECT_HOME } from './architect-menu'
@@ -50,10 +51,12 @@ export function withDrafts(menu: WorkspaceItem[], lang: string, currentPath: str
     const dir = `${ARCHITECT_HOME}/${slug}`
     // 320: раздел со страницами раскрывается третьим уровнем (слово владельца 2026-09-27). Раздел «активен» только на
     // своей странице, «открыт» — пока человек на любой его странице: отметка «вы здесь» не стоит в двух местах.
+    // 406-4: пункт «Каталог» — только у элемента, чей паспорт объявляет каталог.
+    const catalog = hasCatalog(d.id)
     const children = ITEM_TREE.map((s) => {
       const path = `${dir}/${s.slug}`
       const inside = currentPath.startsWith(`${path}/`)
-      const pages = (s.pages ?? []).map((p) => {
+      const pages = (s.pages ?? []).filter((p) => p.needs !== 'catalog' || catalog).map((p) => {
         const pagePath = `${path}/${p.slug}`
         return { label: p.words[l].title, href: at(pagePath), active: pagePath === currentPath }
       })

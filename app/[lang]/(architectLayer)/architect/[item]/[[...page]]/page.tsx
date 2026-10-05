@@ -42,6 +42,9 @@ import { agentKitWidget, openAiKeyHref, type AgentKitPage } from '../_agent-kit/
 import { ElementPreview } from '@/components/preview/element-preview.client'
 import { elementPreviewWords, previewTaskKit } from '@/sections/blocks/element-preview.server'
 import { EnvironmentPanel } from '@/components/environment/environment-panel'
+import { ElementPassport, type PassportView } from '../../../_components/element-passport'
+import { elementPassportUi } from '../../../_i18n/element-passport.i18n'
+import { elementPassport } from '@/lib/a2a/element-passport'
 
 // ОДНА СТРАНИЦА НА ВСЕ АДРЕСА ВСЕХ ЧЕРНОВИКОВ (314-1): `/architect/<id>`, `/architect/<id>/<раздел>`,
 // `/architect/<id>/<раздел>/<страница>`. Дерево — `lib/agi-items/item-tree.ts`, черновики — `data/agi-drafts.json`.
@@ -278,6 +281,14 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       : <p className="my-4 text-sm text-muted-foreground">{dui.notBorn}</p>)
     : null
 
+  // 406-4 (карта меню 406-2, решение владельца): эти страницы показывают разделы паспорта элемента, своей копии у них нет.
+  const PASSPORT_VIEWS: Record<string, PassportView> = {
+    'connectors/api': 'api', 'connectors/mcp': 'mcp', 'connectors/a2a': 'a2a', 'connectors/catalog': 'catalog',
+    'web3-store/publish': 'publish', 'web3-store/find': 'find', 'process/subscriptions': 'subscriptions', 'process/cron': 'cron',
+  }
+  const passportView = page ? PASSPORT_VIEWS[`${section.slug}/${page.slug}`] : undefined
+  const passport = passportView ? <ElementPassport view={passportView} passport={entry ? elementPassport(item) : null} ui={elementPassportUi(lang)} /> : null
+
   return (
     <ArchitectPage
       lang={lang}
@@ -285,7 +296,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       title={words.title}
       lead={words.lead}
       pageTitle={address}
-      widget={<>{bar}{list}{preview}{github}{deployPanel}{copyNote}{deploymentsNote}{environment}{settings}{siteSettings}{agent}</>}
+      widget={<>{bar}{list}{preview}{github}{deployPanel}{copyNote}{deploymentsNote}{environment}{settings}{siteSettings}{agent}{passport}</>}
       children={tables}
     />
   )
