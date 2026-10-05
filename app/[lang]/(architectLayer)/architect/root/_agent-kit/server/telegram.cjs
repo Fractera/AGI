@@ -435,7 +435,11 @@ async function onButton(service, token, q) {
   const out = typeof starter === 'function' ? await starter(service, { text: text || undefined }) : { ok: false, reason: 'no-starter' }
   if (out.ok) {
     rmSync(pendingFile(service), { force: true })
-    await closeAsk(service, token, p, allHuman(p.items) ? t.startedHuman : t.started, false, lang)
+    const startedText = allHuman(p.items) ? t.startedHuman : t.started
+    await closeAsk(service, token, p, startedText, false, lang)
+    // Владелец 2026-10-05: «нажатие кнопку ничего визуально не меняет» — правка сообщения наверху не видна; итог — новым
+    // сообщением внизу, за ним пойдут ответ агента и «закрыть терминал?».
+    for (const a of p.asked) await tg(token, 'sendMessage', { chat_id: a.chat, text: `${named(service)}: ${startedText}`, disable_web_page_preview: true })
   } else {
     const why = out.reason === 'memory' ? t.memory(out.freeMb, out.perSessionMb) : t.failed(String(out.reason ?? 'unknown'))
     await closeAsk(service, token, p, why, true, lang)

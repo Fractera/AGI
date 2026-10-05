@@ -68,12 +68,14 @@ const cut = (t: string) => (t.length > CAPTION ? `${t.slice(0, CAPTION - 1)}…`
 
 /** Два сообщения вызова — вопрос вызывающего и ответ принимающего: только текст для человека. */
 export function relayMessages(call: RelayCall, lang: Lang) {
-  // 409-2: `TaskResult` — ответ агента по задаче, вопрос уже приходил при её постановке: шлётся только ответ.
+  // 🪦 409-2 «при TaskResult — только ответ» снято 2026-10-05: вопрос больше не шлётся при постановке задачи.
   // 🪦 Вложение `.json` (408-6) снято владельцем 2026-10-05: «Сейчас в Telegram ты дублирующий Джейсон но человеком не дает
   // никакой ценности. Оставь его для внутреннего взаимодействия … возвращают просто текст». Тело вызова — в журнале и ленте.
   const ask = { caption: cut(`${named(call.fromAddress)} ${WRITES[lang]}: ${humanQuestionOf(call.request, lang)}`), file: null, name: "question.json" }
   const answer = { caption: cut(`${named(call.toAddress)} ${WRITES[lang]}: ${humanAnswerOf(call.response, lang, call.reason)}`), file: null, name: "answer.json" }
-  return call.method === "TaskResult" ? [answer] : [ask, answer]
+  // Владелец 2026-10-05: сначала вопрос «запустить терминал?», и только после «Запустить» — сообщения разговора. Поэтому
+  // задача агенту приходит в Telegram парой «вопрос + ответ» при `TaskResult`, а не при постановке (см. `relayCall`).
+  return [ask, answer]
 }
 
 async function send(token: string, chat: string, m: { caption: string; file: string | null; name: string }): Promise<boolean> {
@@ -104,6 +106,9 @@ export async function relayCall(call: RelayCall): Promise<{ sent: number; skippe
   const seen = new Set<string>()
   const skipped: string[] = []
   let sent = 0
+  // Постановка задачи агенту (`SendMessage` без навыка → SUBMITTED/WORKING): в журнал и ленту — да, в Telegram — нет; разговор
+  // придёт парой, когда агент ответит (`TaskResult`).
+  if (call.method === "SendMessage" && (call.state === "TASK_STATE_SUBMITTED" || call.state === "TASK_STATE_WORKING")) return { sent, skipped: ["agent-task-pending"] }
   for (const s of services) {
     if (!telegramConnected(s)) { skipped.push(s); continue }
     const t = token(s)
