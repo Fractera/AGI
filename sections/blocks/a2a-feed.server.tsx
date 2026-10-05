@@ -14,6 +14,7 @@ const WORDS: Record<string, A2aFeedWords> = {
     answers: 'answers',
     refused: 'refused',
     truncated: 'cut to 8 KB',
+    data: 'Data',
     states: {
       TASK_STATE_COMPLETED: 'done',
       TASK_STATE_FAILED: 'failed',
@@ -33,6 +34,7 @@ const WORDS: Record<string, A2aFeedWords> = {
     answers: 'отвечает',
     refused: 'отказ',
     truncated: 'обрезано до 8 КБ',
+    data: 'Данные',
     states: {
       TASK_STATE_COMPLETED: 'готово',
       TASK_STATE_FAILED: 'не удалось',

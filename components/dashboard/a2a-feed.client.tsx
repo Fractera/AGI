@@ -5,7 +5,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { addressHue } from "@/lib/a2a/address-hue"
-import { answerOf, questionOf } from "@/lib/a2a/call-text"
+import { answerOf, humanAnswerOf, humanQuestionOf, questionOf } from "@/lib/a2a/call-text"
 
 // ЛЕНТА «Dashboard → Общение агентов» (шаг 408). Только чтение: поля ввода нет. Каждый вызов A2A — два сообщения: вопрос
 // вызывающего (слева) и ответ принимающего (справа); у сообщения адрес агента и полоса 6 px цветом из его адреса (`addressHue`). Вверху —
@@ -32,6 +32,7 @@ export type A2aFeedWords = {
   answers: string
   refused: string
   truncated: string
+  data: string
   states: Record<string, string>
 }
 
@@ -69,6 +70,21 @@ function merge(a: Row[], b: Row[]): Row[] {
   const byId = new Map<number, Row>()
   for (const r of [...a, ...b]) byId.set(r.id, r)
   return [...byId.values()].sort((x, y) => x.id - y.id)
+}
+
+/** Фраза для человека крупно, данные — свёрнутыми под ней (408-6). */
+function Said({ text, data, label }: { text: string; data: string; label: string }) {
+  return (
+    <>
+      {text && <p className="mt-2 whitespace-pre-wrap break-words text-base text-foreground">{text}</p>}
+      {data && data !== "{}" && (
+        <details className="mt-2 text-xs text-muted-foreground">
+          <summary className="cursor-pointer select-none">{label}</summary>
+          <pre className="mt-1 whitespace-pre-wrap break-words">{data}</pre>
+        </details>
+      )}
+    </>
+  )
 }
 
 export function A2aFeed({ words, lang }: { words: A2aFeedWords; lang: string }) {
@@ -194,6 +210,9 @@ export function A2aFeed({ words, lang }: { words: A2aFeedWords; lang: string }) 
           const to = who(r.to_element)
           const refused = r.http_status !== null && r.http_status >= 400
           const bad = refused || r.state === "ERROR" || r.state === "TASK_STATE_FAILED"
+          const lng = lang === "ru" ? "ru" : "en"
+          const hq = humanQuestionOf(r.request, lng)
+          const ha = humanAnswerOf(r.response, lng, r.reason)
           const q = questionOf(r.request)
           const a = answerOf(r.response)
           return (
@@ -204,7 +223,7 @@ export function A2aFeed({ words, lang }: { words: A2aFeedWords; lang: string }) 
                     <span className="font-semibold text-foreground">{from.name}</span> · {time(r.at)} · {words.asks} {to.name}
                     {r.skill ? <> · <code>{r.skill}</code></> : r.method ? <> · <code>{r.method}</code></> : null}
                   </p>
-                  {q && <pre className="mt-2 whitespace-pre-wrap break-words text-sm text-foreground">{q}</pre>}
+                  <Said text={hq} data={q} label={words.data} />
                 </Bubble>
               )}
               {!hidden.has(to.key) && (
@@ -217,7 +236,7 @@ export function A2aFeed({ words, lang }: { words: A2aFeedWords; lang: string }) 
                     {r.duration_ms !== null ? ` · ${r.duration_ms} ms` : ""}
                     {r.truncated ? ` · ${words.truncated}` : ""}
                   </p>
-                  {a && <pre className="mt-2 whitespace-pre-wrap break-words text-sm text-foreground">{a}</pre>}
+                  <Said text={ha} data={a} label={words.data} />
                 </Bubble>
               )}
             </div>

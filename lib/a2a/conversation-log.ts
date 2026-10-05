@@ -33,7 +33,7 @@ export async function writeLog(rec: LogRecord): Promise<{ ok: boolean; id?: numb
       fromId: from.id, fromAddress: from.address, toId: to.id, toAddress: to.address, skill: rec.skill, state: rec.state,
       httpStatus: rec.httpStatus, reason: rec.reason, durationMs: rec.durationMs != null ? Math.round(rec.durationMs) : null,
       request: json(rec.request), response: json(rec.response),
-    }, process.env.NEXT_PUBLIC_DEFAULT_LOCALE === "ru" ? "ru" : "en")
+    })
       .then((r) => { if (r.sent) console.log(`[a2a-log] telegram: sent ${r.sent}`) })
       .catch(() => {})
     return { ok: true, id: body.id }
