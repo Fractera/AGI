@@ -10,8 +10,7 @@ import { humanAnswerOf, humanQuestionOf, type Lang } from "@/lib/a2a/call-text"
 // Бот службы — `data/services/<id>/channel/telegram/` (`.env` с `TELEGRAM_BOT_TOKEN`, `access.json` с `allowFrom`), бот ядра —
 // служба `build`. «Подключён» = есть токен И хотя бы один допущенный: одно определение для реестра, визитки и рассылки.
 // Отправка опросу плагина каналов (`getUpdates`) не мешает. Отказ Telegram не ломает журнал.
-// 408-6 (владелец: «присылать только человекоподобное взаимодействие и документ как вложения»): сообщение = фраза для человека
-// подписью, полное тело JSON-RPC — вложением `.json` (`sendDocument`). Язык — бота: его системные сообщения
+// 408-6: сообщение = фраза для человека (вложение `.json` снято владельцем 2026-10-05 — только текст). Язык — бота: его системные сообщения
 // (`messages.json`) записаны на языке страницы, где человек его подключал; кириллица → ru, иначе en.
 
 export const CORE_BOT = "build"
@@ -67,15 +66,13 @@ const named = (address: string) => {
 
 const cut = (t: string) => (t.length > CAPTION ? `${t.slice(0, CAPTION - 1)}…` : t)
 
-/** Два сообщения вызова — вопрос вызывающего и ответ принимающего: подпись для человека и тело вложением. */
+/** Два сообщения вызова — вопрос вызывающего и ответ принимающего: только текст для человека. */
 export function relayMessages(call: RelayCall, lang: Lang) {
-  const pretty = (t: string | null) => {
-    if (!t) return null
-    try { return JSON.stringify(JSON.parse(t), null, 2) } catch { return t }
-  }
   // 409-2: `TaskResult` — ответ агента по задаче, вопрос уже приходил при её постановке: шлётся только ответ.
-  const ask = { caption: cut(`${named(call.fromAddress)} ${WRITES[lang]}: ${humanQuestionOf(call.request, lang)}`), file: pretty(call.request), name: "question.json" }
-  const answer = { caption: cut(`${named(call.toAddress)} ${WRITES[lang]}: ${humanAnswerOf(call.response, lang, call.reason)}`), file: pretty(call.response), name: "answer.json" }
+  // 🪦 Вложение `.json` (408-6) снято владельцем 2026-10-05: «Сейчас в Telegram ты дублирующий Джейсон но человеком не дает
+  // никакой ценности. Оставь его для внутреннего взаимодействия … возвращают просто текст». Тело вызова — в журнале и ленте.
+  const ask = { caption: cut(`${named(call.fromAddress)} ${WRITES[lang]}: ${humanQuestionOf(call.request, lang)}`), file: null, name: "question.json" }
+  const answer = { caption: cut(`${named(call.toAddress)} ${WRITES[lang]}: ${humanAnswerOf(call.response, lang, call.reason)}`), file: null, name: "answer.json" }
   return call.method === "TaskResult" ? [answer] : [ask, answer]
 }
 
