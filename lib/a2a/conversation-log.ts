@@ -50,10 +50,10 @@ function entryOf(key: string): { id: string | null; address: string } {
   return e ? { id: e.id, address: e.address } : { id: null, address: key }
 }
 
-/** Как называть участника: запись реестра по адресу или id; неизвестный — как назвал себя сам. */
+/** Как называть участника: его адрес в узле (владелец 2026-10-05: «roman в ленте лучше называть адресом»); неизвестный — как назвал себя сам. */
 export function agentOf(key: string): Agent {
   const e = nodeEntries().find((x) => x.address === key || x.id === key)
-  return e ? { key, address: e.address, name: e.name } : { key, address: key, name: key }
+  return e ? { key, address: e.address, name: e.address } : { key, address: key, name: key }
 }
 
 const FILTERS = ["after", "before", "element", "pair", "task", "limit"] as const

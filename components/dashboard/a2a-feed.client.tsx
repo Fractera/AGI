@@ -8,7 +8,7 @@ import { addressHue } from "@/lib/a2a/address-hue"
 import { answerOf, questionOf } from "@/lib/a2a/call-text"
 
 // ЛЕНТА «Dashboard → Общение агентов» (шаг 408). Только чтение: поля ввода нет. Каждый вызов A2A — два сообщения: вопрос
-// вызывающего и ответ принимающего; у сообщения имя агента и полоса 6 px цветом из его адреса (`addressHue`). Вверху —
+// вызывающего (слева) и ответ принимающего (справа); у сообщения адрес агента и полоса 6 px цветом из его адреса (`addressHue`). Вверху —
 // переключатель на каждого агента, «все», «никого»: выбор меняет только показ.
 // 🔒 Опрос раз в 3 с, только пока вкладка видна — слово владельца 2026-10-05 («Опрос раз в 3 с»). Страница предрендерена:
 // записи спрашиваются у `/api/node/a2a-log` в браузере, новые — по `after=<последний id>`.
@@ -44,12 +44,20 @@ const stripeVars = (address: string) => {
   return { ["--stripe-l" as string]: `hsl(${h} 70% 42%)`, ["--stripe-d" as string]: `hsl(${h} 65% 62%)` } as React.CSSProperties
 }
 
-function Bubble({ address, children }: { address: string; children: React.ReactNode }) {
+// Как в обычном чате: вопрос прижат влево, ответ — вправо; полоса всегда со стороны пустого места (владелец 2026-10-05:
+// «если карточка прижимается вправо то бордюр слева»).
+const SIDE = {
+  ask: "self-start border-r-[6px] [border-right-color:var(--stripe-l)] [&:is(.dark_*)]:[border-right-color:var(--stripe-d)]",
+  answer: "self-end border-l-[6px] [border-left-color:var(--stripe-l)] [&:is(.dark_*)]:[border-left-color:var(--stripe-d)]",
+}
+
+function Bubble({ address, side, children }: { address: string; side: keyof typeof SIDE; children: React.ReactNode }) {
   return (
     <div
       data-agent={address}
+      data-side={side}
       style={stripeVars(address)}
-      className="rounded-md border border-border border-l-[6px] [border-left-color:var(--stripe-l)] [&:is(.dark_*)]:[border-left-color:var(--stripe-d)] bg-card px-4 py-3"
+      className={`w-fit min-w-[50%] max-w-[85%] rounded-md border border-border bg-card px-4 py-3 ${SIDE[side]}`}
     >
       {children}
     </div>
@@ -191,7 +199,7 @@ export function A2aFeed({ words, lang }: { words: A2aFeedWords; lang: string }) 
           return (
             <div key={r.id} className="flex flex-col gap-2" data-call={r.id}>
               {!hidden.has(from.key) && (
-                <Bubble address={from.address}>
+                <Bubble address={from.address} side="ask">
                   <p className="text-xs text-muted-foreground">
                     <span className="font-semibold text-foreground">{from.name}</span> · {time(r.at)} · {words.asks} {to.name}
                     {r.skill ? <> · <code>{r.skill}</code></> : r.method ? <> · <code>{r.method}</code></> : null}
@@ -200,7 +208,7 @@ export function A2aFeed({ words, lang }: { words: A2aFeedWords; lang: string }) 
                 </Bubble>
               )}
               {!hidden.has(to.key) && (
-                <Bubble address={to.address}>
+                <Bubble address={to.address} side="answer">
                   <p className="text-xs text-muted-foreground">
                     <span className="font-semibold text-foreground">{to.name}</span> · {words.answers} ·{" "}
                     <span className={bad ? "text-destructive" : undefined}>
