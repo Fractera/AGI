@@ -70,7 +70,8 @@
     "check:agent-kits": "node lib/agent-kit/check.mjs",
     "check:shell-kits": "node scripts/check-shell-kits.mjs",
     "deploy:rollback": "node scripts/deploy-rollback.mjs",
-    "shell-kit:add": "node \"app/[lang]/(architectLayer)/architect/kits/_shell/install.mjs\""
+    "shell-kit:add": "node \"app/[lang]/(architectLayer)/architect/kits/_shell/install.mjs\"",
+    "check:passport": "node scripts/check-passport.mjs --all"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.55",
