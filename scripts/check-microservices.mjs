@@ -127,7 +127,9 @@ for (const [i, s] of reg.services.entries()) {
     if (SECRET_NAMES.test(k)) {
       fail('no-secrets', `${where}: поле «${k}» похоже на секрет. Реестр лежит в git и уезжает каждому гостю.`)
     }
-    if (typeof v === 'string' && /^[A-Za-z0-9+/_-]{24,}={0,2}$/.test(v) && !/^v\d/.test(v)) {
+    // 406-4: имя репозитория `владелец/имя` (поле `github`; ✗ 2026-10-05 «Fractera/…» в 26 знаков уронило сборку ядра) — не ключ.
+    const repoName = typeof v === 'string' && /^[A-Za-z0-9-]{1,39}\/[A-Za-z0-9._-]{1,100}$/.test(v)
+    if (typeof v === 'string' && !repoName && /^[A-Za-z0-9+/_-]{24,}={0,2}$/.test(v) && !/^v\d/.test(v)) {
       fail('no-secrets', `${where}: значение поля «${k}» выглядит ключом (${v.length} знаков без пробелов).`)
     }
   }
