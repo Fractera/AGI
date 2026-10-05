@@ -442,6 +442,36 @@ async function onButton(service, token, q) {
   }
 }
 
+// ── ПРЕДЛОЖЕНИЕ ЗАКРЫТЬ ТЕРМИНАЛ (409-5) ──────────────────────────────────────
+//
+// Пока терминал запущен, бота читает плагин каналов, и чужие кнопки он выбрасывает (server.ts 0.0.7: принимает только
+// `perm:…`). Поэтому вопрос — текстом, без кнопок (владелец 2026-10-05: «Ответ текстом»): ответ «закрыть» получает агент через
+// канал и закрывает свой терминал дверью ядра (`POST /api/agents/done` с `close`). Бота нет — ничего не шлётся и ничего не
+// закрывается: закрывать без ответа человека нельзя.
+
+const CLOSE = {
+  en: {
+    done: (who) => `${who}: the work is done. Close the terminal? Reply «close» — the agent will close it.`,
+    timeout: (who) => `${who}: the terminal has been running for 60 minutes since it was woken. Close it? Reply «close» — the agent will close it.`,
+  },
+  ru: {
+    done: (who) => `${who}: работа закончена. Закрыть терминал? Ответьте «закрыть» — агент закроет его сам.`,
+    timeout: (who) => `${who}: терминал работает 60 минут с пробуждения. Закрыть его? Ответьте «закрыть» — агент закроет его сам.`,
+  },
+}
+
+async function askToClose(service, why) {
+  if (!connected(service)) return { ok: true, asked: 0, reason: 'no-telegram' }
+  const token = storedToken(service)
+  const text = CLOSE[botLang(service)][why === 'timeout' ? 'timeout' : 'done'](named(service))
+  let asked = 0
+  for (const chat of access(service).allowed) {
+    const r = await tg(token, 'sendMessage', { chat_id: chat, text, disable_web_page_preview: true })
+    if (r.ok) asked++
+  }
+  return { ok: true, asked }
+}
+
 /**
  * Запускается один раз на службу общим подключением узла (`lib/agent-kit/mount.cjs`), не дверью Next.
  * 🔒 У КАЖДОЙ КОПИИ СВОЙ ОПРОС ТОЛЬКО СВОЕЙ СЛУЖБЫ (271): обход всех служб из каждой копии дал бы по
@@ -487,5 +517,5 @@ function channelState(service) {
 
 module.exports = {
   PLUGIN, isService, stateDir, storedToken, saveToken, activationLink, saveMessages, channelLaunch,
-  running, channelState, startIdlePoller, connected, askToStart, setStarter,
+  running, channelState, startIdlePoller, connected, askToStart, setStarter, askToClose,
 }

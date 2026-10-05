@@ -190,8 +190,40 @@ async function wake(service, { text, from, about, declineUrl, confirmed } = {}) 
   if (freeMb < per) return { ok: false, reason: 'memory', freeMb, perSessionMb: per }
   const r = await spawnAgent(service)
   if (!r.ok) return { ok: false, reason: r.reason }
-  if (text) pasteWhenReady(r.session, text)
+  if (text) pasteWhenReady(r.session, `${text}\n\n${finishRule(service)}`)
+  // 409-5 (владелец: «timeout more then 60 min»): через 60 минут от пробуждения — вопрос «закрыть терминал?». Только для
+  // пробуждённых сессий; сама сессия не закрывается — закрывает агент по ответу человека. Переменная — для прибора.
+  const born = r.session
+  const timer = setTimeout(() => { if (session.current(service) === born) telegram.askToClose(service, 'timeout') }, wakeTimeoutMs())
+  timer.unref?.()
   return { ok: true, started: true, freeMb, perSessionMb: per }
+}
+
+const wakeTimeoutMs = () => Number(process.env.AGENT_WAKE_TIMEOUT_MS) || 60 * 60 * 1000
+
+/**
+ * 409-5: как пробуждённому агенту закончить — дописывается к первому вставленному тексту, поэтому знает любой элемент без
+ * правки его репозитория. Адрес — порт работающего сервера ядра (`process.env.PORT` этого процесса), не запомненное число.
+ */
+function finishRule(service) {
+  const door = `http://127.0.0.1:${process.env.PORT || 24680}/api/agents/done`
+  return `Когда закончишь и ответишь, сообщи узлу: POST ${door} с заголовком X-Node-Key = SETTINGS_SECRET из .env.local и телом {"service":"${service}"} — человек получит в Telegram вопрос «закрыть терминал?». Если человек ответит «закрыть» — тот же запрос с телом {"service":"${service}","close":true}. Тело — файлом UTF-8 (curl --data-binary @файл).`
+}
+
+/**
+ * АГЕНТ СООБЩИЛ «РАБОТА ЗАКОНЧЕНА» (409-5). Без `close` — человеку в Telegram «Работа закончена. Закрыть терминал? Ответьте
+ * «закрыть»» (решение владельца «Ответ текстом»: пока терминал запущен, бота читает плагин и чужие кнопки выбрасывает). С `close`
+ * — агент получил «закрыть» от человека и закрывает свой терминал; остановка — после ответа двери, чтобы агент его увидел.
+ */
+function done(service, { close = false } = {}) {
+  const live = session.current(service)
+  if (!live) return { ok: false, reason: 'no-session' }
+  if (close) {
+    const t = setTimeout(() => { if (session.current(service) === live) session.stop(service, 'closed-by-agent') }, 1500)
+    t.unref?.()
+    return { ok: true, closing: true }
+  }
+  return telegram.askToClose(service, 'done')
 }
 
 // 409-3: кнопка «Запустить» в Telegram рождает сессию этим же путём, уже с подтверждением.
@@ -347,4 +379,4 @@ function onConnection(ws, service) {
   }
 }
 
-module.exports = { onConnection, spawnAgent, wake, shellPath, shellEnv, ptyLoadError: () => ptyLoadError, hasPty: () => pty !== null }
+module.exports = { onConnection, spawnAgent, wake, done, shellPath, shellEnv, ptyLoadError: () => ptyLoadError, hasPty: () => pty !== null }

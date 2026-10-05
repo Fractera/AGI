@@ -5,7 +5,8 @@
 // бота, пока терминал выключен, и разбудить агента без браузера (409-1, `wake`). Удалили папку службы — после
 // перезапуска узла её здесь нет.
 
-const { onConnection, wake } = require('./bridge.cjs')
+const { onConnection, wake, done } = require('./bridge.cjs')
 const { startIdlePoller } = require('./telegram.cjs')
 
-module.exports = { onConnection, startIdlePoller, wake }
+// 409-5: `done` — агент сообщил «работа закончена» или закрывает свой терминал по ответу человека.
+module.exports = { onConnection, startIdlePoller, wake, done }
