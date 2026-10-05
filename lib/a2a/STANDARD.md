@@ -6,6 +6,9 @@ serializations … MUST use camelCase»). Nothing here renames or reshapes an A2
 extension, the A2A way (`AgentCapabilities.extensions`).
 
 Terms of the node: **A2A** — elements of one node; **M2M** — nodes of the network. Both speak the same AgentCard.
+The core is the centre of the node: it holds the registry and tells where a neighbour is; calls go DIRECTLY to the element.
+Any element with the node key may call any element. Outside the node only each element's own card is visible. Web3
+(Nostr, payments) is not part of the strategy.
 
 ## Where things live
 

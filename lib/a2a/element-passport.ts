@@ -2,7 +2,7 @@ import "server-only"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { elementDir } from "@/lib/agi-items/element-github"
-import { extensionOf, passportProblems, projectionsOf, publishedCard, registryEntryOf } from "@/lib/a2a/passport.mjs"
+import { extensionOf, passportProblems, publishedCard, registryEntryOf } from "@/lib/a2a/passport.mjs"
 
 // ПАСПОРТ ЭЛЕМЕНТА ДЛЯ СТРАНИЦ ЯДРА (шаги 406-3, 406-4): визитка A2A Google v1.0 (`a2a.card`) + расширение Fractera.
 // Страницы левого меню элемента показывают его разделы, своей копии не держат.
@@ -32,7 +32,6 @@ export type ElementPassport = {
   warnings: string[]
   published: unknown
   registry: unknown
-  projections: { nostrTags: string[][]; lightragText: string } | null
 }
 
 export function elementPassport(id: string): ElementPassport | null {
@@ -50,7 +49,6 @@ export function elementPassport(id: string): ElementPassport | null {
     warnings,
     published: ok ? publishedCard(props) : null,
     registry: ok ? registryEntryOf(props, { address: id }) : null,
-    projections: ok ? (projectionsOf(props) as { nostrTags: string[][]; lightragText: string }) : null,
   }
 }
 

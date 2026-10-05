@@ -95,14 +95,11 @@ export function ElementPassport({ view, passport, ui }: { view: PassportView; pa
       )
       : <p className="text-sm text-muted-foreground">{ui.catalogNone}</p>
   } else if (view === "publish") {
-    const pr = passport!.projections
     body = (
       <div className="flex flex-col gap-3">
         <p className="text-sm text-muted-foreground">{ui.notSent}</p>
         <Example label={`${ui.published} — ${ui.publishedLead}`} value={passport!.published} />
         <Example label={`${ui.registry} — ${ui.cardLead}`} value={passport!.registry} />
-        {pr && <Example label={ui.nostr} value={pr.nostrTags.map((t) => t[1]).join(", ")} />}
-        {pr && <Example label={ui.lightrag} value={pr.lightragText} />}
       </div>
     )
   } else if (view === "subscriptions") {
