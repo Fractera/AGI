@@ -249,7 +249,8 @@ export function A2aFeed({ words, lang }: { words: A2aFeedWords; lang: string }) 
           const a = answerOf(r.response)
           return (
             <div key={r.id} className="flex flex-col gap-2" data-call={r.id}>
-              {!hidden.has(from.key) && (
+              {/* 409-2: `TaskResult` — ответ агента по задаче; вопрос уже показан при её постановке */}
+              {r.method !== "TaskResult" && !hidden.has(from.key) && (
                 <Bubble address={from.address} side="ask">
                   <p className="text-xs text-muted-foreground">
                     <span className="font-semibold text-foreground">{from.name}</span> · {time(r.at)} · {words.asks} {to.name}

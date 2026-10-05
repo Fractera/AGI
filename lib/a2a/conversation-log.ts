@@ -30,7 +30,7 @@ export async function writeLog(rec: LogRecord): Promise<{ ok: boolean; id?: numb
     const from = entryOf(rec.from ?? "unknown")
     const to = entryOf(rec.to)
     relayCall({
-      fromId: from.id, fromAddress: from.address, toId: to.id, toAddress: to.address, skill: rec.skill, state: rec.state,
+      fromId: from.id, fromAddress: from.address, toId: to.id, toAddress: to.address, method: rec.method, skill: rec.skill, state: rec.state,
       httpStatus: rec.httpStatus, reason: rec.reason, durationMs: rec.durationMs != null ? Math.round(rec.durationMs) : null,
       request: json(rec.request), response: json(rec.response),
     })

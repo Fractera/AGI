@@ -54,7 +54,7 @@ function botLang(service: string): Lang {
 
 export type RelayCall = {
   fromId: string | null; fromAddress: string; toId: string | null; toAddress: string
-  skill?: string | null; state?: string | null; httpStatus?: number | null; reason?: string | null; durationMs?: number | null
+  method?: string | null; skill?: string | null; state?: string | null; httpStatus?: number | null; reason?: string | null; durationMs?: number | null
   request: string | null; response: string | null
 }
 
@@ -73,10 +73,10 @@ export function relayMessages(call: RelayCall, lang: Lang) {
     if (!t) return null
     try { return JSON.stringify(JSON.parse(t), null, 2) } catch { return t }
   }
-  return [
-    { caption: cut(`${named(call.fromAddress)} ${WRITES[lang]}: ${humanQuestionOf(call.request, lang)}`), file: pretty(call.request), name: "question.json" },
-    { caption: cut(`${named(call.toAddress)} ${WRITES[lang]}: ${humanAnswerOf(call.response, lang, call.reason)}`), file: pretty(call.response), name: "answer.json" },
-  ]
+  // 409-2: `TaskResult` — ответ агента по задаче, вопрос уже приходил при её постановке: шлётся только ответ.
+  const ask = { caption: cut(`${named(call.fromAddress)} ${WRITES[lang]}: ${humanQuestionOf(call.request, lang)}`), file: pretty(call.request), name: "question.json" }
+  const answer = { caption: cut(`${named(call.toAddress)} ${WRITES[lang]}: ${humanAnswerOf(call.response, lang, call.reason)}`), file: pretty(call.response), name: "answer.json" }
+  return call.method === "TaskResult" ? [answer] : [ask, answer]
 }
 
 async function send(token: string, chat: string, m: { caption: string; file: string | null; name: string }): Promise<boolean> {
