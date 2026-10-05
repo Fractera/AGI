@@ -84,6 +84,111 @@ function shellEnv(shell) {
   return env
 }
 
+/**
+ * РОДИТЬ СЕССИЮ АГЕНТА СЛУЖБЫ — одна функция для кнопки в окне терминала и для пробуждения без браузера (узел, шаг 409-1;
+ * владелец: «агент должен уметь запускать собственный терминал»). `notice` — строки человеку (в окно терминала или никуда),
+ * `wanted` — нужен ли ещё запуск после установки плагина канала (окно закрыли — не рождать).
+ */
+async function spawnAgent(service, notice = () => {}, wanted = () => true) {
+  if (!pty) {
+    notice(`[терминал недоступен: node-pty не загружен — ${ptyLoadError}]`)
+    return { ok: false, reason: 'pty-unavailable' }
+  }
+  if (starting.has(service)) return { ok: false, reason: 'starting' }
+  const existing = session.current(service)
+  if (existing) return { ok: true, session: existing, already: true }
+  const cwd = serviceDir(service)
+  if (!cwd) {
+    notice(`[папка агента не найдена: службы «${String(service ?? '').slice(0, 40)}» нет в реестре узла или на диске]`)
+    return { ok: false, reason: 'no-agent-dir' }
+  }
+  // 🛑 АГЕНТ ЗАПУСКАЕТСЯ ФАЙЛОМ `claude`, А НЕ НАБИРАЕТСЯ В ОБОЛОЧКЕ. ✗ Оплачено владельцем 2026-09-22:
+  // на вопросе о доверии он нажал Enter, выбор по умолчанию был «No, exit», `claude` вышел — а оболочка
+  // `cmd.exe` осталась жить, индикатор горел «Работает», и слова человека уходили в командную строку
+  // Windows («'hello' is not recognized…»). Без оболочки выход агента и есть конец сессии: страница
+  // говорит «Агент завершил работу» и снова даёт кнопку запуска.
+  const shell = shellPath()
+  let env = shellEnv(shell)
+  const bin = resolveBin('claude', env.PATH || env.Path)
+  if (!bin) {
+    notice('[claude не найден ни в PATH, ни в ~/.local/bin — установите Claude Code]')
+    return { ok: false, reason: 'no-claude' }
+  }
+  // 🔒 БОТ TELEGRAM РАБОТАЕТ В ЭТОЙ ЖЕ СЕССИИ (решение владельца 2026-09-22): бот подключён — `claude`
+  // запускается с каналом, и всё, что человек пишет в Telegram, видно здесь. Первый запуск ставит
+  // зависимости плагина — это может занять минуту, и человек видит, чего ждёт.
+  let args = []
+  starting.add(service)
+  notice('[запускаю агента…]')
+  const launch = await channelLaunch(service, env).catch((err) => ({ ok: false, error: err instanceof Error ? err.message : String(err) }))
+  starting.delete(service)
+  if (launch && !launch.ok) {
+    notice(`[бот Telegram не подключится: ${launch.error}]\r\n[агент запускается без него]`)
+  } else if (launch) {
+    env = launch.env
+    args = launch.args
+  }
+  if (!wanted() || session.current(service)) return { ok: false, reason: 'gone' }
+  let child
+  try {
+    child = pty.spawn(bin, args, { cols: 120, rows: 32, cwd, env, name: 'xterm-256color' })
+  } catch (err) {
+    notice(`[claude не запустился: ${err instanceof Error ? err.message : String(err)}]`)
+    return { ok: false, reason: 'spawn-failed' }
+  }
+  const born = session.register({ service, pid: child.pid, proc: child, cwd, channel: args.length > 0 })
+  child.onData((data) => {
+    session.remember(born, data)
+    for (const client of born.clients) if (client.readyState === client.OPEN) client.send(data)
+  })
+  child.onExit(() => session.exited(born))
+  return { ok: true, session: born }
+}
+
+const MB = 1024 * 1024
+/** Память на одну сессию (владелец 2026-10-05: «примерно 300 МБ свободной памяти на один терминал»); переменная — для прибора. */
+const perSessionMb = () => Number(process.env.AGENT_SESSION_MB) || 300
+
+/** Вставить текст во вход агента, когда его экран затих (интерфейс поднялся): вставкой в скобках, затем Enter. */
+function pasteWhenReady(s, text, { quietMs = 3000, maxMs = 120_000 } = {}) {
+  const t0 = Date.now()
+  let last = -1
+  let since = Date.now()
+  const timer = setInterval(() => {
+    if (session.current(s.service) !== s) return clearInterval(timer)
+    const len = s.buffer.length
+    if (len !== last) {
+      last = len
+      since = Date.now()
+    }
+    if ((len > 0 && Date.now() - since >= quietMs) || Date.now() - t0 > maxMs) {
+      clearInterval(timer)
+      s.proc.write(`\x1b[200~${text}\x1b[201~`)
+      setTimeout(() => { if (session.current(s.service) === s) s.proc.write('\r') }, 400)
+    }
+  }, 500)
+  timer.unref?.()
+}
+
+/**
+ * РАЗБУДИТЬ АГЕНТА СЛУЖБЫ БЕЗ БРАУЗЕРА (409-1). Сессия жива — только вставить текст. Свободной памяти меньше нормы на сессию —
+ * отказ с цифрами, ничего не рождается (задача ждёт). Открытая потом страница терминала видит этот же экран.
+ */
+async function wake(service, { text } = {}) {
+  const live = session.current(service)
+  if (live) {
+    if (text) pasteWhenReady(live, text, { quietMs: 500 })
+    return { ok: true, already: true }
+  }
+  const freeMb = Math.floor(os.freemem() / MB)
+  const per = perSessionMb()
+  if (freeMb < per) return { ok: false, reason: 'memory', freeMb, perSessionMb: per }
+  const r = await spawnAgent(service)
+  if (!r.ok) return { ok: false, reason: r.reason }
+  if (text) pasteWhenReady(r.session, text)
+  return { ok: true, started: true, freeMb, perSessionMb: per }
+}
+
 /** Принять сокет службы — его отдаёт общее подключение узла (`lib/agent-kit/mount.cjs`). */
 function onConnection(ws, service) {
   {
@@ -123,60 +228,15 @@ function onConnection(ws, service) {
           ws.close(1000, 'not-running')
           return
         }
-        const cwd = serviceDir(service)
-        if (!cwd) {
-          ws.send(`\r\n[папка агента не найдена: службы «${String(service ?? '').slice(0, 40)}» нет в реестре узла или на диске]\r\n`)
-          fail('no-agent-dir')
-          return
-        }
-        // 🛑 АГЕНТ ЗАПУСКАЕТСЯ ФАЙЛОМ `claude`, А НЕ НАБИРАЕТСЯ В ОБОЛОЧКЕ. ✗ Оплачено владельцем 2026-09-22:
-        // на вопросе о доверии он нажал Enter, выбор по умолчанию был «No, exit», `claude` вышел — а оболочка
-        // `cmd.exe` осталась жить, индикатор горел «Работает», и слова человека уходили в командную строку
-        // Windows («'hello' is not recognized…»). Без оболочки выход агента и есть конец сессии: страница
-        // говорит «Агент завершил работу» и снова даёт кнопку запуска.
-        const shell = shellPath()
-        let env = shellEnv(shell)
-        const bin = resolveBin('claude', env.PATH || env.Path)
-        if (!bin) {
-          ws.send('\r\n[claude не найден ни в PATH, ни в ~/.local/bin — установите Claude Code]\r\n')
-          fail('no-claude')
-          return
-        }
-        // 🔒 БОТ TELEGRAM РАБОТАЕТ В ЭТОЙ ЖЕ СЕССИИ (решение владельца 2026-09-22): бот подключён — `claude`
-        // запускается с каналом, и всё, что человек пишет в Telegram, видно здесь. Первый запуск ставит
-        // зависимости плагина — это может занять минуту, и человек видит, чего ждёт.
-        let args = []
-        starting.add(service)
         started = true
         clearTimeout(deadline)
-        ws.send('\r\n[запускаю агента…]\r\n')
-        const launch = await channelLaunch(service, env).catch((err) => ({ ok: false, error: err instanceof Error ? err.message : String(err) }))
-        starting.delete(service)
-        if (launch && !launch.ok) {
-          ws.send(`\r\n[бот Telegram не подключится: ${launch.error}]\r\n[агент запускается без него]\r\n`)
-        } else if (launch) {
-          env = launch.env
-          args = launch.args
-        }
-        if (ws.readyState !== ws.OPEN || session.current(service)) {
-          fail('gone')
+        // 409-1: запуск — общая функция с пробуждением без браузера (`spawnAgent` ниже).
+        const r = await spawnAgent(service, (line) => ws.send(`\r\n${line}\r\n`), () => ws.readyState === ws.OPEN)
+        if (!r.ok) {
+          fail(r.reason)
           return
         }
-        let child
-        try {
-          child = pty.spawn(bin, args, { cols: 120, rows: 32, cwd, env, name: 'xterm-256color' })
-        } catch (err) {
-          ws.send(`\r\n[claude не запустился: ${err instanceof Error ? err.message : String(err)}]\r\n`)
-          fail('spawn-failed')
-          return
-        }
-        s = session.register({ service, pid: child.pid, proc: child, cwd, channel: args.length > 0 })
-        const born = s
-        child.onData((data) => {
-          session.remember(born, data)
-          for (const client of born.clients) if (client.readyState === client.OPEN) client.send(data)
-        })
-        child.onExit(() => session.exited(born))
+        s = r.session
       } else if (s.buffer) {
         // Возврат на страницу показывает прежний экран: сначала накопленное, потом живой поток.
         ws.send(s.buffer)
@@ -279,4 +339,4 @@ function onConnection(ws, service) {
   }
 }
 
-module.exports = { onConnection, shellPath, shellEnv, ptyLoadError: () => ptyLoadError, hasPty: () => pty !== null }
+module.exports = { onConnection, spawnAgent, wake, shellPath, shellEnv, ptyLoadError: () => ptyLoadError, hasPty: () => pty !== null }
