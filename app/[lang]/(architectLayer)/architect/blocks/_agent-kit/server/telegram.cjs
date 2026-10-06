@@ -524,7 +524,8 @@ async function onButton(service, token, q) {
   if (out.ok) {
     rmSync(pendingFile(service), { force: true })
     const startedText = human ? t.startedHuman(a) : t.startedCalls(a, c)
-    await closeAsk(service, token, p, startedText, false, t)
+    // Владелец 2026-10-06: фраза не дублируется — у вопроса только снимаются кнопки, итог идёт одним сообщением ниже.
+    for (const x of p.asked) await tg(token, 'editMessageReplyMarkup', { chat_id: x.chat, message_id: x.messageId, reply_markup: { inline_keyboard: [] } })
     // Владелец 2026-10-05: «нажатие кнопку ничего визуально не меняет» — правка сообщения наверху не видна; итог — новым
     // сообщением внизу, за ним пойдут ответ агента и «выключить агента?».
     for (const x of p.asked) await tg(token, 'sendMessage', { chat_id: x.chat, text: startedText, disable_web_page_preview: true })
