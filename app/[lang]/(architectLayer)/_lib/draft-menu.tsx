@@ -4,6 +4,7 @@ import { listDrafts } from '@/lib/agi-items/drafts'
 import { addressOf } from '@/lib/agi-items/element-address'
 import { ITEM_TREE, treeLang } from '@/lib/agi-items/item-tree'
 import { hasCatalog } from '@/lib/a2a/element-passport'
+import { hasDoc } from '@/lib/agi-items/element-docs'
 import { agiDraftsUi } from '../_i18n/agi-drafts.i18n'
 import { CreateDraftButton } from '../_components/create-draft-button.client'
 import { ARCHITECT_HOME } from './architect-menu'
@@ -56,7 +57,8 @@ export function withDrafts(menu: WorkspaceItem[], lang: string, currentPath: str
     const children = ITEM_TREE.map((s) => {
       const path = `${dir}/${s.slug}`
       const inside = currentPath.startsWith(`${path}/`)
-      const pages = (s.pages ?? []).filter((p) => p.needs !== 'catalog' || catalog).map((p) => {
+      // 412-2: пункт документа — только пока его файл есть в папке элемента.
+      const pages = (s.pages ?? []).filter((p) => (p.needs !== 'catalog' || catalog) && (!p.doc || hasDoc(d.id, p.doc))).map((p) => {
         const pagePath = `${path}/${p.slug}`
         return { label: p.words[l].title, href: at(pagePath), active: pagePath === currentPath }
       })

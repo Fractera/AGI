@@ -45,6 +45,9 @@ import { EnvironmentPanel } from '@/components/environment/environment-panel'
 import { ElementPassport, type PassportView } from '../../../_components/element-passport'
 import { elementPassportUi } from '../../../_i18n/element-passport.i18n'
 import { elementPassport } from '@/lib/a2a/element-passport'
+import { hasDoc } from '@/lib/agi-items/element-docs'
+import { ElementDocIsland } from '@/components/element-docs/element-doc.client'
+import { elementDocsUi } from '../../../_i18n/element-docs.i18n'
 
 // ОДНА СТРАНИЦА НА ВСЕ АДРЕСА ВСЕХ ЧЕРНОВИКОВ (314-1): `/architect/<id>`, `/architect/<id>/<раздел>`,
 // `/architect/<id>/<раздел>/<страница>`. Дерево — `lib/agi-items/item-tree.ts`, черновики — `data/agi-drafts.json`.
@@ -68,6 +71,8 @@ function resolve(p: Params) {
   const path = p.page ?? []
   if (path.length === 0) return { draft, found: null }
   const found = findTreePage(path)
+  // 412-2: страница документа есть, только пока есть его файл в папке элемента.
+  if (found?.page?.doc && !hasDoc(draft.id, found.page.doc)) return null
   return found ? { draft, found } : null
 }
 
@@ -152,7 +157,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
     <nav aria-label={ui.sectionPages} className="flex flex-col gap-2">
       <p className="text-[length:var(--fs-small)] font-medium text-muted-foreground">{ui.sectionPages}</p>
       <ul className="grid gap-2 sm:grid-cols-2">
-        {section.pages.map((sp) => (
+        {section.pages.filter((sp) => !sp.doc || hasDoc(item, sp.doc)).map((sp) => (
           <li key={sp.slug}>
             <Link
               href={`/${lang}${sectionPath}/${sp.slug}`}
@@ -287,6 +292,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
     'web3-store/publish': 'publish', 'web3-store/find': 'find', 'process/subscriptions': 'subscriptions', 'process/cron': 'cron',
   }
   const passportView = page ? PASSPORT_VIEWS[`${section.slug}/${page.slug}`] : undefined
+  // 412-2: документ элемента — текст спрашивает островок при открытии (страница предрендерена, агент правит файлы в любую минуту).
+  const doc = page?.doc ? <ElementDocIsland item={item} page={page.slug} words={elementDocsUi(lang)} /> : null
   const passport = passportView ? <ElementPassport view={passportView} passport={entry ? elementPassport(item) : null} ui={elementPassportUi(lang)} /> : null
 
   return (
@@ -296,7 +303,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       title={words.title}
       lead={words.lead}
       pageTitle={address}
-      widget={<>{bar}{list}{preview}{github}{deployPanel}{copyNote}{deploymentsNote}{environment}{settings}{siteSettings}{agent}{passport}</>}
+      widget={<>{bar}{list}{preview}{github}{deployPanel}{copyNote}{deploymentsNote}{environment}{settings}{siteSettings}{agent}{passport}{doc}</>}
       children={tables}
     />
   )
