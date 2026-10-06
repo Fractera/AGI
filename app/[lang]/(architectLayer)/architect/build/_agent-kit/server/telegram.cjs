@@ -377,6 +377,7 @@ const ASK = {
     failed: (a, r) => `Agent ${a} did not turn on: ${r}. Press «Turn on» again.`,
     declineText: (a) => `The owner of ${a} chose not to turn its agent on now.`,
     toast: 'Turning on…',
+    moved: '↓ More questions came — the updated question is below.',
   },
   ru: {
     oneCall: (a, c) => `Агенту ${a} пришёл вопрос от агента ${c}`,
@@ -395,6 +396,7 @@ const ASK = {
     failed: (a, r) => `Агент ${a} не включился: ${r}. Нажмите «Включить» ещё раз.`,
     declineText: (a) => `Хозяин ${a} не стал сейчас включать его агента.`,
     toast: 'Включаю…',
+    moved: '↓ Пришли ещё вопросы — обновлённый вопрос ниже.',
   },
 }
 
@@ -450,8 +452,10 @@ let starter = null
 function setStarter(fn) { starter = fn }
 
 /**
- * Спросить человека в Telegram, запускать ли терминал. Запрос уже висит — задача добавляется к нему и вопрос обновляется,
- * а не шлётся вторым. Возвращает `{ ok, pending: true, asked }` (`asked` — сколько чатов получили вопрос).
+ * Спросить человека в Telegram, запускать ли терминал. Запрос уже висит — задача добавляется к нему, и вопрос приходит ЗАНОВО
+ * новым сообщением внизу переписки (владелец 2026-10-06: правка старого сообщения прятала кнопки вверху — он их не увидел и
+ * написал боту текстом); со старого сообщения кнопки снимаются, под ним — «обновлённый вопрос ниже».
+ * Возвращает `{ ok, pending: true, asked }` (`asked` — сколько чатов получили вопрос).
  */
 async function askToStart(service, { text, from, about, declineUrl, kind = 'call' } = {}) {
   const token = storedToken(service)
@@ -460,15 +464,16 @@ async function askToStart(service, { text, from, about, declineUrl, kind = 'call
   p.items.push({ kind, text: text ?? '', from: from ?? '', about: about ?? '', declineUrl: declineUrl ?? '', at: new Date().toISOString() })
   const t = await askTable(service)
   const body = askText(service, p.items, t)
-  if (p.asked.length === 0) {
-    for (const chat of access(service).allowed) {
-      const r = await tg(token, 'sendMessage', { chat_id: chat, text: body, reply_markup: buttons(p, t), disable_web_page_preview: true })
-      if (r.ok && r.result?.message_id) p.asked.push({ chat, messageId: r.result.message_id })
-    }
-  } else {
-    for (const a of p.asked) {
-      await tg(token, 'editMessageText', { chat_id: a.chat, message_id: a.messageId, text: body, reply_markup: buttons(p, t), disable_web_page_preview: true })
-    }
+  // Старые сообщения вопроса: без кнопок и со строкой «обновлённый вопрос ниже» — кнопки живут только на последнем.
+  for (const a of p.asked) {
+    await tg(token, 'editMessageText', { chat_id: a.chat, message_id: a.messageId, text: `${askText(service, p.items.slice(0, -1), t)}
+
+${t.moved ?? ASK.en.moved}`, disable_web_page_preview: true })
+  }
+  p.asked = []
+  for (const chat of access(service).allowed) {
+    const r = await tg(token, 'sendMessage', { chat_id: chat, text: body, reply_markup: buttons(p, t), disable_web_page_preview: true })
+    if (r.ok && r.result?.message_id) p.asked.push({ chat, messageId: r.result.message_id })
   }
   mkdirSync(path.dirname(file), { recursive: true })
   writeFileSync(file, JSON.stringify(p, null, 2))
