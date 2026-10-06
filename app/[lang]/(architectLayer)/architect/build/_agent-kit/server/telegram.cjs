@@ -537,7 +537,7 @@ async function onButton(service, token, q) {
   }
   await tg(token, 'answerCallbackQuery', { callback_query_id: q.id, text: t.toast })
   const text = p.items.map((it) => it.text).filter(Boolean).join('\n\n')
-  const out = typeof starter === 'function' ? await starter(service, { text: text || undefined }) : { ok: false, reason: 'no-starter' }
+  const out = typeof starter === 'function' ? await starter(service, { text: text || undefined, taskUrls: p.items.map((it) => it.declineUrl).filter(Boolean) }) : { ok: false, reason: 'no-starter' }
   if (out.ok) {
     rmSync(pendingFile(service), { force: true })
     const startedText = human ? t.startedHuman(a) : t.startedCalls(a, c)

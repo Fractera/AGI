@@ -138,12 +138,64 @@ async function spawnAgent(service, notice = () => {}, wanted = () => true) {
     return { ok: false, reason: 'spawn-failed' }
   }
   const born = session.register({ service, pid: child.pid, proc: child, cwd, channel: args.length > 0 })
+  born.taskUrls = new Set()
   child.onData((data) => {
     session.remember(born, data)
     for (const client of born.clients) if (client.readyState === client.OPEN) client.send(data)
+    watchPrompt(born)
   })
   child.onExit(() => session.exited(born))
   return { ok: true, session: born }
+}
+
+// ── ВОПРОС-РАЗРЕШЕНИЕ НА ЭКРАНЕ → ЗАДАЧА A2A «ЖДЁТ ЧЕЛОВЕКА» (418-4; владелец 2026-10-07: «to do it now») ──────────────────────
+// Агент, разбуженный задачей A2A, может встать на вопросе Claude Code «разрешить?» — и до ответа человека не делает ничего, а
+// задача у вызывающего выглядит «работает». Здесь экран читается после затишья: вопрос есть — каждой задаче этой сессии уходит
+// `{ state: "input-required" }`, вопрос ушёл — `{ state: "working" }`. Только переходы, без таймеров опроса: проверка идёт по
+// выводу самого терминала. Признаки — из строк самой программы `claude.exe` (2026-10-07): у каждого диалога разрешения вопрос
+// «Do you want to …» и вариант «No, and tell Claude what to do differently»; «Yes, and don't ask again for» — у большинства.
+// 🛑 Ink рисует пробелы сдвигом курсора (`ESC[nC`): он заменяется пробелом до снятия управляющих последовательностей.
+const PROMPT_QUIET_MS = 800
+const plainScreen = (raw) => raw
+  .replace(/\x1b\[\d*C/g, ' ')
+  .replace(/\x1b\[[0-9;?]*[ -\/]*[@-~]/g, '')
+  .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '')
+  .replace(/\x1b[()][0-9A-Za-z]/g, '')
+  .replace(/\s+/g, ' ')
+/** Висит ли на хвосте экрана вопрос-разрешение Claude Code. */
+function promptOnScreen(buffer) {
+  const tail = plainScreen(buffer.slice(-4000))
+  return /Do you want to /.test(tail) && /(tell Claude what to do differently|Yes, and don't ask again|1\. ?Yes)/.test(tail)
+}
+function watchPrompt(s) {
+  if (!s.taskUrls || s.taskUrls.size === 0) return
+  clearTimeout(s.promptTimer)
+  s.promptTimer = setTimeout(() => {
+    if (session.current(s.service) !== s) return
+    const waiting = promptOnScreen(s.buffer)
+    if (waiting === Boolean(s.promptWaiting)) return
+    s.promptWaiting = waiting
+    for (const url of s.taskUrls) void tellTask(url, waiting ? 'input-required' : 'working')
+  }, PROMPT_QUIET_MS)
+  s.promptTimer.unref?.()
+}
+/** Дверь задачи вызывающего — только петля этой машины, ключ узла; отказ двери (задача уже закрыта) — не ошибка. */
+async function tellTask(url, state) {
+  try {
+    const u = new URL(url)
+    if (u.hostname !== '127.0.0.1' && u.hostname !== 'localhost') return
+    await fetch(u, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Node-Key': process.env.SETTINGS_SECRET ?? '' },
+      body: JSON.stringify({ state }),
+      signal: AbortSignal.timeout(10_000),
+    })
+  } catch { /* дверь недоступна — задача останется в прежнем состоянии */ }
+}
+/** Запомнить двери задач A2A, которые эта сессия выполняет. */
+function rememberTasks(s, urls) {
+  if (!s.taskUrls) s.taskUrls = new Set()
+  for (const u of urls) if (typeof u === 'string' && u) s.taskUrls.add(u)
 }
 
 const MB = 1024 * 1024
@@ -177,9 +229,11 @@ function pasteWhenReady(s, text, { quietMs = 3000, maxMs = 120_000 } = {}) {
  * РАЗБУДИТЬ АГЕНТА СЛУЖБЫ БЕЗ БРАУЗЕРА (409-1). Сессия жива — только вставить текст. Свободной памяти меньше нормы на сессию —
  * отказ с цифрами, ничего не рождается (задача ждёт). Открытая потом страница терминала видит этот же экран.
  */
-async function wake(service, { text, from, about, declineUrl, confirmed } = {}) {
+async function wake(service, { text, from, about, declineUrl, confirmed, taskUrls = [] } = {}) {
+  const urls = [declineUrl, ...taskUrls].filter(Boolean)
   const live = session.current(service)
   if (live) {
+    rememberTasks(live, urls)
     if (text) pasteWhenReady(live, text, { quietMs: 500 })
     return { ok: true, already: true }
   }
@@ -190,6 +244,7 @@ async function wake(service, { text, from, about, declineUrl, confirmed } = {}) 
   if (freeMb < per) return { ok: false, reason: 'memory', freeMb, perSessionMb: per }
   const r = await spawnAgent(service)
   if (!r.ok) return { ok: false, reason: r.reason }
+  rememberTasks(r.session, urls)
   if (text) pasteWhenReady(r.session, `${text}\n\n${finishRule(service)}`)
   // 409-5 (владелец: «timeout more then 60 min»): через 60 минут от пробуждения — вопрос «закрыть терминал?». Только для
   // пробуждённых сессий; сама сессия не закрывается — закрывает агент по ответу человека. Переменная — для прибора.
