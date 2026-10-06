@@ -17,6 +17,7 @@ import { existsSync, readFileSync, readdirSync, renameSync, writeFileSync, appen
 import { join } from 'node:path'
 import { homedir } from 'node:os'
 import paths from '../lib/agi-items/paths.cjs'
+import elementProps from '../lib/agi-items/element-props.cjs'
 import deployLock from '../lib/deploy/deploy-lock.cjs'
 import { addressOf } from '../lib/agi-items/address-file.mjs'
 
@@ -43,7 +44,7 @@ const target = join(base, addressOf(id, ROOT))
 
 // Где элемент лежит сейчас: та папка, чей паспорт называет этот id (id-папка или прежний адрес); паспорта нет нигде — папка по id.
 const dirs = readdirSync(base, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => join(base, d.name))
-const source = dirs.find((d) => readJson(join(d, 'OWN-SERVICE-PROPS.json'))?.id === id)
+const source = dirs.find((d) => elementProps.elementIdOf(d) === id) // 417: обе раскладки
   ?? dirs.find((d) => d === join(base, id) && existsSync(join(d, '.install-stamp.json')))
 
 function fail(reason, word) {

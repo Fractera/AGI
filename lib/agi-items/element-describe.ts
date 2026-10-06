@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import paths from "@/lib/agi-items/paths.cjs"
 import { entryForRegistry } from "@/lib/a2a/node-registry"
+import elementProps from "@/lib/agi-items/element-props.cjs"
 
 // ОПИСАНИЕ ВОЗМОЖНОСТЕЙ AGI ЭЛЕМЕНТА → ЗАПИСЬ В ЯДРЕ (325-2). Решение владельца 2026-09-27: описание пишет «Агент элемента».
 //
@@ -61,7 +62,7 @@ export function registryDescription(id: string): Description | null {
 export function passportDescription(id: string): { ok: true; summary: string; provides: string[]; designSkill?: string } | { ok: false; error: TakeError } {
   let props: { summary?: unknown; provides?: unknown; designSkill?: unknown }
   try {
-    props = JSON.parse(readFileSync(join(paths.itemDir(id, "user"), "OWN-SERVICE-PROPS.json"), "utf8"))
+    props = elementProps.readElementProps(paths.itemDir(id, "user")) // 417: обе раскладки
   } catch { return { ok: false, error: "passport-unreadable" } }
   const summary = typeof props.summary === "string" ? props.summary.trim() : ""
   if (summary.length < 20) return { ok: false, error: "summary-missing" }

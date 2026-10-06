@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { elementDir } from "@/lib/agi-items/element-github"
 import { extensionOf, passportProblems, publishedCard, registryEntryOf } from "@/lib/a2a/passport.mjs"
+import elementProps from "@/lib/agi-items/element-props.cjs"
 
 // ПАСПОРТ ЭЛЕМЕНТА ДЛЯ СТРАНИЦ ЯДРА (шаги 406-3, 406-4): визитка A2A Google v1.0 (`a2a.card`) + расширение Fractera.
 // Страницы левого меню элемента показывают его разделы, своей копии не держат.
@@ -38,7 +39,8 @@ export function elementPassport(id: string): ElementPassport | null {
   const dir = elementDir(id)
   if (!dir) return null
   let props: { id?: string; a2a?: { card?: A2ACard } }
-  try { props = JSON.parse(readFileSync(join(dir, "OWN-SERVICE-PROPS.json"), "utf8")) } catch { return null }
+  props = elementProps.readElementProps(dir) // 417: обе раскладки
+  if (!props) return null
   const { problems, warnings } = passportProblems(props) as { problems: string[]; warnings: string[] }
   const card = props.a2a?.card ?? null
   const ok = problems.length === 0

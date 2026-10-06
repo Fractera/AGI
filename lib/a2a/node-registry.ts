@@ -5,6 +5,7 @@ import paths from "@/lib/agi-items/paths.cjs"
 import { listServices, serviceUrl } from "@/lib/microservices/registry"
 import { fingerprintOf, passportProblems, registryEntryOf } from "@/lib/a2a/passport.mjs"
 import { addressOf } from "@/lib/agi-items/address-file.mjs"
+import elementProps from "@/lib/agi-items/element-props.cjs"
 
 // РЕЕСТР A2A УЗЛА — ЯДРО КАК ЦЕНТР ОБНАРУЖЕНИЯ (шаг 406-6; владелец 2026-10-05: «центр … это будет ядро»; вызов — напрямую,
 // ядро подсказывает адрес). Запись элемента (уровень 1) выводится из его визитки и пишется в реестр при `describe:publish`
@@ -26,9 +27,8 @@ function elementFolder(id: string, kind: string): string {
 
 /** Визитка элемента с диска или null. */
 export function readPassport(id: string, kind: string): Props | null {
-  const f = join(elementFolder(id, kind), "OWN-SERVICE-PROPS.json")
-  if (!existsSync(f)) return null
-  try { return JSON.parse(readFileSync(f, "utf8")) as Props } catch { return null }
+  // 417: старый корневой файл или новая раскладка (визитка собирается из паспорта и A2A-CARD.json).
+  return elementProps.readElementProps(elementFolder(id, kind)) as Props | null
 }
 
 /** Запись уровня 1 из визитки для реестра; null — визитки нет или она не проходит стандарт. */

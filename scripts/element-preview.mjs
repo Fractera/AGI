@@ -20,6 +20,7 @@ import { createRequire } from 'node:module'
 import paths from '../lib/agi-items/paths.cjs'
 import deployLock from '../lib/deploy/deploy-lock.cjs'
 import { elementLanguages } from '../lib/agi-items/element-languages.mjs'
+import elementProps from '../lib/agi-items/element-props.cjs'
 import { dropStaleTypes } from '../lib/deploy/stale-types.mjs'
 
 const require = createRequire(import.meta.url)
@@ -107,7 +108,7 @@ function killPreview(s) {
 
 const pm2 = IS_WIN ? 'pm2.cmd' : 'pm2'
 const stamp = readJson(stampFile)
-const passport = readJson(join(dir, 'OWN-SERVICE-PROPS.json'))
+const passport = elementProps.readElementProps(dir) // 417: обе раскладки
 const distEnv = passport?.runtime?.distDirEnv
 const current = readJson(FILE)
 

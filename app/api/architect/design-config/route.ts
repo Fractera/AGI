@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireRoles } from "@/lib/auth/require-roles"
 import { serviceUrl } from "@/lib/microservices/registry"
 import paths from "@/lib/agi-items/paths.cjs"
+import elementProps from "@/lib/agi-items/element-props.cjs"
 
 // ОФОРМЛЕНИЕ САЙТА ИЗ ЯДРА (280-6).
 //
@@ -54,7 +55,7 @@ function settingsElements(): { id: string; door: string }[] {
   const out: { id: string; door: string }[] = []
   for (const s of registry.services ?? []) {
     try {
-      const passport = JSON.parse(readFileSync(join(paths.entryDir(s), "OWN-SERVICE-PROPS.json"), "utf8")) as { settings?: { door?: string } }
+      const passport = (elementProps.readElementProps(paths.entryDir(s)) ?? {}) as { settings?: { door?: string } } // 417: обе раскладки
       if (passport.settings?.door) out.push({ id: s.id, door: passport.settings.door })
     } catch { /* не установлен */ }
   }

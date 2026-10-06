@@ -40,6 +40,7 @@ import { spawnSync, spawn } from 'node:child_process'
 import { randomBytes, createHash } from 'node:crypto'
 import { createRequire } from 'node:module'
 import paths from '../lib/agi-items/paths.cjs'
+import elementProps from '../lib/agi-items/element-props.cjs'
 import { addressOf } from '../lib/agi-items/address-file.mjs'
 import { elementLanguages } from '../lib/agi-items/element-languages.mjs'
 import { dropStaleTypes } from '../lib/deploy/stale-types.mjs'
@@ -666,13 +667,13 @@ for (const entry of registry.services) {
   }
 
   // 2. Паспорт. Только читаем.
-  const propsFile = join(dir, 'OWN-SERVICE-PROPS.json')
-  if (!existsSync(propsFile)) {
-    say('  ОШИБКА: у блока нет OWN-SERVICE-PROPS.json — установщику не у кого спросить, как его ставить')
+  // 417: старый корневой файл или новая раскладка (паспорт + NODE-CONTRACT.json) — одним модулем.
+  const props = elementProps.readElementProps(dir)
+  if (!props) {
+    say('  ОШИБКА: у блока нет паспорта (OWN-SERVICE-PROPS.json или OWN-SERVICE-PROPS/) — установщику не у кого спросить, как его ставить')
     failed += 1
     continue
   }
-  const props = JSON.parse(readFileSync(propsFile, 'utf8'))
 
   // Отметка прошлой установки — она же ответ на вопрос «ставился ли блок ЗДЕСЬ».
   const FORCE = process.argv.includes('--force')

@@ -10,6 +10,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative, sep, dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { passportProblems, registryEntryOf, extensionOf, CARD_LIMIT } from '../lib/a2a/passport.mjs'
+import elementProps from '../lib/agi-items/element-props.cjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SKIP = new Set(['node_modules', '.git', 'public', 'AGI-ITEMS', 'data', 'logs', 'storage'])
@@ -32,10 +33,10 @@ const norm = (p) => p.replace(/\/+$/, '').replace(/\[\.{3}[^\]]+\]|\[[^\]]+\]|:[
 function checkElement(dir) {
   const problems = []
   const warnings = []
-  const file = join(dir, 'OWN-SERVICE-PROPS.json')
-  if (!existsSync(file)) return { problems: ['нет OWN-SERVICE-PROPS.json'], warnings }
-  let props
-  try { props = JSON.parse(readFileSync(file, 'utf8')) } catch (e) { return { problems: [`паспорт не читается: ${e.message}`], warnings } }
+  // 417: старый корневой файл или новая раскладка — одним модулем.
+  if (!elementProps.hasElementProps(dir)) return { problems: ['нет паспорта (OWN-SERVICE-PROPS.json или OWN-SERVICE-PROPS/)'], warnings }
+  const props = elementProps.readElementProps(dir)
+  if (!props) return { problems: ['паспорт не читается'], warnings }
   const form = passportProblems(props)
   problems.push(...form.problems)
   warnings.push(...form.warnings)

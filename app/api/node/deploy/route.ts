@@ -11,6 +11,7 @@ import deployLock from "@/lib/deploy/deploy-lock.cjs"
 import previewLock from "@/lib/deploy/preview-lock.cjs"
 import liveLog from "@/lib/deploy/live-log.cjs"
 import { elementCodeState } from "@/lib/agi-items/element-code-state"
+import elementProps from "@/lib/agi-items/element-props.cjs"
 
 // ДАШБОРД РАЗВЁРТЫВАНИЙ — ДВЕРЬ (280-11b).
 //
@@ -60,7 +61,7 @@ function elements() {
   return (registry?.services ?? []).map((s) => {
     const dir = paths.entryDir(s)
     const stamp = readJson<{ at?: string; version?: string }>(join(dir, ".install-stamp.json"))
-    const passport = readJson<{ settings?: { owns?: string[] } }>(join(dir, "OWN-SERVICE-PROPS.json"))
+    const passport = elementProps.readElementProps(dir) as { settings?: { owns?: string[] } } | null // 417: обе раскладки
     const owns = passport?.settings?.owns ?? []
     const builtAt = stamp?.at ?? null
     let settingsChangedAt: number | null = null
