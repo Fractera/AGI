@@ -274,6 +274,13 @@ async function idleTick(service) {
     // получает это сообщение. Команды (`/…`), не текст и неподключённая подписка — прежнее сообщение о состоянии.
     const said = typeof msg.text === 'string' ? msg.text.trim() : ''
     if (!activated && said && !said.startsWith('/') && (await claudeSignedIn()) !== false) {
+      // Владелец 2026-10-06: «выключи» выключенному агенту — не повод его включать; ответ «уже выключен».
+      if (OFF_WORDS.test(said)) {
+        const t = await askTable(service)
+        const a = shortName(named(service))
+        await tg(token, 'sendMessage', { chat_id: msg.chat.id, text: (t.alreadyOff ?? ASK.en.alreadyOff)(a) })
+        continue
+      }
       const who = [msg.from.first_name, msg.from.last_name].filter(Boolean).join(' ') || msg.from.username || sender
       await askToStart(service, { text: humanPrompt(msg.chat.id, who, said), from: who, about: said, kind: 'human' })
       continue
@@ -378,6 +385,7 @@ const ASK = {
     declineText: (a) => `The owner of ${a} chose not to turn its agent on now.`,
     toast: 'Turning on…',
     moved: '↓ More questions came — the updated question is below.',
+    alreadyOff: (a) => `Agent ${a} is already off.`,
   },
   ru: {
     oneCall: (a, c) => `Агенту ${a} пришёл вопрос от агента ${c}`,
@@ -397,6 +405,7 @@ const ASK = {
     declineText: (a) => `Хозяин ${a} не стал сейчас включать его агента.`,
     toast: 'Включаю…',
     moved: '↓ Пришли ещё вопросы — обновлённый вопрос ниже.',
+    alreadyOff: (a) => `Агент ${a} уже выключен.`,
   },
 }
 
@@ -404,6 +413,9 @@ const ASK = {
 function humanPrompt(chatId, who, said) {
   return `Сообщение из Telegram от ${who} (chat_id ${chatId}), пока ты был выключен: ${said} — ответь ему в Telegram инструментом reply канала (chat_id ${chatId}).`
 }
+
+/** «Выключи» и его родня целиком, без другого текста: выключенному агенту это не поручение, а просьба, которая уже исполнена. */
+const OFF_WORDS = /^s*(выключи(ть|сь)?|выключай|закрой|закрыть|стоп|off|turn( it)? off|switch off|stop|close)s*[.!]*s*$/i
 
 const allHuman = (items) => items.length > 0 && items.every((it) => it.kind === 'human')
 
