@@ -2699,7 +2699,7 @@ start.
   at 400 ms, 2.5 s and 6 s — one Enter was lost under the channel.
 - **Review before turning off** (step 410): «Выключить его?» also offers «разбор» — the element agent runs its skill `self-review`
   (`npm run review:digest` reads its own Claude Code session file; ≤3 proposals tied to a signal; nothing changed without «да»;
-  decisions verbatim in `.claude/skills/self-review/DECISIONS.md`), then `done` with `reviewed:true` — the question comes again
+  decisions verbatim in `development-docs/owner-decisions-on-skill-changes.md` since step 412), then `done` with `reviewed:true` — the question comes again
   without «разбор». Findings outside the element → `POST /api/node/review-inbox` (node key) → `data/review-inbox.jsonl`; read it
   when working on the node. Sample: roman; template and other elements — later.
 - **The person's language in Telegram** (step 411): `data/services/<id>/channel/telegram/person.json` `{lang, source}` — `page` (the bot
@@ -2708,3 +2708,24 @@ start.
   `_agent-kit/server/translate.cjs`, cache `data/i18n-cache/telegram-*-<lang>.json`), no key — English. Conversation lines:
   `lib/a2a/translate.ts` — a body not in the person's language is translated with a note «перевод с …»; plainly the same language
   costs no call; journal and feed keep originals. The wake text tells the agent the language (`finishRule` → `languageRule`).
+
+## Element development documents and orders (step 412, 2026-10-06)
+
+- **Development documents** live in the element: `development-docs/` (README index · `current-step.md` read on every wake ·
+  `steps-new/` · `steps-done/` · `anti-patterns.md` · `owner-decisions-on-skill-changes.md`), English only (owner: «категорически
+  требовать записи всех документов только на английском языке»), guard `check:dev-docs` in the element's prebuild. `CLAUDE.md` and
+  the passport stay in the root. The core shows them in the element menu «Documents» (`item-tree.ts` field `doc`; an item exists only
+  while its file exists); the text comes from `GET /api/node/element-docs` via an island (the file is taken from the tree, never from
+  the request).
+- **Orders** = work an element did for others over A2A — not development, not in git. The finish rule makes the agent save a summary
+  by skill `order-summary` before `done`: `npm run order:save` → `data/services/<id>/orders/<contextId>.md` (English; e-mail, phone
+  and card numbers and Cyrillic refused; leaving out names is the agent's rule) and pins the conversation (`POST /api/node/a2a-log/pin`,
+  node key → data v1.3.17 `a2a_pinned`: pinned conversations survive the 10 000-row trim). Menu «Process → Orders»
+  (`GET /api/node/element-orders`) shows the summaries and each conversation by `context`.
+- **A2A numbers** of an element = `<element id>-<uuidv7>` (roman `lib/a2a/ids.ts`): who started it, time order; a client's own
+  `contextId` is kept.
+- **Passport `process`**: `{kind: "integration", service, what, env, docs}` (env = the key variable's NAME, never a value; docs https)
+  and `{kind: "cron", schedule, what}` (cron only after the person's «yes») — checked by `lib/a2a/passport.mjs`, shown on
+  «Process → Subscriptions» and «Cron».
+- Only roman today; the template and the other elements — step 413. 🛑 Do not edit core files while `serve:rebuild` runs: a rebuild
+  killed half-way (low memory) left the running core without `.next` files — every page 500 until the next full build.
