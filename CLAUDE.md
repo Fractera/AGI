@@ -2702,3 +2702,9 @@ start.
   decisions verbatim in `.claude/skills/self-review/DECISIONS.md`), then `done` with `reviewed:true` — the question comes again
   without «разбор». Findings outside the element → `POST /api/node/review-inbox` (node key) → `data/review-inbox.jsonl`; read it
   when working on the node. Sample: roman; template and other elements — later.
+- **The person's language in Telegram** (step 411): `data/services/<id>/channel/telegram/person.json` `{lang, source}` — `page` (the bot
+  page sends its `lang` with the system texts) or `agent` (`POST /api/agents/person-lang {service, lang}`, node key; the agent's
+  choice outranks the page). Core texts: en/ru built in, other languages translated once with the core OpenAI key (`gpt-5-mini`,
+  `_agent-kit/server/translate.cjs`, cache `data/i18n-cache/telegram-*-<lang>.json`), no key — English. Conversation lines:
+  `lib/a2a/translate.ts` — a body not in the person's language is translated with a note «перевод с …»; plainly the same language
+  costs no call; journal and feed keep originals. The wake text tells the agent the language (`finishRule` → `languageRule`).
