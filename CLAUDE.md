@@ -2690,7 +2690,9 @@ start.
   sessions = free memory ÷ ~300 MB. Element bot connected (token + an allowed chat) → no start, a question in Telegram with buttons
   «Включить и ответить / Не сейчас — <caller> получит отказ» (`data/services/<id>/wake/pending.json`, node poller every 3 s);
   a person's text to the bot while the agent is off → «Включить и передать». No bot → start at once.
-- **Done** — `POST /api/agents/done {service}`: 5 s later «Агент <имя> закончил. Выключить его? Ответьте «выключить»»; the agent gets
+- **Done** — `POST /api/agents/done {service}`: after the conversation pair has gone out (step 414: `lib/a2a/telegram-relay.ts` marks
+  its relay per element in `globalThis.__agiRelayPending`, `done` waits 5 s for it to start, then for it to finish, cap 2 min — translation
+  takes tens of seconds and a bare 5 s timer let the question overtake the answers) «Агент <имя> закончил. Выключить его? Ответьте «выключить»»; the agent gets
   the reply via the channel and sends `{service, close:true}`. Also asked 60 min after a wake. Text, not buttons: while the terminal
   runs, the channel plugin reads the bot and drops foreign buttons (plugin 0.0.7 accepts only `perm:…`). The rule is appended to the
   first pasted text (`finishRule`); the core is called on `localhost` (127.0.0.1 is refused — IPv6).
