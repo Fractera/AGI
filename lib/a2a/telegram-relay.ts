@@ -148,8 +148,25 @@ async function send(token: string, chat: string, m: { caption: string; file: str
   }
 }
 
+// 414 (владелец 2026-10-06: «Он сначала мне предлагает закончить разговор а потом кидает ответы это что за ерунда»): с переводом
+// (411) пара «спрашивает / отвечает» уходит десятки секунд, и вопрос «выключить?» (`done` в комплекте агента) её обгонял — пауза в 5 с
+// была таймером, а не порядком. Рассылка отмечает себя здесь по каждой службе-участнику; `done` ждёт её окончания и только потом
+// спрашивает. Реестр — в `globalThis`: комплект агента живёт в том же процессе ядра, но собирается отдельно.
+type Pending = Map<string, Promise<unknown>>
+const pending = ((globalThis as { __agiRelayPending?: Pending }).__agiRelayPending ??= new Map())
+
 /** Разослать вызов: боты вызывающего, принимающего и ядра — у кого подключён; одна пара (бот, чат) — один раз. */
-export async function relayCall(call: RelayCall): Promise<{ sent: number; skipped: string[] }> {
+export function relayCall(call: RelayCall): Promise<{ sent: number; skipped: string[] }> {
+  const run = relayNow(call)
+  for (const s of [call.fromId, call.toId]) {
+    if (!s) continue
+    const mark = run.catch(() => undefined).finally(() => { if (pending.get(s) === mark) pending.delete(s) })
+    pending.set(s, mark)
+  }
+  return run
+}
+
+async function relayNow(call: RelayCall): Promise<{ sent: number; skipped: string[] }> {
   const services = [...new Set([call.fromId, call.toId, CORE_BOT].filter((s): s is string => Boolean(s)))]
   const seen = new Set<string>()
   const skipped: string[] = []

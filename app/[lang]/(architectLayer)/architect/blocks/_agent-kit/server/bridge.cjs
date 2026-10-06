@@ -243,6 +243,11 @@ async function done(service, { close = false, reviewed = false } = {}) {
   // Владелец 2026-10-06: «делай паузу 5 секунд» — пара «спрашивает / отвечает» уходит в Telegram в фоне, и вопрос «выключить?»
   // её обгонял. Переменная — для прибора.
   await new Promise((r) => setTimeout(r, Number(process.env.AGENT_CLOSE_ASK_DELAY_MS) || 5000))
+  // 414 (владелец 2026-10-06: «Он сначала мне предлагает закончить разговор а потом кидает ответы»): 5 с — только чтобы рассылка
+  // успела начаться; дальше порядок по событию — ждём, пока пара разговора с этим элементом уйдёт в Telegram (перевод занимает
+  // десятки секунд), не дольше 2 минут. Реестр пишет `lib/a2a/telegram-relay.ts` ядра.
+  const relay = globalThis.__agiRelayPending?.get(service)
+  if (relay) await Promise.race([relay, new Promise((r) => setTimeout(r, 120_000))])
   if (session.current(service) !== live) return { ok: false, reason: 'no-session' }
   // Владелец 2026-10-06: «второй раз не предлагать разбор после первого» — разбор в этой сессии был, строки «разбор» больше нет.
   if (reviewed) live.reviewed = true
