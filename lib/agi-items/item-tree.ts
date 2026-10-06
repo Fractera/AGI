@@ -86,6 +86,8 @@ export const ITEM_TREE: TreePage[] = [
     slug: "process",
     words: w("Process", "What the element does while it works.", "Процесс", "Что элемент делает, пока работает."),
     pages: [
+      // 412-6 (владелец 2026-10-06): заказы — работа элемента для других по A2A; сводки вне git, без персональных данных.
+      { slug: "orders", words: w("Orders", "Work the element did for other agents: a summary of each order and the conversation behind it.", "Заказы", "Работа, которую элемент сделал для других агентов: сводка каждого заказа и беседа за ней.") },
       { slug: "subscriptions", words: w("Subscriptions", "Outside services this element may use.", "Подписки", "Внешние сервисы, которыми может пользоваться элемент.") },
       { slug: "cron", words: w("Cron automations", "Work that runs on a schedule.", "Крон автоматизации", "Работа, которая идёт по расписанию.") },
     ],

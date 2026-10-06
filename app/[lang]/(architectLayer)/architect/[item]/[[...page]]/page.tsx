@@ -47,7 +47,8 @@ import { elementPassportUi } from '../../../_i18n/element-passport.i18n'
 import { elementPassport } from '@/lib/a2a/element-passport'
 import { hasDoc } from '@/lib/agi-items/element-docs'
 import { ElementDocIsland } from '@/components/element-docs/element-doc.client'
-import { elementDocsUi } from '../../../_i18n/element-docs.i18n'
+import { elementDocsUi, elementOrdersUi } from '../../../_i18n/element-docs.i18n'
+import { ElementOrdersIsland } from '@/components/element-docs/element-orders.client'
 
 // ОДНА СТРАНИЦА НА ВСЕ АДРЕСА ВСЕХ ЧЕРНОВИКОВ (314-1): `/architect/<id>`, `/architect/<id>/<раздел>`,
 // `/architect/<id>/<раздел>/<страница>`. Дерево — `lib/agi-items/item-tree.ts`, черновики — `data/agi-drafts.json`.
@@ -294,6 +295,10 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   const passportView = page ? PASSPORT_VIEWS[`${section.slug}/${page.slug}`] : undefined
   // 412-2: документ элемента — текст спрашивает островок при открытии (страница предрендерена, агент правит файлы в любую минуту).
   const doc = page?.doc ? <ElementDocIsland item={item} page={page.slug} words={elementDocsUi(lang)} /> : null
+  // 412-6: «Процесс → Заказы» — сводки заказов элемента и беседы за ними; у черновика заказов не бывает.
+  const orders = section.slug === 'process' && page?.slug === 'orders'
+    ? (entry ? <ElementOrdersIsland item={item} words={elementOrdersUi(lang)} /> : <p className="my-4 text-sm text-muted-foreground">{elementSettingsUi(lang).notBorn}</p>)
+    : null
   const passport = passportView ? <ElementPassport view={passportView} passport={entry ? elementPassport(item) : null} ui={elementPassportUi(lang)} /> : null
 
   return (
@@ -303,7 +308,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       title={words.title}
       lead={words.lead}
       pageTitle={address}
-      widget={<>{bar}{list}{preview}{github}{deployPanel}{copyNote}{deploymentsNote}{environment}{settings}{siteSettings}{agent}{passport}{doc}</>}
+      widget={<>{bar}{list}{preview}{github}{deployPanel}{copyNote}{deploymentsNote}{environment}{settings}{siteSettings}{agent}{passport}{doc}{orders}</>}
       children={tables}
     />
   )
