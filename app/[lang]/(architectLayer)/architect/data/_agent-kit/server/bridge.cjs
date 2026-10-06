@@ -208,8 +208,21 @@ const wakeTimeoutMs = () => Number(process.env.AGENT_WAKE_TIMEOUT_MS) || 60 * 60
 function finishRule(service) {
   // 🛑 `localhost`, не `127.0.0.1`: сервер ядра слушает `localhost`, на Windows это IPv6 — по `127.0.0.1` вызов агента в 409-5
   // отказал (curl, код 7), агент нашёл адрес сам в `logs/runtime.json` (закон проекта «хост подписки — тот, что слушает сервер»).
-  const door = `http://localhost:${process.env.PORT || 24680}/api/agents/done`
-  return `Когда закончишь и ответишь, сообщи узлу: POST ${door} с заголовком X-Node-Key = SETTINGS_SECRET из .env.local и телом {"service":"${service}"} — человек получит в Telegram вопрос «выключить агента?». Если человек ответит «выключить» (или «закрыть») — тот же запрос с телом {"service":"${service}","close":true}. Если человек ответит «разбор» — сделай разбор своей работы по навыку self-review (нет такого навыка — скажи человеку, что разбор этому агенту недоступен), предложения пришли ему в Telegram по номерам, прими ответы вида «1 да, 2 нет», а затем снова отправь первый запрос, добавив в тело "reviewed":true — вопрос «выключить?» придёт ещё раз, уже без «разбор». Тело — файлом UTF-8 (curl --data-binary @файл).`
+  const base = `http://localhost:${process.env.PORT || 24680}/api/agents`
+  const door = `${base}/done`
+  return `${languageRule(service, base)} Когда закончишь и ответишь, сообщи узлу: POST ${door} с заголовком X-Node-Key = SETTINGS_SECRET из .env.local и телом {"service":"${service}"} — человек получит в Telegram вопрос «выключить агента?». Если человек ответит «выключить» (или «закрыть», на любом языке) — тот же запрос с телом {"service":"${service}","close":true}. Если человек ответит «разбор» (на любом языке) — сделай разбор своей работы по навыку self-review (нет такого навыка — скажи человеку, что разбор этому агенту недоступен), предложения пришли ему в Telegram по номерам, прими ответы вида «1 да, 2 нет», а затем снова отправь первый запрос, добавив в тело "reviewed":true — вопрос «выключить?» придёт ещё раз, уже без «разбор». Тело — файлом UTF-8 (curl --data-binary @файл).`
+}
+
+/**
+ * 411-4 (владелец 2026-10-06: «в своем чате я вижу на своем языке … перешёл на Украинский … следовать продолжать на Украинский но
+ * точно не по-китайски»): язык человека — из `person.json` бота элемента; агент пишет человеку на нём и сообщает узлу, когда
+ * человек перешёл на другой язык (дверь `person-lang`) — с этого момента и вопросы ядра идут на новом языке.
+ */
+function languageRule(service, base) {
+  const code = telegram.personLang(service)
+  let name = code
+  try { name = new Intl.DisplayNames(['ru'], { type: 'language' }).of(code) || code } catch { /* код как есть */ }
+  return `Язык человека: ${name} (${code}). Всё, что пишешь человеку в Telegram, — на этом языке, на каком бы языке ни пришла задача. Если человек стал писать тебе на другом языке — сообщи узлу: POST ${base}/person-lang с тем же заголовком и телом {"service":"${service}","lang":"<код BCP 47, например uk>"} — и дальше пиши ему на новом языке.`
 }
 
 /**
@@ -387,4 +400,4 @@ function onConnection(ws, service) {
   }
 }
 
-module.exports = { onConnection, spawnAgent, wake, done, shellPath, shellEnv, ptyLoadError: () => ptyLoadError, hasPty: () => pty !== null }
+module.exports = { onConnection, spawnAgent, wake, done, finishRule, shellPath, shellEnv, ptyLoadError: () => ptyLoadError, hasPty: () => pty !== null }
