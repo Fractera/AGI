@@ -38,7 +38,8 @@ export function readDoc(id: string, src: DocSource): DocFile[] | null {
   const one = (path: string, name: string): DocFile => ({ name, text: readFileSync(path, "utf8"), json: name.endsWith(".json") })
   if (!src.folder) return [one(p, src.file)]
   return readdirSync(p)
-    .filter((n) => !n.startsWith(".") && statSync(join(p, n)).isFile())
+    // 417: only texts a person reads — Markdown and JSON; code next to them (server.ts of the passport) is not shown.
+    .filter((n) => !n.startsWith(".") && /\.(md|json)$/.test(n) && statSync(join(p, n)).isFile())
     .sort()
     .map((n) => one(join(p, n), `${src.file}/${n}`))
     .concat(
