@@ -99,6 +99,21 @@ async function probe(port: number, lang: string): Promise<{ up: boolean; title: 
   return { up, title: null, description: null }
 }
 
+/**
+ * 417 (владелец 2026-10-06): короткое описание элемента в сводке узла — из его паспорта (`GET /api/own-service-props`,
+ * `shortDescription`, рабочая природа элемента); паспорта нет или текст пуст — мета главной, как раньше.
+ */
+async function passportShort(port: number): Promise<string | null> {
+  try {
+    const r = await fetch(`http://127.0.0.1:${port}/api/own-service-props`, { cache: "no-store", signal: AbortSignal.timeout(3000) })
+    if (!r.ok) return null
+    const b = (await r.json()) as { shortDescription?: unknown }
+    return typeof b.shortDescription === "string" && b.shortDescription.trim() ? b.shortDescription.trim() : null
+  } catch {
+    return null
+  }
+}
+
 async function row(id: string, entry: RegistryEntry | null, custom: boolean, lang: string, d: NodeDomain | null): Promise<ProjectRow> {
   const service = serviceHost(id, d)
   const own = domainRecord(id)
@@ -108,13 +123,14 @@ async function row(id: string, entry: RegistryEntry | null, custom: boolean, lan
   const count = dir ? git(dir, ["rev-list", "--count", "HEAD"]) : null
   const port = entry && typeof entry.port === "number" ? entry.port : null
   const seen = port !== null ? await probe(port, lang) : { up: false, title: null, description: null }
+  const short = port !== null && seen.up ? await passportShort(port) : null
   const status: ProjectStatus = building(id) ? "building" : !entry ? "unborn" : seen.up ? "running" : "stopped"
   return {
     id,
     custom,
     service,
     title: seen.title,
-    description: seen.description,
+    description: short ?? seen.description,
     domain: own?.domain ?? null,
     web3: null,
     commit: hash ? { hash, subject: subject ?? "" } : null,
