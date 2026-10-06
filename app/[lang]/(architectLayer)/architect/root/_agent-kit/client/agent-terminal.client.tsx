@@ -47,9 +47,14 @@ export function AgentTerminal({ service, lang, words, dialogUi, initialPaste, ke
 
   useEffect(() => { if (initialPaste) setPasteText(initialPaste) }, [initialPaste])
 
+  // Владелец 2026-10-06: окно с поручением, открытое ссылкой, само будит агента — как вопрос в Telegram; иначе кнопки
+  // «Вставить» серые, пока человек не найдёт кнопку запуска.
+  const startForPasteRef = useRef(false)
+
   useEffect(() => {
     const incoming = pasteFromSearch(window.location.search)
     if (incoming === null) return
+    startForPasteRef.current = true
     setPasteText(incoming)
     setPasteOpen(true)
     // Параметр убирается сразу: перезагрузка страницы не откроет окно второй раз.
@@ -133,6 +138,7 @@ export function AgentTerminal({ service, lang, words, dialogUi, initialPaste, ke
         if (cancelled) return
         setFolder(body.agentDir ?? null)
         if (body.running) await connect(false)
+        else if (startForPasteRef.current) await connect(true)
         else setState("sleeping")
       } catch {
         if (!cancelled) setState("offline")
