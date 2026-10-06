@@ -62,7 +62,10 @@ export default function VoiceInput({
           type="button"
           disabled={disabled || v.busy || !v.supported}
           title={v.supported ? L.tipOk : L.tipInsecure}
-          onPointerDown={(e) => { e.preventDefault(); v.start(); }}
+          // 417 (владелец 2026-10-06: «через 500 мс окно дёргается … микрофон исчезает»): начавшаяся запись показывает полосу громкости,
+      // окно по центру экрана растёт и кнопка уезжает из-под пальца — `pointerleave` останавливал запись. Захват указателя держит
+      // кнопку за пальцем: запись кончается, только когда его отпустили.
+      onPointerDown={(e) => { e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId); v.start(); }}
           onPointerUp={v.stop}
           onPointerLeave={v.stop}
           onPointerCancel={v.stop}
