@@ -121,8 +121,10 @@ export function writeVar(target: EnvTarget, name: EditableName, value: string): 
  * `.env.local` ядра); нет — ключ самого элемента. Без элемента — только ядро.
  */
 export function openAiKeyFor(item?: string | null): string {
-  if (process.env.OPENAI_API_KEY) return process.env.OPENAI_API_KEY
+  // 2026-10-06: файл `.env.local` ядра — первым. Окружение процесса помнит ключ, бывший при запуске: человек заменил ключ, а
+  // расшифровка слала отозванный и получала 401 от OpenAI. Окружение — только когда в файле ключа нет.
   const core = readVar("core", "OPENAI_API_KEY")
   if (core) return core
+  if (process.env.OPENAI_API_KEY) return process.env.OPENAI_API_KEY
   return item ? readVar(item, "OPENAI_API_KEY") : ""
 }
