@@ -1,4 +1,5 @@
 // @api report how this node is reachable and whether it is walled off
+import { timingSafeEqual } from "node:crypto"
 import { NextRequest, NextResponse } from "next/server"
 
 import { requireRoles } from "@/lib/auth/require-roles"
