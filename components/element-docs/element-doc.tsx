@@ -9,13 +9,13 @@ import type { DocFile } from "@/lib/agi-items/element-docs"
 
 export type ElementDocWords = { empty: string }
 
-export function ElementDoc({ files, words }: { files: DocFile[]; words: ElementDocWords }) {
+// 416: `collapse` — папка навыков: каждый файл свёрнут под своим именем (навык — имя его папки), раскрывается по нажатию.
+export function ElementDoc({ files, words, collapse = false }: { files: DocFile[]; words: ElementDocWords; collapse?: boolean }) {
   if (files.length === 0) return <P className="text-muted-foreground" data-element-doc="empty">{words.empty}</P>
   return (
-    <div className="flex flex-col gap-8" data-element-doc="files">
+    <div className={collapse ? "flex flex-col gap-3" : "flex flex-col gap-8"} data-element-doc="files">
       {files.map((f) => (
-        <article key={f.name} className="flex flex-col gap-3" data-element-doc-file={f.name}>
-          {files.length > 1 && <code className="text-[length:var(--fs-small)] text-muted-foreground">{f.name}</code>}
+        <Shell key={f.name} name={f.name} collapse={collapse} many={files.length > 1}>
           {f.json ? (
             <pre className="overflow-x-auto rounded-lg border border-border bg-muted/40 p-3 text-[length:var(--fs-small)]">{f.text}</pre>
           ) : (
@@ -42,8 +42,28 @@ export function ElementDoc({ files, words }: { files: DocFile[]; words: ElementD
               {f.text}
             </ReactMarkdown>
           )}
-        </article>
+        </Shell>
       ))}
     </div>
+  )
+}
+
+/** Рамка одного файла: обычная статья или (416, навыки) свёрнутый блок с именем навыка. */
+function Shell({ name, collapse, many, children }: { name: string; collapse: boolean; many: boolean; children: React.ReactNode }) {
+  if (collapse) {
+    const parts = name.split("/")
+    const title = parts[parts.length - 1] === "SKILL.md" ? parts[parts.length - 2] : parts[parts.length - 1]
+    return (
+      <details className="rounded-lg border border-border px-4 py-3" data-element-doc-file={name}>
+        <summary className="cursor-pointer font-medium">{title}</summary>
+        <div className="mt-3 flex flex-col gap-3">{children}</div>
+      </details>
+    )
+  }
+  return (
+    <article className="flex flex-col gap-3" data-element-doc-file={name}>
+      {many && <code className="text-[length:var(--fs-small)] text-muted-foreground">{name}</code>}
+      {children}
+    </article>
   )
 }

@@ -11,7 +11,7 @@ export type TreeWords = { title: string; lead: string }
 // 412-2: `doc` — страница показывает файл (или папку) элемента; пункт есть, только пока этот файл существует
 // (`lib/agi-items/element-docs.ts`).
 export type TreePage = {
-  slug: string; words: Record<"en" | "ru", TreeWords>; pages?: TreePage[]; needs?: "catalog"; doc?: { file: string; folder?: boolean }
+  slug: string; words: Record<"en" | "ru", TreeWords>; pages?: TreePage[]; needs?: "catalog"; doc?: { file: string; folder?: boolean; deep?: boolean }
 }
 
 const w = (enTitle: string, enLead: string, ruTitle: string, ruLead: string): Record<"en" | "ru", TreeWords> => ({
@@ -72,6 +72,10 @@ export const ITEM_TREE: TreePage[] = [
     // 412-2 (владелец 2026-10-06): документы разработки вернулись — из настоящих файлов элемента, а не заглушками.
     pages: [
       { slug: "instruction", doc: { file: "CLAUDE.md" }, words: w("Main instruction", "What the element's agent reads first.", "Главная инструкция", "То, что агент элемента читает первым.") },
+      // 416 (владелец 2026-10-06): навыки и хуки вернулись в меню — из настоящих папок агента элемента, чтобы смотреть их во время
+      // разработки (убраны в 406-4 заглушками, без объяснения владельцу).
+      { slug: "skills", doc: { file: ".claude/skills", folder: true, deep: true }, words: w("Skills", "The skills the element's agent carries: when each is used and how.", "Навыки", "Навыки агента элемента: когда каждый вызывается и как работает.") },
+      { slug: "hooks", doc: { file: ".claude/hooks", folder: true }, words: w("Hooks", "Commands the agent's tools run on their own events.", "Хуки", "Команды, которые инструменты агента запускают на своих событиях.") },
       { slug: "passport", doc: { file: "OWN-SERVICE-PROPS.json" }, words: w("Passport", "What the element is, can do and needs: its A2A card, integrations and cron.", "Паспорт", "Что элемент такое, что умеет и что ему нужно: визитка A2A, интеграции и крон.") },
       { slug: "readme", doc: { file: "development-docs/README.md" }, words: w("Documents index", "Every development document, who writes it and when it is opened.", "Оглавление документов", "Все документы разработки: кто пишет и когда открывать.") },
       { slug: "current-step", doc: { file: "development-docs/current-step.md" }, words: w("Current step", "Where the work stands now; the agent reads it on every wake.", "Текущий шаг", "Где работа сейчас; агент читает его при каждом пробуждении.") },

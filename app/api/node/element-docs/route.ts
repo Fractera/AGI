@@ -25,5 +25,5 @@ export async function GET(req: NextRequest) {
   if (!id || !doc) return NextResponse.json({ ok: false, error: "unknown document" }, { status: 404 })
   const files = readDoc(id, doc)
   if (!files) return NextResponse.json({ ok: false, error: "no such file" }, { status: 404 })
-  return NextResponse.json({ ok: true, files }, { headers: { "Cache-Control": "no-store" } })
+  return NextResponse.json({ ok: true, files, collapse: Boolean(doc.deep) }, { headers: { "Cache-Control": "no-store" } })
 }
