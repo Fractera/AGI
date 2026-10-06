@@ -47,7 +47,8 @@ import { elementPassportUi } from '../../../_i18n/element-passport.i18n'
 import { elementPassport } from '@/lib/a2a/element-passport'
 import { hasDoc } from '@/lib/agi-items/element-docs'
 import { ElementDocIsland } from '@/components/element-docs/element-doc.client'
-import { elementDocsUi, elementOrdersUi } from '../../../_i18n/element-docs.i18n'
+import { PassportDoor } from '@/components/element-docs/passport-door.client'
+import { elementDocsUi, elementOrdersUi, passportDoorUi } from '../../../_i18n/element-docs.i18n'
 import { ElementOrdersIsland } from '@/components/element-docs/element-orders.client'
 
 // ОДНА СТРАНИЦА НА ВСЕ АДРЕСА ВСЕХ ЧЕРНОВИКОВ (314-1): `/architect/<id>`, `/architect/<id>/<раздел>`,
@@ -60,6 +61,9 @@ import { ElementOrdersIsland } from '@/components/element-docs/element-orders.cl
 // 🔒 В ПОИСК НЕ ИДЁТ: черновик — рабочее место, а не страница продукта.
 
 type Params = { lang: string; item: string; page?: string[] }
+
+// 417: поручение кнопки «Сгенерировать описание» — агент элемента пишет тексты паспорта по своему навыку.
+const PASSPORT_TASK = 'Generate your passport description: follow the skill passport-description (OWN-SERVICE-PROPS/README.md). Show me the texts before saving.'
 
 // 326-3: страница дерева «Строительство» → вид острова комплекта агента (имя шаблона комплекта).
 const AGENT_PAGES: Record<string, AgentKitPage | undefined> = { subscription: 'claude-code', terminal: 'terminal', telegram: 'telegram' }
@@ -294,7 +298,11 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   }
   const passportView = page ? PASSPORT_VIEWS[`${section.slug}/${page.slug}`] : undefined
   // 412-2: документ элемента — текст спрашивает островок при открытии (страница предрендерена, агент правит файлы в любую минуту).
-  const doc = page?.doc ? <ElementDocIsland item={item} page={page.slug} words={elementDocsUi(lang)} /> : null
+  // 417: новый паспорт — сверху кнопка генерации и ответ двери элемента (как его получает ядро), ниже README и файл.
+  const passportDoor = page?.slug === 'own-service-props' && entry
+    ? <PassportDoor item={item} terminalHref={terminalLink({ lang, service: `${slug}/build`, text: PASSPORT_TASK })} words={passportDoorUi(lang)} />
+    : null
+  const doc = page?.doc ? <>{passportDoor}<ElementDocIsland item={item} page={page.slug} words={elementDocsUi(lang)} /></> : null
   // 412-6: «Процесс → Заказы» — сводки заказов элемента и беседы за ними; у черновика заказов не бывает.
   const orders = section.slug === 'process' && page?.slug === 'orders'
     ? (entry ? <ElementOrdersIsland item={item} words={elementOrdersUi(lang)} /> : <p className="my-4 text-sm text-muted-foreground">{elementSettingsUi(lang).notBorn}</p>)

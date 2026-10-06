@@ -40,7 +40,8 @@ export function readDoc(id: string, src: DocSource): DocFile[] | null {
   return readdirSync(p)
     // 417: only texts a person reads — Markdown and JSON; code next to them (server.ts of the passport) is not shown.
     .filter((n) => !n.startsWith(".") && /\.(md|json)$/.test(n) && statSync(join(p, n)).isFile())
-    .sort()
+    // 417: README first — the explanation goes above the file it explains.
+    .sort((a, b) => (a === "README.md" ? -1 : b === "README.md" ? 1 : a.localeCompare(b)))
     .map((n) => one(join(p, n), `${src.file}/${n}`))
     .concat(
       src.deep
