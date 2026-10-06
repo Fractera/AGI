@@ -34,6 +34,9 @@ export type ElementPassportUi = {
   networkSoon: string
   process: string
   noProcess: string
+  integrations: string
+  noIntegrations: string
+  apiDocs: string
   fingerprint: string
   accepts: string
   returns: string
@@ -79,6 +82,9 @@ const DICT: Record<"en" | "ru", ElementPassportUi> = {
     networkSoon: "Search on other nodes is not available yet. Inside this node use the Links (A2A) of each element.",
     process: "What the element does by itself",
     noProcess: "Nothing: it acts only when called.",
+    integrations: "Outside services",
+    noIntegrations: "None: the element uses no outside service.",
+    apiDocs: "API documentation",
     fingerprint: "Passport fingerprint",
     accepts: "Accepts",
     returns: "Returns",
@@ -122,6 +128,9 @@ const DICT: Record<"en" | "ru", ElementPassportUi> = {
     networkSoon: "Поиск на других узлах пока недоступен. Внутри узла смотрите «Связи (A2A)» каждого элемента.",
     process: "Что элемент делает сам",
     noProcess: "Ничего: действует только по вызову.",
+    integrations: "Внешние сервисы",
+    noIntegrations: "Нет: элемент не пользуется внешними сервисами.",
+    apiDocs: "Документация API",
     fingerprint: "Отпечаток паспорта",
     accepts: "Принимает",
     returns: "Возвращает",

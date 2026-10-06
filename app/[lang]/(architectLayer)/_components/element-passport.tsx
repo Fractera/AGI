@@ -103,15 +103,33 @@ export function ElementPassport({ view, passport, ui }: { view: PassportView; pa
       </div>
     )
   } else if (view === "subscriptions") {
-    body = x.consumes?.length
-      ? <ul className="flex flex-col gap-1.5">{x.consumes.map((c) => <li key={`${c.from}-${c.skill}`} className="text-sm"><span className="font-mono">{c.skill}</span>{c.from ? <> {ui.from} <span className="font-mono">{c.from}</span></> : null} — {c.why}</li>)}</ul>
-      : <p className="text-sm text-muted-foreground">{ui.noNeeds}</p>
+    // 412-7: внешние сервисы элемента (`process` вида `integration`): сервис, имя переменной ключа, документация API.
+    const integrations = (x.process ?? []).filter((p) => p.kind === "integration")
+    body = (
+      <>
+        {x.consumes?.length
+          ? <ul className="flex flex-col gap-1.5">{x.consumes.map((c) => <li key={`${c.from}-${c.skill}`} className="text-sm"><span className="font-mono">{c.skill}</span>{c.from ? <> {ui.from} <span className="font-mono">{c.from}</span></> : null} — {c.why}</li>)}</ul>
+          : <p className="text-sm text-muted-foreground">{ui.noNeeds}</p>}
+        <section className="flex flex-col gap-2" data-passport-integrations={integrations.length}>
+          <p className="text-sm font-medium">{ui.integrations}</p>
+          {integrations.length
+            ? <ul className="flex flex-col gap-1.5">{integrations.map((p, i) => (
+                <li key={i} className="text-sm">
+                  <span className="font-medium">{p.service}</span> — {p.what}
+                  {p.env ? <> · <span className="font-mono">{p.env}</span></> : null}
+                  {p.docs ? <> · <a className="underline" href={p.docs} target="_blank" rel="noreferrer">{ui.apiDocs}</a></> : null}
+                </li>
+              ))}</ul>
+            : <p className="text-sm text-muted-foreground">{ui.noIntegrations}</p>}
+        </section>
+      </>
+    )
   } else if (view === "cron") {
     body = (
       <section className="flex flex-col gap-2">
         <p className="text-sm font-medium">{ui.process}</p>
         {x.process?.length
-          ? <ul className="flex flex-col gap-1.5">{x.process.map((p, i) => <li key={i} className="text-sm"><Badge variant="outline" className="mr-2">{p.kind}</Badge>{p.what}</li>)}</ul>
+          ? <ul className="flex flex-col gap-1.5">{x.process.map((p, i) => <li key={i} className="text-sm"><Badge variant="outline" className="mr-2">{p.kind}</Badge>{p.kind === "cron" && p.schedule ? <span className="mr-2 font-mono">{p.schedule}</span> : null}{p.what}</li>)}</ul>
           : <p className="text-sm text-muted-foreground">{ui.noProcess}</p>}
       </section>
     )

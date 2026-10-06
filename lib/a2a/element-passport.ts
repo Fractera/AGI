@@ -16,7 +16,7 @@ export type FracteraExt = {
   visibility: "node" | "network"
   doors?: A2ADoor[]
   consumes?: { skill: string; from?: string; why: string }[]
-  process?: { kind: string; what: string }[]
+  process?: { kind: string; what: string; service?: string; env?: string; docs?: string; schedule?: string }[]
   catalog?: { find: string; get: string; contribute?: string | null } | null
   private?: string[]
 }
