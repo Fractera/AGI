@@ -63,6 +63,22 @@ export function AgentTerminal({ service, lang, words, dialogUi, initialPaste, ke
     window.history.replaceState(null, "", url.pathname + url.search + url.hash)
   }, [])
 
+  // Владелец 2026-10-06: курсор — в конце поручения, на новой строке: надиктованное дописывается под ним, а не перед ним.
+  // Пока окно открыто, терминал фокус не забирает (иначе окно дёргается и курсор уходит).
+  const pasteOpenRef = useRef(false)
+  useEffect(() => {
+    pasteOpenRef.current = pasteOpen
+    if (!pasteOpen) return
+    const t = window.setTimeout(() => {
+      const el = document.getElementById("terminal-paste-text") as HTMLTextAreaElement | null
+      if (!el) return
+      el.focus()
+      el.setSelectionRange(el.value.length, el.value.length)
+      el.scrollTop = el.scrollHeight
+    }, 80)
+    return () => window.clearTimeout(t)
+  }, [pasteOpen])
+
   const send = useCallback((payload: unknown) => {
     const ws = wsRef.current
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(payload))
@@ -98,7 +114,7 @@ export function AgentTerminal({ service, lang, words, dialogUi, initialPaste, ke
         setState("running")
         termRef.current?.reset()
         termRef.current?.write(MOUSE_OFF)
-        termRef.current?.focus()
+        if (!pasteOpenRef.current) termRef.current?.focus()
       }
       ws.onmessage = (event) => {
         const chunk = typeof event.data === "string" ? event.data : new TextDecoder().decode(event.data)
@@ -276,7 +292,7 @@ export function AgentTerminal({ service, lang, words, dialogUi, initialPaste, ke
             </div>
           </div>
           <div className="h-[70dvh] min-h-[420px] overflow-hidden rounded-lg bg-[#0b0b0c] p-2">
-            <XtermTerminal onData={handleData} onResize={handleResize} ref={termRef} />
+            <XtermTerminal onData={handleData} onResize={handleResize} ref={termRef} autoFocus={!pasteOpen} />
           </div>
         </>
       )}

@@ -37,9 +37,11 @@ type Props = {
   /** Куда сообщать новый размер. */
   onResize: (size: { cols: number; rows: number }) => void;
   ref?: React.Ref<XtermHandle>;
+  /** 2026-10-06: false — не забирать фокус при появлении (открыто окно вставки, в нём курсор человека). */
+  autoFocus?: boolean;
 };
 
-export function XtermTerminal({ onData, onResize, ref }: Props) {
+export function XtermTerminal({ onData, onResize, ref, autoFocus = true }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const termRef = useRef<Terminal | null>(null);
 
@@ -126,7 +128,7 @@ export function XtermTerminal({ onData, onResize, ref }: Props) {
       };
 
       push();
-      term.focus();
+      if (autoFocus) term.focus();
       term.onData((d) => onDataRef.current(d));
 
       observer = new ResizeObserver(() => {

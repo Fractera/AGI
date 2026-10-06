@@ -63,7 +63,13 @@ import { ElementOrdersIsland } from '@/components/element-docs/element-orders.cl
 type Params = { lang: string; item: string; page?: string[] }
 
 // 417: поручение кнопки «Сгенерировать описание» — агент элемента пишет тексты паспорта по своему навыку.
-const PASSPORT_TASK = 'Generate your passport description: follow the skill passport-description (OWN-SERVICE-PROPS/README.md). Show me the texts before saving.'
+// Владелец 2026-10-06: поручение — на языке человека и его словами («сейчас ты будешь создавать описание для паспорта, используя
+// текстовый ввод пользователя; ты должен вызвать для этого навык …»); английское он стёр, не поняв, и агент построил работу вместо
+// описания. Текст кончается новой строкой: курсор встаёт под поручением, надиктованное дописывается ниже.
+const PASSPORT_TASK: Record<'en' | 'ru', string> = {
+  en: "Now you write the description for the passport using the user's text below. Call the skill passport-description for this: only the passport texts, build nothing; show them to me before saving.\nUser's text:\n",
+  ru: "Сейчас ты будешь создавать описание для паспорта, используя текстовый ввод пользователя ниже. Ты должен вызвать для этого навык passport-description: только тексты паспорта, ничего не строй; покажи их мне до сохранения.\nТекст пользователя:\n",
+}
 
 // 326-3: страница дерева «Строительство» → вид острова комплекта агента (имя шаблона комплекта).
 const AGENT_PAGES: Record<string, AgentKitPage | undefined> = { subscription: 'claude-code', terminal: 'terminal', telegram: 'telegram' }
@@ -300,7 +306,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   // 412-2: документ элемента — текст спрашивает островок при открытии (страница предрендерена, агент правит файлы в любую минуту).
   // 417: новый паспорт — сверху кнопка генерации и ответ двери элемента (как его получает ядро), ниже README и файл.
   const passportDoor = page?.slug === 'own-service-props' && entry
-    ? <PassportDoor item={item} terminalHref={terminalLink({ lang, service: `${slug}/build`, text: PASSPORT_TASK })} words={passportDoorUi(lang)} />
+    ? <PassportDoor item={item} terminalHref={terminalLink({ lang, service: `${slug}/build`, text: PASSPORT_TASK[lang === 'ru' ? 'ru' : 'en'] })} words={passportDoorUi(lang)} />
     : null
   const doc = page?.doc ? <>{passportDoor}<ElementDocIsland item={item} page={page.slug} words={elementDocsUi(lang)} /></> : null
   // 412-6: «Процесс → Заказы» — сводки заказов элемента и беседы за ними; у черновика заказов не бывает.
