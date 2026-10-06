@@ -1,4 +1,4 @@
-// @api read an AGI ITEM's passport through its own door, with the node key
+// @api read an element passport through its door with the node key
 import { NextRequest, NextResponse } from "next/server"
 
 import { requireRoles } from "@/lib/auth/require-roles"
