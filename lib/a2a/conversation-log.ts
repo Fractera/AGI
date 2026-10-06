@@ -56,7 +56,7 @@ export function agentOf(key: string): Agent {
   return e ? { key, address: e.address, name: e.address } : { key, address: key, name: key }
 }
 
-const FILTERS = ["after", "before", "element", "pair", "task", "limit"] as const
+const FILTERS = ["after", "before", "element", "pair", "task", "context", "limit"] as const // 412-6: context — одна беседа
 
 /** Прочитать журнал с отбором; к ответу — участники выборки с именами. */
 export async function readLog(params: URLSearchParams): Promise<{ ok: boolean; rows: LogRow[]; total: number; agents: Agent[]; error?: string }> {
