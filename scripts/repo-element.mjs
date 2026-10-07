@@ -18,7 +18,8 @@ const KIT = (root) => join(root, 'lib', 'agi-items', 'repo-element')
 
 /** Что за проект: `{ kind, mode, health, build }` или `{ reason }`. */
 function recognise(dir) {
-  if (existsSync(join(dir, 'OWN-SERVICE-PROPS.json'))) return { kind: 'element', own: true }
+  // 434-3: элемент нового шаблона несёт паспорт папкой (OWN-SERVICE-PROPS/) — он тоже свой элемент, не чужой проект.
+  if (existsSync(join(dir, 'OWN-SERVICE-PROPS.json')) || existsSync(join(dir, 'OWN-SERVICE-PROPS', 'OWN-SERVICE-PROPS.json'))) return { kind: 'element', own: true }
   const pkgFile = join(dir, 'package.json')
   if (!existsSync(pkgFile)) return { reason: 'в репозитории нет package.json — это не Node-проект. Узел ставит Next.js, Node-серверы со стартом «node <файл>» и статические сайты (Vite, Create React App, Gatsby, Astro)' }
   let pkg

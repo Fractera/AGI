@@ -93,15 +93,20 @@ if (repoUrl) {
   stage(`проект распознан: ${r.kind} — паспорт, запускатель и файлы агента добавлены`)
 }
 
-// 4. Паспорт.
-const propsFile = join(dir, 'OWN-SERVICE-PROPS.json')
-if (!existsSync(propsFile)) fail('в шаблоне нет OWN-SERVICE-PROPS.json — элементу не у кого спросить своё имя', dir)
+// 4. Паспорт. 434-3 (владелец 2026-10-07: «делай перенос в шаблон»): шаблон v0.3.71 несёт паспорт ПАПКОЙ (417 —
+// `OWN-SERVICE-PROPS/OWN-SERVICE-PROPS.json`, описание — `shortDescription`); прежний файл в корне (`summary`) остаётся для
+// старых тегов и импортированных проектов. Читатель обеих раскладок — `lib/agi-items/element-props.cjs`.
+const folderPassport = join(dir, 'OWN-SERVICE-PROPS', 'OWN-SERVICE-PROPS.json')
+const propsFile = existsSync(folderPassport) ? folderPassport : join(dir, 'OWN-SERVICE-PROPS.json')
+if (!existsSync(propsFile)) fail('в шаблоне нет паспорта (OWN-SERVICE-PROPS/ или OWN-SERVICE-PROPS.json) — элементу не у кого спросить своё имя', dir)
 const props = JSON.parse(readFileSync(propsFile, 'utf8'))
 props.id = id
 props.name = id
 // 325-1: СВОЁ ОПИСАНИЕ, А НЕ ШАБЛОННОЕ. ✗ Замерено: рождённый `as8kp` описывал себя словами шаблона («The template of a node
 // element…»). Первичная запись говорит, кто это и откуда; что элемент умеет, пишет его агент (Настройки → Описание, 325-2).
-props.summary = `AGI element ${id}, born from ${origin.from} ${origin.version} on ${new Date().toISOString().slice(0, 10)}. Its capabilities are written by its agent from Settings → Capabilities description.`
+const bornWords = `AGI element ${id}, born from ${origin.from} ${origin.version} on ${new Date().toISOString().slice(0, 10)}. Its capabilities are written by its agent from Settings → Capabilities description.`
+if (propsFile === folderPassport) props.shortDescription = bornWords
+else props.summary = bornWords
 writeFileSync(propsFile, JSON.stringify(props, null, 2) + '\n', 'utf8')
 
 // 4б. ЭЛЕМЕНТ РОЖДАЕТСЯ В ОБЛИКЕ ПРОЕКТА (слово владельца 2026-10-01: «стартовый шаблон … по дефолту должен сразу подключиться к
@@ -210,7 +215,8 @@ pm2(['save'])
 stage('запущен в pm2, жду ответа элемента')
 
 // Ждём ответ по ФАКТУ, а не паузой (закон «после pm2 reload ждать порт по факту»).
-const health = JSON.parse(readFileSync(join(dir, 'OWN-SERVICE-PROPS.json'), 'utf8')).health?.path ?? '/'
+// 434-3: путь здоровья — из договора узла при паспорте папкой (NODE-CONTRACT.json), из корневого файла при старой раскладке.
+const health = require('../lib/agi-items/element-props.cjs').readElementProps(dir)?.health?.path ?? '/'
 let answered = 0
 for (let i = 0; i < 60 && !answered; i++) {
   try {
