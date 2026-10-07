@@ -90,7 +90,7 @@ function shellEnv(shell) {
  * владелец: «агент должен уметь запускать собственный терминал»). `notice` — строки человеку (в окно терминала или никуда),
  * `wanted` — нужен ли ещё запуск после установки плагина канала (окно закрыли — не рождать).
  */
-async function spawnAgent(service, notice = () => {}, wanted = () => true) {
+async function spawnAgent(service, notice = () => {}, wanted = () => true, firstPrompt = '') {
   if (!pty) {
     notice(`[терминал недоступен: node-pty не загружен — ${ptyLoadError}]`)
     return { ok: false, reason: 'pty-unavailable' }
@@ -130,6 +130,11 @@ async function spawnAgent(service, notice = () => {}, wanted = () => true) {
     args = launch.args
   }
   if (!wanted() || session.current(service)) return { ok: false, reason: 'gone' }
+  // 426 (✗ 2026-10-07: первое сообщение из Telegram пропало целиком — вставка по «3 с тишины» ушла раньше, чем Claude Code начал
+  // принимать ввод, пока грузился плагин каналов): первое поручение новой сессии — аргументом запуска. `claude "<запрос>"` в
+  // интерактивном режиме берёт его первым, когда готов, — момент готовности не угадывается. Многострочный текст с кавычками и
+  // кириллицей доходит через node-pty байт в байт (замерено тем же днём).
+  if (firstPrompt) args = [...args, firstPrompt]
   let child
   try {
     child = pty.spawn(bin, args, { cols: 120, rows: 32, cwd, env, name: 'xterm-256color' })
@@ -242,10 +247,9 @@ async function wake(service, { text, from, about, declineUrl, confirmed, taskUrl
   const freeMb = Math.floor(os.freemem() / MB)
   const per = perSessionMb()
   if (freeMb < per) return { ok: false, reason: 'memory', freeMb, perSessionMb: per }
-  const r = await spawnAgent(service)
+  const r = await spawnAgent(service, undefined, undefined, text ? `${text}\n\n${finishRule(service)}` : '')
   if (!r.ok) return { ok: false, reason: r.reason }
   rememberTasks(r.session, urls)
-  if (text) pasteWhenReady(r.session, `${text}\n\n${finishRule(service)}`)
   // 409-5 (владелец: «timeout more then 60 min»): через 60 минут от пробуждения — вопрос «закрыть терминал?». Только для
   // пробуждённых сессий; сама сессия не закрывается — закрывает агент по ответу человека. Переменная — для прибора.
   const born = r.session

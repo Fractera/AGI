@@ -282,7 +282,7 @@ async function idleTick(service) {
         continue
       }
       const who = [msg.from.first_name, msg.from.last_name].filter(Boolean).join(' ') || msg.from.username || sender
-      await askToStart(service, { text: humanPrompt(msg.chat.id, who, said), from: who, about: said, kind: 'human' })
+      await askToStart(service, { text: humanPrompt(service, msg.chat.id, who, said), from: who, about: said, kind: 'human' })
       continue
     }
     if (answered.has(msg.chat.id)) continue
@@ -409,9 +409,22 @@ const ASK = {
   },
 }
 
+/**
+ * 426 (владелец 2026-10-07: «нативно наша архитектура даже не знает о том, что у нас есть Telegram»): первой строкой — «узнай себя и
+ * узел», как у задачи A2A (`lib/a2a/executor.ts` элемента): поручение в руках сильнее правила в инструкции. Только элементу, у
+ * которого есть `npm run passport` (паспорт нового вида) — остальным такой команды нет.
+ */
+function knowYourself(service) {
+  try {
+    const pkg = JSON.parse(readFileSync(path.join(serviceDir(service), 'package.json'), 'utf8'))
+    if (!pkg?.scripts?.passport) return ''
+  } catch { return '' }
+  return 'Сначала узнай себя и узел: npm run passport -- me, затем npm run passport -- project (навыки own-service-props-detection и node-elements-detection; вывод читай целиком, не режь head). Как отвечать человеку — навык telegram-channel. '
+}
+
 /** 409-4: что вставить агенту из сообщения человека — кто, откуда и как ответить (инструмент reply канала Telegram). */
-function humanPrompt(chatId, who, said) {
-  return `Сообщение из Telegram от ${who} (chat_id ${chatId}), пока ты был выключен: ${said} — ответь ему в Telegram инструментом reply канала (chat_id ${chatId}).`
+function humanPrompt(service, chatId, who, said) {
+  return `${knowYourself(service)}Сообщение из Telegram от ${who} (chat_id ${chatId}), пока ты был выключен: ${said} — ответь ему в Telegram инструментом reply канала (chat_id ${chatId}).`
 }
 
 /** «Выключи» и его родня целиком, без другого текста: выключенному агенту это не поручение, а просьба, которая уже исполнена. */
