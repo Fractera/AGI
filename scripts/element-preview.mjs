@@ -115,8 +115,16 @@ const current = readJson(FILE)
 if (action === 'stage') {
   if (!stamp || !distEnv) { save({ state: 'failed', note: 'элемент не умеет собираться в соседнюю папку — предпросмотр невозможен' }); process.exit(1) }
   if (deployLock.isRunning()) { save({ state: 'failed', note: 'идёт развёртывание — предпросмотр не начат' }); process.exit(1) }
-  if (current && ((current.state === 'building' && alive(current.pid)) || current.state === 'ready')) process.exit(0)
+  if (current && current.state === 'building' && alive(current.pid)) process.exit(0)
   if (current && current.state === 'discarding' && alive(current.pid)) process.exit(0)
+  // 429 (✗ 2026-10-07): здесь «ready» любого возраста значило «уже есть» — кнопка «Предпросмотр» молча не делала ничего, пока
+  // висел предпросмотр утреннего коммита. Готовый оставляется, только если он из ТЕКУЩЕГО коммита и его сервер жив; иначе
+  // прежний сервер гасится (на Windows живой сервер держит файлы папки) и сборка идёт заново в ту же соседнюю папку.
+  if (current && current.state === 'ready') {
+    const head = spawnSync('git', ['-C', dir, 'rev-parse', '--short=7', 'HEAD'], { encoding: 'utf8', windowsHide: true }).stdout?.trim() || null
+    if (head && current.commit === head && alive(current.serverPid)) process.exit(0)
+    killPreview(current)
+  }
   const live = typeof stamp.dist === 'string' && stamp.dist.startsWith('.next') ? stamp.dist : String(stamp.start?.args?.[0] ?? '').split(/[\\/]/)[0]
   const target = live === '.next-a' ? '.next-b' : '.next-a'
   const commit = spawnSync('git', ['-C', dir, 'rev-parse', '--short=7', 'HEAD'], { encoding: 'utf8', windowsHide: true }).stdout?.trim() || null
