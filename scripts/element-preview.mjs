@@ -132,7 +132,11 @@ if (action === 'stage') {
   // прилипает. Сайт показывает его окном по `?report=`; здесь он нужен ядру для адреса предпросмотра и блока «Что сделано».
   const git1 = (args) => spawnSync('git', ['-C', dir, ...args], { encoding: 'utf8', windowsHide: true }).stdout?.trim() || ''
   let report = null
-  if (git1(['log', '-1', '--format=%H', '--', 'TASK-REPORT.json']) === git1(['rev-parse', 'HEAD'])) {
+  // 430 (✗ 2026-10-07): откат вернул файлу прежнее содержимое — «менялся в этом коммите» было правдой, и предпросмотр показал
+  // чужой старый отчёт. Отчёт этого коммита — только содержимое, которого в истории до HEAD не было (`--find-object`).
+  const blob = git1(['rev-parse', 'HEAD:TASK-REPORT.json'])
+  const seenBefore = blob && git1(['log', '-1', '--format=%h', `--find-object=${blob}`, 'HEAD~1'])
+  if (!seenBefore && git1(['log', '-1', '--format=%H', '--', 'TASK-REPORT.json']) === git1(['rev-parse', 'HEAD'])) {
     const r = readJson(join(dir, 'TASK-REPORT.json'))
     if (r && typeof r.task === 'string' && r.task.trim()) {
       const list = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string').slice(0, 20) : [])
