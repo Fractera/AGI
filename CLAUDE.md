@@ -2678,6 +2678,21 @@ What is built but not yet explained, half-built, or owed — `development-docs/B
 instruction: it is the list of our own work, read when the area it names comes up, never at session
 start.
 
+## Build process and working process — name which one first (step 435, owner 2026-10-08)
+
+Owner: «мне не хватило определения о каком процессе ты идёшь». Every task about an element names its process first.
+
+| | Build process (строительный) | Working process (рабочий) |
+|---|---|---|
+| what | the element as a thing: code, design, texts, deploy, and offering or selling the element as a whole | what the running element does: its skills, calls from neighbours and outside agents, who gets them, at what price and limit |
+| element menu | «Build», «Product design», «Network (M2M)» | «Links (A2A)», «Process» |
+| element agent | the Builder nature (element `CLAUDE.md`, «Two natures») | the Worker nature |
+
+- **Element** (AGI ITEM) — one self-contained thing of the node with its own folder, port, address, repository and agent: to the
+  node a microservice that talks to its neighbours, to a person a whole project — a site, an app, an agent or a service.
+- **Node** — every element on one person's computer plus the core that links them (registry, discovery, install). It belongs to
+  the person and works without Fractera. Elements of one node talk over A2A; nodes talk to each other over M2M.
+
 ## A2A inside the node — talk, wake, Telegram (steps 406–409, 2026-10-05)
 
 - **Elements call each other directly** (Google A2A 1.0, `lib/a2a/STANDARD.md`); the core is not a middleman (owner, re-confirmed
