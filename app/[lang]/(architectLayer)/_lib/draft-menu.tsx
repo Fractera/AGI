@@ -2,7 +2,7 @@ import "server-only"
 import type { WorkspaceItem } from '@/lib/content/blocks/types'
 import { listDrafts } from '@/lib/agi-items/drafts'
 import { addressOf } from '@/lib/agi-items/element-address'
-import { ITEM_TREE, treeLang } from '@/lib/agi-items/item-tree'
+import { ITEM_TREE, TREE_GROUPS, treeLang, type TreePage } from '@/lib/agi-items/item-tree'
 import { hasCatalog } from '@/lib/a2a/element-passport'
 import { hasDoc } from '@/lib/agi-items/element-docs'
 import { agiDraftsUi } from '../_i18n/agi-drafts.i18n'
@@ -58,10 +58,19 @@ export function withDrafts(menu: WorkspaceItem[], lang: string, currentPath: str
       const path = `${dir}/${s.slug}`
       const inside = currentPath.startsWith(`${path}/`)
       // 412-2: пункт документа — только пока его файл есть в папке элемента.
-      const pages = (s.pages ?? []).filter((p) => (p.needs !== 'catalog' || catalog) && (!p.doc || hasDoc(d.id, p.doc))).map((p) => {
+      const visible = (s.pages ?? []).filter((p) => (p.needs !== 'catalog' || catalog) && (!p.doc || hasDoc(d.id, p.doc)))
+      const leaf = (p: TreePage): WorkspaceItem => {
         const pagePath = `${path}/${p.slug}`
         return { label: p.words[l].title, href: at(pagePath), active: pagePath === currentPath }
-      })
+      }
+      // 435-3: страницы одной группы — раскрывающийся пункт без своей страницы, на месте первой из них; открыт, когда человек внутри.
+      const pages: WorkspaceItem[] = []
+      for (const p of visible) {
+        if (!p.group) { pages.push(leaf(p)); continue }
+        if (pages.some((x) => x.label === TREE_GROUPS[p.group!][l])) continue
+        const members = visible.filter((m) => m.group === p.group).map(leaf)
+        pages.push({ label: TREE_GROUPS[p.group][l], open: members.some((m) => m.active), children: members })
+      }
       return pages.length > 0
         ? { label: s.words[l].title, href: at(path), active: path === currentPath, open: path === currentPath || inside, children: pages }
         : { label: s.words[l].title, href: at(path), active: path === currentPath || inside }

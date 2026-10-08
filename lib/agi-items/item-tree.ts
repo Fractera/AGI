@@ -10,14 +10,30 @@
 export type TreeWords = { title: string; lead: string }
 // 412-2: `doc` — страница показывает файл (или папку) элемента; пункт есть, только пока этот файл существует
 // (`lib/agi-items/element-docs.ts`).
+// 435 (владелец 2026-10-08): `about` — абзацы под заголовком страницы, когда одной строки `lead` мало; `group` — страница уходит
+// в раскрывающуюся группу раздела (в меню и в списке страниц раздела), её адрес не меняется.
 export type TreePage = {
   slug: string; words: Record<"en" | "ru", TreeWords>; pages?: TreePage[]; needs?: "catalog"; doc?: { file: string; folder?: boolean; deep?: boolean }
+  about?: Record<"en" | "ru", string[]>; group?: TreeGroup
 }
 
 const w = (enTitle: string, enLead: string, ruTitle: string, ruLead: string): Record<"en" | "ru", TreeWords> => ({
   en: { title: enTitle, lead: enLead },
   ru: { title: ruTitle, lead: ruLead },
 })
+
+// 435-3, слово владельца 2026-10-08: «API и MCP … уважить в один раскрывающийся список техническое описание»; «каталог …
+// переносится также внутрь».
+export type TreeGroup = "technical"
+export const TREE_GROUPS: Record<TreeGroup, Record<"en" | "ru", string>> = {
+  technical: { en: "Technical description", ru: "Техническое описание" },
+}
+
+// 435-1: что такое элемент и узел — одними словами для обоих разделов, где человеку это нужно знать.
+const ELEMENT_AND_NODE = {
+  en: "An element is one self-contained thing in your node: a site, an app, an agent or a service. It has its own folder, its own address on the internet, its own repository and its own agent that builds it. To other elements it is also a microservice: it answers its neighbours and asks them for help. Your node is all your elements on this computer together with the core that links them; the node belongs to you and works without Fractera.",
+  ru: "Элемент — это одна самостоятельная вещь вашего узла: сайт, приложение, агент или служба. У него своя папка, свой адрес в интернете, свой репозиторий и свой агент, который его строит. Для других элементов он ещё и микросервис: отвечает соседям и просит их о помощи. Узел — это все ваши элементы на этом компьютере вместе с ядром, которое их связывает; узел принадлежит вам и работает без Fractera.",
+}
 
 export const ITEM_TREE: TreePage[] = [
   { slug: "preview", words: w("Live site", "The element's own site as it runs now and a visitor sees it.", "Живой сайт", "Сайт элемента таким, каким он работает сейчас и каким его видит посетитель.") }, // 393: «Preview» → «Живой сайт» (владелец 2026-10-04)
@@ -39,22 +55,64 @@ export const ITEM_TREE: TreePage[] = [
   {
     // 406-4 (владелец 2026-10-05, карта меню 406-2): «Коннекторы» → «Связи (A2A)»; адрес раздела прежний.
     slug: "connectors",
-    words: w("Links (A2A)", "What this element offers its neighbours, what it needs from them, and how to reach it.", "Связи (A2A)", "Что элемент предлагает соседям, что ему нужно от них и как к нему обратиться."),
+    // 435-3 (владелец 2026-10-08): главная раздела объясняет элемент, узел и два рода сведений — рабочий процесс.
+    words: w("Links (A2A)", "How elements find each other, and to whom this element gives its work.", "Связи (A2A)", "Как элементы находят друг друга и кому этот элемент даёт свою работу."),
+    about: {
+      en: [
+        ELEMENT_AND_NODE.en,
+        "This section holds two kinds of information. The first is how elements find each other inside the node: the core keeps the list of every element and what it can do, and an element that lacks something finds the neighbour who can and talks to it directly.",
+        "The second is how and to whom this element gives access to its work: what it can do, what it returns, who may use it, at what price and with what limit.",
+        "All of this is the working process — what the element does once it runs. The technical details — HTTP doors, MCP tools and the catalog — are collected below in «Technical description».",
+      ],
+      ru: [
+        ELEMENT_AND_NODE.ru,
+        "Здесь два рода сведений. Первый — как элементы находят друг друга внутри узла: ядро держит список всех элементов и того, что каждый умеет, и элемент, которому чего-то не хватает, находит соседа, который это умеет, и обращается к нему напрямую.",
+        "Второй — как и кому этот элемент даёт доступ к своей работе: что он умеет, что возвращает, кому это доступно, по какой цене и с каким лимитом.",
+        "Всё это — рабочий процесс: то, что элемент делает, когда уже работает. Технические подробности — HTTP-двери, инструменты MCP и каталог — собраны ниже в «Техническом описании».",
+      ],
+    },
     pages: [
-      { slug: "api", words: w("API", "The element's HTTP doors.", "API", "HTTP-двери элемента.") },
-      { slug: "mcp", words: w("MCP", "The element's tools for agents over MCP.", "MCP", "Инструменты элемента для агентов по MCP.") },
-      { slug: "a2a", words: w("A2A", "What the element can do, what it needs from neighbours, and who may call it.", "A2A", "Что элемент умеет, что ему нужно от соседей и кто вправе его вызывать.") },
-      // 406-4: виден только у элемента, чей паспорт объявляет каталог (`a2a.catalog`).
-      { slug: "catalog", needs: "catalog", words: w("Catalog", "What the element can give away: find, get, contribute.", "Каталог", "Что элемент умеет отдать: найти, получить, внести.") },
+      { slug: "a2a", words: w("A2A", "The showcase: what the element can do, what it returns, to whom and on what terms.", "A2A", "Витрина: что элемент умеет, что возвращает, кому и на каких условиях.") },
+      { slug: "api", group: "technical", words: w("API", "The element's HTTP doors.", "API", "HTTP-двери элемента.") },
+      { slug: "mcp", group: "technical", words: w("MCP", "The element's tools for agents over MCP.", "MCP", "Инструменты элемента для агентов по MCP.") },
+      // 435-3, выбор владельца «Показать оба»: сверху элементы этого узла, ниже — каталог самого элемента, если он его объявляет.
+      { slug: "catalog", group: "technical", words: w("Catalog", "The elements of this node in short, and what this element can give away.", "Каталог", "Элементы этого узла коротко и что умеет отдать этот элемент.") },
     ],
   },
   {
     // 406-4: «Web3 store» → «Сеть (M2M)»; адрес раздела прежний.
     slug: "web3-store",
-    words: w("Network (M2M)", "Not found in this node is not «does not exist»: the way out to other nodes.", "Сеть (M2M)", "Не нашлось в узле — не значит, что не существует: выход к другим узлам."),
+    // 435-2 (владелец 2026-10-08): раздел — строительный процесс: распространение и продажа элемента целиком.
+    words: w("Network (M2M)", "Here the element goes beyond your computer: find the same kind of element on the network, or offer this one.", "Сеть (M2M)", "Здесь элемент выходит за пределы вашего компьютера: найти в сети такой же элемент или предложить этот."),
+    about: {
+      en: [
+        ELEMENT_AND_NODE.en,
+        "The network is the nodes of other people. People come here for one of two things: to find a ready element before building their own, or to offer this element to others — free or for money.",
+        "Everything in this section is the build process: it is about the element as a whole, not about what it does while it works. What it can do and on what terms is in «Links (A2A)».",
+      ],
+      ru: [
+        ELEMENT_AND_NODE.ru,
+        "Сеть — это узлы других людей. Сюда приходят с одной из двух целей: найти готовый элемент, прежде чем строить свой, или предложить этот элемент другим — бесплатно или за деньги.",
+        "Всё в этом разделе — строительный процесс: речь об элементе целиком, а не о том, что он делает, когда работает. Что он умеет и на каких условиях — в разделе «Связи (A2A)».",
+      ],
+    },
     pages: [
-      { slug: "find", words: w("Find in the network", "Look for a ready element on other nodes before building one.", "Найти в сети", "Найти готовый элемент на других узлах, прежде чем строить свой.") },
-      { slug: "publish", words: w("Offer to the network", "How this element will be announced to other nodes.", "Отправить в сеть", "Как этот элемент будет объявлен другим узлам.") },
+      {
+        slug: "find",
+        words: w("Find in the network", "Look for a ready element on other nodes before building your own.", "Найти в сети", "Найти готовый элемент на других узлах, прежде чем строить свой."),
+        about: {
+          en: ["An element is looked for in two ways: through AI search engines built on Cloudflare, and through Fractera's own search, where nodes find each other directly, without a central server."],
+          ru: ["Элемент ищется двумя путями: через ИИ-поисковики на базе Cloudflare и через собственный поиск Fractera, где узлы находят друг друга напрямую, без центрального сервера."],
+        },
+      },
+      {
+        slug: "publish",
+        words: w("Offer to the network", "Offer this whole element to other people: share it free or sell it.", "Отправить в сеть", "Предложить этот элемент целиком другим людям: распространять бесплатно или продавать."),
+        about: {
+          en: ["Here the price of the element itself is set — the whole site, app or agent with its code and design. This is not the price of its skills: what the element's work costs others (an article, an image, a message in a dialog) is set in «Links (A2A)»."],
+          ru: ["Здесь назначается цена самого элемента — сайта, приложения или агента целиком, с его кодом и устройством. Это не цена его навыков: сколько стоит работа элемента для других (статья, изображение, сообщение в диалоге), задаётся в «Связи (A2A)»."],
+        },
+      },
     ],
   },
   {

@@ -22,6 +22,28 @@ export type ElementPassportUi = {
   from: string
   catalogNone: string
   catalogDoors: string
+  // 435-3: «Каталог» — элементы узла сверху.
+  nodeElements: string
+  nodeElementsLead: string
+  noDescription: string
+  thisElement: string
+  ownCatalog: string
+  // 435-4: витрина A2A на примерных карточках.
+  offers: string
+  offersLead: string
+  example: string
+  price: string
+  access: string
+  limit: string
+  forNeighbours: string
+  forNeighboursLead: string
+  accessRegistered: string
+  accessEveryone: string
+  unlimited: string
+  perDay: string
+  perHour: string
+  perRequest: string
+  perMessage: string
   find: string
   get: string
   contribute: string
@@ -70,6 +92,26 @@ const DICT: Record<"en" | "ru", ElementPassportUi> = {
     from: "from",
     catalogNone: "This element offers no catalog.",
     catalogDoors: "Catalog doors",
+    nodeElements: "Elements of this node",
+    nodeElementsLead: "Every element on this computer, in short — the list the core keeps so elements can find each other.",
+    noDescription: "No description yet.",
+    thisElement: "this element",
+    ownCatalog: "What this element can give away",
+    offers: "What it offers",
+    offersLead: "The element's showcase: what it does, what it returns, to whom, at what price and with what limit.",
+    example: "example, not for sale",
+    price: "Price",
+    access: "Available to",
+    limit: "Limit",
+    forNeighbours: "For neighbours in the node",
+    accessRegistered: "registered users",
+    accessEveryone: "everyone",
+    unlimited: "no limit",
+    perDay: "a day",
+    perHour: "an hour",
+    perRequest: "per request",
+    perMessage: "per message",
+    forNeighboursLead: "What other elements of this node call to keep the sites working together: free, with the node key.",
     find: "find",
     get: "get",
     contribute: "contribute",
@@ -116,6 +158,26 @@ const DICT: Record<"en" | "ru", ElementPassportUi> = {
     from: "у",
     catalogNone: "Каталога у элемента нет.",
     catalogDoors: "Двери каталога",
+    nodeElements: "Элементы этого узла",
+    nodeElementsLead: "Все элементы на этом компьютере коротко — список, который держит ядро, чтобы элементы находили друг друга.",
+    noDescription: "Описания пока нет.",
+    thisElement: "этот элемент",
+    ownCatalog: "Что умеет отдать этот элемент",
+    offers: "Что предлагает",
+    offersLead: "Витрина элемента: что он делает, что возвращает, кому, по какой цене и с каким лимитом.",
+    example: "пример, не продаётся",
+    price: "Цена",
+    access: "Кому доступно",
+    limit: "Лимит",
+    forNeighbours: "Для соседей по узлу",
+    accessRegistered: "зарегистрированным пользователям",
+    accessEveryone: "всем",
+    unlimited: "без ограничений",
+    perDay: "в сутки",
+    perHour: "в час",
+    perRequest: "за запрос",
+    perMessage: "за сообщение",
+    forNeighboursLead: "То, что вызывают другие элементы этого узла, чтобы сайты работали вместе: бесплатно, по ключу узла.",
     find: "найти",
     get: "получить",
     contribute: "внести",

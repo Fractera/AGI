@@ -8,8 +8,8 @@ import { DraftCards } from '../../../_components/draft-cards'
 import { DeleteDraftButton } from '../../../_components/delete-draft-button.client'
 import { appDialogUi } from '@/components/dialog/app-dialog.i18n'
 import { draftAddress, getDraft } from '@/lib/agi-items/drafts'
-import { findTreePage, treeLang } from '@/lib/agi-items/item-tree'
-import { getService, serviceUrl } from '@/lib/microservices/registry'
+import { findTreePage, TREE_GROUPS, treeLang, type TreeGroup, type TreePage } from '@/lib/agi-items/item-tree'
+import { getService, listServices, serviceUrl } from '@/lib/microservices/registry'
 import { BirthButton } from '../../../_components/birth-button.client'
 import { birthState } from '@/lib/agi-items/birth'
 import { ServicePort } from '@/components/services/service-port.client'
@@ -42,7 +42,8 @@ import { agentKitWidget, openAiKeyHref, type AgentKitPage } from '../_agent-kit/
 import { ElementPreview } from '@/components/preview/element-preview.client'
 import { elementPreviewWords, previewTaskKit } from '@/sections/blocks/element-preview.server'
 import { EnvironmentPanel } from '@/components/environment/environment-panel'
-import { ElementPassport, type PassportView } from '../../../_components/element-passport'
+import { ElementPassport, type NodeElementRow, type PassportView } from '../../../_components/element-passport'
+import { nodeEntries } from '@/lib/a2a/node-registry'
 import { elementPassportUi } from '../../../_i18n/element-passport.i18n'
 import { elementPassport } from '@/lib/a2a/element-passport'
 import { hasDoc } from '@/lib/agi-items/element-docs'
@@ -164,23 +165,41 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   const path = page ? `${sectionPath}/${page.slug}` : sectionPath
 
   // Страница раздела перечисляет свои страницы и справа — вместе с третьим уровнем левого меню (320).
-  const list = !page && section.pages && section.pages.length > 0 ? (
+  const pageCard = (sp: TreePage) => (
+    <li key={sp.slug}>
+      <Link
+        href={`/${lang}${sectionPath}/${sp.slug}`}
+        className="flex flex-col gap-1 rounded-lg border border-border p-3 transition-colors hover:bg-muted/60"
+      >
+        <span className="font-medium text-foreground">{sp.words[l].title}</span>
+        <span className="text-[length:var(--fs-small)] text-muted-foreground">{sp.words[l].lead}</span>
+      </Link>
+    </li>
+  )
+  const shown = (section.pages ?? []).filter((sp) => !sp.doc || hasDoc(item, sp.doc))
+  // 435-3: страницы группы — под раскрывающимся заголовком (серверный `<details>`), как в левом меню.
+  const groups = [...new Set(shown.map((sp) => sp.group).filter((g): g is TreeGroup => !!g))]
+  const list = !page && shown.length > 0 ? (
     <nav aria-label={ui.sectionPages} className="flex flex-col gap-2">
       <p className="text-[length:var(--fs-small)] font-medium text-muted-foreground">{ui.sectionPages}</p>
-      <ul className="grid gap-2 sm:grid-cols-2">
-        {section.pages.filter((sp) => !sp.doc || hasDoc(item, sp.doc)).map((sp) => (
-          <li key={sp.slug}>
-            <Link
-              href={`/${lang}${sectionPath}/${sp.slug}`}
-              className="flex flex-col gap-1 rounded-lg border border-border p-3 transition-colors hover:bg-muted/60"
-            >
-              <span className="font-medium text-foreground">{sp.words[l].title}</span>
-              <span className="text-[length:var(--fs-small)] text-muted-foreground">{sp.words[l].lead}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <ul className="grid gap-2 sm:grid-cols-2">{shown.filter((sp) => !sp.group).map(pageCard)}</ul>
+      {groups.map((g) => (
+        <details key={g} className="group/tg mt-2 rounded-lg border border-border px-3 py-2" data-tree-group={g}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 font-medium text-foreground [&::-webkit-details-marker]:hidden">
+            {TREE_GROUPS[g][l]}
+            <span aria-hidden className="text-muted-foreground transition-transform group-open/tg:rotate-180">▾</span>
+          </summary>
+          <ul className="mt-2 grid gap-2 sm:grid-cols-2">{shown.filter((sp) => sp.group === g).map(pageCard)}</ul>
+        </details>
+      ))}
     </nav>
+  ) : null
+  // 435-2/3: абзацы под заголовком — у раздела на его главной, у страницы на ней самой.
+  const aboutText = (page ?? section).about?.[l]
+  const about = aboutText?.length ? (
+    <div className="flex max-w-3xl flex-col gap-3 text-sm leading-relaxed" data-tree-about>
+      {aboutText.map((p) => <p key={p.slice(0, 40)}>{p}</p>)}
+    </div>
   ) : null
 
   // 319-2: РОДИВШИЙСЯ элемент (он уже в реестре узла) показывает в Preview свой сайт — тот же просмотр, что у служб, с
@@ -313,7 +332,18 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   const orders = section.slug === 'process' && page?.slug === 'orders'
     ? (entry ? <ElementOrdersIsland item={item} words={elementOrdersUi(lang)} /> : <p className="my-4 text-sm text-muted-foreground">{elementSettingsUi(lang).notBorn}</p>)
     : null
-  const passport = passportView ? <ElementPassport view={passportView} passport={entry ? elementPassport(item) : null} ui={elementPassportUi(lang)} /> : null
+  // 435-3: «Каталог» показывает и элементы узла — из того же реестра, по которому элементы ищут соседей (`nodeEntries`);
+  // у элемента без визитки — только адрес.
+  const nodeElements: NodeElementRow[] | undefined = passportView === 'catalog'
+    ? (() => {
+        const known = new Map(nodeEntries().map((e) => [e.id, e]))
+        return (listServices() as unknown as { id: string }[]).map((s) => {
+          const e = known.get(s.id)
+          return { id: s.id, address: addressOf(s.id), name: e?.name ?? addressOf(s.id), description: e?.description ?? '', self: s.id === item }
+        })
+      })()
+    : undefined
+  const passport = passportView ? <ElementPassport view={passportView} passport={entry ? elementPassport(item) : null} ui={elementPassportUi(lang)} nodeElements={nodeElements} /> : null
 
   return (
     <ArchitectPage
@@ -322,7 +352,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       title={words.title}
       lead={words.lead}
       pageTitle={address}
-      widget={<>{bar}{list}{preview}{github}{deployPanel}{copyNote}{deploymentsNote}{environment}{settings}{siteSettings}{agent}{passport}{doc}{orders}</>}
+      widget={<>{bar}{about}{list}{preview}{github}{deployPanel}{copyNote}{deploymentsNote}{environment}{settings}{siteSettings}{agent}{passport}{doc}{orders}</>}
       children={tables}
     />
   )

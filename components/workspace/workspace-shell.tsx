@@ -306,6 +306,29 @@ export function WorkspaceShell({
                             <ul className="mt-1 ml-[5px] flex flex-col gap-0.5 border-l border-border pl-[9px]">
                               {sub.children.map((leaf, k) => (
                                 <li key={`${id}-m-${i}-${j}-${k}`}>
+                                  {leaf.children && leaf.children.length > 0 ? (
+                                    /* 435-3 (владелец 2026-10-08): ГРУППА ВНУТРИ РАЗДЕЛА — «Техническое описание». Тот же серверный
+                                       `<details>`, без своей страницы: подпись — переключатель, открыт, когда человек на одной из её страниц. */
+                                    <details open={leaf.open ?? leaf.active} className="group/sub4">
+                                      <summary className="flex cursor-pointer list-none items-center gap-1 py-0.5 text-[length:var(--fs-small)] text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+                                        <span className="truncate whitespace-nowrap px-0.5">{leaf.label}</span>
+                                        <ChevronDown size={12} aria-hidden className="shrink-0 transition-transform duration-200 group-open/sub4:rotate-180" />
+                                      </summary>
+                                      <ul className="mt-0.5 ml-[5px] flex flex-col gap-0.5 border-l border-border pl-[9px]">
+                                        {leaf.children.map((g, q) => (
+                                          <li key={`${id}-m-${i}-${j}-${k}-${q}`}>
+                                            <Item
+                                              item={g}
+                                              closes={drawer}
+                                              base="block w-fit max-w-full truncate whitespace-nowrap border-b-2 px-0.5 py-0.5 text-[length:var(--fs-small)] transition-colors"
+                                              activeClass=" border-primary font-medium text-foreground"
+                                              idleClass=" border-transparent text-muted-foreground hover:border-border hover:text-foreground"
+                                            />
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </details>
+                                  ) : (
                                   <Item
                                     item={leaf}
                                     closes={drawer}
@@ -313,6 +336,7 @@ export function WorkspaceShell({
                                     activeClass=" border-primary font-medium text-foreground"
                                     idleClass=" border-transparent text-muted-foreground hover:border-border hover:text-foreground"
                                   />
+                                  )}
                                 </li>
                               ))}
                             </ul>
