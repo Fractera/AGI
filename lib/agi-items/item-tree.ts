@@ -142,7 +142,16 @@ export const ITEM_TREE: TreePage[] = [
       { slug: "current-step", doc: { file: "development-docs/current-step.md" }, words: w("Current step", "Where the work stands now; the agent reads it on every wake.", "Текущий шаг", "Где работа сейчас; агент читает его при каждом пробуждении.") },
       { slug: "steps-new", doc: { file: "development-docs/steps-new", folder: true }, words: w("Steps: planned", "Steps the person agreed to and not started yet.", "Шаги: план", "Согласованные и ещё не начатые шаги.") },
       { slug: "steps-done", doc: { file: "development-docs/steps-done", folder: true }, words: w("Steps: done", "Closed steps with their commit and proof.", "Шаги: завершённые", "Закрытые шаги с коммитом и доказательством.") },
+      // 435-5 (владелец 2026-10-08: «Глоссари это неотъемлемая часть архитектуры документов которые должна существовать в каждом
+      // элементе»): полный набор документов элемента — пункты появляются, потому что файлы есть с рождения.
+      { slug: "glossary", doc: { file: "development-docs/glossary.md" }, words: w("Glossary", "One meaning per word, with the person's words next to each term.", "Глоссарий", "Одно значение у каждого слова, рядом — как его говорит человек.") },
+      { slug: "pre-steps", doc: { file: "development-docs/pre-steps", folder: true }, words: w("Intake", "Building requests not started at once, recorded verbatim.", "Приёмная заявок", "Заявки на строительство, не начатые сразу, — дословно.") },
+      { slug: "backlog", doc: { file: "development-docs/backlog.md" }, words: w("Backlog", "Built but not explained, built halfway, or promised.", "Backlog", "Построенное, но не объяснённое, недостроенное или обещанное.") },
+      { slug: "cancelled", doc: { file: "development-docs/cancelled.md" }, words: w("Cancelled", "What was dropped, by whose word, and what replaced it.", "Отменённое", "Что отменено, чьим словом и что пришло взамен.") },
       { slug: "anti-patterns", doc: { file: "development-docs/anti-patterns.md" }, words: w("Anti-patterns", "Dead ends already paid for.", "Антипаттерны", "Тупики, за которые уже заплачено.") },
+      { slug: "reports", doc: { file: "development-docs/reports", folder: true }, words: w("Reports", "One failure explained, or one finished capability described.", "Отчёты", "Разбор одного отказа или описание готовой способности.") },
+      { slug: "proofs", doc: { file: "development-docs/proofs", folder: true }, words: w("Proofs", "How parts of the instruction and skills were proven live.", "Доказательства", "Как части инструкции и навыков доказаны вживую.") },
+      { slug: "translation-debt", doc: { file: "development-docs/translation-debt.md" }, words: w("Translation debt", "Texts still in one language, and why.", "Долги по переводам", "Тексты, которые пока на одном языке, и почему.") },
       { slug: "skill-decisions", doc: { file: "development-docs/owner-decisions-on-skill-changes.md" }, words: w("Decisions on skills", "What a self-review proposed and what the person answered.", "Решения о навыках", "Что предложил разбор и что ответил человек.") },
       { slug: "task-add", words: w("Add a task", "A task for the element's agent.", "Добавить задание", "Задание агенту элемента.") },
     ],
