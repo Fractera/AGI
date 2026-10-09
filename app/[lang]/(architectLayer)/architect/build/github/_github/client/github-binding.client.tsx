@@ -231,43 +231,16 @@ export function GithubBinding({ lang, words, connect }: { lang: string; words: G
           </a>
         </div>
 
-        {state.token.configured && (
-          <p className="flex items-center gap-2 text-sm" data-key-saved>
-            <KeyRound className="size-4" aria-hidden />
-            {words.saved.replace("{tail}", state.token.tail ?? "")}
-          </p>
-        )}
-
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="gh-token">{words.keyLabel}</Label>
-          <Input
-            id="gh-token"
-            type="password"
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
-            autoComplete="off"
-            spellCheck={false}
-            className="font-mono text-xs"
-          />
-          <Small className="text-muted-foreground">{words.keyHint}</Small>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            disabled={busy !== null || !token.trim()}
-            onClick={() => {
-              const value = token.trim()
-              // 🛑 Секрет живёт в поле ровно до отправки — в любом исходе.
-              setToken("")
-              void act("save", { token: value })
-            }}
-          >
-            {busy === "save" ? <Spinner className="size-4" /> : <KeyRound className="size-4" aria-hidden />}
-            {busy === "save" ? words.saving : words.save}
-          </Button>
-          {state.token.configured && (
-            <>
+        {/* 🔒 ПОЛЕ ДЛЯ ТОКЕНА ЕСТЬ ТОЛЬКО ПОКА ТОКЕНА НЕТ (владелец 2026-10-09): поле рядом с «Проверить доступ»
+            читалось как «проверю то, что вставил», а дверь проверяет хранимый токен — новый вставленный
+            токен получал ответ о старом. Сохранён — зелёная строка и две кнопки; новый — только после «Забыть токен». */}
+        {state.token.configured ? (
+          <>
+            <p className="flex items-center gap-2 text-sm font-medium text-success" data-key-saved>
+              <KeyRound className="size-4" aria-hidden />
+              {words.saved.replace("{tail}", state.token.tail ?? "")}
+            </p>
+            <div className="flex flex-wrap gap-2">
               <Button type="button" variant="outline" disabled={busy !== null} onClick={() => void act("check")}>
                 {busy === "check" ? <Spinner className="size-4" /> : <Check className="size-4" aria-hidden />}
                 {busy === "check" ? words.checking : words.check}
@@ -276,9 +249,40 @@ export function GithubBinding({ lang, words, connect }: { lang: string; words: G
                 <X className="size-4" aria-hidden />
                 {words.forget}
               </Button>
-            </>
-          )}
-        </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="gh-token">{words.keyLabel}</Label>
+              <Input
+                id="gh-token"
+                type="password"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                autoComplete="off"
+                spellCheck={false}
+                className="font-mono text-xs"
+              />
+              <Small className="text-muted-foreground">{words.keyHint}</Small>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                disabled={busy !== null || !token.trim()}
+                onClick={() => {
+                  const value = token.trim()
+                  // 🛑 Секрет живёт в поле ровно до отправки — в любом исходе.
+                  setToken("")
+                  void act("save", { token: value })
+                }}
+              >
+                {busy === "save" ? <Spinner className="size-4" /> : <KeyRound className="size-4" aria-hidden />}
+                {busy === "save" ? words.saving : words.save}
+              </Button>
+            </div>
+          </>
+        )}
         {result && (
           <div
             className={`flex items-start gap-2 rounded-md border-2 px-3 py-2.5 text-sm font-medium text-foreground ${result.tone === "ok" ? "border-success/50 bg-success/10" : "border-destructive/60 bg-destructive/10"}`}
