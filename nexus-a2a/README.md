@@ -16,22 +16,34 @@ work — and no company stands in the middle.
 
 ## What we are building
 
-Two parts that grow together:
+One core, two roles. **[Fractera/AGI](https://github.com/Fractera/AGI) is the core of a node.** The same core can also take the role
+of a **super-node**: then it installs the super-node software from its own repository, **Fractera/nexus-supernode**, and runs it next
+to itself.
 
 ```
             ┌──────────────────────────── the global network ────────────────────────────┐
             │                                                                             │
-            │   SUPER-NODES  — autonomous public infrastructure, run by independent        │
-            │   operators with a stake: discovery, relays through NAT, settlement           │
+            │   SUPER-NODES — Fractera/nexus-supernode, with a stake:                      │
+            │   discovery, relays through NAT, settlement                                  │
+            │   (installed by a Fractera core in the super-node role, or on its own)       │
             │                                                                             │
             └──────────▲──────────────────────▲──────────────────────────▲──────────────┘
                        │                      │                          │
                  ┌─────┴─────┐          ┌─────┴─────┐              ┌─────┴─────────────┐
                  │   NODE    │          │   NODE    │              │ any A2A project   │
-                 │ (Fractera)│◄── A2A ─►│ (Fractera)│              │ (not Fractera)    │
-                 │ agents    │          │ agents    │              │ Google A2A agents │
+                 │ Fractera/ │◄── A2A ─►│ Fractera/ │              │ (not Fractera)    │
+                 │ AGI core  │          │ AGI core  │              │ Google A2A agents │
                  └───────────┘          └───────────┘              └───────────────────┘
 ```
+
+| | Node | Super-node |
+|---|---|---|
+| Repository | `Fractera/AGI` — the core | `Fractera/nexus-supernode` — a separate repository |
+| Where it runs | a person's computer or flash drive | a server with a permanent public address |
+| Web3 part | wallet, escrow client, discovery client — inside the core | discovery table, relays, bundler, stake |
+| How it appears | the person installs Fractera | a Fractera core in the super-node role installs it, the same way the core installs elements; or anyone installs it alone |
+
+Web3 work belongs to the **core**, not to elements: elements only carry **A2A connectors**.
 
 ### The node — a person's own agent space
 
@@ -49,8 +61,9 @@ agent card, and neighbours call it directly.
 
 ### The super-node — the autonomous public layer
 
-A **super-node** is an autonomous part of the architecture. It is a server with a permanent public address, run by an independent
-operator who locks a **stake**. Super-nodes do what a home computer cannot do alone:
+A **super-node** is an autonomous part of the architecture: the software of **Fractera/nexus-supernode** running on a server with a
+permanent public address, whose operator locks a **stake**. A Fractera core switched to the super-node role installs it from its
+repository; it can also be installed alone, without Fractera. Super-nodes do what a home computer cannot do alone:
 
 - **discovery** — they keep the distributed table (Kademlia DHT) where agents publish where they can be reached;
 - **reachability** — they help two agents behind home routers connect directly (NAT hole punching) and, when that fails, relay
@@ -58,7 +71,7 @@ operator who locks a **stake**. Super-nodes do what a home computer cannot do al
 - **settlement** — they carry the payment infrastructure: they bundle agents' operations for the blockchain and serve the escrow
   that protects both sides of a deal.
 
-Super-nodes are **not tied to Fractera**. They serve any project whose agents speak Google's **A2A** protocol — the standard at the
+That is why the super-node is a separate repository: it is **not tied to Fractera**. It serves any project whose agents speak Google's **A2A** protocol — the standard at the
 start — and other agent protocols as they appear.
 
 ### The role of nodes and super-nodes in the coin
@@ -88,7 +101,8 @@ it), and **the token connects them** — its supply shrinks as the network does 
 
 - **Today:** the node — Fractera's core with elements, their own agents, Telegram control, subdomains and own domains, A2A inside
   the node.
-- **Being designed:** the super-node network, the escrow, the token and the reputation layer — described in the documents below.
+- **Being designed:** the super-node (`Fractera/nexus-supernode`) and the core's super-node role, the escrow, the token and the
+  reputation layer — described in the documents below.
 
 ## Documents
 
