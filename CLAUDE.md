@@ -669,6 +669,9 @@ Dashboard) are CHANGED by the person exactly like born ones — «их отли�
   `git remote`). Rights (docs.github.com): create private — classic `repo` / fine-grained Administration: write; push — Contents:
   write; the template carries `.github/workflows` — `workflow`. Build → GitHub lists every element (`element-repos.client.tsx`):
   repository, which key, «Send», «Update», «Create the missing repositories».
+- 🔒 **Commit and annotated tag messages — English only**, in this repository and in every element's repository (owner
+  2026-10-09): the history will be read by auditors and fund representatives who must see when each piece of work started. The
+  person's verbatim words in another language go into `development-docs/`, never into a commit message.
 - **Key precedence** `tokenFor(id)`: the element's own key (`data/services/<id>/github/.env`) → the node key (`data/node/github/.env`).
 - **Sending** — by button; an agent sends on request; a task from **Telegram is committed and sent at once**: the kit appends a rule to
   every element agent's launch (`--append-system-prompt`, `telegram.cjs githubRule`) naming `node <node>/scripts/element-github-push.mjs <id>`.
