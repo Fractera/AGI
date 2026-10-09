@@ -21,23 +21,23 @@ export function elementDocsUi(lang: string): ElementDocIslandWords {
   return lang === "ru" ? DICT.ru : DICT.en
 }
 
-// Слова страницы «Процесс → Заказы» (шаг 412-6).
+// Слова страницы «Связи (A2A) → Сделки» (шаг 412-6; 436-2 — прежде «Процесс → Заказы»).
 const ORDERS: Record<"en" | "ru", ElementOrdersWords> = {
   en: {
-    loading: "Reading the orders…",
-    failed: "Could not read the orders right now. Reload the page.",
-    empty: "No orders yet: a summary appears here when the element closes work it did for another agent.",
+    loading: "Reading the deals…",
+    failed: "Could not read the deals right now. Reload the page.",
+    empty: "No deals yet: a summary appears here when the element closes work it did for another agent.",
     closed: "Closed", status: "Status", from: "Customer", kind: "Kind", tags: "Tags", iterations: "Iterations",
-    conversation: "The conversation behind this order",
+    conversation: "The conversation behind this deal",
     conversationEmpty: "The node's log has no rows of this conversation.",
     conversationFailed: "Could not read the conversation from the node's log.",
   },
   ru: {
-    loading: "Читаю заказы…",
-    failed: "Не удалось прочитать заказы. Перезагрузите страницу.",
-    empty: "Заказов пока нет: сводка появится здесь, когда элемент закроет работу, сделанную для другого агента.",
-    closed: "Закрыт", status: "Статус", from: "Заказчик", kind: "Вид", tags: "Теги", iterations: "Итерации",
-    conversation: "Беседа, из которой вырос этот заказ",
+    loading: "Читаю сделки…",
+    failed: "Не удалось прочитать сделки. Перезагрузите страницу.",
+    empty: "Сделок пока нет: сводка появится здесь, когда элемент закроет работу, сделанную для другого агента.",
+    closed: "Закрыта", status: "Статус", from: "Заказчик", kind: "Вид", tags: "Теги", iterations: "Итерации",
+    conversation: "Беседа, из которой выросла эта сделка",
     conversationEmpty: "В журнале узла нет строк этой беседы.",
     conversationFailed: "Не удалось прочитать беседу из журнала узла.",
   },

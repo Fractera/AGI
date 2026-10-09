@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { P } from "@/components/ui/typography"
 import { ElementDoc } from "./element-doc"
 
-// ISLAND «Process → Orders» (step 412-6): the element's order summaries, newest first. Each opens to its summary and the
+// ISLAND «Links (A2A) → Deals» (step 412-6; 436-2 — formerly «Process → Orders»): the element's order summaries, newest first. Each opens to its summary and the
 // conversation behind it — rows of the node's log with the same contextId (pinned by `order:save`, so they are not pushed out).
 // Four states: loading · list · empty · refused (a refusal means «unknown», not «there are no orders»).
 

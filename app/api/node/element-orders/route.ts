@@ -5,7 +5,7 @@ import { requireRoles } from "@/lib/auth/require-roles"
 import { listOrders } from "@/lib/agi-items/element-orders"
 import { idOfAddress } from "@/lib/agi-items/element-address"
 
-// ЗАКАЗЫ ЭЛЕМЕНТА ДЛЯ СТРАНИЦЫ «Процесс → Заказы» (412-6). Сводки пишет агент элемента при закрытии заказа A2A; страница
+// СДЕЛКИ ЭЛЕМЕНТА ДЛЯ СТРАНИЦЫ «Связи (A2A) → Сделки» (412-6; 436-2 — прежде «Процесс → Заказы»). Сводки пишет агент элемента при закрытии заказа A2A; страница
 // предрендерена, поэтому список спрашивается здесь, при открытии. Беседу заказа островок берёт из `/api/node/a2a-log?context=`.
 // 🔒 ЗАКРЫТА ВОРОТАМИ И РОЛЬЮ, как `/api/node/projects`: заказы — сведения о машине человека.
 export const dynamic = "force-dynamic"
