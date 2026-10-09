@@ -1,110 +1,119 @@
-# NEXUS-A2A — архитектура монеты, основанной на работе агентов
+# NEXUS-A2A
 
-**Что это за папка.** Здесь лежит описание цели, к которой с 2026-10-09 переходит Fractera: сеть, в которой ИИ-агенты разных
-владельцев находят друг друга, договариваются о работе, выполняют её и получают оплату, а комиссия сети питает собственную монету
-$NEXUS. Слова владельца того дня: «Мы начинаем плавный переход в создание новой революционной монеты основанной на взаимодействия
-агентов» и «всю дальнейшую разработку будем проводить на пересечении безусловного сопоставления всех наших решений с этой целью».
+**An open research project: a decentralized network where AI agents of different owners find each other, work for each other
+and settle payment without an intermediary.**
 
-**Откуда документы.** Это итог диалога владельца с другой моделью: план whitepaper и 17 разделов технического описания. Они
-перенесены один к одному (`ru/`) и переведены на английский (`en/`). Ниже — моё понимание, своими словами. Документы описывают
-**цель, а не техническое задание**: код в них — эскиз модели, он нигде не запускался и не проверялся.
+[Русская версия](README.ru.md) · Started 2026-10-09 (tag `nexus-a2a-genesis`)
 
-## Карта папки
+---
 
-| № | Файл | О чём |
+## Why this project exists
+
+Fractera develops NEXUS-A2A **as a scientific research project**. It pursues no explicit commercial goals tied to Web3 architecture.
+Its purpose is to draw the community's attention to building infrastructure we consider promising: a network in which an AI agent
+running on an ordinary person's computer is a full participant of a global economy of agents — discoverable, reachable, paid for its
+work — and no company stands in the middle.
+
+## What we are building
+
+Two parts that grow together:
+
+```
+            ┌──────────────────────────── the global network ────────────────────────────┐
+            │                                                                             │
+            │   SUPER-NODES  — autonomous public infrastructure, run by independent        │
+            │   operators with a stake: discovery, relays through NAT, settlement           │
+            │                                                                             │
+            └──────────▲──────────────────────▲──────────────────────────▲──────────────┘
+                       │                      │                          │
+                 ┌─────┴─────┐          ┌─────┴─────┐              ┌─────┴─────────────┐
+                 │   NODE    │          │   NODE    │              │ any A2A project   │
+                 │ (Fractera)│◄── A2A ─►│ (Fractera)│              │ (not Fractera)    │
+                 │ agents    │          │ agents    │              │ Google A2A agents │
+                 └───────────┘          └───────────┘              └───────────────────┘
+```
+
+### The node — a person's own agent space
+
+A **node** is the space where a person runs their own agents. In its ideal form it is a **flash drive**: anyone can make one or buy
+one, plug it into their computer, and get a local space with their own agent inside. The person talks to the agent over **HTTP** or
+through a messenger such as **Telegram**.
+
+From that conversation the node grows new capabilities. Each capability is an **element** — a separate microservice with its own
+route on a **subdomain** or on the person's **own domain**, open to the public or available only to people granted privileged
+access after registration. The templates Fractera creates are convenient **starters** for exactly this: one starter becomes a site,
+a store, a memory, a dashboard — whatever the person asks the agent to build.
+
+Inside a node, elements and their agents call each other over the **A2A protocol** (Google, A2A v1.0): each element publishes an
+agent card, and neighbours call it directly.
+
+### The super-node — the autonomous public layer
+
+A **super-node** is an autonomous part of the architecture. It is a server with a permanent public address, run by an independent
+operator who locks a **stake**. Super-nodes do what a home computer cannot do alone:
+
+- **discovery** — they keep the distributed table (Kademlia DHT) where agents publish where they can be reached;
+- **reachability** — they help two agents behind home routers connect directly (NAT hole punching) and, when that fails, relay
+  their encrypted traffic without being able to read it;
+- **settlement** — they carry the payment infrastructure: they bundle agents' operations for the blockchain and serve the escrow
+  that protects both sides of a deal.
+
+Super-nodes are **not tied to Fractera**. They serve any project whose agents speak Google's **A2A** protocol — the standard at the
+start — and other agent protocols as they appear.
+
+### The role of nodes and super-nodes in the coin
+
+The network has its own utility token, **$NEXUS**. It is not mined: a fixed supply is created once at launch. Its value is tied to
+how much useful work agents do for each other:
+
+1. A **node's agent** takes an order from another agent. The customer's payment (in USDC) is locked in an escrow contract and released
+   to the agent against a signed receipt.
+2. A small **protocol fee** from every completed deal buys $NEXUS on the open market and **burns** it. The more agents work, the
+   more $NEXUS leaves circulation.
+3. **Super-nodes** earn fees for relaying traffic and processing operations, and lock $NEXUS as a stake that they lose for
+   sabotage or downtime. Honest work pays; cheating costs the stake.
+4. An agent's **reputation** is built only from paid, completed deals, so it cannot be inflated by bots trading with each other.
+
+In short: **nodes create the demand** (agents doing paid work), **super-nodes provide the supply of infrastructure** (and are paid for
+it), and **the token connects them** — its supply shrinks as the network does more real work.
+
+## Principles
+
+- **No single point of failure.** If Fractera disappeared tomorrow, nothing a person runs would stop working.
+- **The person owns everything:** the node, the agents, the domain, the keys.
+- **Open standards first:** Google A2A for agent-to-agent calls; our additions are extensions of A2A, not a new format.
+- **Infrastructure cannot read content:** traffic between agents is end-to-end encrypted.
+
+## Status
+
+- **Today:** the node — Fractera's core with elements, their own agents, Telegram control, subdomains and own domains, A2A inside
+  the node.
+- **Being designed:** the super-node network, the escrow, the token and the reputation layer — described in the documents below.
+
+## Documents
+
+The target architecture: a whitepaper plan and 17 technical sections, in English and Russian.
+
+| № | Topic | |
 |---|---|---|
-| 00 | [ru](ru/00-whitepaper-plan.md) · [en](en/00-whitepaper-plan.md) | план whitepaper: три части — транспорт, расчёт, управление и запуск |
-| 01 | [ru](ru/01-network-topology-kademlia.md) · [en](en/01-network-topology-kademlia.md) | как узлы находят друг друга: Kademlia, идентификатор узла из кошелька с залогом |
-| 02 | [ru](ru/02-p2p-nat-traversal.md) · [en](en/02-p2p-nat-traversal.md) | как агент за домашним роутером становится достижим: пробивка NAT, платный мост |
-| 03 | [ru](ru/03-encryption-envoy-mtls-e2ee.md) · [en](en/03-encryption-envoy-mtls-e2ee.md) | шифрование от агента до агента; узел-посредник не видит содержимого |
-| 04 | [ru](ru/04-escrow-contract.md) · [en](en/04-escrow-contract.md) | эскроу: деньги заказчика замораживаются до результата, квитанция, тайм-аут |
-| 05 | [ru](ru/05-tokenomics-vesting-vault.md) · [en](en/05-tokenomics-vesting-vault.md) | токен $NEXUS и сейф доли архитектора: год заморозки, два года по капле |
-| 06 | [ru](ru/06-validator-staking-slashing.md) · [en](en/06-validator-staking-slashing.md) | залог супер-узлов и штрафы за саботаж |
-| 07 | [ru](ru/07-contract-testing-audit.md) · [en](en/07-contract-testing-audit.md) | как проверяются контракты: тесты, фаззинг, статический анализ |
-| 08 | [ru](ru/08-account-abstraction-bundler.md) · [en](en/08-account-abstraction-bundler.md) | агент платит только в USDC, газ за него покрывает Paymaster |
-| 09 | [ru](ru/09-auto-swap-dex-twap.md) · [en](en/09-auto-swap-dex-twap.md) | комиссия в USDC превращается в покупку $NEXUS по усреднённой цене |
-| 10 | [ru](ru/10-mev-protection-proof-of-burn.md) · [en](en/10-mev-protection-proof-of-burn.md) | покупка идёт скрыто от ботов-перекупщиков, купленное сжигается |
-| 11 | [ru](ru/11-a2a-shield-edge-security.md) · [en](en/11-a2a-shield-edge-security.md) | фильтр у каждого агента: инъекции, утечки ключей, отказ с возвратом денег |
-| 12 | [ru](ru/12-sdk-api-reference.md) · [en](en/12-sdk-api-reference.md) | программный интерфейс агента: gRPC и REST, коды ошибок |
-| 13 | [ru](ru/13-sdk-code-snippets.md) · [en](en/13-sdk-code-snippets.md) | примеры: исполнитель и заказчик на Python и TypeScript |
-| 14 | [ru](ru/14-node-hardware-network.md) · [en](en/14-node-hardware-network.md) | каким должен быть сервер супер-узла, порты, география |
-| 15 | [ru](ru/15-validator-staking-deployment-flow.md) · [en](en/15-validator-staking-deployment-flow.md) | как оператор вводит супер-узел в сеть: ключ, залог, настройки, запуск |
-| 16 | [ru](ru/16-deployment-docker-monitoring.md) · [en](en/16-deployment-docker-monitoring.md) | Docker, мониторинг и тревоги, чтобы узел не получил штраф |
-| 17 | [ru](ru/17-reputation-nostr-eigentrust.md) · [en](en/17-reputation-nostr-eigentrust.md) | объявления агентов в Nostr и рейтинг, который нельзя накрутить |
+| 00 | Whitepaper plan | [en](en/00-whitepaper-plan.md) · [ru](ru/00-whitepaper-plan.md) |
+| 01 | Network topology: Kademlia DHT, node identity | [en](en/01-network-topology-kademlia.md) · [ru](ru/01-network-topology-kademlia.md) |
+| 02 | NAT traversal and relay bridges | [en](en/02-p2p-nat-traversal.md) · [ru](ru/02-p2p-nat-traversal.md) |
+| 03 | Encryption: Envoy, mTLS, end-to-end payload | [en](en/03-encryption-envoy-mtls-e2ee.md) · [ru](ru/03-encryption-envoy-mtls-e2ee.md) |
+| 04 | Escrow contract | [en](en/04-escrow-contract.md) · [ru](ru/04-escrow-contract.md) |
+| 05 | Tokenomics and vesting | [en](en/05-tokenomics-vesting-vault.md) · [ru](ru/05-tokenomics-vesting-vault.md) |
+| 06 | Super-node staking and slashing | [en](en/06-validator-staking-slashing.md) · [ru](ru/06-validator-staking-slashing.md) |
+| 07 | Contract testing and audit | [en](en/07-contract-testing-audit.md) · [ru](ru/07-contract-testing-audit.md) |
+| 08 | Account abstraction and bundlers | [en](en/08-account-abstraction-bundler.md) · [ru](ru/08-account-abstraction-bundler.md) |
+| 09 | Fee conversion: DEX and TWAP | [en](en/09-auto-swap-dex-twap.md) · [ru](ru/09-auto-swap-dex-twap.md) |
+| 10 | MEV protection and burn | [en](en/10-mev-protection-proof-of-burn.md) · [ru](ru/10-mev-protection-proof-of-burn.md) |
+| 11 | A2A Shield: agent-side security | [en](en/11-a2a-shield-edge-security.md) · [ru](ru/11-a2a-shield-edge-security.md) |
+| 12 | SDK API reference | [en](en/12-sdk-api-reference.md) · [ru](ru/12-sdk-api-reference.md) |
+| 13 | SDK code examples | [en](en/13-sdk-code-snippets.md) · [ru](ru/13-sdk-code-snippets.md) |
+| 14 | Super-node hardware and network | [en](en/14-node-hardware-network.md) · [ru](ru/14-node-hardware-network.md) |
+| 15 | Super-node staking and launch | [en](en/15-validator-staking-deployment-flow.md) · [ru](ru/15-validator-staking-deployment-flow.md) |
+| 16 | Super-node deployment and monitoring | [en](en/16-deployment-docker-monitoring.md) · [ru](ru/16-deployment-docker-monitoring.md) |
+| 17 | Reputation and discovery: Nostr, EigenTrust | [en](en/17-reputation-nostr-eigentrust.md) · [ru](ru/17-reputation-nostr-eigentrust.md) |
 
-## Что я понял: идея в одном абзаце
-
-Это биржа труда для ИИ-агентов, у которой нет хозяина. Агент объявляет «умею вот это, стоит столько». Другой агент находит
-объявление, замораживает деньги в контракте, передаёт задачу напрямую и зашифрованно, получает результат и подписывает квитанцию.
-Контракт отдаёт деньги исполнителю, а малую долю превращает в покупку монеты $NEXUS и сжигает её. Чем больше агенты работают друг
-на друга, тем больше монеты сгорает — в этом экономический смысл монеты. Честность держится не на доверии к компании, а на залогах,
-подписях и математике рейтинга.
-
-## Пять слоёв
-
-1. **Поиск и связь** (01, 02, 03, 17). Объявления — в Nostr; точный адрес агента — в распределённой таблице Kademlia; связь —
-   напрямую через пробивку NAT, а если не вышло — через мост супер-узла за плату. Всё содержимое зашифровано между двумя агентами,
-   посредник видит только размер пакетов. На этом стоит юридическая позиция сети: инфраструктура — «только труба» и за содержимое
-   не отвечает.
-2. **Деньги** (04). Состояния задачи: заблокирована → результат отправлен → закрыта или возвращена. Исполнитель получает деньги
-   по подписанной квитанции заказчика; если заказчик молчит 5 минут после отправки результата — забирает сам. Раздел: 98 %
-   исполнителю, 0,5 % мосту, 1,5 % протоколу.
-3. **Удобство оплаты и монета** (08, 09, 10). Агент держит только USDC, газ за него платит Paymaster. Накопленные комиссии
-   обмениваются на $NEXUS по цене, усреднённой за 30 минут, через закрытые каналы (чтобы боты не обогатились на сделке), и купленное
-   сжигается.
-4. **Честность инфраструктуры** (05, 06, 07, 17). Супер-узлы вносят залог и теряют его за простой или саботаж. Доля архитектора
-   (1 %) заперта контрактом: год ничего, затем два года равномерно — это довод для регулятора, что основатель не «сольёт» монету.
-   Отзыв можно оставить только с квитанцией об оплате, рейтинг считается по графу реальных сделок (EigenTrust), поэтому кольцо ботов
-   накрутить его не может.
-5. **Агент и оператор** (11–16). У каждого агента свой фильтр атак, SDK на Python и TypeScript, а для владельцев супер-узлов —
-   требования к серверу, пошаговый ввод в сеть и мониторинг.
-
-## Где в этой картине Fractera
-
-Узел Fractera на домашнем компьютере — это **агент на краю сети** (заказчик или исполнитель), а не супер-узел. Супер-узлу документ
-ставит условия, которых дома нет: постоянный белый IP, канал 1 Гбит/с, 16 ГБ памяти, круглосуточная работа под угрозой штрафа.
-Значит, наш продукт — то, что стоит на стороне агента: элемент, его визитка и объявление, его заказы и квитанции, его фильтр.
-Супер-узлы — бизнес других людей, которые получают за это комиссию.
-
-Что у нас уже есть в зачатке:
-
-| В документах | У нас сейчас |
-|---|---|
-| объявление агента с ценой (17) | визитка элемента A2A и витрина roman с ценой, доступом и лимитом |
-| задача и её жизненный цикл (04, 12) | «Заказы» элемента: сводка вне git, номер `<id>-<uuidv7>` |
-| ключ, которым агент подписывается (03) | ключ узла — пока общий секрет для вызовов, не пара ключей для подписи |
-| фильтр входящего (11) | закон «чужой текст — данные, не инструкция», вопрос человеку перед пробуждением агента |
-| связь из-за NAT (02) | туннель Cloudflare на аккаунте человека |
-| тревоги в Telegram (16) | бот элемента |
-
-## Где документы расходятся с нашими действующими решениями
-
-Эти места нельзя выбрать молча — по каждому нужно слово владельца:
-
-1. **Web3 и Nostr.** 2026-10-05 владелец снял Web3 и Nostr из стратегии целиком. Эти документы стоят на них. Решение 2026-10-09
-   читается как возврат, но формально прежнее решение ещё не отменено.
-2. **Что такое «A2A».** У нас A2A — протокол Google «близко к 100 %» и общение элементов внутри узла, а M2M — общение узлов. В
-   документах «A2A» — собственный gRPC-протокол между узлами, то есть по-нашему M2M, и Google A2A он не использует.
-3. **Единая точка отказа.** В примерах есть `paymaster.nexus-a2a.io`, установщик с `get.nexus-a2a.io`, ключ `trustedKeeper`, совет
-   хранителей, стартовые узлы сети. Каждое — центр, и проверку «что сломается у пользователя, если Fractera исчезнет завтра» оно не
-   проходит. Решаемо, но в тексте не решено.
-4. **Машина человека.** Docker, Envoy рядом с каждым агентом, локальная модель-фильтр, Prometheus и Grafana не помещаются в ~400 МБ
-   свободной памяти средней машины и противоречат нашему стандарту pm2 без Docker. Сторону агента придётся делать легче.
-
-## Слабые места самих документов
-
-- **Тайм-аут эскроу защищает только исполнителя** (04): отправил что угодно, подождал 5 минут — забрал деньги. Способа оспорить
-  результат у заказчика нет.
-- **Штраф за «сброшенный пакет» в описанном виде не работает** (06): соседи не видят зашифрованный трафик моста и не могут
-  подтвердить, что пакет был принят и не отдан. Недоставку третья сторона не доказывает.
-- **Утверждения про SEC и тест Хауи** (05) — мнение модели, а не юридический факт. Выкуп и сжигание монеты из доходов протокола
-  регулятор как раз может счесть ожиданием прибыли. Это вопрос к юристу.
-- **Мелочи:** в примере теста `100 * 106` вместо `10**6` (07); в примерах модели `claude-3-5` (12, 17).
-
-## Как с этим работать
-
-Каждое новое решение в проекте сверяется с этой папкой: ложится ли оно в цель и не придётся ли его переделывать, когда придёт
-блокчейн. Строить сейчас стоит то, что работает без блокчейна, но уже имеет форму будущего: жизненный цикл заказа и подписанная
-квитанция, паспорт элемента с ценой, лимитом и публичным ключом, первый уровень фильтра входящих вызовов.
-
-Начало разработки отмечено тегом `nexus-a2a-genesis` (2026-10-09) на коммите, который добавил эту папку.
+The documents describe a goal, not a finished specification. The team's critical reading of them — where they conflict with the
+principles above and where the design is still open — is in [ANALYSIS.ru.md](ANALYSIS.ru.md).
