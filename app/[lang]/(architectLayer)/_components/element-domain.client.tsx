@@ -36,6 +36,12 @@ export function ElementDomain({ id, lang, ui, current: record }: { id: string; l
       .catch(() => setLoadFailed(true))
   }, [])
 
+  // 443-4: пришли по ссылке «Подключить к <id>: … Главное зеркало» — карточка встаёт в окно, когда список доменов отрисован
+  // (браузер прокручивает к якорю раньше, чем страница доросла, и карточка уезжает вниз — замерено: top 1120 px).
+  useEffect(() => {
+    if (list && window.location.hash === "#main-mirror") document.getElementById("main-mirror")?.scrollIntoView({ block: "start" })
+  }, [list])
+
   function kind(d: Listed): Kind {
     if (d.name === current || d.holder === id) return "current"
     if (d.holder) return "taken"
