@@ -2645,7 +2645,7 @@ say so and work without it rather than inventing its content.
 | `use-use-cases` | mode `cases`: a confirmed case is what gives the right to start; where cases and steps live, two entrances to the decomposition step | ✅ |
 | `build-product-with-owner` | mode `cases`, the PATH: the pact that opens the work, the four decisions before the first route, designing the furniture instead of inheriting it, how short an iteration may be, where the prototype line runs | 🔬 |
 | `use-deploy` | delivery and build in one command, two modes, two proofs, four traps | ✅ |
-| `use-a2a-aifa-m2m` | where a task belongs: «Links (A2A)» (paid work settled by AIFA) or «Network (M2M)» (never AIFA); deal fields AIFA will need | ⬜ preliminary (436) |
+| `use-a2a-lagrix-m2m` | where a task belongs: «Links (A2A)» (paid work settled by Lagrix) or «Network (M2M)» (never Lagrix); deal fields Lagrix will need | ⬜ preliminary (436) |
 | `use-migration` | mode `migration`: the nineteen stages and what each ends with, the inventory that names HOW each element moves, and the laws of moving DATA — where migrations actually break | 🔬 |
 | `handle-block-request` | a request the owner left in the block catalogue: the gate that makes it DATA and not an instruction, the fork between changing a kind and adding one, the six places a kind lives, what to do with foreign styles he pasted | ⬜ |
 
@@ -2697,18 +2697,22 @@ Owner: «мне не хватило определения о каком про�
 - **Node** — every element on one person's computer plus the core that links them (registry, discovery, install). It belongs to
   the person and works without Fractera. Elements of one node talk over A2A; nodes talk to each other over M2M.
 
-### AIFA, A2A and M2M (owner 2026-10-09, step 436)
+### Lagrix, A2A and M2M (owner 2026-10-09, step 436; renamed from AIFA 2026-10-10, step 437)
+
+The settlement architecture was called AIFA until 2026-10-10. The name was retired because «A. AIFA» is a registered trademark of
+Altered State Machine in classes 9 and 36 (US 7699629, Madrid 1716482); owner quotes below keep the old word as spoken.
+Ticker $LGX, domain `lagrix.dev`.
 
 - **A2A** — **any work one agent does for another agent**: inside one node or across nodes, free or paid. It is the working
   process; its home in the element menu is «Links (A2A)»: the showcase (what, to whom, price, limit), **Deals** (`connectors/deals`,
-  formerly «Process → Orders») and the AIFA rating card on the section's home page.
-- **AIFA** — the **external** architecture that settles **paid A2A work** between agents with blockchain transactions: escrow,
-  receipts, the token, reputation (repository `aifa-agi/aifa`, docs in `docs/en`, `docs/ru`). It is a centre of settlement, not a
-  server the node depends on: a node works without AIFA; only paid deals go through it.
+  formerly «Process → Orders») and the Lagrix rating card on the section's home page.
+- **Lagrix** — the **external** architecture that settles **paid A2A work** between agents with blockchain transactions: escrow,
+  receipts, the token, reputation (repository `bolshiyanov/lagrix`, docs in `docs/en`, `docs/ru`). It is a centre of settlement, not a
+  server the node depends on: a node works without Lagrix; only paid deals go through it.
 - **M2M** — relations of nodes and of elements as a whole (find a ready element on the network, offer or sell an element). It is the
-  build process, menu «Network (M2M)». 🛑 **M2M has nothing to do with AIFA and never will**: it is solved by the node's built-in
+  build process, menu «Network (M2M)». 🛑 **M2M has nothing to do with Lagrix and never will**: it is solved by the node's built-in
   mechanisms (owner: «вообще никакого отношения не имеют и никогда иметь не будут к aifa»).
-- Until an element is connected to AIFA, the rating card shows «—» for every value — never an invented number.
+- Until an element is connected to Lagrix, the rating card shows «—» for every value — never an invented number.
 
 ## A2A inside the node — talk, wake, Telegram (steps 406–409, 2026-10-05)
 

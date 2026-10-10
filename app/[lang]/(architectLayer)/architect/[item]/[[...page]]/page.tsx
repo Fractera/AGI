@@ -51,8 +51,8 @@ import { ElementDocIsland } from '@/components/element-docs/element-doc.client'
 import { PassportDoor } from '@/components/element-docs/passport-door.client'
 import { elementDocsUi, elementOrdersUi, passportDoorUi } from '../../../_i18n/element-docs.i18n'
 import { ElementOrdersIsland } from '@/components/element-docs/element-orders.client'
-import { AifaRating } from '@/components/element-docs/aifa-rating'
-import { aifaRatingUi } from '../../../_i18n/aifa-rating.i18n'
+import { LagrixRating } from '@/components/element-docs/lagrix-rating'
+import { lagrixRatingUi } from '../../../_i18n/lagrix-rating.i18n'
 
 // ОДНА СТРАНИЦА НА ВСЕ АДРЕСА ВСЕХ ЧЕРНОВИКОВ (314-1): `/architect/<id>`, `/architect/<id>/<раздел>`,
 // `/architect/<id>/<раздел>/<страница>`. Дерево — `lib/agi-items/item-tree.ts`, черновики — `data/agi-drafts.json`.
@@ -334,8 +334,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   const orders = section.slug === 'connectors' && page?.slug === 'deals'
     ? (entry ? <ElementOrdersIsland item={item} words={elementOrdersUi(lang)} /> : <p className="my-4 text-sm text-muted-foreground">{elementSettingsUi(lang).notBorn}</p>)
     : null
-  // 436-3 (владелец 2026-10-09): главная «Связи (A2A)» начинается с рейтинга элемента в AIFA — пока заглушка, все значения «—».
-  const aifa = section.slug === 'connectors' && !page ? <AifaRating words={aifaRatingUi(lang)} /> : null
+  // 436-3 (владелец 2026-10-09): главная «Связи (A2A)» начинается с рейтинга элемента в Lagrix — пока заглушка, все значения «—».
+  const lagrix = section.slug === 'connectors' && !page ? <LagrixRating words={lagrixRatingUi(lang)} /> : null
   // 435-3: «Каталог» показывает и элементы узла — из того же реестра, по которому элементы ищут соседей (`nodeEntries`);
   // у элемента без визитки — только адрес.
   const nodeElements: NodeElementRow[] | undefined = passportView === 'catalog'
@@ -356,7 +356,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       title={words.title}
       lead={words.lead}
       pageTitle={address}
-      widget={<>{bar}{aifa}{about}{list}{preview}{github}{deployPanel}{copyNote}{deploymentsNote}{environment}{settings}{siteSettings}{agent}{passport}{doc}{orders}</>}
+      widget={<>{bar}{lagrix}{about}{list}{preview}{github}{deployPanel}{copyNote}{deploymentsNote}{environment}{settings}{siteSettings}{agent}{passport}{doc}{orders}</>}
       children={tables}
     />
   )

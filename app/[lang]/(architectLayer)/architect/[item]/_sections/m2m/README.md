@@ -10,9 +10,9 @@
 offer this element to others — free or for money. It is the **build process**: it is about the element as a thing (code, design,
 whole product), not about the work it does while running.
 
-🛑 **M2M has nothing to do with AIFA and never will.** Owner's words: «m2m транзакции вообще никакого отношения не имеют и никогда
+🛑 **M2M has nothing to do with Lagrix and never will.** Owner's words: «m2m транзакции вообще никакого отношения не имеют и никогда
 иметь не будут к aifa так как всегда будут решаться через встроенные архитектурные решения». Those built-in mechanisms of the node
-are not designed yet; nothing in this section may call AIFA, its escrow or its token.
+are not designed yet; nothing in this section may call Lagrix, its escrow or its token.
 
 Paid work of a running element (an article, an image, a reply) is A2A and lives in «Links (A2A)» — see `../a2a/README.md`.
 
@@ -27,4 +27,4 @@ Paid work of a running element (an article, an image, a reply) is A2A and lives 
 ## How to tell M2M from A2A in one question
 
 **Is the thing changing hands the element itself, or a result of its work?** The element itself (its code, a copy, the right to run
-it) — M2M. A result of its work (a text, a picture, an answer to a call) — A2A, and if paid, settled by AIFA.
+it) — M2M. A result of its work (a text, a picture, an answer to a call) — A2A, and if paid, settled by Lagrix.
