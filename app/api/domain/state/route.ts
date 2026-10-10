@@ -66,6 +66,8 @@ export async function GET() {
     zoneStatus: typeof domain.zoneStatus === "string" ? domain.zoneStatus : null,
     tunnel: typeof domain.tunnelName === "string" ? domain.tunnelName : null,
     hostname: typeof domain.hostname === "string" ? domain.hostname : null,
+    // 443: узел уже работает на своём домене — лестница не предлагает сменить его (смена не построена).
+    active: typeof domain.zone === "string" && !!domain.zone && !!domain.activatedAt && !!domain.tunnelId,
     nodeUrl: port ? `http://localhost:${port}` : null,
     quickTunnel: quick.dead === true || typeof quick.url !== "string" ? null : quick.url,
   })

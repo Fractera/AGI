@@ -72,6 +72,16 @@ export async function POST(req: NextRequest) {
   // проверялся никогда. Отметка о проверке принадлежит ИМЕНИ, а не узлу; пережив
   // смену имени, она превращается в уверенную неправду.
   const previous = readState()
+  // 🛑 443 (2026-10-11): У РАБОТАЮЩЕГО УЗЛА ЭТА ДВЕРЬ ЕГО ДОМЕН НЕ МЕНЯЕТ. ✗ оплачено: владелец добавлял lagrix.dev к
+  // элементу gyr1i; ссылка «Добавить домен» привела сюда, проверка NS записала zone=lagrix.dev — ядро сочло пультом
+  // architect.lagrix.dev, а туннеля туда нет: пульт 404, экран при этом показывал прежний адрес. Дверь писалась для ПЕРВОГО
+  // подключения. Узел активирован (activatedAt + tunnelId + zone) и имя из другой зоны — ничего не пишем, отвечаем
+  // отказом: дополнительный домен добавляется карточкой «+ Добавить домен» (`/api/domain/list`). Смена основного домена
+  // работающего узла не построена (туннель не переносится) — и не предлагается.
+  const activeZone = typeof previous.zone === "string" && previous.zone && previous.activatedAt && previous.tunnelId ? previous.zone : null
+  if (activeZone && apex(hostname) !== activeZone) {
+    return NextResponse.json({ ok: false, reason: "node-active", hostname, zone: activeZone }, { status: 200 })
+  }
   const changed = typeof previous.wanted === "string" && previous.wanted !== hostname
   if (changed) remember({ wanted: hostname, nsVerifiedAt: null, zone: null })
   else remember({ wanted: hostname })

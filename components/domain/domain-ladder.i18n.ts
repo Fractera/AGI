@@ -117,6 +117,9 @@ export type DomainLadderWords = {
   domainLabel: string
   domainSave: string
   domainSaved: string
+  /** 443: `{zone}` — рабочий домен узла. */
+  nodeActive: string
+  addDomainLink: string
   checkNs: string
   checking: string
   saving: string
@@ -270,6 +273,8 @@ const W: Record<string, DomainLadderWords> = {
     domainLabel: "Which domain will this be? Type it and the node will check the rest by itself.",
     domainSave: "This is my domain",
     domainSaved: "Remembered — the node will check this name from now on.",
+    nodeActive: "The node already works on {zone}. Another domain — for an element or a mirror — is added under «+ Add a domain» below; the node's own domain stays as it is.",
+    addDomainLink: "Go to «+ Add a domain»",
     checkNs: "Check whether it worked",
     checking: "Asking the internet…",
     saving: "Saving…",
@@ -446,6 +451,8 @@ const W: Record<string, DomainLadderWords> = {
     domainLabel: "Какой это будет домен? Введите его — остальное узел проверит сам.",
     domainSave: "Это мой домен",
     domainSaved: "Запомнил — дальше узел проверяет именно это имя.",
+    nodeActive: "Узел уже работает на {zone}. Ещё один домен — для элемента или зеркала — добавляется ниже, в «+ Добавить домен»; домен узла при этом не меняется.",
+    addDomainLink: "Перейти к «+ Добавить домен»",
     checkNs: "Проверить, получилось ли",
     checking: "Спрашиваю интернет…",
     saving: "Сохраняю…",

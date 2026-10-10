@@ -35,6 +35,17 @@ export function DomainList({ lang, words: w, ladderWords, ladder }: { lang: stri
   const [list, setList] = useState<List | null>(null)
   const [failed, setFailed] = useState(false)
   const [open, setOpen] = useState("primary")
+  // 443: адрес с #domain-add (ссылка «Добавить домен» из настроек элемента и из лестницы) раскрывает карточку добавления.
+  useEffect(() => {
+    const follow = () => {
+      if (window.location.hash !== "#domain-add") return
+      setOpen("add")
+      requestAnimationFrame(() => document.getElementById("domain-add")?.closest("[data-domain-card]")?.scrollIntoView({ block: "center" }))
+    }
+    follow()
+    window.addEventListener("hashchange", follow)
+    return () => window.removeEventListener("hashchange", follow)
+  }, [])
   const [name, setName] = useState("")
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<Record<string, string>>({})

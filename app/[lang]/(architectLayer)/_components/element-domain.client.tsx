@@ -132,7 +132,7 @@ export function ElementDomain({ id, lang, ui, current: record }: { id: string; l
         </>
       )}
       {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
-      <a className="w-fit text-sm underline" href={`/${lang}/architect/hosting/domain`} data-domain-add>{w.add}</a>
+      <a className="w-fit text-sm underline" href={`/${lang}/architect/hosting/domain#domain-add`} data-domain-add>{w.add}</a>
       <p className="text-[length:var(--fs-small)] text-muted-foreground">{w.note}</p>
     </div>
   )

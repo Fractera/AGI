@@ -63,6 +63,8 @@ type State = {
   keyTail: string | null
   zone: string | null
   hostname: string | null
+  /** 443: узел активирован на своём домене. */
+  active?: boolean
   nodeUrl: string | null
   quickTunnel: string | null
 }
@@ -203,7 +205,9 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
         body: JSON.stringify({ hostname: name, verify: false }),
       })
       const d = (await res.json()) as { ok?: boolean; reason?: string; hostname?: string }
-      if (d.ok) {
+      if (d.reason === "node-active") {
+        setSaved({ ok: false, text: words.nodeActive.replace("{zone}", state?.zone ?? "") })
+      } else if (d.ok) {
         setSaved({ ok: true, text: words.domainSaved })
         setState((prev) => (prev ? { ...prev, wanted: d.hostname ?? name } : prev))
       } else {
@@ -237,7 +241,7 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
         ok?: boolean; reason?: string; onCloudflare?: boolean; unknown?: boolean; nameservers?: string[]
       }
       if (!d.ok) {
-        setNsAnswer({ kind: "fail", text: d.reason === "bad-hostname" ? words.reasonBadHostname : words.reasonNetwork })
+        setNsAnswer({ kind: "fail", text: d.reason === "node-active" ? words.nodeActive.replace("{zone}", state?.zone ?? "") : d.reason === "bad-hostname" ? words.reasonBadHostname : words.reasonNetwork })
       } else if (d.onCloudflare) {
         setNsAnswer({ kind: "ok", text: words.nsOk })
         setState((prev) => (prev ? { ...prev, wanted: name, nsVerifiedAt: new Date().toISOString() } : prev))
@@ -320,7 +324,15 @@ export function DomainLadder({ lang, words }: { lang: string; words: DomainLadde
             </ol>
           ) : null}
           {s.tail ? <Small className="mt-2 block text-muted-foreground">{s.tail}</Small> : null}
-          {s.n === 1 ? (
+          {/* 443: у работающего узла поле смены домена не показывается — ✗ оплачено: lagrix.dev, вписанный сюда ради
+              элемента gyr1i, стал доменом узла и погасил пульт. Здесь — рабочий домен и путь к дополнительному. */}
+          {s.n === 1 && state.active ? (
+            <div className="mt-3 flex flex-col gap-2 rounded-md border border-primary/40 bg-primary/5 px-3 py-2" data-domain-active={state.zone ?? ""}>
+              <p className="text-foreground text-sm">{words.nodeActive.replace("{zone}", state.zone ?? "")}</p>
+              <a className="w-fit text-sm underline" href="#domain-add">{words.addDomainLink}</a>
+            </div>
+          ) : null}
+          {s.n === 1 && !state.active ? (
             <div className="mt-3 flex flex-col gap-2" data-domain-form>
               <Small className="text-muted-foreground">{words.domainLabel}</Small>
               <div className="flex flex-wrap gap-2">
