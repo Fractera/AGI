@@ -3,6 +3,7 @@
 import type { ElementDocIslandWords } from "@/components/element-docs/element-doc.client"
 import type { PassportDoorWords } from "@/components/element-docs/passport-door.client"
 import type { ElementOrdersWords } from "@/components/element-docs/element-orders.client"
+import { tableUi } from "@/sections/table.i18n"
 
 const DICT: Record<"en" | "ru", ElementDocIslandWords> = {
   en: {
@@ -21,13 +22,18 @@ export function elementDocsUi(lang: string): ElementDocIslandWords {
   return lang === "ru" ? DICT.ru : DICT.en
 }
 
-// Слова страницы «Связи (A2A) → Сделки» (шаг 412-6; 436-2 — прежде «Процесс → Заказы»).
-const ORDERS: Record<"en" | "ru", ElementOrdersWords> = {
+// Слова страницы «Связи (A2A) → Сделки» (шаг 412-6; 436-2 — прежде «Процесс → Заказы»; 442 — стандартная таблица узла).
+// Колонки Lagrix названы словами глоссария Lagrix (lagrix-dev/lagrix README): price, fee 5%, escrow, receipt.
+const ORDERS: Record<"en" | "ru", Omit<ElementOrdersWords, "table">> = {
   en: {
     loading: "Reading the deals…",
     failed: "Could not read the deals right now. Reload the page.",
     empty: "No deals yet: a summary appears here when the element closes work it did for another agent.",
-    closed: "Closed", status: "Status", from: "Customer", kind: "Kind", tags: "Tags", iterations: "Iterations",
+    head: ["#", "Closed", "Direction", "Counterparty", "Skill", "Status", "Iterations", "Tags", "Price (USDC)", "Fee 5%", "Escrow", "Receipt", "Transaction", "Like", ""],
+    incoming: "Incoming", outgoing: "Outgoing",
+    open: "Open",
+    lagrixNote: "Price, fee, escrow, receipt, transaction and like are filled when the element is connected to Lagrix; until then they show «—».",
+    deal: "Deal",
     conversation: "The conversation behind this deal",
     conversationEmpty: "The node's log has no rows of this conversation.",
     conversationFailed: "Could not read the conversation from the node's log.",
@@ -36,7 +42,11 @@ const ORDERS: Record<"en" | "ru", ElementOrdersWords> = {
     loading: "Читаю сделки…",
     failed: "Не удалось прочитать сделки. Перезагрузите страницу.",
     empty: "Сделок пока нет: сводка появится здесь, когда элемент закроет работу, сделанную для другого агента.",
-    closed: "Закрыта", status: "Статус", from: "Заказчик", kind: "Вид", tags: "Теги", iterations: "Итерации",
+    head: ["№", "Закрыта", "Направление", "Контрагент", "Навык", "Статус", "Итерации", "Теги", "Цена (USDC)", "Комиссия 5%", "Эскроу", "Чек", "Транзакция", "Лайк", ""],
+    incoming: "Входящие", outgoing: "Исходящие",
+    open: "Открыть",
+    lagrixNote: "Цена, комиссия, эскроу, чек, транзакция и лайк заполнятся, когда элемент подключится к Lagrix; до тех пор в них «—».",
+    deal: "Сделка",
     conversation: "Беседа, из которой выросла эта сделка",
     conversationEmpty: "В журнале узла нет строк этой беседы.",
     conversationFailed: "Не удалось прочитать беседу из журнала узла.",
@@ -44,7 +54,7 @@ const ORDERS: Record<"en" | "ru", ElementOrdersWords> = {
 }
 
 export function elementOrdersUi(lang: string): ElementOrdersWords {
-  return lang === "ru" ? ORDERS.ru : ORDERS.en
+  return { ...(lang === "ru" ? ORDERS.ru : ORDERS.en), table: tableUi(lang === "ru" ? "ru" : "en") }
 }
 
 // 417: паспорт элемента — кнопка генерации описания и ответ его двери, как его получает ядро.
