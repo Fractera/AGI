@@ -80,7 +80,7 @@ export function ElementDomain({ id, lang, ui, current: record }: { id: string; l
   }
 
   return (
-    <div className="flex flex-col gap-2" data-element-domain={current ?? ""}>
+    <div id="main-mirror" className="flex scroll-mt-24 flex-col gap-2" data-element-domain={current ?? ""}>
       {current && (
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-sm text-foreground">{w.current} <a className="font-mono underline" href={`https://${current}`} target="_blank" rel="noopener noreferrer">{current}</a></p>
@@ -132,7 +132,7 @@ export function ElementDomain({ id, lang, ui, current: record }: { id: string; l
         </>
       )}
       {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
-      <a className="w-fit text-sm underline" href={`/${lang}/architect/hosting/domain#domain-add`} data-domain-add>{w.add}</a>
+      <a className="w-fit text-sm underline" href={`/${lang}/architect/hosting/domain?for=${encodeURIComponent(id)}#domain-add`} data-domain-add>{w.add}</a>
       <p className="text-[length:var(--fs-small)] text-muted-foreground">{w.note}</p>
     </div>
   )

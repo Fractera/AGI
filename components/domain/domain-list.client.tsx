@@ -35,6 +35,12 @@ export function DomainList({ lang, words: w, ladderWords, ladder }: { lang: stri
   const [list, setList] = useState<List | null>(null)
   const [failed, setFailed] = useState(false)
   const [open, setOpen] = useState("primary")
+  // 443-4: пришли из настроек элемента (`?for=<id>`) — у готового домена ссылка ведёт обратно в его «Главное зеркало».
+  const [forItem, setForItem] = useState<string | null>(null)
+  useEffect(() => {
+    const v = new URLSearchParams(window.location.search).get("for")
+    if (v && /^[a-z0-9-]{1,64}$/.test(v)) setForItem(v)
+  }, [])
   // 443: адрес с #domain-add (ссылка «Добавить домен» из настроек элемента и из лестницы) раскрывает карточку добавления.
   useEffect(() => {
     const follow = () => {
@@ -131,7 +137,7 @@ export function DomainList({ lang, words: w, ladderWords, ladder }: { lang: stri
               </span>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-2">
-              <DomainPipeline lang={lang} domain={d} words={w} ladderWords={ladderWords} onChanged={load} hasPrimary={!!list?.primary} />
+              <DomainPipeline lang={lang} domain={d} words={w} ladderWords={ladderWords} onChanged={load} hasPrimary={!!list?.primary} forItem={forItem} />
               {d.holder && <p className="text-sm text-foreground">{w.attachedTo} <span className="font-mono">{d.holderAddress ?? d.holder}</span></p>}
               {/* 373-1 (владелец 2026-10-02: «добавить опцию удалить домен который должна вернуть работу проекта как субдомен»). */}
               {d.holder && confirm === d.name ? (
