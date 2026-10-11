@@ -7,6 +7,9 @@ export type ElementSettingsUi = {
   notBorn: string
   agentNotBorn: string
   describe: Card
+  /** 446-3: оранжевая карточка «Вход на собственном домене» на «Настройки → Домен». */
+  signIn: Card
+  signInCard: { howTitle: string; how: string; whyTitle: string; why: string; ownTitle: string; own: string; files: { path: string; what: string }[]; notSupported: string }
   mirrorCard: {
     current: string; label: string; placeholder: string; attach: string; attaching: string; detach: string; detaching: string; primaryTitle: string; primaryNote: string; empty: string; add: string; loadFailed: string; note: string
     /** 443-5 */ noFree: string; addHint: string; addSteps: string[]
@@ -137,6 +140,28 @@ const DICT: Record<string, ElementSettingsUi> = {
       open: "Open the site settings",
     },
     linkCard: { on: "Connected", off: "Disconnected — the element lives on its own", turnOn: "Connect", turnOff: "Disconnect", busy: "Saving…", failed: "Not saved:" },
+    signIn: {
+      title: "Sign-in on your own domain",
+      text: "Read this before you decide that sign-in is broken: on an own domain it works through the node's sign-in center.",
+      action: "",
+      pending: "",
+    },
+    signInCard: {
+      howTitle: "How it works",
+      how: "«Sign in» and «Sign up» on {domain} open {center} for a moment: sign-in happens there, and the person comes straight back to {domain} already signed in.",
+      whyTitle: "Why it is built this way",
+      why: "Google and the other sign-in providers are set up for one address — {center}. That is why any new domain works at once, without setting the providers up again, and why accounts are shared by every domain of the node.",
+      ownTitle: "If you want sign-in right on {domain}, without {center} in the address bar",
+      own: "You will have to connect and set up every sign-in provider again for this domain (in Google: the address https://{domain}/api/auth/callback/google and the domain itself) and rework these files:",
+      files: [
+        { path: "proxy.ts", what: "sign-in and sign-out on the own domain (this element)" },
+        { path: "lib/runtime-urls.ts", what: "the «Sign in» link in the browser (this element)" },
+        { path: "app/api/auth/callback/route.ts", what: "the return after sign-in (this element)" },
+        { path: "AGI-ITEMS/core/auth/lib/auth/auth.config.ts", what: "the sign-in providers of the node" },
+        { path: "lib/domain/public-auth.cjs", what: "cookies and allowed addresses of the node's sign-in service (core)" },
+      ],
+      notSupported: "The current version does not do this automatically: you would have to do it yourself. Not recommended.",
+    },
     mirror: {
       title: "Main mirror",
       text: "Connect your own second domain to the root of this element; the current subdomain then redirects to it.",
@@ -274,6 +299,28 @@ const DICT: Record<string, ElementSettingsUi> = {
       open: "Открыть настройки сайта",
     },
     linkCard: { on: "Подключено", off: "Отключено — элемент живёт самостоятельно", turnOn: "Подключить", turnOff: "Отключить", busy: "Сохраняю…", failed: "Не сохранено:" },
+    signIn: {
+      title: "Вход на собственном домене",
+      text: "Прочитайте, прежде чем решить, что вход сломан: на собственном домене он работает через центр входа узла.",
+      action: "",
+      pending: "",
+    },
+    signInCard: {
+      howTitle: "Как это работает",
+      how: "«Войти» и «Зарегистрироваться» на {domain} на мгновение открывают {center}: там проходит вход, и человек сразу возвращается на {domain} уже вошедшим.",
+      whyTitle: "Почему так сделано",
+      why: "Google и другие провайдеры входа настроены на один адрес — {center}. Поэтому любой новый домен работает сразу, без перенастройки провайдеров, а учётные записи общие у всех доменов узла.",
+      ownTitle: "Если нужен вход прямо на {domain}, без {center} в адресной строке",
+      own: "Придётся для этого домена заново подключить и настроить всех провайдеров входа (в Google — адрес https://{domain}/api/auth/callback/google и сам домен) и переработать файлы:",
+      files: [
+        { path: "proxy.ts", what: "вход и выход на своём домене (этот элемент)" },
+        { path: "lib/runtime-urls.ts", what: "ссылка «Войти» в браузере (этот элемент)" },
+        { path: "app/api/auth/callback/route.ts", what: "возврат после входа (этот элемент)" },
+        { path: "AGI-ITEMS/core/auth/lib/auth/auth.config.ts", what: "провайдеры входа узла" },
+        { path: "lib/domain/public-auth.cjs", what: "cookie и разрешённые адреса службы входа узла (ядро)" },
+      ],
+      notSupported: "Текущая версия не поддерживает это решение автоматически: вам придётся сделать его самостоятельно. Не рекомендуется.",
+    },
     mirror: {
       title: "Главное зеркало",
       text: "Подключить второй собственный домен к корню этого элемента; текущий поддомен будет переадресовывать на него.",

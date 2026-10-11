@@ -31,6 +31,8 @@ import { ElementDescribe } from '../../../_components/element-describe.client'
 import { ElementAddress } from '../../../_components/element-address.client'
 import { ElementDomain } from '../../../_components/element-domain.client'
 import { domainRecord } from '@/lib/agi-items/element-domain'
+import { primaryDomain } from '@/lib/domain/node-domains'
+import { ElementOwnDomainSignIn } from '../../../_components/element-own-domain-signin'
 import { readStaticCopy } from '@/lib/agi-items/static-copy-state'
 import { readLinks } from '@/lib/agi-items/element-links'
 import { ElementLink } from '../../../_components/element-link.client'
@@ -253,7 +255,11 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   // 443-5: «Настройки → Домен» — главное зеркало и адрес элемента (прежде — в «Опасной зоне»).
   const domainSettings = section.slug === 'settings' && page?.slug === 'domain'
     ? (entry
-      ? <ElementDangerZone ui={sui} badge={false} cards={['mirror', 'address']} actions={{
+      ? <ElementDangerZone ui={sui} badge={false} cards={domainRecord(item) && primaryDomain() ? ['mirror', 'address', 'signIn'] : ['mirror', 'address']} actions={{
+          // 446-3: оранжевая карточка — только при подключённом своём домене; центр входа — `auth.<зона узла>`.
+          signIn: domainRecord(item) && primaryDomain()
+            ? <ElementOwnDomainSignIn ui={sui} domain={domainRecord(item)!.domain} center={`auth.${primaryDomain()!.name}`} />
+            : null,
           mirror: <ElementDomain id={item} lang={lang} ui={sui} current={domainRecord(item)} />,
           address: <ElementAddress id={item} lang={lang} ui={sui} current={slug} internet={domainRecord(item)?.url.replace("https://", "") ?? address} />,
         }} />
