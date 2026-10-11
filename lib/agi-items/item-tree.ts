@@ -64,10 +64,49 @@ export const ITEM_TREE: TreePage[] = [
       { slug: "telegram", words: w("Telegram bot", "A bot that talks to the same agent session.", "Telegram бот", "Бот, который говорит с той же сессией агента.") },
       { slug: "environment", words: w("Environment variables", "Keys and settings the element reads at start.", "Переменные окружения", "Ключи и настройки, которые элемент читает при старте.") },
       // 451-2 (владелец 2026-10-11): i2i — элементы узла договариваются о connector через API; f2f — обмен элементами через Lagrix.
+      // 452 (владелец 2026-10-11: «ты не создал для них страниц … коротко понятно ты ввёл человека в курс дела»): вводная страница группы.
+      {
+        slug: "i2i",
+        group: "i2i",
+        words: w("How i2i works", "How the elements of this node agree to work together without asking a model every time.", "Как работает i2i", "Как элементы этого узла договариваются работать вместе, не спрашивая модель каждый раз."),
+        about: {
+          en: [
+            "i2i is how the elements of one node work together. The core keeps the catalog of every element and what it can do; an element that lacks something finds the neighbour who can.",
+            "The first time, the two agents talk as in A2A: what is needed, in what form, with what answer. Then they fix the agreement as a connector — one plain API call between the elements. From then on the work runs over that call, and no language model is asked again: it is faster, costs no subscription and gives the same answer every time.",
+            "This is the build process: a connector is code the element's agent writes and you accept like any other change. The tabs of this group show what the node and this element offer for it: the catalog, the element's HTTP doors (API) and its tools for agents (MCP).",
+          ],
+          ru: [
+            "i2i — это то, как элементы одного узла работают вместе. Ядро держит каталог всех элементов и того, что каждый умеет; элемент, которому чего-то не хватает, находит соседа, который это умеет.",
+            "В первый раз два агента разговаривают как в A2A: что нужно, в каком виде, с каким ответом. Затем договорённость закрепляется как connector — один обычный вызов API между элементами. Дальше работа идёт по этому вызову, и языковую модель больше не спрашивают: так быстрее, не тратится подписка, и ответ каждый раз один и тот же.",
+            "Это строительный процесс: connector — код, который пишет агент элемента и который вы принимаете, как любую другую правку. Вкладки этой группы показывают, что для этого есть у узла и у элемента: каталог, HTTP-двери элемента (API) и его инструменты для агентов (MCP).",
+          ],
+        },
+      },
       { slug: "api", group: "i2i", words: w("API", "The element's HTTP doors.", "API", "HTTP-двери элемента.") },
       { slug: "mcp", group: "i2i", words: w("MCP", "The element's tools for agents over MCP.", "MCP", "Инструменты элемента для агентов по MCP.") },
       // 435-3, выбор владельца «Показать оба»: сверху элементы этого узла, ниже — каталог самого элемента, если он его объявляет.
       { slug: "catalog", group: "i2i", words: w("Catalog", "The elements of this node in short, and what this element can give away — where i2i connectors start.", "Каталог", "Элементы этого узла коротко и что умеет отдать этот элемент — отсюда начинаются connector i2i.") },
+      {
+        slug: "f2f",
+        group: "f2f",
+        words: w("How f2f works", "How whole elements travel between Fractera projects through Lagrix.", "Как работает f2f", "Как элементы целиком переходят между проектами Fractera через Lagrix."),
+        about: {
+          en: [
+            "f2f is how Fractera projects exchange whole elements — a site, an app, an agent or a service with its code and design — so that a builder can take a ready element instead of building it again.",
+            "It goes through Lagrix, an open network with no central server. An element is announced there with a signed announcement, the same way agents are; independent super-nodes collect the announcements and build search results by open rules that are the same for everyone (Lagrix document 17).",
+            "What f2f adds is a technical card: what the element is made of, so that another project can install it — the starter and version it was born from, the framework, the services it needs, its doors, the names (never the values) of its environment variables, its licence and where its code is (Lagrix document 20). Keys, passwords and personal data never travel.",
+            "If an exchange is paid, Lagrix settles it like any deal: the money waits in an escrow contract, the provider receives 95% when the deal closes, 5% is the network fee (Lagrix document 04). Fractera has no advantage in Lagrix: for the network it is one project among others.",
+            "The tabs of this group: find a ready element in other Fractera projects, or offer this one. Documents: https://github.com/lagrix-dev/lagrix",
+          ],
+          ru: [
+            "f2f — это то, как проекты Fractera обмениваются элементами целиком — сайтом, приложением, агентом или службой с их кодом и оформлением, — чтобы строитель мог взять готовый элемент, а не строить его заново.",
+            "Обмен идёт через Lagrix — открытую сеть без центрального сервера. Элемент объявляется там подписанным объявлением, так же как агенты; независимые супер-узлы собирают объявления и строят выдачу по открытым правилам, одинаковым для всех (документ Lagrix 17).",
+            "f2f добавляет техническую карточку: из чего сделан элемент, чтобы другой проект мог его поставить, — стартовый шаблон и версия, из которых он рождён, фреймворк, нужные ему службы, его двери, имена (никогда не значения) переменных окружения, лицензия и где лежит код (документ Lagrix 20). Ключи, пароли и персональные данные не передаются никогда.",
+            "Если обмен платный, Lagrix рассчитывает его как любую сделку: деньги ждут в контракте условного депонирования, исполнитель получает 95 % при закрытии, 5 % — комиссия сети (документ Lagrix 04). У Fractera в Lagrix нет преимуществ: для сети это один проект среди других.",
+            "Вкладки этой группы: найти готовый элемент в других проектах Fractera или предложить этот. Документы: https://github.com/lagrix-dev/lagrix",
+          ],
+        },
+      },
       {
         slug: "find",
         group: "f2f",
