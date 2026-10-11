@@ -1,48 +1,57 @@
 ---
-name: use-a2a-lagrix-m2m
+name: use-i2i-a2a-f2f
 description: >
-  Where a task about agents, deals, prices, ratings, the network or selling an element belongs: «Links (A2A)», Lagrix or
-  «Network (M2M)». Load it before touching the element menu sections `connectors` or `web3-store`, the Deals page, the Lagrix
-  rating card, a deal summary format, or anything that mentions payment between agents, a token, escrow, a wallet or reputation;
-  and whenever a person asks «where does this go?». The rule that changes behaviour: a result of an element's work is A2A (paid —
-  settled by Lagrix); the element itself changing hands is M2M, and M2M never calls Lagrix. Preliminary skill (step 436).
+  Where a task about elements talking, agents, deals, prices, ratings, Lagrix or exchanging elements belongs: i2i (inside the node),
+  a2a (work for outside agents through Lagrix) or f2f (whole elements exchanged with other Fractera projects through Lagrix). Load it
+  before touching the element menu (`lib/agi-items/item-tree.ts`: «Build» with its groups «Inside the node (i2i)» and «Exchange with
+  Fractera (f2f)», the section «A2A»), the Deals page, the Lagrix rating card, a deal summary, a connector between elements, an F2F
+  card, or anything that mentions payment between agents, a token, escrow, a wallet or reputation; and whenever a person asks «where
+  does this go?». The rule that changes behaviour: inside the node aim at a connector over the API so that no model is needed; to the
+  outside a Fractera element is an agent like any other — no advantage, no handicap; the element itself changing hands is f2f.
 ---
 
-# use-a2a-lagrix-m2m
-
-> 🪦 **The A2A/M2M split below is cancelled (owner 2026-10-11, step 451).** Three protocols now: **i2i** — elements inside the
-> node agree on a connector over the API, few or no model calls (build); **a2a** — Fractera works with Lagrix like any framework,
-> no advantage (working); **f2f** — Fractera exchanges elements with other Fractera projects **through Lagrix** (build). «M2M never
-> calls Lagrix» no longer holds. i2i and f2f tabs belong in «Build». This skill is rewritten in step 451-2.
+# use-i2i-a2a-f2f
 
 > Informational, not binding. **Know a better way for the case in front of you — do it your way and say so.** You are trusted
-> with the creative work on this project. Preliminary: written 2026-10-09 before any Lagrix code exists.
+> with the creative work on this project. Written 2026-10-11 (step 451) before any i2i or f2f code exists.
 
-## Three words, one question
+## Three protocols, one question each
 
-| Word | What it is | Where it lives in the node |
-|---|---|---|
-| **A2A** | any work one agent does for another agent — inside the node or across nodes, free or paid | element menu «Links (A2A)»: showcase `connectors/a2a`, **Deals** `connectors/deals`, Lagrix rating card on `connectors` |
-| **Lagrix** | the external architecture that settles **paid** A2A work with blockchain transactions (escrow, receipts, token, reputation) | not in this repository: `bolshiyanov/lagrix`, documents `docs/en`, `docs/ru` |
-| **M2M** | relations of nodes and of elements as a whole: find, offer, sell an element | element menu «Network (M2M)»: `web3-store/find`, `web3-store/publish` |
+| Protocol | What changes hands | Process | Where it lives in the node |
+|---|---|---|---|
+| **i2i** | a connector between two elements of THIS node: they meet as in A2A, then agree on an API call, so that next time no model is needed | build | «Build → Inside the node (i2i)»: `build/catalog`, `build/api`, `build/mcp` |
+| **a2a** | a result of the element's work for an outside agent (a text, a picture, an answer), free or paid; paid → Lagrix settles it | working | section «A2A»: showcase `connectors/a2a`, **Deals** `connectors/deals`, Lagrix rating card on `connectors` |
+| **f2f** | **the element itself** (its code, a copy, the right to run it) exchanged with another Fractera project, found through Lagrix with a technical card | build | «Build → Exchange with Fractera (f2f)»: `build/find`, `build/publish` |
 
-**The question that sorts any task:** is the thing changing hands **the element itself** (code, a copy, the right to run it) or
-**a result of its work** (a text, a picture, an answer)? The element → M2M. A result → A2A, and if it is paid → Lagrix settles it.
+**The questions that sort any task, in this order:**
+1. Is the other side an element of **this node**? → **i2i**. The aim is a connector, not a conversation.
+2. Is the thing changing hands **a result of work**? → **a2a**.
+3. Is it **the element itself**? → **f2f**.
+
+Old addresses `connectors/{catalog,api,mcp}` and `web3-store/*` redirect to `build/*` (`MOVED_PAGES` in `item-tree.ts`).
 
 ## Rules that hold
 
-- 🛑 **M2M never calls Lagrix** — no escrow, token or wallet in the «Network (M2M)» pages or their doors. Owner 2026-10-09: M2M is
-  solved by the node's own built-in mechanisms, not designed yet.
-- **The node works without Lagrix.** Nothing that runs today may depend on Lagrix being reachable; only paid deals go through it.
+- **i2i: models are the exception.** Two elements that talk over A2A more than once about the same thing should end with an agreed
+  API call; the agent writes the connector, the next request goes without a model.
+- **a2a: neutrality.** Lagrix sees a Fractera element exactly as an agent of any other framework, a site or an agent without a UI.
+  Never build a Fractera-only shortcut into a2a; never expect one from Lagrix.
+- **f2f goes through Lagrix** (owner 2026-10-11): the same discovery as a2a, plus the technical card of Lagrix document 20 — template,
+  framework, `consumes`, `provides`, environment variable **names**, storage, licence, source. 🪦 «M2M never calls Lagrix»
+  (2026-10-09) is cancelled.
+- **Never in an F2F card or a deal:** keys, tokens, passwords, personal data, storage contents; a counterparty is an agent's address,
+  never a person's name, e-mail or phone.
+- **The node works without Lagrix.** i2i never needs it; only paid a2a deals and f2f exchanges go through it.
 - **No invented numbers.** Until an element is connected to Lagrix the rating card shows «—» for every value
   (`components/element-docs/lagrix-rating.tsx`, words `_i18n/lagrix-rating.i18n.ts`).
-- **No personal data in a deal.** A counterparty is an agent's address, never a person's name, e-mail or phone.
-- **Core change = question first.** The menu (`lib/agi-items/item-tree.ts`) is shared by every element; moving or renaming a page
-  there changes all of them — name it to the person before the edit.
+- **Core change = question first.** The menu is shared by every element; moving or renaming a page changes all of them — name it to
+  the person before the edit.
 
 ## Where to read more
 
-- Section descriptions: `app/[lang]/(architectLayer)/architect/[item]/_sections/a2a/README.md` and `…/_sections/m2m/README.md`
-  (the A2A one lists the deal fields Lagrix will need).
-- Instruction: `CLAUDE.md`, «Lagrix, A2A and M2M».
-- Lagrix itself: `https://github.com/bolshiyanov/lagrix` — escrow (doc 04), API (12), reputation (17).
+- Instruction: `CLAUDE.md`, «Three protocols: i2i · a2a · f2f».
+- Sections: `app/[lang]/(architectLayer)/architect/[item]/_sections/a2a/README.md` (the deal fields Lagrix will need) and
+  `…/_sections/m2m/README.md` (where the f2f tabs went).
+- Lagrix: `https://github.com/lagrix-dev/lagrix` — README «Two protocols at the start», escrow (doc 04), API (12), discovery and
+  reputation (17), governance (18), F2F draft (20).
+- Element side: template `CLAUDE.md` «Two natures» and the element's skill `a2a-conversation` (i2i first).

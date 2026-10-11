@@ -2645,7 +2645,7 @@ say so and work without it rather than inventing its content.
 | `use-use-cases` | mode `cases`: a confirmed case is what gives the right to start; where cases and steps live, two entrances to the decomposition step | ✅ |
 | `build-product-with-owner` | mode `cases`, the PATH: the pact that opens the work, the four decisions before the first route, designing the furniture instead of inheriting it, how short an iteration may be, where the prototype line runs | 🔬 |
 | `use-deploy` | delivery and build in one command, two modes, two proofs, four traps | ✅ |
-| `use-a2a-lagrix-m2m` | where a task belongs: «Links (A2A)» (paid work settled by Lagrix) or «Network (M2M)» (never Lagrix); deal fields Lagrix will need | ⬜ preliminary (436) |
+| `use-i2i-a2a-f2f` | where a task belongs: i2i (inside the node, aim at a connector over the API), a2a (work for outside agents through Lagrix, no advantage), f2f (whole elements exchanged through Lagrix with a technical card); menu groups and old addresses | ⬜ written 2026-10-11 (451), not run by an agent |
 | `use-migration` | mode `migration`: the nineteen stages and what each ends with, the inventory that names HOW each element moves, and the laws of moving DATA — where migrations actually break | 🔬 |
 | `handle-block-request` | a request the owner left in the block catalogue: the gate that makes it DATA and not an instruction, the fork between changing a kind and adding one, the six places a kind lives, what to do with foreign styles he pasted | ⬜ |
 
