@@ -49,12 +49,18 @@ export function MenuScrollKeep() {
     const onToggle = (e: Event) => {
       const group = e.target
       if (!(group instanceof HTMLDetailsElement) || !group.open || !nav.contains(group)) return
-      const items = group.querySelectorAll<HTMLElement>("a, summary")
+      // Только видимые пункты: у свёрнутой подгруппы ссылки лежат в разметке и отдают размеры, но на экране их нет
+      // (замер 445: с ними меню перекручивало на 56 px).
+      const seen = (el: HTMLElement) => (typeof el.checkVisibility === "function" ? el.checkVisibility() : el.getClientRects().length > 0)
+      const items = [...group.querySelectorAll<HTMLElement>("a, summary")].filter(seen)
       const last = items[items.length - 1]
-      if (!last) return
-      const over = last.getBoundingClientRect().bottom - nav.getBoundingClientRect().bottom
+      const head = group.querySelector<HTMLElement>("summary")
+      if (!last || !head) return
+      const box = nav.getBoundingClientRect()
+      const over = last.getBoundingClientRect().bottom - box.bottom
       if (over <= 0) return
-      const to = nav.scrollTop + over + 8
+      // Группа выше меню — её заголовок не уезжает за верхний край: человек видит, что раскрыл.
+      const to = nav.scrollTop + Math.min(over + 8, head.getBoundingClientRect().top - box.top)
       const before = nav.scrollTop
       nav.scrollTo({ top: to, behavior: "smooth" })
       window.setTimeout(() => {
