@@ -74,7 +74,8 @@ export function MenuScrollKeep() {
       const header = document.querySelector<HTMLElement>("header")
       const offset = header && getComputedStyle(header).position === "sticky" ? header.getBoundingClientRect().bottom : 0
       const top = Math.max(0, Math.round(box.getBoundingClientRect().top + window.scrollY - offset))
-      if (Math.abs(window.scrollY - top) > 1) window.scrollTo({ top, behavior: "auto" })
+      // 🛑 `auto` берёт `scroll-behavior: smooth` с <html> и в этом браузере не двигает страницу вовсе (замер 445: scrollTo 441 → scrollY 0).
+      if (Math.abs(window.scrollY - top) > 1) window.scrollTo({ top, behavior: "instant" })
     }
     // Next после перехода сам прокручивает к новому содержимому — наше выравнивание идёт после него.
     const frame = requestAnimationFrame(() => requestAnimationFrame(align))
