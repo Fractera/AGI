@@ -9,6 +9,7 @@ export type ElementSettingsUi = {
   describe: Card
   mirrorCard: {
     current: string; label: string; placeholder: string; attach: string; attaching: string; detach: string; detaching: string; primaryTitle: string; primaryNote: string; empty: string; add: string; loadFailed: string; note: string
+    /** 443-5 */ noFree: string; addHint: string; addSteps: string[]
     kinds: Record<"ready" | "waiting" | "taken" | "current", string>; errors: Record<string, string>
   }
   addressCard: { current: string; label: string; free: string; "bad-shape": string; taken: string; suggest: string; renaming: string; failed: string; note: string; restart: string; repoNote: string; repoRenamed: string; repoFailed: string }
@@ -46,7 +47,10 @@ const DICT: Record<string, ElementSettingsUi> = {
       primaryTitle: "Main address",
       primaryNote: "The site is served at {primary} and calls itself so (canonical, sitemap, hreflang); the other address answers 301 to it.",
       empty: "The node has no extra domains yet — add one on «Domain activation».",
-      add: "Add a domain",
+      add: "Start adding a domain",
+      noFree: "You cannot connect a domain: the project has no free domain.",
+      addHint: "You will go to the settings of the project's core, where you:",
+      addSteps: ["first make the domain visible to the whole project;", "then come back to this tab and choose the new domain in the list."],
       loadFailed: "The list of domains did not load.",
       note: "A domain is added and brought to an active zone on «Domain activation»; here you only choose it. www.<domain> will lead to the root; the old subdomain will lead to the domain.",
       kinds: {
@@ -180,7 +184,10 @@ const DICT: Record<string, ElementSettingsUi> = {
       primaryTitle: "Главный адрес",
       primaryNote: "Сайт отдаётся на {primary} и называет себя этим адресом (canonical, sitemap, hreflang); второй адрес отвечает 301 на него.",
       empty: "У узла пока нет дополнительных доменов — добавьте домен на «Активации домена».",
-      add: "Добавить домен",
+      add: "Начать добавление домена",
+      noFree: "Вы не можете подключить домен, так как в проекте нет ни одного свободного домена.",
+      addHint: "Вы перейдёте в настройки ядра проекта, где:",
+      addSteps: ["сначала добавите видимость домена во всём проекте;", "затем вернётесь на эту вкладку и выберете новый домен в выпадающем списке."],
       loadFailed: "Список доменов не загрузился.",
       note: "Домен добавляется и доводится до активной зоны на «Активации домена», здесь — только выбор. www.<домен> будет вести на корень; старый поддомен — на домен.",
       kinds: {

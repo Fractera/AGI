@@ -174,7 +174,10 @@ export const ITEM_TREE: TreePage[] = [
     // существуют, и страница конфигуратора». Конфигуратор живёт в самом элементе (выбор «б» 324-8) — страница ядра открывает
     // его на главном адресе в новой вкладке (выбор «б» 2026-09-28: во встроенном окне свой домен не получил бы билет входа).
     pages: [
-      { slug: "danger-zone", words: w("Danger zone", "The element's description in the core, its address, its main mirror, links to the node and deleting it.", "Опасная зона", "Описание элемента в ядре, его адрес, главное зеркало, связи с узлом и удаление.") },
+      // 443-5 (слово владельца 2026-10-11): «настройка домена находится на вкладке опасная зона … её нужно вытащить в настройки,
+      // домен. Поместить туда два внутренних раздела главное зеркало и адрес элемента».
+      { slug: "domain", words: w("Domain", "The element's main mirror (its own domain) and its address in the core.", "Домен", "Главное зеркало элемента (его собственный домен) и его адрес в ядре.") },
+      { slug: "danger-zone", words: w("Danger zone", "The element's description in the core, its links to the node and deleting it.", "Опасная зона", "Описание элемента в ядре, связи с узлом и удаление.") },
       { slug: "site-settings", words: w("Site settings", "The name, texts, search settings, images and languages of the element's own site.", "Настройки сайта", "Название, тексты, настройки для поиска, картинки и языки собственного сайта элемента.") },
     ],
   },

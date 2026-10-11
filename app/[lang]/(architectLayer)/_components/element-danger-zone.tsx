@@ -13,13 +13,17 @@ import type { ElementSettingsUi } from '../_i18n/element-settings.i18n'
 // 324-7: три связи с узлом (CONFIG, Дизайн, Блоки) — по карточке на связь, перед удалением.
 type Key = 'describe' | 'address' | 'mirror' | 'config' | 'design' | 'blocks' | 'remove'
 
-export function ElementDangerZone({ ui, actions = {} }: { ui: ElementSettingsUi; actions?: Partial<Record<Key, ReactNode>> }) {
-  const cards: Key[] = ['describe', 'address', 'mirror', 'config', 'design', 'blocks', 'remove']
+// 443-5: «Главное зеркало» и «Адрес элемента» живут на странице «Настройки → Домен» — та же сетка карточек, без метки опасности.
+export function ElementDangerZone({ ui, actions = {}, cards = ['describe', 'config', 'design', 'blocks', 'remove'], badge = true }: {
+  ui: ElementSettingsUi; actions?: Partial<Record<Key, ReactNode>>; cards?: Key[]; badge?: boolean
+}) {
   return (
-    <section className="my-6 flex flex-col gap-3" data-element-danger-zone aria-label={ui.badge}>
-      <span className="w-fit rounded-md border border-destructive/40 px-2 py-0.5 text-[length:var(--fs-small)] font-medium text-destructive">
-        {ui.badge}
-      </span>
+    <section className="my-6 flex flex-col gap-3" data-element-danger-zone={badge ? '' : undefined} data-element-settings-cards={cards.join(' ')} aria-label={badge ? ui.badge : undefined}>
+      {badge && (
+        <span className="w-fit rounded-md border border-destructive/40 px-2 py-0.5 text-[length:var(--fs-small)] font-medium text-destructive">
+          {ui.badge}
+        </span>
+      )}
       <div className="grid gap-3 md:grid-cols-2">
         {cards.map((key) => {
           const c = ui[key]

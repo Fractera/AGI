@@ -250,6 +250,15 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   // 325: «Настройки» — Danger zone рождённого элемента; у черновика — объяснение.
   const sui = elementSettingsUi(lang)
   // 328: «Настройки» раскрывается — «Опасная зона» (прежняя страница) и «Настройки сайта» (конфигуратор элемента).
+  // 443-5: «Настройки → Домен» — главное зеркало и адрес элемента (прежде — в «Опасной зоне»).
+  const domainSettings = section.slug === 'settings' && page?.slug === 'domain'
+    ? (entry
+      ? <ElementDangerZone ui={sui} badge={false} cards={['mirror', 'address']} actions={{
+          mirror: <ElementDomain id={item} lang={lang} ui={sui} current={domainRecord(item)} />,
+          address: <ElementAddress id={item} lang={lang} ui={sui} current={slug} internet={domainRecord(item)?.url.replace("https://", "") ?? address} />,
+        }} />
+      : <p className="my-4 text-sm text-muted-foreground">{sui.notBorn}</p>)
+    : null
   const settings = section.slug === 'settings' && page?.slug === 'danger-zone'
     ? (entry
       ? <ElementDangerZone ui={sui} actions={{
@@ -356,7 +365,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       title={words.title}
       lead={words.lead}
       pageTitle={address}
-      widget={<>{bar}{lagrix}{about}{list}{preview}{github}{deployPanel}{copyNote}{deploymentsNote}{environment}{settings}{siteSettings}{agent}{passport}{doc}{orders}</>}
+      widget={<>{bar}{lagrix}{about}{list}{preview}{github}{deployPanel}{copyNote}{deploymentsNote}{environment}{domainSettings}{settings}{siteSettings}{agent}{passport}{doc}{orders}</>}
       children={tables}
     />
   )

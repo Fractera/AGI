@@ -228,7 +228,7 @@ export function DomainPipeline({ lang, domain: d, words: w, ladderWords, onChang
         {!nsReady ? <p className="text-sm text-muted-foreground">{p.step3Wait}</p>
           : <p className="text-sm text-foreground">{d.state === "active" ? p.step3Done : p.step3Asked}</p>}
         {d.state === "active" && forItem && (
-          <a className="w-fit text-sm font-medium text-primary underline-offset-4 hover:underline" href={`/${lang}/architect/${forItem}/settings/danger-zone#main-mirror`} data-pipe-open-mirror={forItem}>
+          <a className="w-fit text-sm font-medium text-primary underline-offset-4 hover:underline" href={`/${lang}/architect/${forItem}/settings/domain#main-mirror`} data-pipe-open-mirror={forItem}>
             {p.openMirror.replace("{item}", forItem)}
           </a>
         )}

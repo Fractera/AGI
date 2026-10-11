@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { CircleAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -112,8 +113,14 @@ export function ElementDomain({ id, lang, ui, current: record }: { id: string; l
         </div>
       )}
       {loadFailed && <p className="text-sm text-destructive">{w.loadFailed}</p>}
-      {list && list.length === 0 && <p className="text-sm text-muted-foreground" data-domain-empty>{w.empty}</p>}
-      {list && list.length > 0 && (
+      {/* 443-5 (слово владельца 2026-10-11): нет ни одного свободного домена — оранжевая карточка вместо пустого выбора. */}
+      {list && !current && !list.some((d) => kind(d) === "ready") && (
+        <div className="flex items-start gap-2 rounded-md border border-warning/50 bg-warning/10 px-3 py-2" role="status" data-domain-no-free>
+          <CircleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
+          <p className="text-sm text-foreground">{w.noFree}</p>
+        </div>
+      )}
+      {list && list.some((d) => kind(d) === "ready" || kind(d) === "current") && (
         <>
           <Label htmlFor={`element-domain-${id}`}>{w.label}</Label>
           <Select value={picked} onValueChange={setPicked}>
@@ -138,7 +145,11 @@ export function ElementDomain({ id, lang, ui, current: record }: { id: string; l
         </>
       )}
       {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
-      <a className="w-fit text-sm underline" href={`/${lang}/architect/hosting/domain?for=${encodeURIComponent(id)}#domain-add`} data-domain-add>{w.add}</a>
+      <a className="w-fit text-sm font-medium text-primary underline-offset-4 hover:underline" href={`/${lang}/architect/hosting/domain?for=${encodeURIComponent(id)}#domain-add`} data-domain-add>{w.add}</a>
+      <div className="text-sm text-muted-foreground" data-domain-add-hint>
+        <p>{w.addHint}</p>
+        <ol className="mt-1 list-decimal pl-5">{w.addSteps.map((s) => <li key={s}>{s}</li>)}</ol>
+      </div>
       <p className="text-[length:var(--fs-small)] text-muted-foreground">{w.note}</p>
     </div>
   )
