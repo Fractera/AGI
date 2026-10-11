@@ -202,7 +202,12 @@ const port = JSON.parse(readFileSync(REGISTRY_FILE, 'utf8')).services.find((s) =
 // чтобы элемент пережил перезагрузку машины. `.cmd` на Windows — только через оболочку и с постоянными аргументами
 // (закон CVE-2024-27980); `id` уже сверен с образцом выше.
 const IS_WIN = process.platform === 'win32'
-const pm2 = (args) => spawnSync(IS_WIN ? 'pm2.cmd' : 'pm2', args, { cwd: ROOT, encoding: 'utf8', shell: IS_WIN, windowsHide: true })
+// 🛑 446-1: чистое окружение, как в element-import / element-move / element-preview. Рождение зовёт дверь ядра (сервер Next), и без
+// чистки элемент получал `__NEXT_PROCESSED_ENV` ядра, не читал свой `.env.local` и не знал домена узла — ✗ 2026-10-11: gyr1i
+// (рождён 2026-10-05) вёл «Войти» на несуществующие `auth.lagrix.dev` и `auth.gyr1i.throughsongs.com`. pm2 хранит окружение
+// первого запуска, поэтому ошибка рождения живёт до первого чистого `delete` + `start`.
+const cleanEnv = Object.fromEntries(Object.entries(process.env).filter(([k]) => !(k.startsWith('__NEXT') || k.startsWith('NEXT_') || k.startsWith('AGI_') || k === 'PORT' || k === 'HOSTNAME' || k === 'NODE_ENV')))
+const pm2 = (args) => spawnSync(IS_WIN ? 'pm2.cmd' : 'pm2', args, { cwd: ROOT, encoding: 'utf8', shell: IS_WIN, windowsHide: true, env: cleanEnv })
 for (const name of [`fractera-svc-${id}`, `fractera-svc-${id}-watch`]) {
   const r = pm2(['start', 'ecosystem.config.cjs', '--only', name])
   if (r.status !== 0) {
