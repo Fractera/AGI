@@ -2697,7 +2697,19 @@ Owner: «мне не хватило определения о каком про�
 - **Node** — every element on one person's computer plus the core that links them (registry, discovery, install). It belongs to
   the person and works without Fractera. Elements of one node talk over A2A; nodes talk to each other over M2M.
 
-### Lagrix, A2A and M2M (owner 2026-10-09, step 436; renamed from AIFA 2026-10-10, step 437)
+### Three protocols: i2i · a2a · f2f (owner 2026-10-11, step 451)
+
+Replaces the A2A/M2M split below and the law «M2M has nothing to do with Lagrix» (both cancelled; `/code` `CANCELLED.md`).
+
+| Protocol | What | Process | Element menu |
+|---|---|---|---|
+| **i2i** | elements **inside the node** meet as in A2A, then agree on a connector over the API, so that model calls are minimal or none | build | tabs inside «Build» |
+| **a2a** | Fractera answers and works with Lagrix **exactly like any other framework**, site or agent without UI — no advantage, no handicap | working | «A2A»: showcase, deals |
+| **f2f** | Fractera **through Lagrix** exchanges elements with other Fractera projects: the same discovery, plus the technical characteristics building needs | build | tabs inside «Build» |
+
+For Lagrix, f2f is a second protocol from the start, next to A2A. The owner's words verbatim — `/code` step 451 plan.
+
+### 🪦 Lagrix, A2A and M2M (owner 2026-10-09, step 436; renamed from AIFA 2026-10-10, step 437) — cancelled 2026-10-11, see above
 
 The settlement architecture was called AIFA until 2026-10-10. The name was retired because «A. AIFA» is a registered trademark of
 Altered State Machine in classes 9 and 36 (US 7699629, Madrid 1716482); owner quotes below keep the old word as spoken.
