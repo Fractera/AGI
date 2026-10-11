@@ -13,6 +13,9 @@
 //   файла нет (вход, API, защищённый режим, `/_next/image`) → Worker спрашивает дом по туннелю; дом не ответил (5xx/530) →
 //   картинка — исходный файл из копии, остальное — страница «не в сети» (503);
 //   суточный лимит Worker кончился (Free: 100 000) → маршрут пропускает Worker, запрос идёт в туннель, как до шага.
+//   455-1 (владелец 2026-10-12, «меню моргает»): у адресов страниц (корень, /<язык>/…) Worker стоит ВПЕРЕДИ копии
+//   (`run_worker_first`): запрос клиентской навигации Next (RSC) уходит домой, страница — из копии, нет в копии — дом.
+//   ✗ До этого копия отвечала HTML на RSC-запрос, Next перезагружал страницу целиком, и шапка моргала на каждом переходе.
 // 🔒 Денег это не стоит на Free: превышение — отказ, а не счёт (workers/platform/pricing).
 // 🛑 Копия — снимок момента выкладки: правка текста без развёртывания в неё не попадает (владелец выбрал: копия обновляется
 //   после «Принять» и «Развернуть», шаг 344-3).
@@ -289,10 +292,24 @@ const DEFAULT_LANG = ${JSON.stringify(langs.includes(defaultLang) ? defaultLang 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url)
-    let res = null
-    try { res = await fetch(request) } catch { res = null }
     // Дом не на связи — только сбои связи (502–504, 52x Cloudflare, 530 туннеля); настоящая ошибка сайта (500) идёт как есть.
     const down = [502, 503, 504, 520, 521, 522, 523, 524, 525, 526, 530]
+    // 455-1: запрос клиентской навигации Next (заголовок RSC: 1, параметр _rsc) — это данные страницы, а не HTML. Копия хранит
+    // только HTML, и раньше отдавала его на этот запрос: Next не мог разобрать ответ и перезагружал страницу целиком — шапка
+    // моргала. Данные берутся только дома; дом молчит — короткая ошибка без HTML, и Next сам загружает страницу из копии.
+    if (request.headers.get('rsc') === '1' || url.searchParams.has('_rsc')) {
+      let r = null
+      try { r = await fetch(request) } catch { r = null }
+      if (r && !down.includes(r.status)) return r
+      return new Response(null, { status: 503, headers: { 'cache-control': 'no-store', 'x-fractera-copy': 'rsc-offline' } })
+    }
+    // 455-1: Worker стоит впереди только у адресов страниц (run_worker_first ниже) — страница по-прежнему сначала из копии.
+    if (request.method === 'GET' || request.method === 'HEAD') {
+      const a = await env.ASSETS.fetch(request)
+      if (a.status !== 404) return a
+    }
+    let res = null
+    try { res = await fetch(request) } catch { res = null }
     if (res && !down.includes(res.status)) return res
     const to = REDIRECTS[url.pathname.replace(/\\/+$/, '') || '/']
     if (to) return Response.redirect(new URL(to, url).toString(), 307)
@@ -338,7 +355,11 @@ say(`загружено пачек: ${buckets.length} (новых файлов: 
 const meta = {
   main_module: 'worker.js',
   compatibility_date: '2026-09-01',
-  assets: { jwt: completion, config: { html_handling: 'drop-trailing-slash', not_found_handling: 'none' } },
+  // 455-1: Worker впереди файлов копии только у адресов страниц — корень и /<язык>/…; JS, CSS, картинки, шрифты отдаются из
+  // копии без вызова Worker (бесплатно и без счёта в 100 000 вызовов в сутки). Первоисточник: Worker «only invoked when the
+  // requested route has not matched any static assets», `run_worker_first` — булево или список шаблонов пути
+  // (developers.cloudflare.com/workers/static-assets/binding/); совпадение ищется только по пути, заголовок RSC не виден.
+  assets: { jwt: completion, config: { html_handling: 'drop-trailing-slash', not_found_handling: 'none', run_worker_first: ['/', ...langs.flatMap((l) => [`/${l}`, `/${l}/*`])] } },
   bindings: [{ name: 'ASSETS', type: 'assets' }],
 }
 const form = new FormData()
