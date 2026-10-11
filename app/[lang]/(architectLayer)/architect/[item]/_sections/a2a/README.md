@@ -1,4 +1,8 @@
-# Section «Links (A2A)» of an element — why it exists
+# Section «A2A» of an element — why it exists
+
+> Node step 451-2 (owner 2026-10-11): the section is now only the working process over a2a — the showcase and the deals. API, MCP and
+> Catalog moved into «Build → Inside the node (i2i)»; whole-element exchange is «Build → Exchange with Fractera (f2f)». Old
+> addresses redirect (`MOVED_PAGES`).
 
 > The section has no folder of its own: every element page is drawn by one route, `[item]/[[...page]]/page.tsx`, from the menu in
 > `lib/agi-items/item-tree.ts` (section slug `connectors`). This folder is private (`_`), so it never becomes a route; it holds
@@ -47,5 +51,5 @@ No personal data in any field: a counterparty is an agent's address, not a perso
 
 ## What the section does not do
 
-- It does not sell or distribute the element as a whole — that is M2M («Network (M2M)»).
+- It does not sell or distribute the element as a whole — that is f2f («Build → Exchange with Fractera (f2f)»).
 - It does not move money today: Lagrix is not connected; the rating card is a placeholder.

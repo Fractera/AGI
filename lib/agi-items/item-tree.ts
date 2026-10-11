@@ -24,9 +24,22 @@ const w = (enTitle: string, enLead: string, ruTitle: string, ruLead: string): Re
 
 // 435-3, слово владельца 2026-10-08: «API и MCP … уважить в один раскрывающийся список техническое описание»; «каталог …
 // переносится также внутрь».
-export type TreeGroup = "technical"
+// 451-2 (владелец 2026-10-11): i2i и f2f — строительный процесс, их вкладки — группами внутри «Строительства».
+export type TreeGroup = "technical" | "i2i" | "f2f"
 export const TREE_GROUPS: Record<TreeGroup, Record<"en" | "ru", string>> = {
   technical: { en: "Technical description", ru: "Техническое описание" },
+  i2i: { en: "Inside the node (i2i)", ru: "Внутри узла (i2i)" },
+  f2f: { en: "Exchange with Fractera (f2f)", ru: "Обмен с Fractera (f2f)" },
+}
+
+// 451-2: вкладки, переехавшие в «Строительство»; старый адрес переадресуется на новый (ссылки и закладки не ломаются).
+export const MOVED_PAGES: Record<string, string> = {
+  "connectors/catalog": "build/catalog",
+  "connectors/api": "build/api",
+  "connectors/mcp": "build/mcp",
+  "web3-store": "build",
+  "web3-store/find": "build/find",
+  "web3-store/publish": "build/publish",
 }
 
 // 435-1: что такое элемент и узел — одними словами для обоих разделов, где человеку это нужно знать.
@@ -50,71 +63,52 @@ export const ITEM_TREE: TreePage[] = [
       { slug: "deployments", words: w("Preview & Deploy", "See a new version before visitors do, deploy it, or go back to a working one.", "Предпросмотр и развёртывание", "Посмотреть новую версию до посетителей, развернуть её или вернуться к работающей.") },
       { slug: "telegram", words: w("Telegram bot", "A bot that talks to the same agent session.", "Telegram бот", "Бот, который говорит с той же сессией агента.") },
       { slug: "environment", words: w("Environment variables", "Keys and settings the element reads at start.", "Переменные окружения", "Ключи и настройки, которые элемент читает при старте.") },
+      // 451-2 (владелец 2026-10-11): i2i — элементы узла договариваются о connector через API; f2f — обмен элементами через Lagrix.
+      { slug: "api", group: "i2i", words: w("API", "The element's HTTP doors.", "API", "HTTP-двери элемента.") },
+      { slug: "mcp", group: "i2i", words: w("MCP", "The element's tools for agents over MCP.", "MCP", "Инструменты элемента для агентов по MCP.") },
+      // 435-3, выбор владельца «Показать оба»: сверху элементы этого узла, ниже — каталог самого элемента, если он его объявляет.
+      { slug: "catalog", group: "i2i", words: w("Catalog", "The elements of this node in short, and what this element can give away — where i2i connectors start.", "Каталог", "Элементы этого узла коротко и что умеет отдать этот элемент — отсюда начинаются connector i2i.") },
+      {
+        slug: "find",
+        group: "f2f",
+        words: w("Find a ready element", "Look for a ready element in other Fractera projects through Lagrix (f2f) before building your own.", "Найти готовый элемент", "Найти готовый элемент в других проектах Fractera через Lagrix (f2f), прежде чем строить свой."),
+        about: {
+          en: ["An element is looked for in two ways: through Lagrix discovery (f2f) — the same discovery as for agents, with the technical characteristics a build needs — and through AI search engines."],
+          ru: ["Элемент ищется двумя путями: через обнаружение Lagrix (f2f) — то же, что для агентов, плюс технические характеристики, нужные строительству, — и через ИИ-поисковики."],
+        },
+      },
+      {
+        slug: "publish",
+        group: "f2f",
+        words: w("Offer the element", "Offer this whole element to other Fractera projects through Lagrix (f2f): free or for money.", "Предложить элемент", "Предложить этот элемент целиком другим проектам Fractera через Lagrix (f2f): бесплатно или за деньги."),
+        about: {
+          en: ["Here the price of the element itself is set — the whole site, app or agent with its code and design. This is not the price of its skills: what the element's work costs others (an article, an image, a message in a dialog) is set in «A2A»."],
+          ru: ["Здесь назначается цена самого элемента — сайта, приложения или агента целиком, с его кодом и устройством. Это не цена его навыков: сколько стоит работа элемента для других (статья, изображение, сообщение в диалоге), задаётся в «A2A»."],
+        },
+      },
     ],
   },
   {
-    // 406-4 (владелец 2026-10-05, карта меню 406-2): «Коннекторы» → «Связи (A2A)»; адрес раздела прежний.
+    // 406-4 (владелец 2026-10-05, карта меню 406-2): «Коннекторы» → «Связи (A2A)»; адрес раздела прежний. 451-2 (2026-10-11): «A2A» — только рабочий процесс.
     slug: "connectors",
     // 435-3 (владелец 2026-10-08): главная раздела объясняет элемент, узел и два рода сведений — рабочий процесс.
-    words: w("Links (A2A)", "How elements find each other, and to whom this element gives its work.", "Связи (A2A)", "Как элементы находят друг друга и кому этот элемент даёт свою работу."),
+    words: w("A2A", "What this element does for other agents, to whom, at what price — and the deals it made.", "A2A", "Что этот элемент делает для других агентов, кому и по какой цене — и сделки, которые он заключил."),
     about: {
       en: [
         ELEMENT_AND_NODE.en,
-        "This section holds two kinds of information. The first is how elements find each other inside the node: the core keeps the list of every element and what it can do, and an element that lacks something finds the neighbour who can and talks to it directly.",
-        "The second is how and to whom this element gives access to its work: what it can do, what it returns, who may use it, at what price and with what limit.",
-        "All of this is the working process — what the element does once it runs. The technical details — HTTP doors, MCP tools and the catalog — are collected below in «Technical description».",
+        "This section is the working process over a2a: what this element does for other agents once it runs — what it can do, what it returns, who may use it, at what price and with what limit — and the deals it has made.",
+        "Over a2a a Fractera element meets Lagrix exactly like any other framework, site or agent without a UI: no advantage, no handicap. How elements of this node agree on connectors (i2i) and how whole elements are exchanged with other Fractera projects (f2f) is the build process — those tabs are in «Build».",
       ],
       ru: [
         ELEMENT_AND_NODE.ru,
-        "Здесь два рода сведений. Первый — как элементы находят друг друга внутри узла: ядро держит список всех элементов и того, что каждый умеет, и элемент, которому чего-то не хватает, находит соседа, который это умеет, и обращается к нему напрямую.",
-        "Второй — как и кому этот элемент даёт доступ к своей работе: что он умеет, что возвращает, кому это доступно, по какой цене и с каким лимитом.",
-        "Всё это — рабочий процесс: то, что элемент делает, когда уже работает. Технические подробности — HTTP-двери, инструменты MCP и каталог — собраны ниже в «Техническом описании».",
+        "Этот раздел — рабочий процесс по a2a: что элемент делает для других агентов, когда уже работает, — что умеет, что возвращает, кому доступно, по какой цене и с каким лимитом, — и сделки, которые он заключил.",
+        "По a2a элемент Fractera встречается с Lagrix ровно как любой другой фреймворк, сайт или агент без интерфейса: без преимуществ и недостатков. Как элементы этого узла договариваются о connector (i2i) и как элементы целиком обмениваются с другими проектами Fractera (f2f) — строительный процесс, эти вкладки в «Строительстве».",
       ],
     },
     pages: [
       { slug: "a2a", words: w("A2A", "The showcase: what the element can do, what it returns, to whom and on what terms.", "A2A", "Витрина: что элемент умеет, что возвращает, кому и на каких условиях.") },
       // 436-2 (владелец 2026-10-09: «вкладка заказа … целиком относится к вкладке a2a»): «Процесс → Заказы» → «Связи (A2A) → Сделки».
       { slug: "deals", words: w("Deals", "Work this element did for other agents over A2A: a summary of each deal and the conversation behind it.", "Сделки", "Работа, которую элемент сделал для других агентов по A2A: сводка каждой сделки и беседа за ней.") },
-      { slug: "api", group: "technical", words: w("API", "The element's HTTP doors.", "API", "HTTP-двери элемента.") },
-      { slug: "mcp", group: "technical", words: w("MCP", "The element's tools for agents over MCP.", "MCP", "Инструменты элемента для агентов по MCP.") },
-      // 435-3, выбор владельца «Показать оба»: сверху элементы этого узла, ниже — каталог самого элемента, если он его объявляет.
-      { slug: "catalog", group: "technical", words: w("Catalog", "The elements of this node in short, and what this element can give away.", "Каталог", "Элементы этого узла коротко и что умеет отдать этот элемент.") },
-    ],
-  },
-  {
-    // 406-4: «Web3 store» → «Сеть (M2M)»; адрес раздела прежний.
-    slug: "web3-store",
-    // 435-2 (владелец 2026-10-08): раздел — строительный процесс: распространение и продажа элемента целиком.
-    words: w("Network (M2M)", "Here the element goes beyond your computer: find the same kind of element on the network, or offer this one.", "Сеть (M2M)", "Здесь элемент выходит за пределы вашего компьютера: найти в сети такой же элемент или предложить этот."),
-    about: {
-      en: [
-        ELEMENT_AND_NODE.en,
-        "The network is the nodes of other people. People come here for one of two things: to find a ready element before building their own, or to offer this element to others — free or for money.",
-        "Everything in this section is the build process: it is about the element as a whole, not about what it does while it works. What it can do and on what terms is in «Links (A2A)».",
-      ],
-      ru: [
-        ELEMENT_AND_NODE.ru,
-        "Сеть — это узлы других людей. Сюда приходят с одной из двух целей: найти готовый элемент, прежде чем строить свой, или предложить этот элемент другим — бесплатно или за деньги.",
-        "Всё в этом разделе — строительный процесс: речь об элементе целиком, а не о том, что он делает, когда работает. Что он умеет и на каких условиях — в разделе «Связи (A2A)».",
-      ],
-    },
-    pages: [
-      {
-        slug: "find",
-        words: w("Find in the network", "Look for a ready element on other nodes before building your own.", "Найти в сети", "Найти готовый элемент на других узлах, прежде чем строить свой."),
-        about: {
-          en: ["An element is looked for in two ways: through AI search engines built on Cloudflare, and through Fractera's own search, where nodes find each other directly, without a central server."],
-          ru: ["Элемент ищется двумя путями: через ИИ-поисковики на базе Cloudflare и через собственный поиск Fractera, где узлы находят друг друга напрямую, без центрального сервера."],
-        },
-      },
-      {
-        slug: "publish",
-        words: w("Offer to the network", "Offer this whole element to other people: share it free or sell it.", "Отправить в сеть", "Предложить этот элемент целиком другим людям: распространять бесплатно или продавать."),
-        about: {
-          en: ["Here the price of the element itself is set — the whole site, app or agent with its code and design. This is not the price of its skills: what the element's work costs others (an article, an image, a message in a dialog) is set in «Links (A2A)»."],
-          ru: ["Здесь назначается цена самого элемента — сайта, приложения или агента целиком, с его кодом и устройством. Это не цена его навыков: сколько стоит работа элемента для других (статья, изображение, сообщение в диалоге), задаётся в «Связи (A2A)»."],
-        },
-      },
     ],
   },
   {

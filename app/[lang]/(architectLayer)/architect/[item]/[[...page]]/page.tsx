@@ -8,7 +8,7 @@ import { DraftCards } from '../../../_components/draft-cards'
 import { DeleteDraftButton } from '../../../_components/delete-draft-button.client'
 import { appDialogUi } from '@/components/dialog/app-dialog.i18n'
 import { draftAddress, getDraft } from '@/lib/agi-items/drafts'
-import { findTreePage, TREE_GROUPS, treeLang, type TreeGroup, type TreePage } from '@/lib/agi-items/item-tree'
+import { findTreePage, MOVED_PAGES, TREE_GROUPS, treeLang, type TreeGroup, type TreePage } from '@/lib/agi-items/item-tree'
 import { getService, listServices, serviceUrl } from '@/lib/microservices/registry'
 import { BirthButton } from '../../../_components/birth-button.client'
 import { birthState } from '@/lib/agi-items/birth'
@@ -106,6 +106,9 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 export default async function Page({ params }: { params: Promise<Params> }) {
   const p = await params
+  // 451-2: вкладки i2i и f2f переехали в «Строительство» — старый адрес ведёт на новый.
+  const moved = MOVED_PAGES[(p.page ?? []).join('/')]
+  if (moved) redirect(`/${p.lang}${ARCHITECT_HOME}/${p.item}/${moved}`)
   const r = resolve(p)
   if (!r) notFound()
 
@@ -335,8 +338,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
 
   // 406-4 (карта меню 406-2, решение владельца): эти страницы показывают разделы паспорта элемента, своей копии у них нет.
   const PASSPORT_VIEWS: Record<string, PassportView> = {
-    'connectors/api': 'api', 'connectors/mcp': 'mcp', 'connectors/a2a': 'a2a', 'connectors/catalog': 'catalog',
-    'web3-store/publish': 'publish', 'web3-store/find': 'find', 'process/subscriptions': 'subscriptions', 'process/cron': 'cron',
+    'build/api': 'api', 'build/mcp': 'mcp', 'connectors/a2a': 'a2a', 'build/catalog': 'catalog',
+    'build/publish': 'publish', 'build/find': 'find', 'process/subscriptions': 'subscriptions', 'process/cron': 'cron',
   }
   const passportView = page ? PASSPORT_VIEWS[`${section.slug}/${page.slug}`] : undefined
   // 412-2: документ элемента — текст спрашивает островок при открытии (страница предрендерена, агент правит файлы в любую минуту).
