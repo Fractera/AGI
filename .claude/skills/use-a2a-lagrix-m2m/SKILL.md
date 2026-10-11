@@ -10,6 +10,11 @@ description: >
 
 # use-a2a-lagrix-m2m
 
+> 🪦 **The A2A/M2M split below is cancelled (owner 2026-10-11, step 451).** Three protocols now: **i2i** — elements inside the
+> node agree on a connector over the API, few or no model calls (build); **a2a** — Fractera works with Lagrix like any framework,
+> no advantage (working); **f2f** — Fractera exchanges elements with other Fractera projects **through Lagrix** (build). «M2M never
+> calls Lagrix» no longer holds. i2i and f2f tabs belong in «Build». This skill is rewritten in step 451-2.
+
 > Informational, not binding. **Know a better way for the case in front of you — do it your way and say so.** You are trusted
 > with the creative work on this project. Preliminary: written 2026-10-09 before any Lagrix code exists.
 
