@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import type { A2ADoor, A2AOffer, ElementPassport as Passport } from "@/lib/a2a/element-passport"
 import type { ElementPassportUi } from "../_i18n/element-passport.i18n"
@@ -79,7 +80,7 @@ function NodeElements({ rows, ui }: { rows: NodeElementRow[]; ui: ElementPasspor
   )
 }
 
-export function ElementPassport({ view, passport, ui, nodeElements }: { view: PassportView; passport: Passport | null; ui: ElementPassportUi; nodeElements?: NodeElementRow[] }) {
+export function ElementPassport({ view, passport, ui, nodeElements, service, subscriptionsHref }: { view: PassportView; passport: Passport | null; ui: ElementPassportUi; nodeElements?: NodeElementRow[]; service?: string; subscriptionsHref?: string }) {
   if (view === "find") return <p className="my-4 text-sm text-muted-foreground" data-passport-view="find">{ui.networkSoon}</p>
   const card = passport?.card
   const x = passport?.ext
@@ -160,9 +161,25 @@ export function ElementPassport({ view, passport, ui, nodeElements }: { view: Pa
     // 463: внешние платные сервисы элемента — список, описание, ключи, «Проверить», платежи (SUBSCRIPTIONS.json).
     // 🪦 Владелец 2026-10-12 («to trush»): здесь стояли список нужд из паспорта («sign-in у auth …») и раздел «Внешние сервисы —
     // Нет…» по `process` вида `integration` (412-7) — сняты: вкладка показывает только подписки элемента.
-    body = passport?.subscriptions
-      ? <SubscriptionsView data={passport.subscriptions} ui={ui.subscriptions} />
-      : <p className="text-sm text-muted-foreground">{ui.noIntegrations}</p>
+    // 463 (владелец 2026-10-12: «…отдельные страницы а не валить в одну кучу»): корень «Подписок» — список сервисов ссылками,
+    // страница сервиса (`service`) — только он: описание, ключи, «Проверить», платежи. В левом меню каждый сервис — свой пункт.
+    const subs = passport?.subscriptions
+    const one = subs && service ? subs.services.find((s) => s.id === service) : undefined
+    body = !subs
+      ? <p className="text-sm text-muted-foreground">{ui.noIntegrations}</p>
+      : one
+        ? <SubscriptionsView service={one} example={subs.example} ui={ui.subscriptions} />
+        : (
+          <ul className="flex flex-col gap-2" data-subscriptions={subs.services.length}>
+            {subs.services.map((s) => (
+              <li key={s.id} className="rounded-lg border border-border px-4 py-3">
+                <Link className="font-medium underline" href={`${subscriptionsHref}/${s.id}`}>{s.name}</Link>
+                {subs.example ? <Badge variant="outline" className="ml-2">{ui.subscriptions.example}</Badge> : null}
+                <p className="text-sm text-muted-foreground">{s.description}</p>
+              </li>
+            ))}
+          </ul>
+        )
   } else if (view === "cron") {
     body = (
       <section className="flex flex-col gap-2">

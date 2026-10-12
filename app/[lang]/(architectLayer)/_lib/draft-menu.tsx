@@ -3,7 +3,7 @@ import type { WorkspaceItem } from '@/lib/content/blocks/types'
 import { listDrafts } from '@/lib/agi-items/drafts'
 import { addressOf } from '@/lib/agi-items/element-address'
 import { ITEM_TREE, TREE_GROUPS, treeLang, type TreePage } from '@/lib/agi-items/item-tree'
-import { hasCatalog } from '@/lib/a2a/element-passport'
+import { elementPassport, hasCatalog } from '@/lib/a2a/element-passport'
 import { hasDoc } from '@/lib/agi-items/element-docs'
 import { agiDraftsUi } from '../_i18n/agi-drafts.i18n'
 import { CreateDraftButton } from '../_components/create-draft-button.client'
@@ -54,6 +54,9 @@ export function withDrafts(menu: WorkspaceItem[], lang: string, currentPath: str
     // своей странице, «открыт» — пока человек на любой его странице: отметка «вы здесь» не стоит в двух местах.
     // 406-4: пункт «Каталог» — только у элемента, чей паспорт объявляет каталог.
     const catalog = hasCatalog(d.id)
+    // 463 (владелец 2026-10-12: «…выпадающий список … отдельные страницы а не валить в одну кучу»): «Процесс → Подписки» раскрывается
+    // пунктом на каждый внешний сервис элемента (OWN-SERVICE-PROPS/SUBSCRIPTIONS.json), у каждого своя страница.
+    const services = elementPassport(d.id)?.subscriptions?.services ?? []
     const children = ITEM_TREE.map((s) => {
       const path = `${dir}/${s.slug}`
       const inside = currentPath.startsWith(`${path}/`)
@@ -61,6 +64,10 @@ export function withDrafts(menu: WorkspaceItem[], lang: string, currentPath: str
       const visible = (s.pages ?? []).filter((p) => (p.needs !== 'catalog' || catalog) && (!p.doc || hasDoc(d.id, p.doc)))
       const leaf = (p: TreePage): WorkspaceItem => {
         const pagePath = `${path}/${p.slug}`
+        if (s.slug === 'process' && p.slug === 'subscriptions' && services.length) {
+          const kids = services.map((x) => ({ label: x.name, href: at(`${pagePath}/${x.id}`), active: `${pagePath}/${x.id}` === currentPath }))
+          return { label: p.words[l].title, href: at(pagePath), active: pagePath === currentPath, open: currentPath.startsWith(pagePath), children: kids }
+        }
         return { label: p.words[l].title, href: at(pagePath), active: pagePath === currentPath }
       }
       // 435-3: страницы одной группы — раскрывающийся пункт без своей страницы, на месте первой из них; открыт, когда человек внутри.

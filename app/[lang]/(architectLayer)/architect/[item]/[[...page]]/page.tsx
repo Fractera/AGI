@@ -85,11 +85,18 @@ function resolve(p: Params) {
   const draft = id ? getDraft(id) : null
   if (!draft) return null
   const path = p.page ?? []
-  if (path.length === 0) return { draft, found: null }
+  if (path.length === 0) return { draft, found: null, service: undefined }
+  // 463 (владелец 2026-10-12: «…создавать отдельные страницы а не валить в одну кучу»): у каждого внешнего сервиса элемента
+  // своя страница `process/subscriptions/<id>`; id — из его OWN-SERVICE-PROPS/SUBSCRIPTIONS.json, чужой id — 404.
+  if (path.length === 3 && path[0] === 'process' && path[1] === 'subscriptions') {
+    const known = elementPassport(draft.id)?.subscriptions?.services.some((s) => s.id === path[2])
+    const parent = findTreePage(path.slice(0, 2))
+    return known && parent ? { draft, found: parent, service: path[2] } : null
+  }
   const found = findTreePage(path)
   // 412-2: страница документа есть, только пока есть его файл в папке элемента.
   if (found?.page?.doc && !hasDoc(draft.id, found.page.doc)) return null
-  return found ? { draft, found } : null
+  return found ? { draft, found, service: undefined } : null
 }
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
@@ -365,7 +372,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
         })
       })()
     : undefined
-  const passport = passportView ? <ElementPassport view={passportView} passport={entry ? elementPassport(item) : null} ui={elementPassportUi(lang)} nodeElements={nodeElements} /> : null
+  // 463: страница одного внешнего сервиса — `service`; ссылки списка «Подписки» строятся от `subscriptionsHref`.
+  const passport = passportView ? <ElementPassport view={passportView} passport={entry ? elementPassport(item) : null} ui={elementPassportUi(lang)} nodeElements={nodeElements} service={r.service} subscriptionsHref={`/${lang}${dir}/process/subscriptions`} /> : null
 
   return (
     <ArchitectPage

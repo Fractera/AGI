@@ -5,14 +5,14 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { ExternalServices } from "@/lib/a2a/element-passport"
+import type { ExternalService } from "@/lib/a2a/element-passport"
 
-// ВКЛАДКА «ПРОЦЕСС → ПОДПИСКИ» (шаг 463). Владелец 2026-10-12: «…внутри попадающие список и добавим первый итем это будет ai search
-// machine … краткое описание сервиса … поля для ввода необходимых ключей и пример таблицы дашборд платежей. Также сделай там кнопку:
-// проверить … при нажатии на эту кнопку показывать текущее состояние в таблице истории платежей. Но так как это хардкор пример то мы
-// вообще ничего не реализуем по факту».
-// Данные — `OWN-SERVICE-PROPS/SUBSCRIPTIONS.json` элемента (lib/a2a/element-passport.ts). Ядро рисует, элемент описывает (навык
+// СТРАНИЦА ОДНОГО ВНЕШНЕГО СЕРВИСА — «Процесс → Подписки → <сервис>» (шаг 463). Владелец 2026-10-12: «…внутри попадающие список
+// и добавим первый итем это будет ai search machine … краткое описание сервиса … поля для ввода необходимых ключей и пример таблицы
+// дашборд платежей. Также сделай там кнопку: проверить … хардкор пример то мы вообще ничего не реализуем по факту»; уточнение того же
+// дня: «…выпадающий список … создавать отдельные страницы а не валить в одну кучу» — выпадающий список стоит в ЛЕВОМ МЕНЮ
+// (`_lib/draft-menu.tsx`), здесь — один сервис на своей странице `/process/subscriptions/<id>`.
+// Данные — `OWN-SERVICE-PROPS/SUBSCRIPTIONS.json` элемента (lib/a2a/element-passport.ts); элемент описывает, ядро рисует (навык
 // элемента `connect-external-service`). 🔒 Сегодня ничего не сохраняется и не вызывается: поля ключей — для вида, «Проверить» у
 // примера показывает строки примера, у настоящего сервиса — честно говорит, что проверка ещё не построена. Таймеров нет.
 
@@ -34,32 +34,18 @@ export type SubscriptionsUi = {
   envName: string
 }
 
-export function SubscriptionsView({ data, ui }: { data: ExternalServices; ui: SubscriptionsUi }) {
-  const [id, setId] = useState(data.services[0]?.id ?? "")
-  const [checked, setChecked] = useState<string | null>(null)
-  const s = data.services.find((x) => x.id === id) ?? data.services[0]
-  if (!s) return null
-  const shown = checked === s.id
+export function SubscriptionsView({ service: s, example, ui }: { service: ExternalService; example: boolean; ui: SubscriptionsUi }) {
+  const [checked, setChecked] = useState(false)
 
   return (
-    <section className="flex flex-col gap-4 rounded-lg border border-border px-4 py-4" data-subscriptions={data.services.length}>
+    <section className="flex flex-col gap-4 rounded-lg border border-border px-4 py-4" data-subscription={s.id}>
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-sm font-medium">{ui.title}</p>
-        {data.example && <Badge variant="outline">{ui.example}</Badge>}
-      </div>
-      {data.example && <p className="text-xs text-muted-foreground">{ui.exampleNote}</p>}
-
-      <Select value={s.id} onValueChange={(v) => { setId(v); setChecked(null) }}>
-        <SelectTrigger className="w-full sm:w-80" aria-label={ui.choose}>
-          <SelectValue placeholder={ui.choose} />
-        </SelectTrigger>
-        <SelectContent>
-          {data.services.map((x) => <SelectItem key={x.id} value={x.id}>{x.name}</SelectItem>)}
-        </SelectContent>
-      </Select>
-
-      <div className="flex flex-col gap-1" data-subscription={s.id}>
         <p className="text-base font-semibold">{s.name}</p>
+        {example && <Badge variant="outline">{ui.example}</Badge>}
+      </div>
+      {example && <p className="text-xs text-muted-foreground">{ui.exampleNote}</p>}
+
+      <div className="flex flex-col gap-1">
         <p className="text-sm text-muted-foreground">{s.description}</p>
         {s.docs && <a className="w-fit text-sm underline" href={s.docs} target="_blank" rel="noreferrer">{ui.docs}</a>}
       </div>
@@ -77,14 +63,14 @@ export function SubscriptionsView({ data, ui }: { data: ExternalServices; ui: Su
       </div>
 
       <div>
-        <Button type="button" variant="outline" onClick={() => setChecked(s.id)}>{ui.check}</Button>
+        <Button type="button" variant="outline" onClick={() => setChecked(true)}>{ui.check}</Button>
       </div>
 
-      {shown && (
+      {checked && (
         s.examplePayments?.length
           ? (
             <div className="flex flex-col gap-2" data-subscription-payments={s.examplePayments.length}>
-              <p className="text-sm font-medium">{ui.payments}{data.example ? ` · ${ui.example}` : ""}</p>
+              <p className="text-sm font-medium">{ui.payments}{example ? ` · ${ui.example}` : ""}</p>
               <div className="overflow-x-auto rounded-md border border-border">
                 <table className="w-full text-sm">
                   <thead className="bg-muted/50 text-left">
