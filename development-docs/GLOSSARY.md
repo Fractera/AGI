@@ -187,6 +187,20 @@ Terms that belong to `migration` only:
 dependency has no way to ride across.
 
 
+## Build process and working process — what an element does, and what follows (steps 435, 465-4)
+
+Every task about an element first names its process (owner of the node, 2026-10-08: «мне не хватило определения о каком процессе ты
+идёшь»). The element instruction calls them the agent's two natures: **Builder** and **Worker**.
+
+| Canon | Said as | What it is and what follows |
+|---|---|---|
+| **build process** | «строительный процесс», «строительство» | Changes the element as a thing: code, design, texts, deploy, a new ability, offering or selling the whole element. **Follows:** git changes — a commit, a push, a rebuild; the full answer form (three confirming lines, a plan, the person's «yes»). Core menu: «Build» (i2i, f2f) and «Product design». |
+| **working process** | «рабочий процесс», «работа элемента» | What the running element does: its work skills, reminders and schedules, calls from neighbours and outside agents, price and limit. **Follows:** only data changes, outside git — no code, no commit, no push, no rebuild; a one- or two-line answer (owner, 2026-10-12: «автоматизация рабочего процесса не должна приводить к сборке проекта»). Core menu: «A2A» and «Process». |
+
+🔒 The test: **will git change after this?** Yes — it is the build process. A screen of the core that serves the working process (the
+calendar of «Process → Cron automations») reads data and starts nothing that leads to a rebuild. Every skill of an element names its
+process (`Builder skill` · `Work skill` · `Both natures`, guard `check-skill-process` of the element template).
+
 ## 🪦 Removed 2026-08-16 — terms that described a subsystem that no longer exists
 
 This file used to define `Automation (Rule)`, `Trigger`, `Hook`, `Condition`, `Action`, `Router`, `Step`,

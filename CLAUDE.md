@@ -2778,7 +2778,9 @@ Ticker $LGX, domain `lagrix.dev`.
   and `{kind: "cron", schedule, what}` (cron only after the person's «yes») — checked by `lib/a2a/passport.mjs`.
   🪦 The list of `process` is no longer drawn: «Subscriptions» reads SUBSCRIPTIONS.json (463), «Cron» reads CRON.json (465).
 - **Process → Cron automations** (step 465, owner 2026-10-12): a calendar drawn by the core from the element's
-  `OWN-SERVICE-PROPS/CRON.json` (`events`, `schedules` with `time`, `repeat` once · daily · weekdays · weekly · monthly, `start`,
+  catalog `OWN-SERVICE-PROPS/CRON.json` (`events` incl. the built-in `telegram-message`, `seed`) and its schedule `data/cron.json`
+  — DATA outside git, the working process (465-4, owner: «автоматизация рабочего процесса не должна приводить к сборке проекта»); a
+  reminder is an entry with its own `message`, never code, commit or rebuild (`schedules` with `time`, `repeat` once · daily · weekdays · weekly · monthly, `start`,
   `enabled`; `repeatsPaused` turns off all repeating) and its run log `data/cron-runs.jsonl` (`lib/a2a/element-passport.ts` →
   `_components/cron-calendar.client.tsx`): the month on the left (month and year arrows), the chosen day in 30-minute rows on the
   right, tasks of one time side by side, accordion cards, statuses done · failed · skipped · paused · planned. Show only: the

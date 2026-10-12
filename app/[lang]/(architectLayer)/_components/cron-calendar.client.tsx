@@ -171,8 +171,9 @@ export function CronCalendar({ plan, lang, ui }: { plan: CronPlan; lang: string;
                             </AccordionTrigger>
                             <AccordionContent className="flex flex-col gap-1 text-xs">
                               <Badge variant="outline" className="w-fit">{ui.status[st]}</Badge>
+                              {s.message && <p className="text-sm" data-cron-message>«{s.message}»</p>}
                               <p><span className="text-muted-foreground">{ui.event}:</span> {eventName(s.event)}</p>
-                              {eventText(s.event) && <p className="text-muted-foreground">{eventText(s.event)}</p>}
+                              {!s.message && eventText(s.event) && <p className="text-muted-foreground">{eventText(s.event)}</p>}
                               <p><span className="text-muted-foreground">{ui.repeatLabel}:</span> {ui.repeat[s.repeat]} · {ui.since} {s.start}{s.until ? ` · ${ui.until} ${s.until}` : ""}</p>
                               {run && <p><span className="text-muted-foreground">{ui.lastRun}:</span> {new Date(run.at).toLocaleString(lang)}{run.detail ? ` — ${run.detail}` : ""}</p>}
                             </AccordionContent>
