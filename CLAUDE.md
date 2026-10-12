@@ -2775,7 +2775,16 @@ Ticker $LGX, domain `lagrix.dev`.
 - **A2A numbers** of an element = `<element id>-<uuidv7>` (roman `lib/a2a/ids.ts`): who started it, time order; a client's own
   `contextId` is kept.
 - **Passport `process`**: `{kind: "integration", service, what, env, docs}` (env = the key variable's NAME, never a value; docs https)
-  and `{kind: "cron", schedule, what}` (cron only after the person's «yes») — checked by `lib/a2a/passport.mjs`, shown on
-  «Process → Subscriptions» and «Cron».
+  and `{kind: "cron", schedule, what}` (cron only after the person's «yes») — checked by `lib/a2a/passport.mjs`.
+  🪦 The list of `process` is no longer drawn: «Subscriptions» reads SUBSCRIPTIONS.json (463), «Cron» reads CRON.json (465).
+- **Process → Cron automations** (step 465, owner 2026-10-12): a calendar drawn by the core from the element's
+  `OWN-SERVICE-PROPS/CRON.json` (`events`, `schedules` with `time`, `repeat` once · daily · weekdays · weekly · monthly, `start`,
+  `enabled`; `repeatsPaused` turns off all repeating) and its run log `data/cron-runs.jsonl` (`lib/a2a/element-passport.ts` →
+  `_components/cron-calendar.client.tsx`): the month on the left (month and year arrows), the chosen day in 30-minute rows on the
+  right, tasks of one time side by side, accordion cards, statuses done · failed · skipped · paused · planned. Show only: the
+  schedule is changed by talking to the element's agent (terminal or Telegram), skill
+  `schedule-cron-automations-calendar-reminders-recurring-and-one-time-tasks`. The clock is the element's own server
+  (`lib/cron/runner.ts` in roman, once a minute, owner's «Подтверждаю»); the core starts no timer. Example event — a Telegram
+  reminder «you have a project at <address>» to the element's bot (owner: «to telegram»). Only roman today.
 - Only roman today; the template and the other elements — step 413. 🛑 Do not edit core files while `serve:rebuild` runs: a rebuild
   killed half-way (low memory) left the running core without `.next` files — every page 500 until the next full build.
