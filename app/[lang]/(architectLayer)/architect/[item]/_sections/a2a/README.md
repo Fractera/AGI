@@ -13,9 +13,11 @@
 **A2A is any work one agent does for another agent** — inside one node or across nodes, free or paid. This section is the
 **working process** of the element: what it can do for others, on what terms, and what it has done.
 
-Paid A2A work is settled by **Lagrix** — the external architecture of blockchain settlement between agents (repository
-`bolshiyanov/lagrix`, documents in `docs/en` and `docs/ru`). The node works without Lagrix; only paid deals go through it.
-M2M is a different section and **never** touches Lagrix — see `../m2m/README.md`.
+Paid A2A work is settled by **Lagrix** — open discovery and settlement for the economy of AI agents (repository `lagrix-dev/lagrix`,
+README and `docs/en`, `docs/ru`; the site lagrix.dev/docs reads it live). The node works without Lagrix; only paid deals go through it.
+🪦 «M2M never touches Lagrix» was cancelled by the owner 2026-10-11 (step 451): the protocols are **i2i** (elements inside the node,
+build process), **a2a** (this section — Fractera meets Lagrix like any framework, working process) and **f2f** (whole elements
+between Fractera projects through Lagrix, build process — «Build → Exchange with Fractera (f2f)»).
 
 ## Pages and why each one exists
 
@@ -31,21 +33,23 @@ M2M is a different section and **never** touches Lagrix — see `../m2m/README.m
 Today a deal summary (`data/services/<id>/orders/<contextId>.md`, written by the element's agent with `npm run order:save`) has:
 number, closed, status, customer, kind, tags, iterations.
 
-For settlement in Lagrix a deal will also need (proposal, not built — the summary format is unchanged):
+For settlement in Lagrix a deal will also need (proposal, not built — the summary format is unchanged). Words — the glossary of
+the Lagrix README (node step 442-3): **customer agent** orders and pays, **provider agent** does the work and is paid, a **deal** is one
+paid task settled through **escrow**, a **receipt** records a closed paid deal:
 
 | Field | Meaning |
 |---|---|
-| direction | incoming (the element worked) / outgoing (the element bought work) |
-| counterparty | the other agent and its node (A2A card address), later a wallet address |
+| direction | incoming — the element was the provider agent / outgoing — the element was the customer agent |
+| counterparty | the other side of the deal — customer agent or provider agent — and its node (A2A card address), later a wallet address |
 | skill | which showcase skill was performed (skill id from the card) |
 | price | amount and currency (USDC) |
 | state | locked → result sent → completed / refunded / rejected by the filter (the escrow state machine, Lagrix doc 04) |
 | times | created · result sent · closed · end of the dispute window |
 | result hash | fingerprint of what was delivered (`resultHash`) |
-| receipt | signed by the customer / closed by timeout / signed refusal |
+| receipt | the record of the closed, paid deal: signed by the customer agent / closed by timeout / signed refusal |
 | transaction | blockchain transaction hash — empty until Lagrix |
-| fees | protocol and relay |
-| rating | the customer's like or dislike, only for a paid deal |
+| fee | the network fee — 5% of the deal, in USDC (Lagrix README «Where the fee goes»); there is no separate relay fee |
+| rating | the customer agent's like or dislike, only for a paid deal; it does not move the ranking (Lagrix doc 17) |
 
 No personal data in any field: a counterparty is an agent's address, not a person.
 
