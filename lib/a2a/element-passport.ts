@@ -34,6 +34,7 @@ export type ElementPassport = {
   published: unknown
   registry: unknown
   offers: A2AOffers | null
+  subscriptions: ExternalServices | null
 }
 
 // 435-4 (владелец 2026-10-08): витрина «Связи (A2A) → A2A» — что элемент предлагает, по какой цене, кому и с каким лимитом.
@@ -46,6 +47,28 @@ export type A2AOffer = {
   limit: { count: number; per: "day" | "hour" } | null
 }
 export type A2AOffers = { example: boolean; offers: A2AOffer[] }
+
+// 463 (владелец 2026-10-12): вкладка «Процесс → Подписки» — внешние платные сервисы элемента. Отдельный файл
+// `OWN-SERVICE-PROPS/SUBSCRIPTIONS.json` (как A2A-OFFERS.json): в публичную визитку не попадает; ключи — только ИМЕНА переменных.
+// Сегодня у roman — пример «AI search machine» (`example: true`): ничего не сохраняется и не вызывается. Навык элемента —
+// `connect-external-service`.
+export type ExternalPayment = { date: string; description: string; amount: string; currency: string; status: string }
+export type ExternalService = {
+  id: string; name: string; description: string; docs?: string
+  keys: { env: string; label: string; secret?: boolean }[]
+  check?: string
+  examplePayments?: ExternalPayment[]
+}
+export type ExternalServices = { example: boolean; services: ExternalService[] }
+
+function readSubscriptions(dir: string): ExternalServices | null {
+  try {
+    const raw = JSON.parse(readFileSync(join(dir, "OWN-SERVICE-PROPS", "SUBSCRIPTIONS.json"), "utf8")) as Partial<ExternalServices>
+    return Array.isArray(raw.services) && raw.services.length ? { example: raw.example !== false, services: raw.services } : null
+  } catch {
+    return null
+  }
+}
 
 function readOffers(dir: string): A2AOffers | null {
   try {
@@ -73,6 +96,7 @@ export function elementPassport(id: string): ElementPassport | null {
     published: ok ? publishedCard(props) : null,
     registry: ok ? registryEntryOf(props, { address: id }) : null,
     offers: readOffers(dir),
+    subscriptions: readSubscriptions(dir),
   }
 }
 

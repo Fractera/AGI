@@ -1,5 +1,7 @@
 // Слова страниц паспорта элемента (шаг 406-4): «Связи (A2A)», «Сеть (M2M)», «Процесс».
 
+import type { SubscriptionsUi } from "../_components/subscriptions-view.client"
+
 export type ElementPassportUi = {
   none: string
   problems: string
@@ -59,6 +61,8 @@ export type ElementPassportUi = {
   integrations: string
   noIntegrations: string
   apiDocs: string
+  /** 463: вкладка «Процесс → Подписки» — внешние платные сервисы (SUBSCRIPTIONS.json элемента). */
+  subscriptions: SubscriptionsUi
   fingerprint: string
   accepts: string
   returns: string
@@ -127,6 +131,23 @@ const DICT: Record<"en" | "ru", ElementPassportUi> = {
     integrations: "Outside services",
     noIntegrations: "None: the element uses no outside service.",
     apiDocs: "API documentation",
+    subscriptions: {
+      title: "Outside paid services",
+      choose: "Choose a service",
+      example: "Example",
+      exampleNote: "A hard-coded example of how an outside service appears here: nothing is saved and nothing is called.",
+      keys: "Keys",
+      keysNote: "Keys are not saved from this screen yet: the element reads them from its environment variables (names below).",
+      check: "Check",
+      checkNotBuilt: "The check for this service is not built yet.",
+      payments: "Payment history",
+      date: "Date",
+      description: "Description",
+      amount: "Amount",
+      status: "Status",
+      docs: "Provider API documentation",
+      envName: "Environment variable",
+    },
     fingerprint: "Passport fingerprint",
     accepts: "Accepts",
     returns: "Returns",
@@ -193,6 +214,23 @@ const DICT: Record<"en" | "ru", ElementPassportUi> = {
     integrations: "Внешние сервисы",
     noIntegrations: "Нет: элемент не пользуется внешними сервисами.",
     apiDocs: "Документация API",
+    subscriptions: {
+      title: "Внешние платные сервисы",
+      choose: "Выберите сервис",
+      example: "Пример",
+      exampleNote: "Образец того, как здесь появляется внешний сервис: ничего не сохраняется и не вызывается.",
+      keys: "Ключи",
+      keysNote: "С этого экрана ключи пока не сохраняются: элемент читает их из своих переменных окружения (имена ниже).",
+      check: "Проверить",
+      checkNotBuilt: "Проверка этого сервиса ещё не построена.",
+      payments: "История платежей",
+      date: "Дата",
+      description: "Описание",
+      amount: "Сумма",
+      status: "Статус",
+      docs: "Документация API поставщика",
+      envName: "Переменная окружения",
+    },
     fingerprint: "Отпечаток паспорта",
     accepts: "Принимает",
     returns: "Возвращает",

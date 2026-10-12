@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import type { A2ADoor, A2AOffer, ElementPassport as Passport } from "@/lib/a2a/element-passport"
 import type { ElementPassportUi } from "../_i18n/element-passport.i18n"
+import { SubscriptionsView } from "./subscriptions-view.client"
 
 // СТРАНИЦЫ МЕНЮ ЭЛЕМЕНТА ПОКАЗЫВАЮТ ЕГО ПАСПОРТ (шаг 406-4; карта меню 406-2 — решение владельца «удалить всё предложенное,
 // остальное как предложил»). Серверный компонент: читает уже прочитанный паспорт, своих данных не держит.
@@ -160,6 +161,8 @@ export function ElementPassport({ view, passport, ui, nodeElements }: { view: Pa
     const integrations = (x.process ?? []).filter((p) => p.kind === "integration")
     body = (
       <>
+        {/* 463: внешние платные сервисы элемента — список, описание, ключи, «Проверить», платежи (SUBSCRIPTIONS.json). */}
+        {passport?.subscriptions ? <SubscriptionsView data={passport.subscriptions} ui={ui.subscriptions} /> : null}
         {x.consumes?.length
           ? <ul className="flex flex-col gap-1.5">{x.consumes.map((c) => <li key={`${c.from}-${c.skill}`} className="text-sm"><span className="font-mono">{c.skill}</span>{c.from ? <> {ui.from} <span className="font-mono">{c.from}</span></> : null} — {c.why}</li>)}</ul>
           : <p className="text-sm text-muted-foreground">{ui.noNeeds}</p>}
