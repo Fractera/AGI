@@ -2787,6 +2787,7 @@ Ticker $LGX, domain `lagrix.dev`.
   schedule is changed by talking to the element's agent (terminal or Telegram), skill
   `schedule-cron-automations-calendar-reminders-recurring-and-one-time-tasks`. The clock is the element's own server
   (`lib/cron/runner.ts` in roman, once a minute, owner's «Подтверждаю»); the core starts no timer. Example event — a Telegram
-  reminder «you have a project at <address>» to the element's bot (owner: «to telegram»). Only roman today.
+  reminder «you have a project at <address>» to the element's bot (owner: «to telegram»). Since template v0.3.95 every new
+  element has it: its `seed` is one automatic message 24 hours after the element's first start (465-5).
 - Only roman today; the template and the other elements — step 413. 🛑 Do not edit core files while `serve:rebuild` runs: a rebuild
   killed half-way (low memory) left the running core without `.next` files — every page 500 until the next full build.
