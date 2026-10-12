@@ -35,6 +35,7 @@ export type ElementPassport = {
   registry: unknown
   offers: A2AOffers | null
   subscriptions: ExternalServices | null
+  cron: CronPlan | null
 }
 
 // 435-4 (владелец 2026-10-08): витрина «Связи (A2A) → A2A» — что элемент предлагает, по какой цене, кому и с каким лимитом.
@@ -60,6 +61,38 @@ export type ExternalService = {
   examplePayments?: ExternalPayment[]
 }
 export type ExternalServices = { example: boolean; services: ExternalService[] }
+
+// 465 (владелец 2026-10-12): вкладка «Процесс → Крон автоматизации» — календарь расписания элемента. Отдельный файл
+// `OWN-SERVICE-PROPS/CRON.json` (как SUBSCRIPTIONS.json): события — обработчики, написанные заранее; расписания — когда сервер
+// элемента их зовёт (он сверяется с часами раз в минуту, lib/cron/ элемента). Журнал запусков — `data/cron-runs.jsonl` элемента:
+// ядро только читает его, чтобы календарь показал «выполнено / ошибка / пропущено». Навык элемента —
+// `schedule-cron-automations-calendar-reminders-recurring-and-one-time-tasks`.
+export type CronRepeat = "once" | "daily" | "weekdays" | "weekly" | "monthly"
+export type CronEvent = { id: string; name: string; description: string }
+export type CronSchedule = { id: string; event: string; name?: string; time: string; repeat: CronRepeat; start: string; until?: string; enabled: boolean }
+export type CronRun = { slot: string; at: string; schedule: string; event: string; ok: boolean; detail?: string } // slot — «YYYY-MM-DDTHH:MM» по местным часам
+export type CronPlan = { repeatsPaused: boolean; events: CronEvent[]; schedules: CronSchedule[]; runs: CronRun[] }
+
+const REPEATS = new Set(["once", "daily", "weekdays", "weekly", "monthly"])
+const RUNS_SHOWN = 2000 // последние строки журнала: календарю хватает
+
+function readCron(dir: string): CronPlan | null {
+  let raw: { repeatsPaused?: unknown; events?: unknown; schedules?: unknown }
+  try {
+    raw = JSON.parse(readFileSync(join(dir, "OWN-SERVICE-PROPS", "CRON.json"), "utf8"))
+  } catch {
+    return null
+  }
+  const events = (Array.isArray(raw.events) ? raw.events : []) as CronEvent[]
+  const schedules = ((Array.isArray(raw.schedules) ? raw.schedules : []) as CronSchedule[])
+    .filter((s) => s && typeof s.id === "string" && /^\d{2}:\d{2}$/.test(s.time) && REPEATS.has(s.repeat) && /^\d{4}-\d{2}-\d{2}$/.test(s.start))
+  let runs: CronRun[] = []
+  try {
+    runs = readFileSync(join(dir, "data", "cron-runs.jsonl"), "utf8").split(/\r?\n/).filter(Boolean).slice(-RUNS_SHOWN)
+      .flatMap((l) => { try { return [JSON.parse(l) as CronRun] } catch { return [] } })
+  } catch { /* журнала ещё нет */ }
+  return { repeatsPaused: raw.repeatsPaused === true, events, schedules, runs }
+}
 
 function readSubscriptions(dir: string): ExternalServices | null {
   try {
@@ -97,6 +130,7 @@ export function elementPassport(id: string): ElementPassport | null {
     registry: ok ? registryEntryOf(props, { address: id }) : null,
     offers: readOffers(dir),
     subscriptions: readSubscriptions(dir),
+    cron: readCron(dir),
   }
 }
 

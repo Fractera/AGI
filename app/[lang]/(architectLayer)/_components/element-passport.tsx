@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import type { A2ADoor, A2AOffer, ElementPassport as Passport } from "@/lib/a2a/element-passport"
 import type { ElementPassportUi } from "../_i18n/element-passport.i18n"
 import { SubscriptionsView } from "./subscriptions-view.client"
+import { CronCalendar } from "./cron-calendar.client"
 
 // СТРАНИЦЫ МЕНЮ ЭЛЕМЕНТА ПОКАЗЫВАЮТ ЕГО ПАСПОРТ (шаг 406-4; карта меню 406-2 — решение владельца «удалить всё предложенное,
 // остальное как предложил»). Серверный компонент: читает уже прочитанный паспорт, своих данных не держит.
@@ -80,8 +81,19 @@ function NodeElements({ rows, ui }: { rows: NodeElementRow[]; ui: ElementPasspor
   )
 }
 
-export function ElementPassport({ view, passport, ui, nodeElements, service, subscriptionsHref }: { view: PassportView; passport: Passport | null; ui: ElementPassportUi; nodeElements?: NodeElementRow[]; service?: string; subscriptionsHref?: string }) {
+export function ElementPassport({ view, passport, ui, lang = "en", nodeElements, service, subscriptionsHref }: { view: PassportView; passport: Passport | null; ui: ElementPassportUi; lang?: string; nodeElements?: NodeElementRow[]; service?: string; subscriptionsHref?: string }) {
   if (view === "find") return <p className="my-4 text-sm text-muted-foreground" data-passport-view="find">{ui.networkSoon}</p>
+  // 465: календарь крона не зависит от визитки A2A — он про рабочий процесс элемента (CRON.json), а не про его описание для сети.
+  // 🪦 Владелец 2026-10-12: здесь стоял список `process` паспорта («что элемент делает сам») — заменён календарём.
+  if (view === "cron") {
+    return (
+      <div className="my-4 flex flex-col gap-3" data-passport-view="cron">
+        {passport?.cron
+          ? <CronCalendar plan={passport.cron} lang={lang} ui={ui.cron} />
+          : <p className="text-sm text-muted-foreground" data-cron-empty>{ui.cron.empty}</p>}
+      </div>
+    )
+  }
   const card = passport?.card
   const x = passport?.ext
   const nodeList = view === "catalog" && nodeElements?.length ? <NodeElements rows={nodeElements} ui={ui} /> : null
@@ -180,15 +192,6 @@ export function ElementPassport({ view, passport, ui, nodeElements, service, sub
             ))}
           </ul>
         )
-  } else if (view === "cron") {
-    body = (
-      <section className="flex flex-col gap-2">
-        <p className="text-sm font-medium">{ui.process}</p>
-        {x.process?.length
-          ? <ul className="flex flex-col gap-1.5">{x.process.map((p, i) => <li key={i} className="text-sm"><Badge variant="outline" className="mr-2">{p.kind}</Badge>{p.kind === "cron" && p.schedule ? <span className="mr-2 font-mono">{p.schedule}</span> : null}{p.what}</li>)}</ul>
-          : <p className="text-sm text-muted-foreground">{ui.noProcess}</p>}
-      </section>
-    )
   }
   return (
     <div className="my-4 flex flex-col gap-3" data-passport-view={view}>

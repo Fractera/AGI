@@ -373,7 +373,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       })()
     : undefined
   // 463: страница одного внешнего сервиса — `service`; ссылки списка «Подписки» строятся от `subscriptionsHref`.
-  const passport = passportView ? <ElementPassport view={passportView} passport={entry ? elementPassport(item) : null} ui={elementPassportUi(lang)} nodeElements={nodeElements} service={r.service} subscriptionsHref={`/${lang}${dir}/process/subscriptions`} /> : null
+  const passport = passportView ? <ElementPassport view={passportView} passport={entry ? elementPassport(item) : null} ui={elementPassportUi(lang)} lang={lang} nodeElements={nodeElements} service={r.service} subscriptionsHref={`/${lang}${dir}/process/subscriptions`} /> : null
 
   return (
     <ArchitectPage

@@ -1,6 +1,7 @@
 // Слова страниц паспорта элемента (шаг 406-4): «Связи (A2A)», «Сеть (M2M)», «Процесс».
 
 import type { SubscriptionsUi } from "../_components/subscriptions-view.client"
+import type { CronUi } from "../_components/cron-calendar.client"
 
 export type ElementPassportUi = {
   none: string
@@ -63,6 +64,8 @@ export type ElementPassportUi = {
   apiDocs: string
   /** 463: вкладка «Процесс → Подписки» — внешние платные сервисы (SUBSCRIPTIONS.json элемента). */
   subscriptions: SubscriptionsUi
+  /** 465: вкладка «Процесс → Крон автоматизации» — календарь расписания (CRON.json элемента). */
+  cron: CronUi
   fingerprint: string
   accepts: string
   returns: string
@@ -148,6 +151,32 @@ const DICT: Record<"en" | "ru", ElementPassportUi> = {
       docs: "Provider API documentation",
       envName: "Environment variable",
     },
+    cron: {
+      lead: "Schedules are set by talking to your Claude Code agent — in this element's terminal or in Telegram. Say what you need in your own words: the agent writes the schedule, and it appears here. The element's own server checks the clock once a minute and runs what is due, by the local time of this computer. While the computer is off or the element is stopped, runs are skipped and not made up later.",
+      examplesTitle: "For example, tell the agent:",
+      examples: [
+        "Remind me every day at 10:00 that I have this project",
+        "On weekdays at 9:30 send me a reminder in Telegram",
+        "Remind me once, on Friday at 18:00",
+        "Pause the Monday reminder",
+        "Turn off all repeating reminders",
+        "What is on my schedule for Friday?",
+      ],
+      paused: "All repeating reminders are turned off. One-time ones still run. Ask the agent to turn them back on.",
+      empty: "This element has no schedule yet. Ask its agent in the terminal or in Telegram, for example: «Remind me every day at 10:00 that I have this project».",
+      repeat: { once: "once", daily: "every day", weekdays: "on weekdays", weekly: "every week", monthly: "every month" },
+      status: { done: "done", failed: "failed", missed: "skipped", paused: "paused", planned: "planned" },
+      event: "Event",
+      repeatLabel: "Repeats",
+      since: "from",
+      until: "until",
+      lastRun: "Run",
+      noTasks: "Nothing scheduled for this day.",
+      prevYear: "Previous year",
+      prevMonth: "Previous month",
+      nextMonth: "Next month",
+      nextYear: "Next year",
+    },
     fingerprint: "Passport fingerprint",
     accepts: "Accepts",
     returns: "Returns",
@@ -230,6 +259,32 @@ const DICT: Record<"en" | "ru", ElementPassportUi> = {
       status: "Статус",
       docs: "Документация API поставщика",
       envName: "Переменная окружения",
+    },
+    cron: {
+      lead: "Расписание ставится разговором с вашим агентом Claude Code — в терминале этого элемента или в Telegram. Скажите своими словами, что нужно: агент запишет расписание, и оно появится здесь. Сервер элемента сверяется с часами раз в минуту и запускает то, чему пришло время, — по местному времени этого компьютера. Пока компьютер выключен или элемент остановлен, запуски пропускаются и потом не догоняются.",
+      examplesTitle: "Например, скажите агенту:",
+      examples: [
+        "Напоминай мне каждый день в 10:00, что у меня есть этот проект",
+        "По будням в 9:30 присылай мне напоминание в Telegram",
+        "Напомни один раз, в пятницу в 18:00",
+        "Поставь на паузу напоминание по понедельникам",
+        "Выключи все повторяющиеся напоминания",
+        "Что у меня по расписанию на пятницу?",
+      ],
+      paused: "Все повторяющиеся напоминания выключены. Разовые по-прежнему срабатывают. Чтобы включить, попросите агента.",
+      empty: "У этого элемента пока нет расписания. Попросите его агента в терминале или в Telegram, например: «Напоминай мне каждый день в 10:00, что у меня есть этот проект».",
+      repeat: { once: "один раз", daily: "каждый день", weekdays: "по будням", weekly: "каждую неделю", monthly: "каждый месяц" },
+      status: { done: "выполнено", failed: "ошибка", missed: "пропущено", paused: "на паузе", planned: "запланировано" },
+      event: "Событие",
+      repeatLabel: "Повтор",
+      since: "с",
+      until: "до",
+      lastRun: "Запуск",
+      noTasks: "На этот день ничего не запланировано.",
+      prevYear: "Предыдущий год",
+      prevMonth: "Предыдущий месяц",
+      nextMonth: "Следующий месяц",
+      nextYear: "Следующий год",
     },
     fingerprint: "Отпечаток паспорта",
     accepts: "Принимает",
