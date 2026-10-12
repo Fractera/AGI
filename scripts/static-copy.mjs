@@ -15,10 +15,11 @@
 //   суточный лимит Worker кончился (Free: 100 000) → маршрут пропускает Worker, запрос идёт в туннель, как до шага.
 //   455-1 (владелец 2026-10-12, «меню моргает»): у адресов страниц (корень, /<язык>/…) Worker стоит ВПЕРЕДИ копии
 //   (`run_worker_first`): запрос клиентской навигации Next (RSC) уходит домой, страница — из копии, нет в копии — дом.
+//   458-10 (владелец 2026-10-12: «Сначала дом, копия — запасная»): страница тоже сначала из дома; копия — когда дом молчит.
 //   ✗ До этого копия отвечала HTML на RSC-запрос, Next перезагружал страницу целиком, и шапка моргала на каждом переходе.
 // 🔒 Денег это не стоит на Free: превышение — отказ, а не счёт (workers/platform/pricing).
 // 🛑 Копия — снимок момента выкладки: правка текста без развёртывания в неё не попадает (владелец выбрал: копия обновляется
-//   после «Принять» и «Развернуть», шаг 344-3).
+//   после «Принять» и «Развернуть», шаг 344-3). С 458-10 это касается только выключенного компьютера: включённый отдаёт свежее.
 // Состояние — `data/services/<id>/static-copy.json`, журнал — `logs/static-copy-<id>.log`.
 
 import { createHash } from 'node:crypto'
@@ -303,14 +304,18 @@ export default {
       if (r && !down.includes(r.status)) return r
       return new Response(null, { status: 503, headers: { 'cache-control': 'no-store', 'x-fractera-copy': 'rsc-offline' } })
     }
-    // 455-1: Worker стоит впереди только у адресов страниц (run_worker_first ниже) — страница по-прежнему сначала из копии.
+    // 458-10 (владелец 2026-10-12: «Сначала дом, копия — запасная»): у адресов страниц (Worker впереди — run_worker_first ниже)
+    // сначала спрашивается дом — свежая страница, правки без пересборки (тексты, документы с GitHub) видны сразу. Копия отдаётся,
+    // только когда дом молчит (сбой связи или нет ответа за 8 с). ✗ До этого страница шла сначала из копии, и любая правка без
+    // пересборки не была видна на домене, пока человек не обновит копию. Денег это не стоит: страницы и так шли через Worker
+    // (455-1), запросов к нему не больше; добавился один подзапрос домой (лимит Free — 50), ожидание сети не считается в CPU.
+    let res = null
+    try { res = await fetch(request, { signal: AbortSignal.timeout(8000) }) } catch { res = null }
+    if (res && !down.includes(res.status)) return res
     if (request.method === 'GET' || request.method === 'HEAD') {
       const a = await env.ASSETS.fetch(request)
       if (a.status !== 404) return a
     }
-    let res = null
-    try { res = await fetch(request) } catch { res = null }
-    if (res && !down.includes(res.status)) return res
     const to = REDIRECTS[url.pathname.replace(/\\/+$/, '') || '/']
     if (to) return Response.redirect(new URL(to, url).toString(), 307)
     if (url.pathname === '/_next/image') {
