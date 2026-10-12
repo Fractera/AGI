@@ -286,6 +286,9 @@ if (process.argv.includes('--dry')) {
   process.exit(0)
 }
 
+// 458-10: языки страниц, которые реально легли в копию (`/ru.html`, `/ru/terms.html` → `ru`), плюс список окружения.
+const workerLangs = [...new Set([...langs, ...[...files.keys()].filter((k) => k.endsWith('.html')).map((k) => k.split('/')[1]?.replace(/\.html$/, '')).filter((s) => /^[a-z]{2}(-[A-Za-z]{2,4})?$/.test(s ?? ''))])]
+
 // ── 4. Worker: спросить дом, если файла нет в копии; дом молчит — «не в сети» ────────────────────────────────────────────────
 const WORKER = `const REDIRECTS = ${JSON.stringify(redirects)}
 const LANGS = ${JSON.stringify(langs)}
@@ -364,7 +367,10 @@ const meta = {
   // копии без вызова Worker (бесплатно и без счёта в 100 000 вызовов в сутки). Первоисточник: Worker «only invoked when the
   // requested route has not matched any static assets», `run_worker_first` — булево или список шаблонов пути
   // (developers.cloudflare.com/workers/static-assets/binding/); совпадение ищется только по пути, заголовок RSC не виден.
-  assets: { jwt: completion, config: { html_handling: 'drop-trailing-slash', not_found_handling: 'none', run_worker_first: ['/', ...langs.flatMap((l) => [`/${l}`, `/${l}/*`])] } },
+  // 458-10: языки — из самой копии (первый сегмент её страниц) вместе со списком окружения. ✗ Только окружение давало у «Блоков» и
+  // элементов ядра один `en` (строки NEXT_PUBLIC_SUPPORTED_LANGUAGES в их .env.local нет): /ru шёл из копии мимо Worker — без
+  // мягкой навигации (455) и без свежей страницы из дома (458-10). Замер 2026-10-12: blocks.throughsongs.com/ru — x-nextjs 0.
+  assets: { jwt: completion, config: { html_handling: 'drop-trailing-slash', not_found_handling: 'none', run_worker_first: ['/', ...workerLangs.flatMap((l) => [`/${l}`, `/${l}/*`])] } },
   bindings: [{ name: 'ASSETS', type: 'assets' }],
 }
 const form = new FormData()
