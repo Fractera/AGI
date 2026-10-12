@@ -24,12 +24,25 @@ const liveLog = createRequire(import.meta.url)('../lib/deploy/live-log.cjs')
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const STATE = join(ROOT, 'logs', 'deploy-state.json')
 const LOG = join(ROOT, 'logs', 'deploy.log')
-const ids = process.argv.slice(2).filter((a) => /^[a-z][a-z0-9-]{0,31}$/.test(a))
+// 460-3: человек называет элемент адресом (lagrix), реестр знает его по id (rtyhh). Адрес переводится в id; неизвестное имя —
+// отказ с понятной строкой и кодом выхода 1. ✗ До этого неизвестное имя «собиралось» за секунду с ok: true и ничего не делало
+// (замер 2026-10-12: deploy-elements lagrix → seconds: 1, ok: true).
+const { addressOf } = createRequire(import.meta.url)('../lib/agi-items/paths.cjs')
+const known = (() => { try { return JSON.parse(readFileSync(join(ROOT, 'AGI-ITEMS-REGISTRY', 'agi-items.json'), 'utf8')).services || [] } catch { return [] } })()
+const unknown = []
+const ids = process.argv.slice(2).filter((a) => /^[a-z][a-z0-9-]{0,31}$/.test(a)).map((a) => {
+  if (known.some((s) => s.id === a)) return a
+  const byAddress = known.find((s) => addressOf(s.id) === a)
+  if (byAddress) return byAddress.id
+  unknown.push(a)
+  return null
+}).filter(Boolean)
 
 mkdirSync(join(ROOT, 'logs'), { recursive: true })
 // 337-1: `pid` — по нему читающий узнаёт, жив ли этот процесс (`lib/deploy/deploy-lock.cjs`).
 const state = { running: true, pid: process.pid, startedAt: new Date().toISOString(), finishedAt: null, queue: ids, current: null, results: [] }
 const save = () => writeFileSync(STATE, JSON.stringify(state, null, 2) + '\n')
+for (const a of unknown) state.results.push({ id: a, ok: false, seconds: 0, note: `нет элемента «${a}» ни по id, ни по адресу — развёртывание не начато` })
 save()
 
 for (const id of ids) {
@@ -73,3 +86,5 @@ state.running = false
 state.current = null
 state.finishedAt = new Date().toISOString()
 save()
+// 460-3: хоть один отказ — код выхода 1 (вызывающий — дверь или человек в терминале — видит провал, а не «готово»).
+if (state.results.some((r) => !r.ok)) process.exitCode = 1
