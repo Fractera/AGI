@@ -8,7 +8,7 @@ import { DraftCards } from '../../../_components/draft-cards'
 import { DeleteDraftButton } from '../../../_components/delete-draft-button.client'
 import { appDialogUi } from '@/components/dialog/app-dialog.i18n'
 import { draftAddress, getDraft } from '@/lib/agi-items/drafts'
-import { findTreePage, MOVED_PAGES, TREE_GROUPS, treeLang, type TreeGroup, type TreePage } from '@/lib/agi-items/item-tree'
+import { findTreePage, MOVED_PAGES, MOVED_WITH, TREE_GROUPS, treeLang, treeVisible, type TreeGroup, type TreePage } from '@/lib/agi-items/item-tree'
 import { getService, listServices, serviceUrl } from '@/lib/microservices/registry'
 import { BirthButton } from '../../../_components/birth-button.client'
 import { birthState } from '@/lib/agi-items/birth'
@@ -47,7 +47,9 @@ import { EnvironmentPanel } from '@/components/environment/environment-panel'
 import { ElementPassport, type NodeElementRow, type PassportView } from '../../../_components/element-passport'
 import { nodeEntries } from '@/lib/a2a/node-registry'
 import { elementPassportUi } from '../../../_i18n/element-passport.i18n'
-import { elementPassport } from '@/lib/a2a/element-passport'
+import { elementMessengers, elementPassport, hasCatalog } from '@/lib/a2a/element-passport'
+import { listOrders } from '@/lib/agi-items/element-orders'
+import { elementDashboardUi } from '../../../_i18n/element-dashboard.i18n'
 import { hasDoc } from '@/lib/agi-items/element-docs'
 import { ElementDocIsland } from '@/components/element-docs/element-doc.client'
 import { PassportDoor } from '@/components/element-docs/passport-door.client'
@@ -96,6 +98,9 @@ function resolve(p: Params) {
   const found = findTreePage(path)
   // 412-2: страница документа есть, только пока есть его файл в папке элемента.
   if (found?.page?.doc && !hasDoc(draft.id, found.page.doc)) return null
+  // 472: разделы и страницы по флагам паспорта (H2A · H2H · A2A) — тот же ответ, что в левом меню.
+  const ctx = { catalog: hasCatalog(draft.id), messengers: elementMessengers(draft.id) }
+  if (found && (!treeVisible(found.section, ctx) || (found.page && !treeVisible(found.page, ctx)))) return null
   return found ? { draft, found, service: undefined } : null
 }
 
@@ -116,6 +121,10 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   // 451-2: вкладки i2i и f2f переехали в «Строительство» — старый адрес ведёт на новый.
   const moved = MOVED_PAGES[(p.page ?? []).join('/')]
   if (moved) redirect(`/${p.lang}${ARCHITECT_HOME}/${p.item}/${moved}`)
+  // 472: у элемента с H2A Telegram-бот живёт в H2A — старый адрес «Строительства» ведёт туда.
+  const movedWith = MOVED_WITH[(p.page ?? []).join('/')]
+  const movedId = movedWith ? idOfAddress(p.item) : null
+  if (movedWith && movedId && elementMessengers(movedId)[movedWith.when]) redirect(`/${p.lang}${ARCHITECT_HOME}/${p.item}/${movedWith.to}`)
   const r = resolve(p)
   if (!r) notFound()
 
@@ -190,7 +199,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       </Link>
     </li>
   )
-  const shown = (section.pages ?? []).filter((sp) => !sp.doc || hasDoc(item, sp.doc))
+  const treeCtx = { catalog: hasCatalog(item), messengers: elementMessengers(item) }
+  const shown = (section.pages ?? []).filter((sp) => treeVisible(sp, treeCtx) && (!sp.doc || hasDoc(item, sp.doc)))
   // 435-3: страницы группы — под раскрывающимся заголовком (серверный `<details>`), как в левом меню.
   const groups = [...new Set(shown.map((sp) => sp.group).filter((g): g is TreeGroup => !!g))]
   const list = !page && shown.length > 0 ? (
@@ -225,7 +235,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
 
   // 326-3: «Подписка Claude Code», «Терминал», «Telegram бот» — острова ОБЩЕЙ копии комплекта агента (`../_agent-kit`, 326-1);
   // Claude Code живёт в папке элемента `AGI-ITEMS/user/<id>`. У черновика — объяснение.
-  const kitPage = section.slug === 'build' && page ? AGENT_PAGES[page.slug] : undefined
+  // 472: Telegram-бот — и в H2A (у элементов с флагом H2A), и в «Строительстве» (у остальных).
+  const kitPage = (section.slug === 'build' || section.slug === 'h2a') && page ? AGENT_PAGES[page.slug] : undefined
   const agent = kitPage
     ? (entry ? agentKitWidget(kitPage, item, lang) : <p className="my-4 text-sm text-muted-foreground">{elementSettingsUi(lang).agentNotBorn}</p>)
     : null
@@ -246,6 +257,26 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   const isDeployments = section.slug === 'build' && page?.slug === 'deployments'
   const versions = isDeployments && entry ? elementVersions(item) : null
   const dui = elementDeploymentsUi(lang)
+  // 472-2: дашборд H2A · H2H · A2A. У A2A собеседники и сделки — из сделок элемента (`listOrders`, тот же источник, что «Сделки»);
+  // у H2A и H2H источника пока нет — нули и честная строка. Данные — при открытии страницы, без таймеров.
+  const dashboardBlocks: Block[] = page?.slug === 'dashboard'
+    ? (() => {
+        const dw = elementDashboardUi(lang)
+        const orders = section.slug === 'connectors' && entry ? listOrders(item) : []
+        const by = new Map<string, { n: number; last: string }>()
+        for (const o of orders) {
+          const who = o.from || '—'
+          const cur = by.get(who) ?? { n: 0, last: '' }
+          by.set(who, { n: cur.n + 1, last: o.closed > cur.last ? o.closed : cur.last })
+        }
+        const rows = [...by.entries()].sort((a, b) => b[1].n - a[1].n).map(([who, v]) => [who, String(v.n), v.last || '—'])
+        return [
+          { kind: 'metrics', items: [{ value: String(by.size), label: dw.counterparts }, { value: String(orders.length), label: dw.deals }] },
+          rows.length ? { kind: 'table', headers: [...dw.headers], rows } : { kind: 'note', text: dw.empty },
+          { kind: 'cta', text: dw.note, href: `/${lang}${ARCHITECT_HOME}/${slug}/build/terminal`, label: dw.terminal },
+        ] as Block[]
+      })()
+    : []
   const tables: Block[] = versions
     ? [{
         kind: 'table',
@@ -383,7 +414,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       lead={words.lead}
       pageTitle={address}
       widget={<>{bar}{lagrix}{about}{list}{preview}{github}{deployPanel}{copyNote}{deploymentsNote}{environment}{domainSettings}{settings}{siteSettings}{agent}{passport}{doc}{orders}</>}
-      children={tables}
+      children={[...dashboardBlocks, ...tables]}
     />
   )
 }

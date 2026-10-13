@@ -12,8 +12,13 @@ export type TreeWords = { title: string; lead: string }
 // (`lib/agi-items/element-docs.ts`).
 // 435 (владелец 2026-10-08): `about` — абзацы под заголовком страницы, когда одной строки `lead` мало; `group` — страница уходит
 // в раскрывающуюся группу раздела (в меню и в списке страниц раздела), её адрес не меняется.
+// 472 (владелец 2026-10-13): «в наличии или отсутствие этих инструментов таких как чат H2H его состояние как правда или ложь должны
+// передаваться в own-service-props.json». Флаги паспорта элемента `messengers` — h2a · h2h · a2a; `needs` — пункт есть, только когда
+// флаг включён; `unless` — пункт есть, только когда флаг ВЫКЛЮЧЕН (Telegram-бот остаётся в «Строительстве» у элементов без H2A).
+export type Messenger = "h2a" | "h2h" | "a2a"
 export type TreePage = {
-  slug: string; words: Record<"en" | "ru", TreeWords>; pages?: TreePage[]; needs?: "catalog"; doc?: { file: string; folder?: boolean; deep?: boolean }
+  slug: string; words: Record<"en" | "ru", TreeWords>; pages?: TreePage[]; needs?: "catalog" | Messenger; unless?: Messenger
+  doc?: { file: string; folder?: boolean; deep?: boolean }
   about?: Record<"en" | "ru", string[]>; group?: TreeGroup
 }
 
@@ -42,6 +47,22 @@ export const MOVED_PAGES: Record<string, string> = {
   "web3-store/publish": "build/publish",
 }
 
+// 472: что у элемента есть — для условий `needs`/`unless`. Один ответ для меню, маршрута и списка страниц раздела.
+export type TreeContext = { catalog: boolean; messengers: Record<Messenger, boolean> }
+export function treeVisible(p: TreePage, c: TreeContext): boolean {
+  if (p.needs === "catalog" && !c.catalog) return false
+  if (p.needs && p.needs !== "catalog" && !c.messengers[p.needs]) return false
+  if (p.unless && c.messengers[p.unless]) return false
+  return true
+}
+// 472: у элемента с H2A бот живёт в H2A — старый адрес ведёт туда (у элемента без H2A бот остаётся в «Строительстве»).
+export const MOVED_WITH: Record<string, { to: string; when: Messenger }> = {
+  "build/telegram": { to: "h2a/telegram", when: "h2a" },
+}
+
+// 472-2: дашборд раздела — счётчики, таблица и под ней надпись про терминал (страница элемента, `element-dashboard.i18n.ts`).
+const dashboard = (en: string, ru: string): TreePage => ({ slug: "dashboard", words: w("Dashboard", en, "Дашборд", ru) })
+
 // 435-1: что такое элемент и узел — одними словами для обоих разделов, где человеку это нужно знать.
 const ELEMENT_AND_NODE = {
   en: "An element is one self-contained thing in your node: a site, an app, an agent or a service. It has its own folder, its own address on the internet, its own repository and its own agent that builds it. To other elements it is also a microservice: it answers its neighbours and asks them for help. Your node is all your elements on this computer together with the core that links them; the node belongs to you and works without Fractera.",
@@ -50,6 +71,72 @@ const ELEMENT_AND_NODE = {
 
 export const ITEM_TREE: TreePage[] = [
   { slug: "preview", words: w("Live site", "The element's own site as it runs now and a visitor sees it.", "Живой сайт", "Сайт элемента таким, каким он работает сейчас и каким его видит посетитель.") }, // 393: «Preview» → «Живой сайт» (владелец 2026-10-04)
+  // 472 (владелец 2026-10-13): «Под вкладкой живой сайт создадим вкладку h2A … Ниже … H2H … Ну и ниже ты размещаешь нашего а2а».
+  {
+    slug: "h2a",
+    needs: "h2a",
+    words: w("H2A", "How you talk to this element's agent.", "H2A", "Как вы общаетесь с агентом этого элемента."),
+    about: {
+      en: [
+        "This section is about how a person talks to their own agent inside this element. Here are the ways to reach it: Telegram works by default, and you can build any other messenger with the terminal.",
+        "The native chat is a conversation with the element's agent right here, for those who would rather not use Telegram.",
+      ],
+      ru: [
+        "Здесь рассказывается о том, как человек общается с собственным агентом внутри этого элемента. Здесь собраны способы связи: по умолчанию работает Telegram, а любые другие мессенджеры вы можете создать с помощью терминала.",
+        "Нативный чат — разговор с агентом элемента прямо здесь, для тех, кто не хочет пользоваться Telegram.",
+      ],
+    },
+    pages: [
+      {
+        slug: "native-chat",
+        words: w("Native chat", "Talk to the element's agent right here, without Telegram.", "Нативный чат", "Разговор с агентом элемента прямо здесь, без Telegram."),
+        about: {
+          en: ["This chat will replace Telegram for those who do not want to use it: you write to the element's agent on this page. It is programmed in the next steps."],
+          ru: ["Этот чат заменит Telegram тем, кто не хочет им пользоваться: вы пишете агенту элемента прямо на этой странице. Он программируется следующими шагами."],
+        },
+      },
+      { slug: "telegram", needs: "h2a", words: w("Telegram bot", "A bot that talks to the same agent session.", "Telegram бот", "Бот, который говорит с той же сессией агента.") },
+      dashboard("Who you talk to through this element's agent, in short.", "С кем вы общаетесь через агента этого элемента — коротко."),
+    ],
+  },
+  {
+    slug: "h2h",
+    needs: "h2h",
+    words: w("H2H", "Talking to other people — through the agents.", "H2H", "Общение с другими людьми — через агентов."),
+    about: {
+      en: [
+        "Here is the native way for people to talk to each other: your close friends or acquaintances who run their own agent on Fractera.",
+        "The connection goes without any outside server — unlike WhatsApp, for example — and is encrypted with SSL (TLS) certificates, so your conversations stay fully confidential for as long as the SSL standards themselves stay reliable.",
+        "Its special feature is reaching important people you could never contact otherwise. The messenger starts with a preliminary conversation through your agent: it contacts the important person's agent and tries to prove why you need to talk. That agent brings the request to its owner with its assessment, and the person decides. If they agree, they appear in your contact list and you talk to them just as you would to a friend.",
+        "Above is the native messenger; below is the Telegram bot.",
+      ],
+      ru: [
+        "Здесь — нативный способ связи между людьми: это могут быть ваши близкие друзья или знакомые, которые развернули своего агента в инфраструктуре Fractera.",
+        "Соединение идёт без какого-либо внешнего сервера — в отличие, например, от WhatsApp — и шифруется сертификатами SSL (TLS), поэтому ваши разговоры остаются полностью конфиденциальными, пока надёжны сами стандарты SSL.",
+        "Особенность этого способа — возможность связаться с важными людьми, до которых иначе не достучаться. Мессенджер начинает с предварительного разговора через вашего агента: он связывается с агентом важного человека и старается доказать, зачем вам нужен разговор. Тот агент приносит обращение своему владельцу со своей оценкой, а решает сам человек. Если он согласен, он появляется в вашем списке контактов, и вы общаетесь с ним так же, как с другом.",
+        "Выше — нативный мессенджер, ниже — Telegram-бот.",
+      ],
+    },
+    pages: [
+      {
+        slug: "native",
+        words: w("Native messenger", "Your contacts and conversations with them, with no outside server.", "Нативный мессенджер", "Ваши контакты и разговоры с ними — без внешнего сервера."),
+        about: {
+          en: ["Contacts you already know, and the people whose agents agreed to bring your request — each with its conversation. It is programmed in the next steps."],
+          ru: ["Контакты, которых вы знаете, и люди, чьи агенты согласились передать ваше обращение, — у каждого свой разговор. Мессенджер программируется следующими шагами."],
+        },
+      },
+      {
+        slug: "telegram",
+        words: w("Telegram bot", "Talking to people through Telegram.", "Telegram бот", "Общение с людьми через Telegram."),
+        about: {
+          en: ["How Telegram serves conversations between people is still being decided."],
+          ru: ["Как Telegram будет служить разговорам людей — ещё решается."],
+        },
+      },
+      dashboard("Your contacts and conversations, in short.", "Ваши контакты и разговоры — коротко."),
+    ],
+  },
   {
     slug: "build",
     words: w("Build", "Everything the element's agent needs to build it.", "Строительство", "Всё, что нужно агенту элемента, чтобы его строить."),
@@ -61,7 +148,8 @@ export const ITEM_TREE: TreePage[] = [
       // Владелец 2026-10-01: «кнопку развёртывания мы находим внизу а это очень важная кнопка … подними её вверх и установи сразу
       // под кнопкой терминал».
       { slug: "deployments", words: w("Preview & Deploy", "See a new version before visitors do, deploy it, or go back to a working one.", "Предпросмотр и развёртывание", "Посмотреть новую версию до посетителей, развернуть её или вернуться к работающей.") },
-      { slug: "telegram", words: w("Telegram bot", "A bot that talks to the same agent session.", "Telegram бот", "Бот, который говорит с той же сессией агента.") },
+      // 472: у элемента с H2A бот переехал в H2A (`MOVED_WITH`); здесь он остаётся для элементов без H2A.
+      { slug: "telegram", unless: "h2a", words: w("Telegram bot", "A bot that talks to the same agent session.", "Telegram бот", "Бот, который говорит с той же сессией агента.") },
       { slug: "environment", words: w("Environment variables", "Keys and settings the element reads at start.", "Переменные окружения", "Ключи и настройки, которые элемент читает при старте.") },
       // 451-2 (владелец 2026-10-11): i2i — элементы узла договариваются о connector через API; f2f — обмен элементами через Lagrix.
       // 452 (владелец 2026-10-11: «ты не создал для них страниц … коротко понятно ты ввёл человека в курс дела»): вводная страница группы.
@@ -135,16 +223,36 @@ export const ITEM_TREE: TreePage[] = [
     about: {
       en: [
         ELEMENT_AND_NODE.en,
+        "Here this element's agent talks to other agents. We are building a messenger in which the element has counterparts — agents it talks to: the chat with each one opens the history of your dealings, and tables and summaries appear right in the conversation. We move from working with tables to working through chat.",
         "This section is the working process over a2a: what this element does for other agents once it runs — what it can do, what it returns, who may use it, at what price and with what limit — and the deals it has made.",
         "Over a2a a Fractera element meets Lagrix exactly like any other framework, site or agent without a UI: no advantage, no handicap. How elements of this node agree on connectors (i2i) and how whole elements are exchanged with other Fractera projects (f2f) is the build process — those tabs are in «Build».",
       ],
       ru: [
         ELEMENT_AND_NODE.ru,
+        "Здесь агент этого элемента общается с другими агентами. Мы строим мессенджер, в котором у элемента есть контрагенты — собеседники-агенты: в чате с каждым открывается история общения, а таблицы и сводки появляются прямо в разговоре. От работы с таблицами мы переходим к работе через чат.",
         "Этот раздел — рабочий процесс по a2a: что элемент делает для других агентов, когда уже работает, — что умеет, что возвращает, кому доступно, по какой цене и с каким лимитом, — и сделки, которые он заключил.",
         "По a2a элемент Fractera встречается с Lagrix ровно как любой другой фреймворк, сайт или агент без интерфейса: без преимуществ и недостатков. Как элементы этого узла договариваются о connector (i2i) и как элементы целиком обмениваются с другими проектами Fractera (f2f) — строительный процесс, эти вкладки в «Строительстве».",
       ],
     },
     pages: [
+      // 472 (владелец 2026-10-13): сверху — нативное взаимодействие, Telegram и дашборд; прежние страницы — ниже (выбор «Оставить ниже новых»).
+      {
+        slug: "native", needs: "a2a",
+        words: w("Native messenger", "The element's counterparts — other agents — and the history with each of them.", "Нативный мессенджер", "Контрагенты элемента — другие агенты — и история общения с каждым."),
+        about: {
+          en: ["Each counterpart is a chat: what was asked, what was done, the deal and its result — tables and summaries right in the conversation. It is programmed in the next steps."],
+          ru: ["Каждый контрагент — это чат: что спросили, что сделали, сделка и её итог — таблицы и сводки прямо в разговоре. Мессенджер программируется следующими шагами."],
+        },
+      },
+      {
+        slug: "telegram", needs: "a2a",
+        words: w("Telegram", "Following the element's dealings with other agents in Telegram.", "Telegram", "Следить за делами элемента с другими агентами в Telegram."),
+        about: {
+          en: ["How Telegram serves the element's work with other agents is still being decided."],
+          ru: ["Как Telegram будет служить работе элемента с другими агентами — ещё решается."],
+        },
+      },
+      { ...dashboard("Counterparts and deals of this element, in short.", "Контрагенты и сделки этого элемента — коротко."), needs: "a2a" },
       { slug: "a2a", words: w("A2A", "The showcase: what the element can do, what it returns, to whom and on what terms.", "A2A", "Витрина: что элемент умеет, что возвращает, кому и на каких условиях.") },
       // 436-2 (владелец 2026-10-09: «вкладка заказа … целиком относится к вкладке a2a»): «Процесс → Заказы» → «Связи (A2A) → Сделки».
       { slug: "deals", words: w("Deals", "Work this element did for other agents over A2A: a summary of each deal and the conversation behind it.", "Сделки", "Работа, которую элемент сделал для других агентов по A2A: сводка каждой сделки и беседа за ней.") },

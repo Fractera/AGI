@@ -135,6 +135,13 @@ export function elementPassport(id: string): ElementPassport | null {
   }
 }
 
+/** 472: флаги паспорта `messengers` (H2A · H2H · A2A, да/нет); нет поля — все выключены (меню как прежде). */
+export function elementMessengers(id: string): { h2a: boolean; h2h: boolean; a2a: boolean } {
+  const dir = elementDir(id)
+  const m = (dir ? (elementProps.readElementProps(dir) as { messengers?: Record<string, unknown> } | null)?.messengers : null) ?? {}
+  return { h2a: m.h2a === true, h2h: m.h2h === true, a2a: m.a2a === true }
+}
+
 /** Есть ли у элемента каталог — для пункта меню «Связи → Каталог». */
 export function hasCatalog(id: string): boolean {
   return Boolean(elementPassport(id)?.ext?.catalog)

@@ -2,8 +2,8 @@ import "server-only"
 import type { WorkspaceItem } from '@/lib/content/blocks/types'
 import { listDrafts } from '@/lib/agi-items/drafts'
 import { addressOf } from '@/lib/agi-items/element-address'
-import { ITEM_TREE, TREE_GROUPS, treeLang, type TreePage } from '@/lib/agi-items/item-tree'
-import { elementPassport, hasCatalog } from '@/lib/a2a/element-passport'
+import { ITEM_TREE, TREE_GROUPS, treeLang, treeVisible, type TreePage } from '@/lib/agi-items/item-tree'
+import { elementMessengers, elementPassport, hasCatalog } from '@/lib/a2a/element-passport'
 import { hasDoc } from '@/lib/agi-items/element-docs'
 import { agiDraftsUi } from '../_i18n/agi-drafts.i18n'
 import { CreateDraftButton } from '../_components/create-draft-button.client'
@@ -57,11 +57,13 @@ export function withDrafts(menu: WorkspaceItem[], lang: string, currentPath: str
     // 463 (владелец 2026-10-12: «…выпадающий список … отдельные страницы а не валить в одну кучу»): «Процесс → Подписки» раскрывается
     // пунктом на каждый внешний сервис элемента (OWN-SERVICE-PROPS/SUBSCRIPTIONS.json), у каждого своя страница.
     const services = elementPassport(d.id)?.subscriptions?.services ?? []
-    const children = ITEM_TREE.map((s) => {
+    // 472: разделы H2A/H2H и страницы по флагам паспорта элемента (`messengers`); одна функция и для маршрута.
+    const ctx = { catalog, messengers: elementMessengers(d.id) }
+    const children = ITEM_TREE.filter((s) => treeVisible(s, ctx)).map((s) => {
       const path = `${dir}/${s.slug}`
       const inside = currentPath.startsWith(`${path}/`)
       // 412-2: пункт документа — только пока его файл есть в папке элемента.
-      const visible = (s.pages ?? []).filter((p) => (p.needs !== 'catalog' || catalog) && (!p.doc || hasDoc(d.id, p.doc)))
+      const visible = (s.pages ?? []).filter((p) => treeVisible(p, ctx) && (!p.doc || hasDoc(d.id, p.doc)))
       const leaf = (p: TreePage): WorkspaceItem => {
         const pagePath = `${path}/${p.slug}`
         if (s.slug === 'process' && p.slug === 'subscriptions' && services.length) {
