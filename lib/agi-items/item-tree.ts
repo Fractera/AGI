@@ -137,6 +137,50 @@ export const ITEM_TREE: TreePage[] = [
       dashboard("Your contacts and conversations, in short.", "Ваши контакты и разговоры — коротко."),
     ],
   },
+  // 472: A2A — сразу под H2H, выше «Строительства» (владелец: «Ну и ниже ты размещаешь нашего а2а страницу»).
+  {
+    // 406-4 (владелец 2026-10-05, карта меню 406-2): «Коннекторы» → «Связи (A2A)»; адрес раздела прежний. 451-2 (2026-10-11): «A2A» — только рабочий процесс.
+    slug: "connectors",
+    // 435-3 (владелец 2026-10-08): главная раздела объясняет элемент, узел и два рода сведений — рабочий процесс.
+    words: w("A2A", "What this element does for other agents, to whom, at what price — and the deals it made.", "A2A", "Что этот элемент делает для других агентов, кому и по какой цене — и сделки, которые он заключил."),
+    about: {
+      en: [
+        ELEMENT_AND_NODE.en,
+        "Here this element's agent talks to other agents. We are building a messenger in which the element has counterparts — agents it talks to: the chat with each one opens the history of your dealings, and tables and summaries appear right in the conversation. We move from working with tables to working through chat.",
+        "This section is the working process over a2a: what this element does for other agents once it runs — what it can do, what it returns, who may use it, at what price and with what limit — and the deals it has made.",
+        "Over a2a a Fractera element meets Lagrix exactly like any other framework, site or agent without a UI: no advantage, no handicap. How elements of this node agree on connectors (i2i) and how whole elements are exchanged with other Fractera projects (f2f) is the build process — those tabs are in «Build».",
+      ],
+      ru: [
+        ELEMENT_AND_NODE.ru,
+        "Здесь агент этого элемента общается с другими агентами. Мы строим мессенджер, в котором у элемента есть контрагенты — собеседники-агенты: в чате с каждым открывается история общения, а таблицы и сводки появляются прямо в разговоре. От работы с таблицами мы переходим к работе через чат.",
+        "Этот раздел — рабочий процесс по a2a: что элемент делает для других агентов, когда уже работает, — что умеет, что возвращает, кому доступно, по какой цене и с каким лимитом, — и сделки, которые он заключил.",
+        "По a2a элемент Fractera встречается с Lagrix ровно как любой другой фреймворк, сайт или агент без интерфейса: без преимуществ и недостатков. Как элементы этого узла договариваются о connector (i2i) и как элементы целиком обмениваются с другими проектами Fractera (f2f) — строительный процесс, эти вкладки в «Строительстве».",
+      ],
+    },
+    pages: [
+      // 472 (владелец 2026-10-13): сверху — нативное взаимодействие, Telegram и дашборд; прежние страницы — ниже (выбор «Оставить ниже новых»).
+      {
+        slug: "native", needs: "a2a",
+        words: w("Native messenger", "The element's counterparts — other agents — and the history with each of them.", "Нативный мессенджер", "Контрагенты элемента — другие агенты — и история общения с каждым."),
+        about: {
+          en: ["Each counterpart is a chat: what was asked, what was done, the deal and its result — tables and summaries right in the conversation. It is programmed in the next steps."],
+          ru: ["Каждый контрагент — это чат: что спросили, что сделали, сделка и её итог — таблицы и сводки прямо в разговоре. Мессенджер программируется следующими шагами."],
+        },
+      },
+      {
+        slug: "telegram", needs: "a2a",
+        words: w("Telegram", "Following the element's dealings with other agents in Telegram.", "Telegram", "Следить за делами элемента с другими агентами в Telegram."),
+        about: {
+          en: ["How Telegram serves the element's work with other agents is still being decided."],
+          ru: ["Как Telegram будет служить работе элемента с другими агентами — ещё решается."],
+        },
+      },
+      { ...dashboard("Counterparts and deals of this element, in short.", "Контрагенты и сделки этого элемента — коротко."), needs: "a2a" },
+      { slug: "a2a", words: w("A2A", "The showcase: what the element can do, what it returns, to whom and on what terms.", "A2A", "Витрина: что элемент умеет, что возвращает, кому и на каких условиях.") },
+      // 436-2 (владелец 2026-10-09: «вкладка заказа … целиком относится к вкладке a2a»): «Процесс → Заказы» → «Связи (A2A) → Сделки».
+      { slug: "deals", words: w("Deals", "Work this element did for other agents over A2A: a summary of each deal and the conversation behind it.", "Сделки", "Работа, которую элемент сделал для других агентов по A2A: сводка каждой сделки и беседа за ней.") },
+    ],
+  },
   {
     slug: "build",
     words: w("Build", "Everything the element's agent needs to build it.", "Строительство", "Всё, что нужно агенту элемента, чтобы его строить."),
@@ -213,49 +257,6 @@ export const ITEM_TREE: TreePage[] = [
           ru: ["Здесь назначается цена самого элемента — сайта, приложения или агента целиком, с его кодом и устройством. Это не цена его навыков: сколько стоит работа элемента для других (статья, изображение, сообщение в диалоге), задаётся в «A2A»."],
         },
       },
-    ],
-  },
-  {
-    // 406-4 (владелец 2026-10-05, карта меню 406-2): «Коннекторы» → «Связи (A2A)»; адрес раздела прежний. 451-2 (2026-10-11): «A2A» — только рабочий процесс.
-    slug: "connectors",
-    // 435-3 (владелец 2026-10-08): главная раздела объясняет элемент, узел и два рода сведений — рабочий процесс.
-    words: w("A2A", "What this element does for other agents, to whom, at what price — and the deals it made.", "A2A", "Что этот элемент делает для других агентов, кому и по какой цене — и сделки, которые он заключил."),
-    about: {
-      en: [
-        ELEMENT_AND_NODE.en,
-        "Here this element's agent talks to other agents. We are building a messenger in which the element has counterparts — agents it talks to: the chat with each one opens the history of your dealings, and tables and summaries appear right in the conversation. We move from working with tables to working through chat.",
-        "This section is the working process over a2a: what this element does for other agents once it runs — what it can do, what it returns, who may use it, at what price and with what limit — and the deals it has made.",
-        "Over a2a a Fractera element meets Lagrix exactly like any other framework, site or agent without a UI: no advantage, no handicap. How elements of this node agree on connectors (i2i) and how whole elements are exchanged with other Fractera projects (f2f) is the build process — those tabs are in «Build».",
-      ],
-      ru: [
-        ELEMENT_AND_NODE.ru,
-        "Здесь агент этого элемента общается с другими агентами. Мы строим мессенджер, в котором у элемента есть контрагенты — собеседники-агенты: в чате с каждым открывается история общения, а таблицы и сводки появляются прямо в разговоре. От работы с таблицами мы переходим к работе через чат.",
-        "Этот раздел — рабочий процесс по a2a: что элемент делает для других агентов, когда уже работает, — что умеет, что возвращает, кому доступно, по какой цене и с каким лимитом, — и сделки, которые он заключил.",
-        "По a2a элемент Fractera встречается с Lagrix ровно как любой другой фреймворк, сайт или агент без интерфейса: без преимуществ и недостатков. Как элементы этого узла договариваются о connector (i2i) и как элементы целиком обмениваются с другими проектами Fractera (f2f) — строительный процесс, эти вкладки в «Строительстве».",
-      ],
-    },
-    pages: [
-      // 472 (владелец 2026-10-13): сверху — нативное взаимодействие, Telegram и дашборд; прежние страницы — ниже (выбор «Оставить ниже новых»).
-      {
-        slug: "native", needs: "a2a",
-        words: w("Native messenger", "The element's counterparts — other agents — and the history with each of them.", "Нативный мессенджер", "Контрагенты элемента — другие агенты — и история общения с каждым."),
-        about: {
-          en: ["Each counterpart is a chat: what was asked, what was done, the deal and its result — tables and summaries right in the conversation. It is programmed in the next steps."],
-          ru: ["Каждый контрагент — это чат: что спросили, что сделали, сделка и её итог — таблицы и сводки прямо в разговоре. Мессенджер программируется следующими шагами."],
-        },
-      },
-      {
-        slug: "telegram", needs: "a2a",
-        words: w("Telegram", "Following the element's dealings with other agents in Telegram.", "Telegram", "Следить за делами элемента с другими агентами в Telegram."),
-        about: {
-          en: ["How Telegram serves the element's work with other agents is still being decided."],
-          ru: ["Как Telegram будет служить работе элемента с другими агентами — ещё решается."],
-        },
-      },
-      { ...dashboard("Counterparts and deals of this element, in short.", "Контрагенты и сделки этого элемента — коротко."), needs: "a2a" },
-      { slug: "a2a", words: w("A2A", "The showcase: what the element can do, what it returns, to whom and on what terms.", "A2A", "Витрина: что элемент умеет, что возвращает, кому и на каких условиях.") },
-      // 436-2 (владелец 2026-10-09: «вкладка заказа … целиком относится к вкладке a2a»): «Процесс → Заказы» → «Связи (A2A) → Сделки».
-      { slug: "deals", words: w("Deals", "Work this element did for other agents over A2A: a summary of each deal and the conversation behind it.", "Сделки", "Работа, которую элемент сделал для других агентов по A2A: сводка каждой сделки и беседа за ней.") },
     ],
   },
   {

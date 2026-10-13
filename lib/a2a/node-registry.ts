@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import paths from "@/lib/agi-items/paths.cjs"
 import { listServices, serviceUrl } from "@/lib/microservices/registry"
-import { fingerprintOf, passportProblems, registryEntryOf } from "@/lib/a2a/passport.mjs"
+import { fingerprintOf, messengersOf, passportProblems, registryEntryOf } from "@/lib/a2a/passport.mjs"
 import { addressOf } from "@/lib/agi-items/address-file.mjs"
 import elementProps from "@/lib/agi-items/element-props.cjs"
 
@@ -16,6 +16,8 @@ type Entry = {
   address: string; name: string; description: string
   skills: { id: string; tags: string[] }[]
   hasCatalog: boolean; visibility: string; fingerprint: string; card: string | null
+  // 472: H2A · H2H · A2A — какие способы связи есть у элемента; в выдаче всегда из живого паспорта (отпечаток считает только визитку).
+  messengers?: { h2a: boolean; h2h: boolean; a2a: boolean }
 }
 export type NodeEntry = Entry & { id: string; url: string | null; state: "fresh" | "drift" | "unpublished" | "no-card" }
 
@@ -56,7 +58,7 @@ export function nodeEntries(): NodeEntry[] {
     const fp = fingerprintOf(live) as string
     const fresh = entryForRegistry(s.id, kind)
     if (!stored) { if (fresh) out.push({ ...fresh, id: s.id, url, state: "unpublished" }); continue }
-    out.push({ ...stored, id: s.id, url, state: stored.fingerprint === fp ? "fresh" : "drift" })
+    out.push({ ...stored, messengers: messengersOf(live) as Entry["messengers"], id: s.id, url, state: stored.fingerprint === fp ? "fresh" : "drift" })
   }
   return out
 }
