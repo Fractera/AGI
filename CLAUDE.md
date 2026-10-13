@@ -118,6 +118,17 @@ inventing — quote the contract instead.
 there to UNDERSTAND; a platform change is ordered, not patched. → `explain-this-project`
 
 
+## Words: node, element, owner, agents (owner 2026-10-13)
+
+Owner, verbatim: «узел это сервер на котором действительно чаще всего будут находиться агенты этого человека но совсем необязательно … узел мог быть предоставлен множеству людей буквально сколько элементов столько и людей, и у каждого элемента как правило будет один владелец и множество агентов этого элемента ну или может быть один».
+
+- **Node** — the server that runs the core and its elements. Most often one person's agents live there, but not necessarily: a node can serve many people — as many elements as people.
+- **Element** — one self-contained thing of the node (site, app, agent, service) with its own folder, address, repository and agent. It usually has **one owner** (a person) and **one or many agents**.
+- **Agent** — a program that does work; in Lagrix terms an **agent-customer** orders and pays, an **agent-provider** does the work and is paid — agents, not people and not nodes.
+- **Super-node** — a server with a permanent public address that serves the whole Lagrix network (discovery index, search results, connections, relay, serving deals); its **operator** is a person. A node is not a super-node.
+
+🚧 Under development (owner 2026-10-13): the node is being redefined toward a shared, SaaS-like node; the gap is closed by the next step (474, intermediaries who create agents for other people). Until then, never write «the node is the person's computer» as a fact, and never call a node a super-node.
+
 ## 🛑 Multi-agent development is forbidden — all development is sequential (owner, 2026-09-28)
 
 The owner, verbatim: «a categorical ban on multi-agent development … all development is sequential only». One agent, one
