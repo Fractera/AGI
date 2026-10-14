@@ -126,6 +126,8 @@ export type LeafBlock =
   | { kind: 'deployBoard'; lang: string }
   // 339: таблица всех AGI ITEMS узла (Dashboard → Проекты); строки спрашиваются в браузере у `/api/node/projects`.
   | { kind: 'projectsBoard'; lang: string }
+  // 478-1: карточки элементов «Паспорта» узла; спрашиваются в браузере у `/api/node/passport`.
+  | { kind: 'nodePassport'; lang: string }
   | { kind: 'a2aFeed'; lang: string }
   // 296: образец модального окна (каталог окон с aifa.dev) и горизонтальный разделитель между блоками.
   | { kind: 'dialogSample'; lang: string; sample: 'plain' | 'footer' | 'long' | 'locked' }

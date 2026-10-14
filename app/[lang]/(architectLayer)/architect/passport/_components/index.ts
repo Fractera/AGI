@@ -13,6 +13,7 @@ import type { Block } from '@/lib/content/blocks/types'
 //
 // 🛑 СЛОВА ОТСЮДА НЕ ПИШУТСЯ: любая строка, которую увидит человек, приходит
 // параметром из `_data` — иначе она не переводится и её не видит сторож словарей.
-export function content(_lang: string): Block[] {
-  return []
+// 478-1 (владелец 2026-10-14): карточки элементов узла — название, описание аккордеоном, красная точка у элемента без описания.
+export function content(lang: string): Block[] {
+  return [{ kind: 'nodePassport', lang }]
 }

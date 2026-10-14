@@ -1254,6 +1254,12 @@ export const SPECIMEN: SpecimenSection[] = [
     blocks: [{ kind: 'projectsBoard', lang: 'en' }],
   },
   {
+    kind: 'nodePassport',
+    when: 'The elements of the node as passport cards: name, the start of the description, an accordion with one card open at a time; an element without a description gets a red dot and a red button that opens its terminal with the describe task; reputation in two roles shows «—» until the Lagrix network exists. Asked in the browser, the page stays prerendered.',
+    whenRu: 'Элементы узла карточками паспорта: название, начало описания, аккордеон с одной открытой карточкой; у элемента без описания — красная точка и красная кнопка, открывающая его терминал с задачей «опиши себя»; репутация в двух ролях — «—», пока нет сети Lagrix. Спрашивается в браузере, страница остаётся предрендеренной.',
+    blocks: [{ kind: 'nodePassport', lang: 'en' }],
+  },
+  {
     kind: 'a2aFeed',
     when: 'The agents’ conversation of the node as a read-only chat: every A2A call between its elements — the caller’s question and the receiver’s answer, refusals too — with the agent’s name and a 6 px stripe coloured from its address; toggles per agent, everyone, no one. New calls arrive by a poll every 3 s while the tab is visible; the page stays prerendered.',
     whenRu: 'Разговор агентов узла лентой-чатом только для чтения: каждый вызов A2A между его элементами — вопрос вызывающего и ответ принимающего, отказы тоже — с именем агента и полосой 6 px цветом из его адреса; переключатели по агентам, «все», «никого». Новые вызовы приходят опросом раз в 3 с, пока вкладка видна; страница остаётся предрендеренной.',

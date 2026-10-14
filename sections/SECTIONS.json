@@ -1133,6 +1133,20 @@
     {
       "id": null,
       "codes": [
+        "nodePassport01"
+      ],
+      "kind": "nodePassport",
+      "type": "page-material",
+      "shape": "text",
+      "fields": "lang: string",
+      "title": "the element cards of the node passport",
+      "description": "**Type:** Page material. The working part of the core page «Passport» (step 478-1).\n\n**Decision of the owner, 2026-10-14:** «для каждого элемента покажи его название, и … описание которое отображает первые несколько\nстрок, чтобы оно раскрывалось как аккордеон не более одной вкладки на странице … если описание ещё не существует внутри\nраскрывающегося списка … красную кнопку сгенерировать описание … на самой карточке слева отрисовать красную точку». The button leads to\nthe generation that already works (owner's choice the same day: «Вести в генерацию»).\n\nHow it works: the page is prerendered, so the island asks `GET /api/node/passport` (architect, admin) once when opened — no polling.\nCards come from `lib/agi-items/node-passport.ts` on top of `projectRows`: «described» means the registry holds `described` (set only by\n«Take into the core», step 325); the full text and «what it provides» come from the registry, the start of the description before that —\nfrom the element's passport or the meta of its home page. The red button opens the element's terminal with the describe task\n(`terminalLink`, the same link as in the element settings). Reputation — two roles, weight of likes and weight of dislikes, never\ncombined — shows «—» until the Lagrix network exists.",
+      "hasCard": true,
+      "usedOn": []
+    },
+    {
+      "id": null,
+      "codes": [
         "a2aFeed01"
       ],
       "kind": "a2aFeed",
