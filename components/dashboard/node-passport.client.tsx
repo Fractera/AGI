@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { buttonVariants } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { Card as UiCard, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { LagrixRating, type LagrixRatingWords } from "@/components/element-docs/lagrix-rating"
 
@@ -46,22 +48,101 @@ export type NodePassportWords = {
   fullDescription: string
   provides: string
   openElement: string
+  wallet: {
+    title: string
+    lead: string
+    connected: string
+    placeholder: string
+    connect: string
+    disconnect: string
+    badAddress: string
+    failed: string
+    beforeTitle: string
+    before: string[]
+    afterTitle: string
+    after: string[]
+  }
 }
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ""
 
 export function NodePassport({ words, lang }: { words: NodePassportWords; lang: string }) {
   const [cards, setCards] = useState<Card[] | "loading" | "failed">("loading")
+  const [wallet, setWallet] = useState<{ address: string } | null>(null)
+  const [address, setAddress] = useState("")
+  const [walletError, setWalletError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     fetch(`${BASE}/api/node/passport?lang=${lang}`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((d: { cards: Card[] }) => setCards(d.cards))
+      .then((d: { cards: Card[]; wallet: { address: string } | null }) => { setCards(d.cards); setWallet(d.wallet) })
       .catch(() => setCards("failed"))
   }, [lang])
 
   const node = (
     <LagrixRating id="node" words={{ ...words.rating, note: words.nodeNote }} title={words.nodeTitle} lead={words.nodeLead} />
+  )
+
+  // 478-3: подключить и отключить кошелёк — ответ двери сразу меняет вид, без перезагрузки страницы.
+  const send = async (method: "POST" | "DELETE") => {
+    setBusy(true)
+    setWalletError(null)
+    try {
+      const r = await fetch(`${BASE}/api/node/wallet`, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: method === "POST" ? JSON.stringify({ address }) : undefined,
+      })
+      if (r.status === 422) { setWalletError(words.wallet.badAddress); return }
+      if (!r.ok) { setWalletError(words.wallet.failed); return }
+      const d = (await r.json()) as { wallet: { address: string } | null }
+      setWallet(d.wallet ? { address: d.wallet.address } : null)
+      setAddress("")
+    } catch {
+      setWalletError(words.wallet.failed)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
+  const walletCard = (
+    <UiCard className="my-6" data-node-wallet={wallet ? "connected" : "none"}>
+      <CardHeader>
+        <CardTitle className="text-xl font-semibold">{words.wallet.title}</CardTitle>
+        <CardDescription>{words.wallet.lead}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        {wallet ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm text-muted-foreground">{words.wallet.connected}</span>
+            <code className="font-mono text-base text-foreground" title={wallet.address}>{short(wallet.address)}</code>
+            <Button variant="outline" size="sm" disabled={busy} onClick={() => send("DELETE")}>{words.wallet.disconnect}</Button>
+          </div>
+        ) : (
+          <>
+            <form className="flex flex-wrap items-center gap-3" onSubmit={(e) => { e.preventDefault(); send("POST") }}>
+              <Input className="max-w-md font-mono" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={words.wallet.placeholder} aria-label={words.wallet.placeholder} spellCheck={false} />
+              <Button type="submit" disabled={busy || !address.trim()}>{words.wallet.connect}</Button>
+            </form>
+            <AccordionItem value="wallet-before" className="rounded-lg border border-destructive/40 bg-destructive/5 px-4" data-wallet-before>
+              <AccordionTrigger className="text-destructive">{words.wallet.beforeTitle}</AccordionTrigger>
+              <AccordionContent>
+                <ul className="list-disc space-y-1 pl-5 text-foreground">{words.wallet.before.map((x) => <li key={x}>{x}</li>)}</ul>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="wallet-after" className="rounded-lg border border-primary/30 bg-primary/5 px-4" data-wallet-after>
+              <AccordionTrigger className="text-primary">{words.wallet.afterTitle}</AccordionTrigger>
+              <AccordionContent>
+                <ul className="list-disc space-y-1 pl-5 text-foreground">{words.wallet.after.map((x) => <li key={x}>{x}</li>)}</ul>
+              </AccordionContent>
+            </AccordionItem>
+          </>
+        )}
+        {walletError && <p className="text-sm text-destructive" role="alert">{walletError}</p>}
+      </CardContent>
+    </UiCard>
   )
 
   if (cards === "loading") {
@@ -79,6 +160,7 @@ export function NodePassport({ words, lang }: { words: NodePassportWords; lang: 
     <>
       {node}
       <Accordion type="single" collapsible>
+        {walletCard}
         {cards.map((c) => {
           const dot = c.described ? null : (
             <span className="size-2.5 shrink-0 rounded-full bg-destructive" role="img" aria-label={words.noDescription} data-no-description />
