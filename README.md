@@ -222,6 +222,12 @@ These ready patterns let today's AI models adapt to your app's conventions and e
 need **using a fraction of the tokens** — saving tens of millions of tokens over building from scratch,
 and, more importantly, giving you an expert-grade architecture that scales at minimal token cost.
 
+## Equal starting rights
+
+This starter is open source under the MIT license and gives the same starting rights to Fractera, Inc. and to any other company.
+Fractera, Inc. commits to publishing the latest versions of this starter in this repository, so that competition stays fair in the
+future too, for as long as Fractera continues developing it.
+
 ## Like it? Star the project ⭐
 
 If you enjoy this starter, please don't forget to give the project a star — it really helps. Thank you so much!
