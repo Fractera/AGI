@@ -733,6 +733,30 @@ prop (checkboxes that keep a row if any checked one matches it) was added here a
 🛑 «For sale in web3» and «Users online» show «—»: the node has no source (owner 2026-09-30 chose «Колонки с «—»»). Counting
 online is new system behaviour — only on his separate word. The island asks once on open: no polling was ordered.
 
+## Passport — the node rating, the node wallet and the element cards (node step 478)
+
+Owner 2026-10-14: «посмотри вкладку роман, дизайн в блоке а2а … именно такая карточка у нас должна была лежать в паспорте и описывать
+аккумулирующий рейтинг по всем элементам а под ним … элементы … Кроме root, нативные элементы должны быть скрыты»; «сразу сюда добавь
+четвёртую колонку отменённые заказы»; the wallet: «должна быть опция подключить кошелёк, нет кошелька есть видимость системе».
+Page `architect/passport` → one block `nodePassport` (`sections/blocks/node-passport.server.tsx` words → island
+`components/dashboard/node-passport.client.tsx`), data from `GET /api/node/passport?lang=` (architect/admin; outside without a session
+→ 401) built by `lib/agi-items/node-passport.ts` on top of `projectRows`. Order on the page:
+1. **The node rating card** — the Lagrix rating card of the element A2A home (`components/element-docs/lagrix-rating.tsx`, optional
+   title / lead / marker / slot) with four tiles: completed orders · likes and dislikes · balance · **cancelled orders (count · sum)** —
+   the fourth tile shows on every element A2A home too. Every value is «—» until the Lagrix network exists.
+2. **The node wallet** — `GET|POST|DELETE /api/node/wallet` (architect), file `data/node/wallet.json` (outside git), EVM address only
+   (`0x` + 40 hex, else 422). Without a wallet — two cards in the page accordion: «before registering» (visible; search $0.10 in ordinary
+   money through a super-node; no reputation; no escrow) and «after» (search $0.01 from a prepaid balance; USDC escrow; reviews build
+   element reputation; fee ≤ 5% to super-nodes) — Lagrix changelog entry 29. 🛑 It records an address, it is NOT a registration in the
+   network and proves no ownership (no signature) — say so if asked.
+3. **Element cards** — the same rating card for root and every custom element (native services hidden): the name links to the
+   element, the first line of its description, «Full description» in the page accordion (one open). «Described» = `described` in the
+   registry (set only by «Take into the core», step 325). Without it — a red dot before the name and a red button «Order a
+   description» → the element terminal with the describe task (`terminalLink`, the same link as in the element settings; owner chose
+   «Вести в генерацию»).
+🛑 The island asks once on open — no polling was ordered. The «cancelled orders» metric itself (how it is counted, refunds by like
+weight) is the owner's task saved as federal step 482 — not designed yet.
+
 ## Element birth — a draft becomes a running element (node step 319)
 
 **Create a microservice** → draft `<id>` (`data/agi-drafts.json`) → **Give birth to the element** (the draft's home;
