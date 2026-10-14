@@ -14,6 +14,7 @@ import { terminalLink } from "@/app/[lang]/(architectLayer)/architect/kits/_agen
 // Начало описания до этого — короткое описание из паспорта элемента или мета его главной (как в «Проектах»), полный текст — из реестра.
 // 🔒 КНОПКА ВЕДЁТ В УЖЕ РАБОТАЮЩУЮ ГЕНЕРАЦИЮ (выбор владельца 2026-10-14: «Вести в генерацию»): терминал элемента с задачей
 // `TASK` из `element-describe`, та же ссылка, что в «Настройках». Новой генерации нет.
+// 🔒 В ПАСПОРТЕ — ROOT И КАСТОМНЫЕ ЭЛЕМЕНТЫ: нативные службы узла (auth, data, config, design, blocks) рейтинга не несут.
 // 🛑 Репутация элемента (исполнитель и заказчик, вес лайков и дизлайков) — источника нет, пока нет сети Lagrix: `null` = «не знаю».
 
 export type PassportCard = {
@@ -36,7 +37,8 @@ export type PassportCard = {
 export async function passportCards(lang: string): Promise<PassportCard[]> {
   const born = new Set(listServices().map((s) => s.id))
   const rows = await projectRows(lang)
-  return rows.map((r) => {
+  // 478-1, владелец 2026-10-14: «Кроме root, нативные элементы должны быть скрыты … мы показываем там рут, и все кастомные элементы».
+  return rows.filter((r) => r.custom || r.id === "root").map((r) => {
     const d = registryDescription(r.id)
     const slug = addressOf(r.id)
     return {

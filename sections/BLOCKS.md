@@ -89,7 +89,7 @@
 | `designSection01` | `designSection` | Workspace | a design editor of the site element | lang: string; section: 'colors' \| 'fonts' \| 'type' \| 'shape' | [карточка](blocks/designSection.md) |
 | `deployBoard01` | `deployBoard` | Workspace | the deployment board of the node | lang: string | [карточка](blocks/deployBoard.md) |
 | `projectsBoard01` | `projectsBoard` | Page material | the projects table of the node | lang: string | [карточка](blocks/projectsBoard.md) |
-| `nodePassport01` | `nodePassport` | Page material | the element cards of the node passport | lang: string | [карточка](blocks/nodePassport.md) |
+| `nodePassport01` | `nodePassport` | Page material | the node passport: the Lagrix rating of the node and of its elements | lang: string | [карточка](blocks/nodePassport.md) |
 | `a2aFeed01` | `a2aFeed` | Page material | a2aFeed — the agents' conversation feed of the node | lang: string | [карточка](blocks/a2aFeed.md) |
 | `elementPreview01` | `elementPreview` | Workspace | a live preview of an element | lang: string; serviceId: string | [карточка](blocks/elementPreview.md) |
 | `authGoogleSetup01` | `authGoogleSetup` | Workspace | — | words: import('@/components/auth/google-setup.i18n').GoogleSetupWords | — |

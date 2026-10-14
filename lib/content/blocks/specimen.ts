@@ -1255,8 +1255,8 @@ export const SPECIMEN: SpecimenSection[] = [
   },
   {
     kind: 'nodePassport',
-    when: 'The elements of the node as passport cards: name, the start of the description, an accordion with one card open at a time; an element without a description gets a red dot and a red button that opens its terminal with the describe task; reputation in two roles shows «—» until the Lagrix network exists. Asked in the browser, the page stays prerendered.',
-    whenRu: 'Элементы узла карточками паспорта: название, начало описания, аккордеон с одной открытой карточкой; у элемента без описания — красная точка и красная кнопка, открывающая его терминал с задачей «опиши себя»; репутация в двух ролях — «—», пока нет сети Lagrix. Спрашивается в браузере, страница остаётся предрендеренной.',
+    when: 'The node passport: on top the Lagrix rating card of the whole node (completed orders, likes and dislikes, balance, cancelled orders — «—» until the network exists), under it the same card for root and every custom element with its name, the first line of its description, the full description in an accordion (one open at a time), and for an element without a description a red dot and a red button that orders it in the element terminal. Asked in the browser, the page stays prerendered.',
+    whenRu: 'Паспорт узла: сверху карточка рейтинга Lagrix для всего узла (выполненные заказы, лайки и дизлайки, баланс, отменённые заказы — «—», пока нет сети), под ней та же карточка для root и каждого кастомного элемента: название, первая строка описания, полное описание аккордеоном (открыто одно), у элемента без описания — красная точка и красная кнопка, заказывающая описание в терминале элемента. Спрашивается в браузере, страница остаётся предрендеренной.',
     blocks: [{ kind: 'nodePassport', lang: 'en' }],
   },
   {
