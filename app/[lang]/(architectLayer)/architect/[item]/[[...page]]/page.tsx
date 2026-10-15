@@ -176,6 +176,9 @@ export default async function Page({ params }: { params: Promise<Params> }) {
           {port !== null
             ? <ServicePort serviceId={item} words={servicePortWords(lang, item)} />
             : <DraftCards address={address} ui={ui} port={port} />}
+          {/* 495-5 (владелец 2026-10-15): «this statisk must exist in … /ru/roman (item root)» — та же карточка репутации Lagrix,
+              что на главной A2A, на главной родившегося элемента. */}
+          {entry && <LagrixRating id={item} words={lagrixRatingUi(lang)} />}
           {(!entry || brokenBirth) && <BirthButton id={item} ui={ui} dialogUi={appDialogUi(lang)} born={!!entry} />}
         </>}
       />

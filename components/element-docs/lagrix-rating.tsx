@@ -2,6 +2,8 @@ import { BanIcon, ClipboardListIcon, FlameIcon, MessageSquareDashedIcon, ShieldA
 import type { ComponentType, ReactNode } from "react"
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Eyebrow, Small } from "@/components/ui/typography"
+import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { IndicatorHint } from "./indicator-hint.client"
 
 // THE ELEMENT'S REPUTATION IN Lagrix (step 436-3) — on the home page of «Links (A2A)» and on the node passport (478-1).
 //
@@ -13,6 +15,11 @@ import { Eyebrow, Small } from "@/components/ui/typography"
 // Likes, dislikes and burned are weight (the fee paid, USDC); all orders, cancelled and unreviewed are sums of the deals' network parts.
 // Under them the «proven violation as a super-node» line. No balance: the card shows reputation, not money. The passport passes its own
 // title, lead, a marker before the title and a slot under the header; the A2A home page passes nothing.
+//
+// 495-5 (owner 2026-10-15): «после каждого слова все заказы … рисует Tул тип для того чтобы объяснить что это такое» — a hint after every
+// indicator and after the violation line, worded from changelog entries 43 and 44. «Все указанные блоки карточек это аккордеон» — with
+// `item` the card becomes one item of the caller's Accordion: the whole header opens and closes it (the toggle is stretched over the
+// header; a link in the title stays a link above it), the body collapses.
 
 export type LagrixRatingWords = {
   eyebrow: string
@@ -29,6 +36,12 @@ export type LagrixRatingWords = {
   /** «count · sum» — under all orders, cancelled and unreviewed. */
   sumUnit: string
   violation: string
+  /** Hints after each indicator name and after the violation line (495-5). */
+  hints: Record<"orders" | "likes" | "dislikes" | "burned" | "cancelled" | "unreviewed" | "violation", string>
+  /** Accessible name of the hint button, «What it means». */
+  hint: string
+  /** Accessible name of the card's open/close toggle in accordion mode. */
+  toggle: string
   empty: string
   note: string
 }
@@ -43,24 +56,17 @@ const INDICATORS: Indicator[] = [
   { key: "unreviewed", Icon: MessageSquareDashedIcon, tone: "text-muted-foreground", unit: "sumUnit" },
 ]
 
-export function LagrixRating({ words, title, lead, marker, children, id }: {
+export function LagrixRating({ words, title, lead, marker, children, id, item }: {
   words: LagrixRatingWords
   title?: ReactNode
   lead?: ReactNode
   marker?: ReactNode
   children?: ReactNode
   id?: string
+  /** Accordion item value: the card collapses inside the caller's `Accordion` (495-5). */
+  item?: string
 }) {
-  return (
-    <Card className="my-6 bg-primary/5 ring-primary/40" data-lagrix-rating="placeholder" data-rating-of={id}>
-      <CardHeader>
-        <Eyebrow>{words.eyebrow}</Eyebrow>
-        <CardTitle className="flex items-center gap-2 text-xl font-semibold">{marker}{title ?? words.title}</CardTitle>
-        <CardDescription>{lead ?? words.lead}</CardDescription>
-        <CardAction>
-          <StarIcon role="img" aria-hidden className="size-6 text-primary" />
-        </CardAction>
-      </CardHeader>
+  const body = (
       <CardContent className="flex flex-col gap-4">
         {children}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3" data-lagrix-indicators>
@@ -69,6 +75,7 @@ export function LagrixRating({ words, title, lead, marker, children, id }: {
               <Small className="flex items-center gap-2 font-medium text-foreground">
                 <Icon aria-hidden className={`size-4 ${tone}`} />
                 {words[key]}
+                <IndicatorHint label={`${words[key]}: ${words.hint}`} text={words.hints[key]} />
               </Small>
               <p className="flex items-baseline gap-2 font-mono text-4xl font-black tracking-tight tabular-nums text-foreground" aria-label={`${words[key]}: ${words[unit]}`}>
                 {words.empty}
@@ -83,11 +90,27 @@ export function LagrixRating({ words, title, lead, marker, children, id }: {
           <Small className="flex items-center gap-2 font-medium text-foreground">
             <ShieldAlertIcon aria-hidden className="size-4 text-destructive" />
             {words.violation}
+            <IndicatorHint label={`${words.violation}: ${words.hint}`} text={words.hints.violation} />
           </Small>
           <span className="font-mono text-lg font-bold tabular-nums text-foreground">{words.empty}</span>
         </div>
         <Small>{words.note}</Small>
       </CardContent>
+  )
+
+  const card = (
+    <Card className={`${item ? "my-4" : "my-6"} bg-primary/5 ring-primary/40`} data-lagrix-rating="placeholder" data-rating-of={id}>
+      <CardHeader className={item ? "relative" : undefined}>
+        <Eyebrow>{words.eyebrow}</Eyebrow>
+        <CardTitle className="flex items-center gap-2 text-xl font-semibold">{marker}{title ?? words.title}</CardTitle>
+        <CardDescription>{lead ?? words.lead}</CardDescription>
+        <CardAction className="flex items-center gap-2">
+          <StarIcon role="img" aria-hidden className="size-6 text-primary" />
+          {item && <AccordionTrigger aria-label={words.toggle} className="py-0 after:absolute after:inset-0 after:content-['']" />}
+        </CardAction>
+      </CardHeader>
+      {item ? <AccordionContent className="pb-0">{body}</AccordionContent> : body}
     </Card>
   )
+  return item ? <AccordionItem value={item} className="border-b-0" data-lagrix-item={item}>{card}</AccordionItem> : card
 }
