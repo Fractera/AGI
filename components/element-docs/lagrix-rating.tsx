@@ -37,7 +37,7 @@ export type LagrixRatingWords = {
   sumUnit: string
   violation: string
   /** Hints after each indicator name and after the violation line (495-5). */
-  hints: Record<"orders" | "likes" | "dislikes" | "burned" | "cancelled" | "unreviewed" | "violation", string>
+  hints: Record<"orders" | "likes" | "dislikes" | "burned" | "cancelled" | "unreviewed" | "violation", string[]>
   /** Accessible name of the hint button, «What it means». */
   hint: string
   /** Accessible name of the card's open/close toggle in accordion mode. */

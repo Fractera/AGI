@@ -37,6 +37,8 @@ type Card = {
 
 export type NodePassportWords = {
   rating: LagrixRatingWords
+  /** Hints of the node's card: «… этого узла, включая все его элементы» (495-5). */
+  nodeHints: LagrixRatingWords["hints"]
   nodeTitle: string
   nodeLead: string
   nodeNote: string
@@ -85,7 +87,7 @@ export function NodePassport({ words, lang }: { words: NodePassportWords; lang: 
   }, [lang])
 
   const node = (
-    <LagrixRating id="node" item="node" words={{ ...words.rating, note: words.nodeNote }} title={words.nodeTitle} lead={words.nodeLead} />
+    <LagrixRating id="node" item="node" words={{ ...words.rating, hints: words.nodeHints, note: words.nodeNote }} title={words.nodeTitle} lead={words.nodeLead} />
   )
 
   // 478-3: подключить и отключить кошелёк — ответ двери сразу меняет вид, без перезагрузки страницы.

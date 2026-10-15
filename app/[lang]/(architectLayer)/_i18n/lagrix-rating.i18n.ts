@@ -1,6 +1,7 @@
 // Слова карточки «Репутация в сети Lagrix» на главной «Связи (A2A)» (шаг 436-3) и на Паспорте узла (478-1).
 // 495-1: шесть показателей записей 43 и 44, строка отметки о доказанном нарушении; баланса нет.
-// 495-5: подсказки к каждому показателю — пересказ записей 42–44 журнала Lagrix, без новых правил.
+// 495-5: подсказки к каждому показателю — две простые строки «число … / сумма …» (слово владельца: «Будь проще … Как-то так просто»);
+// у карточки узла свои тексты — «этого узла, включая все его элементы» (владелец: «для узла и для элемента … один и тоже текст»).
 
 import type { LagrixRatingWords } from "@/components/element-docs/lagrix-rating"
 
@@ -19,13 +20,13 @@ const DICT: Record<"en" | "ru", LagrixRatingWords> = {
     sumUnit: "count · sum of deals, USDC",
     violation: "Proven violation as a super-node",
     hints: {
-      orders: "Every paid order of the element, completed and cancelled: how many and the sum of their network parts. The other indicators read against this one — three cancellations out of three hundred and three out of four are different stories.",
-      likes: "Positive reviews from counterparties: how many and their weight. A review weighs the fee paid on its deal, so a pile of likes from tiny deals shows in the pair «count · weight».",
-      dislikes: "Negative reviews from counterparties: how many and their weight. The weight is counted as for likes — by the fee paid on the deal.",
-      burned: "Refunds on cancelled orders that the likes went to: how many and the weight burned on them.",
-      cancelled: "Cancelled orders of the element: how many and the sum of their network parts.",
-      unreviewed: "Deals where the element could review its counterparty and did not: how many and the sum of their network parts. A review has no deadline — a like or dislike removes the deal from here at once. Only the element itself changes this indicator.",
-      violation: "A mark on the node's wallet when it is proven to have broken the rules as a super-node. Every element of the node shows it, with the date and a link to the proof. There is no number: a node gets the mark once.",
+      orders: ["the number of all orders of this element", "the sum of all orders of this element"],
+      likes: ["the number of likes this element received", "their weight — the fee paid on those orders"],
+      dislikes: ["the number of dislikes this element received", "their weight — the fee paid on those orders"],
+      burned: ["the number of refunds this element's likes went to", "the weight of likes burned on them"],
+      cancelled: ["the number of cancelled orders of this element", "the sum of those orders"],
+      unreviewed: ["the number of orders where this element left no review", "the sum of those orders"],
+      violation: ["whether the node this element belongs to has a proven violation as a super-node"],
     },
     hint: "What it means",
     toggle: "Show or hide",
@@ -46,19 +47,45 @@ const DICT: Record<"en" | "ru", LagrixRatingWords> = {
     sumUnit: "число · сумма сделок, USDC",
     violation: "Доказанное нарушение в роли супер-узла",
     hints: {
-      orders: "Все оплаченные заказы элемента — выполненные и отменённые: их число и сумма их сетевых частей. На этом фоне читаются остальные показатели: три отмены из трёхсот и три из четырёх — разные истории.",
-      likes: "Положительные отзывы контрагентов: их число и вес. Вес отзыва — комиссия, уплаченная по сделке, поэтому накрутку мелкими сделками видно по паре «число · вес».",
-      dislikes: "Отрицательные отзывы контрагентов: их число и вес. Вес считается так же, как у лайков, — по уплаченной комиссии.",
-      burned: "Возвраты по отменённым заказам, на которые ушли лайки: их число и вес, который на них сгорел.",
-      cancelled: "Отменённые заказы элемента: их число и сумма их сетевых частей.",
-      unreviewed: "Сделки, по которым элемент мог оценить контрагента и не оценил: их число и сумма сетевых частей. Срока у отзыва нет — поставленный лайк или дизлайк сразу убирает сделку отсюда. Меняет этот показатель только сам элемент.",
-      violation: "Отметка на кошельке узла, если доказано, что он нарушил правила в роли супер-узла. Её показывает каждый элемент узла — с датой и ссылкой на доказательство. Числа нет: узел получает отметку один раз.",
+      orders: ["число всех заказов этого элемента", "сумма всех заказов этого элемента"],
+      likes: ["число лайков, которые получил этот элемент", "их вес — комиссия, уплаченная по этим заказам"],
+      dislikes: ["число дизлайков, которые получил этот элемент", "их вес — комиссия, уплаченная по этим заказам"],
+      burned: ["число возвратов денег, на которые ушли лайки этого элемента", "вес лайков, который на них сгорел"],
+      cancelled: ["число отменённых заказов этого элемента", "сумма этих заказов"],
+      unreviewed: ["число заказов, по которым этот элемент не оставил отзыв", "сумма этих заказов"],
+      violation: ["есть ли у узла этого элемента доказанное нарушение в роли супер-узла"],
     },
     hint: "Что это значит",
     toggle: "Показать или свернуть",
     empty: "—",
     note: "Показатели появятся, когда элемент подключится к Lagrix.",
   },
+}
+
+const NODE_HINTS: Record<"en" | "ru", LagrixRatingWords["hints"]> = {
+  en: {
+    orders: ["the total number of orders of this node, including all its elements", "the sum of all orders of this node, including all its elements"],
+    likes: ["the total number of likes of all elements of this node", "their total weight — the fee paid on those orders"],
+    dislikes: ["the total number of dislikes of all elements of this node", "their total weight — the fee paid on those orders"],
+    burned: ["the total number of refunds the likes of this node's elements went to", "the total weight of likes burned on them"],
+    cancelled: ["the total number of cancelled orders of all elements of this node", "their total sum"],
+    unreviewed: ["the total number of orders where the elements of this node left no review", "their total sum"],
+    violation: ["whether this node has a proven violation as a super-node"],
+  },
+  ru: {
+    orders: ["общее число заказов этого узла, включая все его элементы", "сумма всех заказов этого узла, включая все его элементы"],
+    likes: ["общее число лайков всех элементов этого узла", "их общий вес — комиссия, уплаченная по этим заказам"],
+    dislikes: ["общее число дизлайков всех элементов этого узла", "их общий вес — комиссия, уплаченная по этим заказам"],
+    burned: ["общее число возвратов денег, на которые ушли лайки элементов этого узла", "общий вес лайков, который на них сгорел"],
+    cancelled: ["общее число отменённых заказов всех элементов этого узла", "их общая сумма"],
+    unreviewed: ["общее число заказов, по которым элементы этого узла не оставили отзыв", "их общая сумма"],
+    violation: ["есть ли у этого узла доказанное нарушение в роли супер-узла"],
+  },
+}
+
+/** Hints of the node's card on the passport (495-5). */
+export function lagrixNodeHints(lang: string): LagrixRatingWords["hints"] {
+  return lang === "ru" ? NODE_HINTS.ru : NODE_HINTS.en
 }
 
 export function lagrixRatingUi(lang: string): LagrixRatingWords {
