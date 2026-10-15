@@ -525,6 +525,9 @@ offline». Measured on aifa.dev with the node tunnel stopped: public pages 200, 
 `static-copy.mjs --all` walks every element one at a time (400 MB machines), removes the copy of an element whose address is gone,
 holds a pid lock (`logs/static-copy-all.lock.json`), summary `logs/static-copy-all.log`. An element without an address records
 nothing (`===COPY_NO_ADDRESS===`). The temporary trycloudflare address gets no copy — its zone is not the person's.
+🔒 **A closed site gets no copy (step 488):** an element whose `config/site-access.json` carries `site` (lagrix.dev, owner 2026-10-15) is
+skipped and its previous copy removed (`===COPY_SITE_CLOSED===`) — the copy is taken from the loopback, where the owner passes the lock,
+so it would publish the closed pages while the computer is off.
 Runs by itself via `lib/agi-items/static-copy-start.cjs` (one launcher, outside the core's process tree), only on a person's
 action, no timers: Accept, Deploy, own domain connected / main address changed (element), detached → moves to the subdomain or is
 removed, subdomain connected (`/api/node/reach`) or moved (`element-subdomain.ts`), element deleted (`--remove --state=`), main
