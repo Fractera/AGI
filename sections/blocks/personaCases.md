@@ -21,7 +21,7 @@ it.
 ## When to take it
 
 One process that touches several parties, where the interesting part is that the same events look
-different to each of them: a client, a provider and a validator in one deal.
+different to each of them: a customer, a provider and the super-node that served the deal.
 
 ## When NOT to take it
 

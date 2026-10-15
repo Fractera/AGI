@@ -23,7 +23,7 @@ between Fractera projects through Lagrix, build process — «Build → Exchange
 
 | Page | Address | Why |
 |---|---|---|
-| Section home | `connectors` | The **Lagrix rating card** (`components/element-docs/lagrix-rating.tsx`): completed orders, partners' likes and dislikes, balance. Today a placeholder: every value is «—» until the element is connected to Lagrix. Below it — what an element and a node are. |
+| Section home | `connectors` | The **Lagrix reputation card** (`components/element-docs/lagrix-rating.tsx`): six indicators of changelog entries 43 and 44, each count · sum — all orders, likes, dislikes, burned, cancelled orders, unreviewed — and the proven-violation line. Today a placeholder: every value is «—» until the element is connected to Lagrix. Below it — what an element and a node are. |
 | A2A | `connectors/a2a` | The **showcase**: what the element can do, what it returns, to whom, at what price and limit (passport view `a2a`). |
 | Deals | `connectors/deals` | **Every deal** the element closed for another agent: a summary and the conversation behind it (`ElementOrdersIsland`, door `GET /api/node/element-orders`). Formerly «Process → Orders». |
 | API · MCP · Catalog | `connectors/api` · `mcp` · `catalog` | Technical description, folded under «Technical description»: HTTP doors, MCP tools, the node's elements. |
