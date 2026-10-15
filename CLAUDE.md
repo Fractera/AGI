@@ -758,6 +758,13 @@ Page `architect/passport` → one block `nodePassport` (`sections/blocks/node-pa
    registry (set only by «Take into the core», step 325). Without it — a red dot before the name and a red button «Order a
    description» → the element terminal with the describe task (`terminalLink`, the same link as in the element settings; owner chose
    «Вести в генерацию»).
+**Step 495-5 (owner 2026-10-15).** Every indicator and the violation line has an ⓘ hint (`indicator-hint.client.tsx`: hover on a
+computer, tap on a phone) — two plain lines «the number … / the sum …», owner: «Будь проще не надо дополнительное объяснение». The node
+card has its own texts «… of this node, including all its elements» (`lagrixNodeHints`), element cards «… of this element»; never one
+text for both. The whole page is ONE single-open accordion: node · wallet · every element (`LagrixRating` prop `item` — the header
+toggles, the title link stays a link); the node card is open on entry, opening any card closes all others; «Full description» and the
+wallet's before/after are their own nested accordions. The same rating card stands on the element home `/<lang>/<element>` of every
+born element (owner: «this statisk must exist in … /ru/roman (item root)»).
 🛑 The island asks once on open — no polling was ordered. The «cancelled orders» metric itself (how it is counted, refunds by like
 weight) is the owner's task saved as federal step 482 — not designed yet.
 
