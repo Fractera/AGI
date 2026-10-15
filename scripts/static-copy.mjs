@@ -143,6 +143,19 @@ if (process.argv.includes('--remove')) {
 const entry = (readJson(paths.REGISTRY_FILE)?.services ?? []).find((s) => s.id === id)
 if (!entry) { console.error('usage: static-copy.mjs <id> [--dry | --remove]'); process.exit(2) }
 const dir = paths.entryDir(entry)
+// 488-1 (владелец 2026-10-15: «публичный страницу делай доступную только по паролю архитектора»): сайт элемента закрыт
+// (`config/site-access.json` элемента несёт `site`) — копии быть не должно. Её снимают с петли, где хозяин проходит замок, и
+// Cloudflare раздавал бы закрытые страницы, когда компьютер выключен. Прежняя копия снимается; файла нет — всё как раньше.
+const access = readJson(join(dir, 'config', 'site-access.json'))
+if (access?.site) {
+  if (readJson(STATE)?.ok) {
+    const { spawnSync } = await import('node:child_process')
+    say(`сайт закрыт (${access.site}) — прежняя копия снимается`)
+    spawnSync(process.execPath, [join(ROOT, 'scripts', 'static-copy.mjs'), id, '--remove'], { cwd: ROOT, stdio: 'inherit', windowsHide: true })
+  } else say(`сайт закрыт (${access.site}) — копия не нужна`)
+  console.log('===COPY_SITE_CLOSED===')
+  process.exit(0)
+}
 const stamp = readJson(join(dir, '.install-stamp.json'))
 if (!stamp?.port || !stamp?.dist) fail('not-installed')
 const envText = (() => { try { return readFileSync(join(ROOT, '.env.local'), 'utf8') } catch { return '' } })()
