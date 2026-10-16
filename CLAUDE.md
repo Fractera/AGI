@@ -745,8 +745,11 @@ Page `architect/passport` → one block `nodePassport` (`sections/blocks/node-pa
 `components/dashboard/node-passport.client.tsx`), data from `GET /api/node/passport?lang=` (architect/admin; outside without a session
 → 401) built by `lib/agi-items/node-passport.ts` on top of `projectRows`. Order on the page:
 1. **The node rating card** — the Lagrix rating card of the element A2A home (`components/element-docs/lagrix-rating.tsx`, optional
-   title / lead / marker / slot) with six tiles of changelog entries 43 and 44, each count · sum: all orders · likes · dislikes · burned ·
-   cancelled orders · unreviewed, and the proven-violation line; no balance (step 495-1). The same card stands on every element A2A home.
+   title / lead / marker / slot) with six tiles of changelog entries 43, 44 and 46: all orders · likes · dislikes · negative ratings ·
+   cancelled orders · unreviewed, and the proven-violation line; no balance (step 495-1). Every tile is count · sum, except «negative
+   ratings» (step 511, owner 2026-10-16): how the element rates its partners — big «— %» (the weight of the dislikes it gave ÷ the weight of
+   its orders it could review), under it count · weight of those dislikes; the hint is the owner's text. «Burned» is gone (step 500
+   decided: a refund lowers the customer's likes). The same card stands on every element A2A home.
    Every value is «—» until the Lagrix network exists.
 2. **The node wallet** — `GET|POST|DELETE /api/node/wallet` (architect), file `data/node/wallet.json` (outside git), EVM address only
    (`0x` + 40 hex, else 422). Without a wallet — two cards in the page accordion: «before registering» (visible; search $0.10 in ordinary

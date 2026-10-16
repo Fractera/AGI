@@ -1,4 +1,4 @@
-import { BanIcon, ClipboardListIcon, FlameIcon, MessageSquareDashedIcon, ShieldAlertIcon, StarIcon, ThumbsDownIcon, ThumbsUpIcon } from "lucide-react"
+import { BanIcon, ClipboardListIcon, MessageSquareDashedIcon, MessageSquareWarningIcon, ShieldAlertIcon, StarIcon, ThumbsDownIcon, ThumbsUpIcon } from "lucide-react"
 import type { ComponentType, ReactNode } from "react"
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Eyebrow, Small } from "@/components/ui/typography"
@@ -11,8 +11,8 @@ import { IndicatorHint } from "./indicator-hint.client"
 // (the same rule as «—» on Dashboard → Projects, owner 2026-09-30).
 //
 // 495-1 (owner 2026-10-15): «под каждую позицию нужна своя карточка … в два ряда … на телефоне они стояли в колонку». Six indicators of
-// the protocol (changelog entries 43 and 44), each a pair «count · sum»: all orders, likes, dislikes, burned, cancelled orders, unreviewed.
-// Likes, dislikes and burned are weight (the fee paid, USDC); all orders, cancelled and unreviewed are sums of the deals' network parts.
+// the protocol (changelog entries 43 and 44), each a pair «count · sum»: all orders, likes, dislikes, cancelled orders, unreviewed, and (511) negative ratings.
+// Likes and dislikes are weight (the fee paid, USDC); all orders, cancelled and unreviewed are sums of the deals' network parts.
 // Under them the «proven violation as a super-node» line. No balance: the card shows reputation, not money. The passport passes its own
 // title, lead, a marker before the title and a slot under the header; the A2A home page passes nothing.
 //
@@ -20,6 +20,11 @@ import { IndicatorHint } from "./indicator-hint.client"
 // indicator and after the violation line, worded from changelog entries 43 and 44. «Все указанные блоки карточек это аккордеон» — with
 // `item` the card becomes one item of the caller's Accordion: the whole header opens and closes it (the toggle is stretched over the
 // header; a link in the title stays a link above it), the body collapses.
+//
+// 511 (owner 2026-10-16): «устаревшие карточка называется сгорела вот туда … ставь заглушку: негативные оценки(?)». The «burned» tile is
+// gone (burned left the protocol, step 500 decided); its place takes «negative ratings» — how the element rates its partners: the share of
+// its orders, by weight (the fee paid), that ended with its own dislike. Big «— %», under it the pair «count · weight» of the dislikes it
+// gave: a count is never shown without its sum (entry 43), and 100 % of one deal must not look like 100 % of a hundred.
 
 export type LagrixRatingWords = {
   eyebrow: string
@@ -28,16 +33,18 @@ export type LagrixRatingWords = {
   orders: string
   likes: string
   dislikes: string
-  burned: string
+  negative: string
   cancelled: string
   unreviewed: string
-  /** «count · weight» — under likes, dislikes and burned. */
+  /** «count · weight» — under likes and dislikes. */
   weightUnit: string
+  /** Under «negative ratings»: the percent by weight, then «count · weight» of the dislikes given (511). */
+  percentUnit: string
   /** «count · sum» — under all orders, cancelled and unreviewed. */
   sumUnit: string
   violation: string
   /** Hints after each indicator name and after the violation line (495-5). */
-  hints: Record<"orders" | "likes" | "dislikes" | "burned" | "cancelled" | "unreviewed" | "violation", string[]>
+  hints: Record<"orders" | "likes" | "dislikes" | "negative" | "cancelled" | "unreviewed" | "violation", string[]>
   /** Accessible name of the hint button, «What it means». */
   hint: string
   /** Accessible name of the card's open/close toggle in accordion mode. */
@@ -46,12 +53,12 @@ export type LagrixRatingWords = {
   note: string
 }
 
-type Indicator = { key: "orders" | "likes" | "dislikes" | "burned" | "cancelled" | "unreviewed"; Icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>; tone: string; unit: "weightUnit" | "sumUnit" }
+type Indicator = { key: "orders" | "likes" | "dislikes" | "negative" | "cancelled" | "unreviewed"; Icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>; tone: string; unit: "weightUnit" | "sumUnit" | "percentUnit" }
 const INDICATORS: Indicator[] = [
   { key: "orders", Icon: ClipboardListIcon, tone: "text-primary", unit: "sumUnit" },
   { key: "likes", Icon: ThumbsUpIcon, tone: "text-primary", unit: "weightUnit" },
   { key: "dislikes", Icon: ThumbsDownIcon, tone: "text-muted-foreground", unit: "weightUnit" },
-  { key: "burned", Icon: FlameIcon, tone: "text-destructive", unit: "weightUnit" },
+  { key: "negative", Icon: MessageSquareWarningIcon, tone: "text-destructive", unit: "percentUnit" },
   { key: "cancelled", Icon: BanIcon, tone: "text-destructive", unit: "sumUnit" },
   { key: "unreviewed", Icon: MessageSquareDashedIcon, tone: "text-muted-foreground", unit: "sumUnit" },
 ]
@@ -77,11 +84,25 @@ export function LagrixRating({ words, title, lead, marker, children, id, item }:
                 {words[key]}
                 <IndicatorHint label={`${words[key]}: ${words.hint}`} text={words.hints[key]} />
               </Small>
-              <p className="flex items-baseline gap-2 font-mono text-4xl font-black tracking-tight tabular-nums text-foreground" aria-label={`${words[key]}: ${words[unit]}`}>
-                {words.empty}
-                <span aria-hidden className="text-2xl font-semibold text-muted-foreground">·</span>
-                {words.empty}
-              </p>
+              {unit === "percentUnit" ? (
+                <div className="flex flex-col gap-1" aria-label={`${words[key]}: ${words[unit]}`}>
+                  <p className="flex items-baseline gap-1 font-mono text-4xl font-black tracking-tight tabular-nums text-foreground">
+                    {words.empty}
+                    <span aria-hidden className="text-2xl font-semibold text-muted-foreground">%</span>
+                  </p>
+                  <p className="flex items-baseline gap-2 font-mono text-lg font-bold tabular-nums text-muted-foreground">
+                    {words.empty}
+                    <span aria-hidden>·</span>
+                    {words.empty}
+                  </p>
+                </div>
+              ) : (
+                <p className="flex items-baseline gap-2 font-mono text-4xl font-black tracking-tight tabular-nums text-foreground" aria-label={`${words[key]}: ${words[unit]}`}>
+                  {words.empty}
+                  <span aria-hidden className="text-2xl font-semibold text-muted-foreground">·</span>
+                  {words.empty}
+                </p>
+              )}
               <Small>{words[unit]}</Small>
             </div>
           ))}
