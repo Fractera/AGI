@@ -239,6 +239,10 @@ const redirects = {} // путь → куда; Worker отдаёт их, тол�
 // Языковые двойники страницы — из её же `<link rel="alternate" hreflang>`: у auth в окружении нет списка языков, а `/ru` есть (385).
 const alternates = (html) => [...html.matchAll(/<link[^>]*hreflang="[^"]+"[^>]*>/g)].map((m) => m[0].match(/href="([^"]+)"/)?.[1])
   .map((u) => { try { return new URL(u, 'http://x').pathname.replace(/\/+$/, '') || '/' } catch { return null } }).filter(Boolean)
+// Свои картинки страницы: `<img src>` и `og:image` — относительные или на одном из адресов этого элемента.
+const imagePaths = new Set()
+const pageImages = (html) => [...html.matchAll(/<img[^>]*\ssrc="([^"]+)"|<meta[^>]*property="og:image"[^>]*content="([^"]+)"/g)].map((m) => (m[1] ?? m[2]).replace(/&amp;/g, '&'))
+  .map((u) => { try { const x = new URL(u, 'http://x'); return (x.host === 'x' || hosts.includes(x.host)) && !x.search ? decodeURIComponent(x.pathname) : null } catch { return null } }).filter(Boolean)
 for (let i = 0; i < pagePaths.length && pagePaths.length < 2000; i++) {
   const p = pagePaths[i]
   const r = await fetch(origin + p, { redirect: 'manual', signal: AbortSignal.timeout(60_000) }).catch(() => null)
@@ -249,9 +253,20 @@ for (let i = 0; i < pagePaths.length && pagePaths.length < 2000; i++) {
   if (/private|no-store/i.test(r.headers.get('cache-control') ?? '')) { say(`пропущена ${p}: динамическая`); continue }
   const buf = Buffer.from(await r.arrayBuffer())
   files.set(p === '/' ? '/index.html' : `${p}.html`, buf)
-  for (const a of alternates(buf.toString('utf8'))) if (!pagePaths.includes(a)) pagePaths.push(a)
+  const html = buf.toString('utf8')
+  for (const a of alternates(html)) if (!pagePaths.includes(a)) pagePaths.push(a)
+  for (const u of pageImages(html)) imagePaths.add(u)
 }
 if (files.size === 0) fail('no-pages', `сервер ${origin} не отдал ни одной страницы`)
+// Картинки, которые рисует сервер (обложка `/<язык>/<страница>/snippet.png`, og:image), — не файлы `public/` и не `_next/static`:
+// без этого шага дом молчит — и у постов вместо картинки значок «нет изображения» (владелец 2026-10-17, «Да, в ядре»). Берутся только
+// свои пути без `?`: адрес с запросом файлом копии стать не может.
+for (const p of imagePaths) {
+  if (files.has(p) || p.startsWith('/_next/static/') || existsSync(join(dir, 'public', p))) continue
+  const r = await fetch(origin + p, { signal: AbortSignal.timeout(60_000) }).catch(() => null)
+  if (!r || r.status !== 200 || !(r.headers.get('content-type') ?? '').startsWith('image/')) { say(`картинка пропущена ${p}: ${r ? r.status : 'нет ответа'}`); continue }
+  files.set(p, Buffer.from(await r.arrayBuffer()))
+}
 for (const f of ['/robots.txt', '/sitemap.xml', '/manifest.webmanifest', '/llms.txt']) {
   const r = await fetch(origin + f).catch(() => null)
   if (r?.status === 200) files.set(f, Buffer.from(await r.arrayBuffer()))
