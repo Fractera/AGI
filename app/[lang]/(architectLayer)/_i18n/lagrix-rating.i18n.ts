@@ -5,6 +5,7 @@
 // 511: «Сгорело» снято (шаг 500 решён); на его месте «Негативные оценки» — подсказка словами владельца: «показывает какой процент заказов
 // этот узел или элемент оценивает как негативный опыт. Чем больше этих оценок тем выше вероятность того что этот партнёр и ваше
 // сотрудничество оценит негативно».
+// 517-1: слова карточки «Отзывы» под строкой нарушения — макет на примерах (владелец: «only hard code»).
 
 import type { LagrixRatingWords } from "@/components/element-docs/lagrix-rating"
 
@@ -36,6 +37,52 @@ const DICT: Record<"en" | "ru", LagrixRatingWords> = {
     toggle: "Show or hide",
     empty: "—",
     note: "The numbers appear when the element is connected to Lagrix.",
+    reviews: {
+      "locale": "en",
+      "title": "Reviews",
+      "hint": [
+        "the share of this element's closed orders where it has already left its review",
+        "open orders do not count: a review is given only after the order is closed"
+      ],
+      "toggle": "Show or hide the orders",
+      "ofClosed": "closed orders reviewed",
+      "sample": "Example: invented orders that show how this card will work. Real orders appear here later.",
+      "provider": "provider",
+      "customer": "customer",
+      "with": "With",
+      "closedAt": "Closed",
+      "amount": "Through the network",
+      "like": "Like given",
+      "dislike": "Dislike given",
+      "noReview": "No review yet",
+      "open": "Order in progress",
+      "left": "Until closing",
+      "afterClosing": "A review can be given after the order is closed",
+      "reviewPage": "Review page",
+      "noPage": "No review page attached",
+      "recall": "Recall and review",
+      "networkNumber": "Network deal number: —",
+      "samples": [
+        "A landing section that explains the A2A rating, with texts in English and Russian.",
+        "A cover picture for a post, 1200 × 630, in the brand colours.",
+        "A translation of the help-desk answers into Spanish.",
+        "A check of a page's links and headings before publishing.",
+        "A price table and order form for the shop page.",
+        "A short video of the product, 30 seconds, with subtitles."
+      ],
+      "dialog": {
+        "title": "Recall this order with your agent",
+        "why": "It is hard to remember what a conversation was about even a few minutes later, let alone a day or several days later. Your element's agent keeps the summary and the conversation of every order. Copy the order number and bring it to your agent in the terminal or in Telegram: it will remind you what was done, you will agree together on the review, and the agent will give it.",
+        "number": "Order number",
+        "copy": "Copy",
+        "copied": "Copied",
+      "copyFailed": "Could not copy here: select the number above and copy it by hand.",
+        "terminal": "In the element's terminal",
+        "telegram": "In Telegram, write to your agent",
+        "telegramPhrase": "review the order",
+        "close": "Close"
+      }
+    },
   },
   ru: {
     eyebrow: "Lagrix",
@@ -64,6 +111,52 @@ const DICT: Record<"en" | "ru", LagrixRatingWords> = {
     toggle: "Показать или свернуть",
     empty: "—",
     note: "Показатели появятся, когда элемент подключится к Lagrix.",
+    reviews: {
+      "locale": "ru",
+      "title": "Отзывы",
+      "hint": [
+        "какая доля закрытых заказов этого элемента уже получила его отзыв",
+        "незакрытые заказы не считаются: отзыв ставят только после закрытия"
+      ],
+      "toggle": "Показать или свернуть заказы",
+      "ofClosed": "закрытых заказов с отзывом",
+      "sample": "Пример: выдуманные заказы показывают, как будет работать эта карточка. Настоящие заказы появятся здесь позже.",
+      "provider": "исполнитель",
+      "customer": "заказчик",
+      "with": "С кем",
+      "closedAt": "Закрыт",
+      "amount": "Через сеть",
+      "like": "Поставлен лайк",
+      "dislike": "Поставлен дизлайк",
+      "noReview": "Отзыва ещё нет",
+      "open": "Заказ в работе",
+      "left": "До закрытия",
+      "afterClosing": "Отзыв можно поставить после закрытия заказа",
+      "reviewPage": "Страница отзыва",
+      "noPage": "Страница отзыва не привязана",
+      "recall": "Вспомнить и оценить",
+      "networkNumber": "Номер сделки в сети: —",
+      "samples": [
+        "Секция лендинга, которая объясняет рейтинг A2A, с текстами на английском и русском.",
+        "Обложка для поста, 1200 × 630, в цветах бренда.",
+        "Перевод ответов справочного бюро на испанский.",
+        "Проверка ссылок и заголовков страницы перед публикацией.",
+        "Таблица цен и форма заказа для страницы магазина.",
+        "Короткое видео о продукте, 30 секунд, с субтитрами."
+      ],
+      "dialog": {
+        "title": "Вспомните этот заказ вместе с агентом",
+        "why": "Вспомнить, о чём была беседа, трудно уже через несколько минут, а тем более на следующий день или через несколько дней. Агент вашего элемента хранит сводку и беседу каждого заказа. Скопируйте номер заказа и принесите его агенту в терминал или в Telegram: он напомнит, что было сделано, вы вместе договоритесь об отзыве, и агент его поставит.",
+        "number": "Номер заказа",
+        "copy": "Скопировать",
+        "copied": "Скопировано",
+      "copyFailed": "Здесь скопировать не удалось: выделите номер выше и скопируйте вручную.",
+        "terminal": "В терминале элемента",
+        "telegram": "В Telegram напишите своему агенту",
+        "telegramPhrase": "отзыв по заказу",
+        "close": "Закрыть"
+      }
+    },
   },
 }
 
@@ -86,6 +179,13 @@ const NODE_HINTS: Record<"en" | "ru", LagrixRatingWords["hints"]> = {
     unreviewed: ["общее число заказов, по которым элементы этого узла не оставили отзыв", "их общая сумма"],
     violation: ["есть ли у этого узла доказанное нарушение в роли супер-узла"],
   },
+}
+
+/** Hint of the «Reviews» card on the node's card (517-1): the node's own words, as for every indicator (495-5). */
+export function lagrixNodeReviewsHint(lang: string): string[] {
+  return lang === "ru"
+    ? ["какая доля закрытых заказов всех элементов этого узла уже получила их отзыв", "незакрытые заказы не считаются: отзыв ставят только после закрытия"]
+    : ["the share of closed orders of all elements of this node where they have already left their review", "open orders do not count: a review is given only after the order is closed"]
 }
 
 /** Hints of the node's card on the passport (495-5). */

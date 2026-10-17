@@ -4,6 +4,7 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Eyebrow, Small } from "@/components/ui/typography"
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { IndicatorHint } from "./indicator-hint.client"
+import { LagrixReviews, type LagrixReviewsWords } from "./lagrix-reviews.client"
 
 // THE ELEMENT'S REPUTATION IN Lagrix (step 436-3) — on the home page of «Links (A2A)» and on the node passport (478-1).
 //
@@ -25,6 +26,9 @@ import { IndicatorHint } from "./indicator-hint.client"
 // gone (burned left the protocol, step 500 decided); its place takes «negative ratings» — how the element rates its partners: the share of
 // its orders, by weight (the fee paid), that ended with its own dislike. Big «— %», under it the pair «count · weight» of the dislikes it
 // gave: a count is never shown without its sum (entry 43), and 100 % of one deal must not look like 100 % of a hundred.
+//
+// 517-1 (owner 2026-10-17): under the violation line — the «Reviews» card (`lagrix-reviews.client.tsx`): which orders already have a
+// review, which wait for one and which are still open. A mockup on sample orders (owner: «only hard code»), on every card of this kind.
 
 export type LagrixRatingWords = {
   eyebrow: string
@@ -51,6 +55,8 @@ export type LagrixRatingWords = {
   toggle: string
   empty: string
   note: string
+  /** The «Reviews» card under the violation line (517-1). */
+  reviews: LagrixReviewsWords
 }
 
 type Indicator = { key: "orders" | "likes" | "dislikes" | "negative" | "cancelled" | "unreviewed"; Icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>; tone: string; unit: "weightUnit" | "sumUnit" | "percentUnit" }
@@ -115,6 +121,7 @@ export function LagrixRating({ words, title, lead, marker, children, id, item }:
           </Small>
           <span className="font-mono text-lg font-bold tabular-nums text-foreground">{words.empty}</span>
         </div>
+        <LagrixReviews words={words.reviews} id={id} />
         <Small>{words.note}</Small>
       </CardContent>
   )

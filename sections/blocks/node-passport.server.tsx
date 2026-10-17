@@ -1,10 +1,10 @@
 import type { SectionRenderer } from '@/sections/contract'
 import { NodePassport, type NodePassportWords } from '@/components/dashboard/node-passport.client'
-import { lagrixNodeHints, lagrixRatingUi } from '@/app/[lang]/(architectLayer)/_i18n/lagrix-rating.i18n'
+import { lagrixNodeHints, lagrixNodeReviewsHint, lagrixRatingUi } from '@/app/[lang]/(architectLayer)/_i18n/lagrix-rating.i18n'
 
 // «ПАСПОРТ» УЗЛА (478-1): слова берутся здесь, на сервере, и уходят островку пропсами. Слова карточки рейтинга — те же, что на
 // главной A2A элемента (`lagrixRatingUi`), здесь только заголовки и подписи паспорта.
-const WORDS: Record<string, Omit<NodePassportWords, 'rating' | 'nodeHints'>> = {
+const WORDS: Record<string, Omit<NodePassportWords, 'rating' | 'nodeHints' | 'nodeReviewsHint'>> = {
   en: {
     nodeTitle: 'The node in Lagrix: reputation of its elements',
     nodeLead: 'A summary of the indicators of all elements of this node: every deal any of them pays through the network adds here.',
@@ -88,5 +88,5 @@ const WORDS: Record<string, Omit<NodePassportWords, 'rating' | 'nodeHints'>> = {
 }
 
 export const nodePassport: SectionRenderer<'nodePassport'> = (b, { key: k }) => (
-  <NodePassport key={k} lang={b.lang} words={{ ...(WORDS[b.lang] ?? WORDS.en), rating: lagrixRatingUi(b.lang), nodeHints: lagrixNodeHints(b.lang) }} />
+  <NodePassport key={k} lang={b.lang} words={{ ...(WORDS[b.lang] ?? WORDS.en), rating: lagrixRatingUi(b.lang), nodeHints: lagrixNodeHints(b.lang), nodeReviewsHint: lagrixNodeReviewsHint(b.lang) }} />
 )
