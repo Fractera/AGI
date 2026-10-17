@@ -768,6 +768,14 @@ text for both. The whole page is ONE single-open accordion: node · wallet · ev
 toggles, the title link stays a link); the node card is open on entry, opening any card closes all others; «Full description» and the
 wallet's before/after are their own nested accordions. The same rating card stands on the element home `/<lang>/<element>` of every
 born element (owner: «this statisk must exist in … /ru/roman (item root)»).
+**Step 517-1 (owner 2026-10-17) — «Reviews» under the violation line.** Every `LagrixRating` (passport node and element cards, element
+home, A2A home) carries a collapsible «Reviews · N %» card (`components/element-docs/lagrix-reviews.client.tsx`): N = closed orders with
+a review ÷ closed orders (open orders cannot be reviewed — Lagrix 17.5). Open: one card per order — green dot + «Review page» link, red dot
++ «Recall and review» (a dialog: why, the order number with Copy, `/review-order <number>` for the terminal, a phrase for Telegram), grey
+dot + countdown («review after closing»). 🛑 **It is a MOCKUP** (owner: «only hard code … я сейчас моделирую интерфейс … не более того»):
+the rows come from ONE file, `lagrix-reviews.sample.ts`, and the card says «Example» above the list. Real orders (summaries, A2A journal)
+replace that one file later; nothing is written anywhere. The countdown ticks only while the list is open and asks no door. The node card
+has its own hint (`lagrixNodeReviewsHint`). Skill `review-order` — first draft in roman (517-2).
 🛑 The island asks once on open — no polling was ordered. The «cancelled orders» metric itself (how it is counted, refunds by like
 weight) is the owner's task saved as federal step 482 — not designed yet.
 
