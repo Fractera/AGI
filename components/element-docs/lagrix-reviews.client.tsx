@@ -5,7 +5,7 @@ import { CheckIcon, CopyIcon, ExternalLinkIcon, MessageSquareTextIcon, ThumbsDow
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { AppDialog } from "@/components/dialog/app-dialog.client"
 import { Small } from "@/components/ui/typography"
 import { IndicatorHint } from "./indicator-hint.client"
 import { SAMPLE_ORDERS, type SampleOrder } from "./lagrix-reviews.sample"
@@ -84,40 +84,37 @@ function RecallDialog({ order, words }: { order: string; words: LagrixReviewsWor
     setCopied(ok ? "yes" : "failed")
     if (ok) setTimeout(() => setCopied("no"), 1500)
   }
+  const [open, setOpen] = useState(false)
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="destructive" data-review-recall>
-          <MessageSquareTextIcon aria-hidden />
-          {words.recall}
-        </Button>
-      </DialogTrigger>
-      <DialogContent closeLabel={words.dialog.close} data-review-dialog>
-        <DialogHeader>
-          <DialogTitle>{words.dialog.title}</DialogTitle>
-          <DialogDescription>{words.dialog.why}</DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col gap-2">
-          <Small className="font-medium text-foreground">{words.dialog.number}</Small>
-          <div className="flex items-center gap-2">
-            <code className="min-w-0 flex-1 truncate rounded-md border bg-muted px-3 py-2 font-mono text-xs" data-review-dialog-order>{order}</code>
-            <Button size="sm" variant="outline" onClick={copy} aria-label={words.dialog.copy}>
-              {copied === "yes" ? <CheckIcon aria-hidden /> : <CopyIcon aria-hidden />}
-              {copied === "yes" ? words.dialog.copied : words.dialog.copy}
-            </Button>
+    <>
+      <Button size="sm" variant="destructive" onClick={() => setOpen(true)} data-review-recall>
+        <MessageSquareTextIcon aria-hidden />
+        {words.recall}
+      </Button>
+      <AppDialog open={open} onOpenChange={setOpen} title={words.dialog.title} description={words.dialog.why} ui={{ close: words.dialog.close }}>
+        <div className="flex flex-col gap-4" data-review-dialog>
+          <div className="flex flex-col gap-2">
+            <Small className="font-medium text-foreground">{words.dialog.number}</Small>
+            <div className="flex items-center gap-2">
+              <code className="min-w-0 flex-1 truncate rounded-md border bg-muted px-3 py-2 font-mono text-xs" data-review-dialog-order>{order}</code>
+              <Button size="sm" variant="outline" onClick={copy} aria-label={words.dialog.copy}>
+                {copied === "yes" ? <CheckIcon aria-hidden /> : <CopyIcon aria-hidden />}
+                {copied === "yes" ? words.dialog.copied : words.dialog.copy}
+              </Button>
+            </div>
+            {copied === "failed" && <Small className="text-destructive">{words.dialog.copyFailed}</Small>}
           </div>
-          {copied === "failed" && <Small className="text-destructive">{words.dialog.copyFailed}</Small>}
+          <div className="flex flex-col gap-2">
+            <Small className="font-medium text-foreground">{words.dialog.terminal}</Small>
+            <code className="rounded-md border bg-muted px-3 py-2 font-mono text-xs break-all" data-review-dialog-keyword>/review-order {order}</code>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Small className="font-medium text-foreground">{words.dialog.telegram}</Small>
+            <code className="rounded-md border bg-muted px-3 py-2 font-mono text-xs break-all">{words.dialog.telegramPhrase} {order}</code>
+          </div>
         </div>
-        <div className="flex flex-col gap-2">
-          <Small className="font-medium text-foreground">{words.dialog.terminal}</Small>
-          <code className="rounded-md border bg-muted px-3 py-2 font-mono text-xs break-all" data-review-dialog-keyword>/review-order {order}</code>
-        </div>
-        <div className="flex flex-col gap-2">
-          <Small className="font-medium text-foreground">{words.dialog.telegram}</Small>
-          <code className="rounded-md border bg-muted px-3 py-2 font-mono text-xs break-all">{words.dialog.telegramPhrase} {order}</code>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </AppDialog>
+    </>
   )
 }
 
