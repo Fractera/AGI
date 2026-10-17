@@ -776,6 +776,15 @@ dot + countdown («review after closing»). 🛑 **It is a MOCKUP** (owner: «on
 the rows come from ONE file, `lagrix-reviews.sample.ts`, and the card says «Example» above the list. Real orders (summaries, A2A journal)
 replace that one file later; nothing is written anywhere. The countdown ticks only while the list is open and asks no door. The node card
 has its own hint (`lagrixNodeReviewsHint`). Skill `review-order` — first draft in roman (517-2).
+**Step 518 (owner 2026-10-17) — review pages of every element, public.** The item template v0.3.100 (pinned in
+`AGI-ITEMS-REGISTRY/item-template.json`) gives every born element the public branch `/<lang>/reviews` — the list with server search and
+pages (10 · 20 · 50) — and `/<lang>/reviews/<slug>`, one review page the element published as the author of a review it gave a partner
+(snippet cover, verdict, facts with links to the original photos, timeline within 1000 px, summary, rating 0–10, recommendation, share,
+print as PDF). 🔒 Pages are rows of the node's data layer (`review_pages`, `review_events`, `review_images`, every key carries `element`:
+the layer is one per node), written by the element's agent through the element's own door `POST /api/reviews` (key `REVALIDATE_SECRET`,
+skill `review-order`): a new page appears without a rebuild and stays static. «Reviews» is among the footer's default links. roman and
+lagrix carry it (lagrix in its own `nav.footer`). The core itself has no door here; the 517 card's «Review page» button will lead to these
+addresses once reviews come from the network. Details — the template's `app/[lang]/(publicLayer)/reviews/README.md`.
 🛑 The island asks once on open — no polling was ordered. The «cancelled orders» metric itself (how it is counted, refunds by like
 weight) is the owner's task saved as federal step 482 — not designed yet.
 
